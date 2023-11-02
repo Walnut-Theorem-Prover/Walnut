@@ -69,6 +69,15 @@ test {
 jacocoTestReport {
     dependsOn test // tests are required to run before generating the report
 }
+apply plugin: 'java'
+
+test {
+    testLogging {
+        outputs.upToDateWhen {false}
+        showStandardStreams = true
+    }
+}
+
 
 
 task customFatJar(type: Jar) {
