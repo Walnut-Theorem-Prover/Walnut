@@ -346,7 +346,17 @@ public class Automaton {
             }
         }
 
-        /* Turn the result back to Walnut format for Automata */
+        convertValmariToWalnut(T, L, H);
+        canonized = false;
+    }
+
+    /**
+     * Turn the result back to Walnut format for Automata
+     * @param T
+     * @param L
+     * @param H
+     */
+    private void convertValmariToWalnut(int[] T, int[] L, int[] H) {
         Q = B.z;
 
         q0 = B.S[q0];
@@ -375,7 +385,6 @@ public class Automaton {
                 d.get(q).get(l).add(p);
             }
         }
-        canonized = false;
     }
 
     /**
@@ -3517,7 +3526,6 @@ public class Automaton {
         }
 
         minimize_valmari(newMemD, print, prefix + " ", log);
-        //minimize_hopcroft();
 
         long timeAfter = System.currentTimeMillis();
         if(print) {
@@ -3525,21 +3533,6 @@ public class Automaton {
             System.out.println("----- " + msg);
             log.append(msg + UtilityMethods.newLine());
         }
-    }
-
-    /**
-     * Uses the Hopcroft minimization algorithm of the package dk.brics.automaton to minimize this automaton.
-     */
-    private void minimize_hopcroft()throws Exception{
-        dk.brics.automaton.Automaton M = to_dk_bricks_automaton();
-        if(M.isDeterministic()){
-            M.minimize();
-        }
-        else{
-            M.determinize();
-            M.minimize();
-        }
-        setThisAutomatonToRepresent(M);
     }
 
     /**
