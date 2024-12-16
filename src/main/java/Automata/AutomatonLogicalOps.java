@@ -731,9 +731,7 @@ public class AutomatonLogicalOps {
             System.out.println(msg);
         }
         automaton.canonized = false;
-        List<Integer> ZERO = new ArrayList<>();//all zero input
-        for (List<Integer> i : automaton.A) ZERO.add(i.indexOf(0));
-        int zero = automaton.encode(ZERO);
+        int zero = determineZero(automaton);
         if (!automaton.d.get(automaton.q0).containsKey(zero)) {
             automaton.d.get(automaton.q0).put(zero, new IntArrayList());
         }
@@ -752,6 +750,12 @@ public class AutomatonLogicalOps {
         }
     }
 
+    private static int determineZero(Automaton automaton) {
+        List<Integer> ZERO = new ArrayList<>(automaton.A.size());//all zero input
+        for (List<Integer> i : automaton.A) ZERO.add(i.indexOf(0));
+        return automaton.encode(ZERO);
+    }
+
     public static void fixTrailingZerosProblem(Automaton automaton, boolean print, String prefix, StringBuilder log) throws Exception {
         long timeBefore = System.currentTimeMillis();
         if (print) {
@@ -760,10 +764,7 @@ public class AutomatonLogicalOps {
             System.out.println(msg);
         }
         automaton.canonized = false;
-        Set<Integer> newFinalStates;// = statesReachableFromFinalStatesByZeros();
-        newFinalStates = statesReachableToFinalStatesByZeros(automaton);
-        List<Integer> ZERO = new ArrayList<>();//all zero input
-        for (List<Integer> i : automaton.A) ZERO.add(i.indexOf(0));
+        Set<Integer> newFinalStates = statesReachableToFinalStatesByZeros(automaton);
         for (int q : newFinalStates) {
             automaton.O.set(q, 1);
         }
@@ -883,9 +884,7 @@ public class AutomatonLogicalOps {
         IntSet result = new IntOpenHashSet();
         Queue<Integer> queue = new LinkedList<>();
         queue.add(automaton.q0);
-        List<Integer> ZERO = new ArrayList<>();//all zero input
-        for (List<Integer> i : automaton.A) ZERO.add(i.indexOf(0));
-        int zero = automaton.encode(ZERO);
+        int zero = determineZero(automaton);
         while (!queue.isEmpty()) {
             int q = queue.poll();
             result.add(q);
@@ -907,9 +906,7 @@ public class AutomatonLogicalOps {
     private static Set<Integer> statesReachableToFinalStatesByZeros(Automaton automaton) {
         Set<Integer> result = new HashSet<>();
         Queue<Integer> queue = new LinkedList<>();
-        List<Integer> ZERO = new ArrayList<>();
-        for (List<Integer> i : automaton.A) ZERO.add(i.indexOf(0));
-        int zero = automaton.encode(ZERO);
+        int zero = determineZero(automaton);
         //this is the adjacency matrix of the reverse of the transition graph of this automaton on 0
         List<List<Integer>> adjacencyList = new ArrayList<>();
         for (int q = 0; q < automaton.Q; q++) adjacencyList.add(new ArrayList<>());
@@ -1096,8 +1093,7 @@ public class AutomatonLogicalOps {
                 throw new Exception(
                         "Variable " + s + " in the list of quantified variables is not a free variable.");
             }
-
-            if (name_of_labels.length() == 0) {
+            if (name_of_labels.isEmpty()) {
                 name_of_labels += s;
             } else {
                 name_of_labels += "," + s;
@@ -1115,10 +1111,7 @@ public class AutomatonLogicalOps {
          * It is true if this's language is not empty.
          */
         if (listOfLabelsToQuantify.size() == automaton.A.size()) {
-            if (automaton.isEmpty())
-                automaton.TRUE_AUTOMATON = false;
-            else
-                automaton.TRUE_AUTOMATON = true;
+            automaton.TRUE_AUTOMATON = !automaton.isEmpty();
             automaton.TRUE_FALSE_AUTOMATON = true;
             automaton.clear();
             return;
@@ -1220,23 +1213,8 @@ public class AutomatonLogicalOps {
             automaton.minimize(newMemD, print, prefix + " ", log);
         }
 
-        // flip the number system from msd to lsd and vice versa.
         if (reverseMsd) {
-            for (int i = 0; i < automaton.NS.size(); i++) {
-                if (automaton.NS.get(i) == null) {
-                    continue;
-                }
-                int indexOfUnderscore = automaton.NS.get(i).getName().indexOf("_");
-                String msd_or_lsd = automaton.NS.get(i).getName().substring(0, indexOfUnderscore);
-                String suffix = automaton.NS.get(i).getName().substring(indexOfUnderscore);
-                String newName;
-                if (msd_or_lsd.equals("msd")) {
-                    newName = "lsd" + suffix;
-                } else {
-                    newName = "msd" + suffix;
-                }
-                automaton.NS.set(i, new NumberSystem(newName));
-            }
+            flipNS(automaton);
         }
 
         long timeAfter = System.currentTimeMillis();
@@ -1244,6 +1222,20 @@ public class AutomatonLogicalOps {
             String msg = prefix + "reversed:" + automaton.Q + " states - " + (timeAfter - timeBefore) + "ms";
             log.append(msg + System.lineSeparator());
             System.out.println(msg);
+        }
+    }
+
+    // flip the number system from msd to lsd and vice versa.
+    private static void flipNS(Automaton automaton) throws Exception {
+        for (int i = 0; i < automaton.NS.size(); i++) {
+            if (automaton.NS.get(i) == null) {
+                continue;
+            }
+            int indexOfUnderscore = automaton.NS.get(i).getName().indexOf("_");
+            String msd_or_lsd = automaton.NS.get(i).getName().substring(0, indexOfUnderscore);
+            String suffix = automaton.NS.get(i).getName().substring(indexOfUnderscore);
+            String newName = (msd_or_lsd.equals("msd") ? "lsd" : "msd") + suffix;
+            automaton.NS.set(i, new NumberSystem(newName));
         }
     }
 
@@ -1350,23 +1342,8 @@ public class AutomatonLogicalOps {
 
             automaton.d = newD;
 
-            // flip the number system from msd to lsd and vice versa.
             if (reverseMsd) {
-                for (int i = 0; i < automaton.NS.size(); i++) {
-                    if (automaton.NS.get(i) == null) {
-                        continue;
-                    }
-                    int indexOfUnderscore = automaton.NS.get(i).getName().indexOf("_");
-                    String msd_or_lsd = automaton.NS.get(i).getName().substring(0, indexOfUnderscore);
-                    String suffix = automaton.NS.get(i).getName().substring(indexOfUnderscore);
-                    String newName;
-                    if (msd_or_lsd.equals("msd")) {
-                        newName = "lsd" + suffix;
-                    } else {
-                        newName = "msd" + suffix;
-                    }
-                    automaton.NS.set(i, new NumberSystem(newName));
-                }
+                flipNS(automaton);
             }
 
             automaton.minimizeSelfWithOutput(print, prefix + " ", log);
@@ -1824,7 +1801,8 @@ public class AutomatonLogicalOps {
      * @return
      * @throws Exception
      */
-    public static Automaton compare(Automaton automaton, Automaton W, String operator, boolean print, String prefix, StringBuilder log) throws Exception {
+    public static Automaton compare(
+            Automaton automaton, Automaton W, String operator, boolean print, String prefix, StringBuilder log) throws Exception {
         long timeBefore = System.currentTimeMillis();
         if (print) {
             String msg = prefix + "comparing (" + operator + "):" + automaton.Q + " states - " + W.Q + " states";
@@ -1853,7 +1831,8 @@ public class AutomatonLogicalOps {
      * @return
      * @throws Exception
      */
-    public static void compare(Automaton automaton, int o, String operator, boolean print, String prefix, StringBuilder log) throws Exception {
+    public static void compare(
+            Automaton automaton, int o, String operator, boolean print, String prefix, StringBuilder log) throws Exception {
         long timeBefore = System.currentTimeMillis();
         if (print) {
             String msg = prefix + "comparing (" + operator + ") against " + o + ":" + automaton.Q + " states";

@@ -191,8 +191,7 @@ public class Transducer extends Automaton {
                         throw new Exception("This automaton requires a " + A.size() +
                                 "-tuple as input: line " + lineNumber + " of file " + address);
                     }
-                    List<List<Integer>> inputs = expandWildcard(input);
-
+                    List<List<Integer>> inputs = expandWildcard(this.A, input);
                     for(List<Integer> i : inputs) {
                         currentStateTransitions.put(encode(i), dest);
                         if (output.size() == 1) {

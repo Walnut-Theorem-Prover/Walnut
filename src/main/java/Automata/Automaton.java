@@ -469,7 +469,7 @@ public class Automaton {
                         throw new Exception("This automaton requires a " + A.size() +
                                 "-tuple as input: line " + lineNumber + " of file " + address);
                     }
-                    List<List<Integer>> inputs = expandWildcard(input);
+                    List<List<Integer>> inputs = expandWildcard(this.A, input);
 
                     for (List<Integer> i : inputs) {
                         currentStateTransitions.put(encode(i), dest);
@@ -1830,7 +1830,7 @@ public class Automaton {
      * Here is an example: suppose that A = [[1,2],[0,-1],[3,4,5]] and L = [1,*,4]. Then the method would return
      * [[1,0,4],[1,-1,4]]. In other words, it'll replace * in the second position with 0 and -1.
      */
-    protected List<List<Integer>> expandWildcard(List<Integer> L) {
+    public static List<List<Integer>> expandWildcard(List<List<Integer>> A, List<Integer> L) {
         List<List<Integer>> R = new ArrayList<>();
         R.add(new ArrayList<>(L));
         for (int i = 0; i < L.size(); i++) {
