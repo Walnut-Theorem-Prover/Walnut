@@ -16,7 +16,7 @@
  *   along with Walnut.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package Automata;
+package Automata.Numeration;
 
 import java.util.ArrayList;
 import java.io.File;
@@ -26,6 +26,9 @@ import java.util.LinkedList;
 import java.util.Queue;
 import java.util.TreeMap;
 
+import Automata.Automaton;
+import Automata.AutomatonWriter;
+import Automata.ParseMethods;
 import Main.UtilityMethods;
 import it.unimi.dsi.fastutil.ints.Int2ObjectRBTreeMap;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
@@ -42,7 +45,7 @@ import it.unimi.dsi.fastutil.ints.IntList;
  * We only consider alpha < 1, therefore a 0 is always assumed in the preperiod and need not be
  * mentioned in the command.
  */
-public class OstrowskiNumeration {
+public class Ostrowski {
     // The number of states in the 4-input adder is 7.
     static final int NUM_STATES = 7;
 
@@ -86,7 +89,7 @@ public class OstrowskiNumeration {
     // Transitions in the 4-input adder. transition[p][q] = {r, s}.
     // This means state p transitions to state q on input r*d + s, where d is the current digit in
     // the continued fraction expansion of alpha.
-    int transition[][][];
+    int[][][] transition;
 
     // Maps to keep track of states and transitions.
     TreeMap<NodeState, Integer> index_of_node;
@@ -98,7 +101,7 @@ public class OstrowskiNumeration {
     Automaton adder;
     Automaton repr;
 
-    public OstrowskiNumeration(String name, String preperiod, String period) throws Exception {
+    public Ostrowski(String name, String preperiod, String period) throws Exception {
         this.name = name;
         this.preperiod = new ArrayList<>();
         this.period = new ArrayList<>();

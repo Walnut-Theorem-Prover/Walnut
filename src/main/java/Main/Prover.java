@@ -36,6 +36,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import Automata.*;
+import Automata.Numeration.Ostrowski;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 
@@ -812,7 +813,6 @@ public class Prover {
         if (!h.isUniform()) {
             throw new Exception("A morphism applied to a word automaton must be uniform.");
         }
-        Set<Integer> keys = h.mapping.keySet();
         String combineString = "combine " + m.group(GROUP_IMAGE_NEW_NAME);
 
         // We need to know the number system of our old automaton: the new one should match, as should intermediary expressions
@@ -934,7 +934,6 @@ public class Prover {
         }
 
         boolean printSteps = m.group(GROUP_RSPLIT_END).equals(":");
-        boolean printDetails = m.group(GROUP_RSPLIT_END).equals("::");
         String prefix = new String();
         StringBuilder log = new StringBuilder();
 
@@ -1093,7 +1092,7 @@ public class Prover {
             throw new Exception("Invalid use of the ost command.");
         }
 
-        OstrowskiNumeration ostr = new OstrowskiNumeration(
+        Ostrowski ostr = new Ostrowski(
                 m.group(GROUP_OST_NAME),
                 m.group(GROUP_OST_PREPERIOD),
                 m.group(GROUP_OST_PERIOD));

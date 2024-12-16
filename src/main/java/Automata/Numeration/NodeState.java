@@ -16,7 +16,7 @@
  *   along with Walnut.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package Automata;
+package Automata.Numeration;
 
 public class NodeState implements Comparable<NodeState> {
 
