@@ -129,10 +129,7 @@ public class ParseMethods {
             index = m.end();
         }
 
-        if (index < s.length()) {
-            return false;
-        }
-        return true;
+        return index >= s.length();
     }
 
     public static boolean parseStateDeclaration(String s, int[] pair) throws Exception {

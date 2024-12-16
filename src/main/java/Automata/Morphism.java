@@ -65,9 +65,7 @@ public class Morphism {
         this.mapping = ParseMethods.parseMorphism(mapString);
         this.range = new HashSet<>();
         for (Integer key : mapping.keySet()) {
-            for (Integer number : mapping.get(key)) {
-                range.add(number);
-            }
+            range.addAll(mapping.get(key));
         }
     }
 
@@ -93,7 +91,7 @@ public class Morphism {
     }
 
     public Automaton toWordAutomaton() throws Exception {
-        Integer maxImageLength = 0;
+        int maxImageLength = 0;
         for (int x : mapping.keySet()) {
             int length = mapping.get(x).size();
             if (length > maxImageLength) {
@@ -127,7 +125,7 @@ public class Morphism {
         // this word automaton is purely symbolic in input and we want it in the exact order given
         promotion.canonized = true;
         // the base for the automata is the length of the longest image of any letter under the morphism
-        promotion.NS.add(new NumberSystem("msd_" + maxImageLength.toString()));
+        promotion.NS.add(new NumberSystem("msd_" + Integer.toString(maxImageLength)));
 
         return promotion;
     }

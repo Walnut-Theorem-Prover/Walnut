@@ -104,41 +104,37 @@ public class Transducer extends Automaton {
                     // Ignore blank lines.
                     continue;
                 }
-                else {
-                    boolean flag = false;
-                    try {
-                        flag = ParseMethods.parseAlphabetDeclaration(line, A, NS);
 
-                    } catch (Exception e) {
-                        in.close();
-                        throw new Exception(
-                                e.getMessage() + System.lineSeparator() +
-                                        "\t:line "+ lineNumber + " of file " + address);
-                    }
+                boolean flag;
+                try {
+                    flag = ParseMethods.parseAlphabetDeclaration(line, A, NS);
+                } catch (Exception e) {
+                    in.close();
+                    throw new Exception(
+                            e.getMessage() + System.lineSeparator() +
+                                    "\t:line " + lineNumber + " of file " + address);
+                }
 
-                    if (flag) {
-                        for (int i = 0; i < A.size(); i++) {
-                            if(NS.get(i) != null &&
-                                    (!A.get(i).contains(0) || !A.get(i).contains(1))) {
-                                in.close();
-                                throw new Exception(
-                                        "The " + (i + 1) + "th input of type arithmetic " +
-                                                "of the automaton declared in file " + address +
-                                                " requires 0 and 1 in its input alphabet: line " +
-                                                lineNumber);
-                            }
-                            UtilityMethods.removeDuplicates(A.get(i));
-                            alphabetSize *= A.get(i).size();
+                if (flag) {
+                    for (int i = 0; i < A.size(); i++) {
+                        if (NS.get(i) != null &&
+                                (!A.get(i).contains(0) || !A.get(i).contains(1))) {
+                            in.close();
+                            throw new Exception(
+                                    "The " + (i + 1) + "th input of type arithmetic " +
+                                            "of the automaton declared in file " + address +
+                                            " requires 0 and 1 in its input alphabet: line " +
+                                            lineNumber);
                         }
-
-                        break;
+                        UtilityMethods.removeDuplicates(A.get(i));
+                        alphabetSize *= A.get(i).size();
                     }
-                    else {
-                        in.close();
-                        throw new Exception(
+                    break;
+                } else {
+                    in.close();
+                    throw new Exception(
                             "Undefined statement: line " +
-                            lineNumber + " of file " + address);
-                    }
+                                    lineNumber + " of file " + address);
                 }
             }
 
@@ -164,7 +160,6 @@ public class Transducer extends Automaton {
             while((line = in.readLine())!= null) {
                 lineNumber++;
                 if(line.matches(REGEXP_FOR_WHITESPACE)) {
-
                     continue;
                 }
 
@@ -283,7 +278,6 @@ public class Transducer extends Automaton {
      * @throws Exception
      */
     public Automaton transduceMsdDeterministic(Automaton M, boolean print, String prefix, StringBuilder log) throws Exception {
-
         try {
             long timeBefore = System.currentTimeMillis();
             if(print){
@@ -291,8 +285,6 @@ public class Transducer extends Automaton {
                 log.append(msg + System.lineSeparator());
                 System.out.println(msg);
             }
-
-            
 
             /**
              * N will be the returned Automaton, just have to build it up.
@@ -354,12 +346,12 @@ public class Transducer extends Automaton {
                 HashMap<Integer, Integer> map = new HashMap<>();
 
                 for (int j = 0; j < Q; j++) {
-                    map.put(j, d.get(j).get( encode(Arrays.asList(M.O.getInt(i))) ).getInt(0));
+                    map.put(j, d.get(j).get( encode(List.of(M.O.getInt(i))) ).getInt(0));
                 }
 
                 initMaps.add(map);
 
-                initStrings.add(Arrays.asList(i));
+                initStrings.add(List.of(i));
             }
 
             iterateMapHash.put(initMaps, 0);
@@ -401,10 +393,10 @@ public class Transducer extends Automaton {
                     // start off with the identity.
                     HashMap<Integer, Integer> mapSoFar = new HashMap<>(identity);
 
-                    for (int u = 0; u < iString.size(); u++) {
+                    for (Integer integer : iString) {
                         HashMap<Integer, Integer> newMap = new HashMap<>();
                         for (int l = 0; l < Q; l++) {
-                            newMap.put(l, d.get(mapSoFar.get(l)).get( encode(Arrays.asList(M.O.getInt(iString.get(u)))) ).getInt(0));
+                            newMap.put(l, d.get(mapSoFar.get(l)).get(encode(List.of(M.O.getInt(integer)))).getInt(0));
                         }
                         mapSoFar = newMap;
                     }
@@ -731,10 +723,10 @@ public class Transducer extends Automaton {
             // start off with the identity.
             HashMap<Integer, Integer> mapSoFar = new HashMap<>(identity);
 
-            for (int u = 0; u < currString.size(); u++) {
+            for (Integer integer : currString) {
                 HashMap<Integer, Integer> newMap = new HashMap<>();
                 for (int l = 0; l < Q; l++) {
-                    newMap.put(l, d.get(mapSoFar.get(l)).get( encode(Arrays.asList(M.O.getInt(currString.get(u)))) ).getInt(0));
+                    newMap.put(l, d.get(mapSoFar.get(l)).get(encode(List.of(M.O.getInt(integer)))).getInt(0));
                 }
                 mapSoFar = newMap;
             }
@@ -744,18 +736,13 @@ public class Transducer extends Automaton {
             // make new string currString to be h(currString), where h is the morphism associated with M.
             if (i != size - 1) {
                 ArrayList<Integer> newString = new ArrayList<>();
-
-                for (int u = 0; u < currString.size(); u++) {
-
+                for (Integer integer : currString) {
                     // for every digit in the alphabet of M
-                    for (int l : M.d.get(currString.get(u)).keySet()) {
-
+                    for (int l : M.d.get(integer).keySet()) {
                         // each list of states that this transition goes to.
                         // we assuming it's a DFA for now, so this has length 1 we're assuming...
-
                         // get the first index of M.d on state x and edge label l
-
-                        newString.add(M.d.get(currString.get(u)).get(l).getInt(0));
+                        newString.add(M.d.get(integer).get(l).getInt(0));
                     }
                 }
                 currString = newString;
