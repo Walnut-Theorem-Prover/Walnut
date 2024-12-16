@@ -13,8 +13,8 @@ import java.util.List;
 // Adapted from Hamoon Mousavi (in turn, adapted from Antti Valmari)
 // "Fast brief practical DFA minimization." Information Processing Letters 112.6 (2012): 213-217
 public class ValmariDFA {
-    Partition blocks;
-    Partition cords;
+    ValmariPartition blocks;
+    ValmariPartition cords;
 
     public int numStates;
     public int numTransitions;
@@ -50,8 +50,8 @@ public class ValmariDFA {
             }
         }
         this.numStates = numStates;
-        blocks = new Partition();
-        cords = new Partition();
+        blocks = new ValmariPartition();
+        cords = new ValmariPartition();
     }
 
     void minValmari(IntList O) {
@@ -66,20 +66,20 @@ public class ValmariDFA {
         numFinalstates = rr; rem_unreachable();
 
         /* Make initial partition */
-        Partition.W = new int[ numTransitions +1 ]; Partition.M = new int[ numTransitions +1];
-        Partition.M[0] = numFinalstates;
-        if( numFinalstates != 0 ){ Partition.W[Partition.w++] = 0; blocks.split(); }
+        ValmariPartition.W = new int[ numTransitions +1 ]; ValmariPartition.M = new int[ numTransitions +1];
+        ValmariPartition.M[0] = numFinalstates;
+        if( numFinalstates != 0 ){ ValmariPartition.W[ValmariPartition.w++] = 0; blocks.split(); }
 
         /* Make transition partition */
         cords.init(numTransitions);
         if( numTransitions != 0 ){
             Arrays.sort(cords.E, Comparator.comparingInt(a -> L[a]));
-            cords.z = Partition.M[0] = 0; int a = L[cords.E[0]];
+            cords.z = ValmariPartition.M[0] = 0; int a = L[cords.E[0]];
             for(int i = 0; i < numTransitions; ++i ){
                 int t = cords.E[i];
                 if( L[t] != a ){
                     a = L[t]; cords.P[cords.z++] = i;
-                    cords.F[cords.z] = i; Partition.M[cords.z] = 0;
+                    cords.F[cords.z] = i; ValmariPartition.M[cords.z] = 0;
                 }
                 cords.S[t] = cords.z; cords.L[t] = i;
             }

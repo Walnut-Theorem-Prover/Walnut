@@ -1,5 +1,5 @@
 /*	 Copyright 2016 Hamoon Mousavi
- * 
+ *
  * 	 This file is part of Walnut.
  *
  *   Walnut is free software: you can redistribute it and/or modify
@@ -14,21 +14,29 @@
  *
  *   You should have received a copy of the GNU General Public License
  *   along with Walnut.  If not, see <http://www.gnu.org/licenses/>.
-*/
+ */
 
 package Main;
 
 public enum Type {
-	automaton,word,arithmetic,alphabetLetter,variable,numberLiteral;
-	public String toString(){
-		switch(this){
-		case automaton:return "automaton";
-		case word:return "word";
-		case arithmetic:return "arithmetic";
-		case alphabetLetter:return "alphabet letter";
-		case variable:return "variable";
-		case numberLiteral:return "number literal";
-		default:return "unknown";
-		}
-	}
+    automaton, word, arithmetic, alphabetLetter, variable, numberLiteral;
+
+    public String toString() {
+        switch (this) {
+            case automaton:
+                return "automaton";
+            case word:
+                return "word";
+            case arithmetic:
+                return "arithmetic";
+            case alphabetLetter:
+                return "alphabet letter";
+            case variable:
+                return "variable";
+            case numberLiteral:
+                return "number literal";
+            default:
+                return "unknown";
+        }
+    }
 }

@@ -1,5 +1,5 @@
 /*	 Copyright 2016 Hamoon Mousavi
- * 
+ *
  * 	 This file is part of Walnut.
  *
  *   Walnut is free software: you can redistribute it and/or modify
@@ -14,19 +14,23 @@
  *
  *   You should have received a copy of the GNU General Public License
  *   along with Walnut.  If not, see <http://www.gnu.org/licenses/>.
-*/
+ */
 
 package Token;
+
 import Main.Expression;
+
 import java.util.Stack;
 
 
-public class LeftParenthesis extends Operator{
-	public void act(Stack<Expression> S,boolean print,String prefix,StringBuilder log) throws Exception{}
-	public LeftParenthesis(int position){
-		this.op = "(";
-		setPositionInPredicate(position);
-		setPriority();
-		leftParenthesis = true;
-	}
+public class LeftParenthesis extends Operator {
+    public void act(Stack<Expression> S, boolean print, String prefix, StringBuilder log) throws Exception {
+    }
+
+    public LeftParenthesis(int position) {
+        this.op = "(";
+        setPositionInPredicate(position);
+        setPriority();
+        leftParenthesis = true;
+    }
 }

@@ -14,7 +14,7 @@
  *
  *   You should have received a copy of the GNU General Public License
  *   along with Walnut.  If not, see <http://www.gnu.org/licenses/>.
-*/
+ */
 
 package Automata;
 
@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.TreeMap;
+
 import Main.UtilityMethods;
 import it.unimi.dsi.fastutil.ints.Int2ObjectRBTreeMap;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
@@ -36,7 +37,7 @@ import it.unimi.dsi.fastutil.ints.IntList;
  * represented using the continued fraction expansion with these two things:<br>
  * - Pre-period, and<br>
  * - Period.<br>
- *
+ * <p>
  * For example, for alpha = sqrt(3) - 1, pre-period = [] and period = [1, 2].
  * We only consider alpha < 1, therefore a 0 is always assumed in the preperiod and need not be
  * mentioned in the command.
@@ -50,15 +51,24 @@ public class OstrowskiNumeration {
 
     // Name of the number system.
     String name;
-    public String getName() { return name; }
+
+    public String getName() {
+        return name;
+    }
 
     // The pre-period of the continued fraction.
     ArrayList<Integer> preperiod;
-    public ArrayList<Integer> getpre_period() { return preperiod; }
+
+    public ArrayList<Integer> getpre_period() {
+        return preperiod;
+    }
 
     // The pre-period of the continued fraction.
     ArrayList<Integer> period;
-    public ArrayList<Integer> get_period() { return period; }
+
+    public ArrayList<Integer> get_period() {
+        return period;
+    }
 
     // The continued fraction expansion of alpha. This is simply a concatenation of
     // preperiod and period.
@@ -161,7 +171,7 @@ public class OstrowskiNumeration {
 
         performReprBfs();
         repr.Q = this.total_nodes;
-        for(int q = 0; q < this.total_nodes; ++q) {
+        for (int q = 0; q < this.total_nodes; ++q) {
             if (node_of_index.containsKey(q)) {
                 NodeState node = node_of_index.get(q);
                 if (node.getState() == 0 && node.getSeenIndex() == 1) {
@@ -177,13 +187,13 @@ public class OstrowskiNumeration {
             repr.d.add(this.state_transitions.get(q));
         }
 
-        repr.minimize(null,false, "", null);
+        repr.minimize(null, false, "", null);
         repr.canonize();
 
         boolean zeroStateNeeded =
-            repr.d.stream().anyMatch(
-                tm -> tm.int2ObjectEntrySet().stream().anyMatch(
-                    es -> es.getValue().getInt(0) == 0));
+                repr.d.stream().anyMatch(
+                        tm -> tm.int2ObjectEntrySet().stream().anyMatch(
+                                es -> es.getValue().getInt(0) == 0));
         if (!zeroStateNeeded) {
             repr.d.remove(0);
             repr.O.removeInt(0);
@@ -197,9 +207,9 @@ public class OstrowskiNumeration {
         }
 
         String repr_file_name =
-            UtilityMethods.get_address_for_custom_bases() + "msd_" + this.name + ".txt";
+                UtilityMethods.get_address_for_custom_bases() + "msd_" + this.name + ".txt";
         File f = new File(repr_file_name);
-        if(f.exists() && !f.isDirectory()) {
+        if (f.exists() && !f.isDirectory()) {
             throw new Exception("Error: number system " + this.name + " already exists.");
         }
         AutomatonWriter.write(repr, repr_file_name);
@@ -230,8 +240,8 @@ public class OstrowskiNumeration {
 
         performAdderBfs();
         adder.Q = this.total_nodes;
-        for(int q = 0; q < this.total_nodes; q++) {
-            adder.O.add(isFinal(q)?1:0);
+        for (int q = 0; q < this.total_nodes; q++) {
+            adder.O.add(isFinal(q) ? 1 : 0);
             this.state_transitions.putIfAbsent(q, new Int2ObjectRBTreeMap<>());
             adder.d.add(this.state_transitions.get(q));
         }
@@ -244,9 +254,9 @@ public class OstrowskiNumeration {
         adder.canonize();
 
         boolean zeroStateNeeded =
-            adder.d.stream().anyMatch(
-                tm -> tm.int2ObjectEntrySet().stream().anyMatch(
-                    es -> es.getValue().getInt(0) == 0));
+                adder.d.stream().anyMatch(
+                        tm -> tm.int2ObjectEntrySet().stream().anyMatch(
+                                es -> es.getValue().getInt(0) == 0));
 
         if (!zeroStateNeeded) {
             adder.d.remove(0);
@@ -263,9 +273,9 @@ public class OstrowskiNumeration {
 
         // Write the Automaton to file.
         String adder_file_name =
-            UtilityMethods.get_address_for_custom_bases() + "msd_" + this.name + "_addition.txt";
+                UtilityMethods.get_address_for_custom_bases() + "msd_" + this.name + "_addition.txt";
         File f = new File(adder_file_name);
-        if(f.exists() && !f.isDirectory()) {
+        if (f.exists() && !f.isDirectory()) {
             System.out.println("Warning: number system " + this.name + "was previously defined and is being overwritten.");
         }
 
@@ -275,9 +285,9 @@ public class OstrowskiNumeration {
 
     public String toString() {
         return
-            "name: " + this.name +
-            ", alpha: " + this.alpha +
-            ", period index: " + this.period_index;
+                "name: " + this.name +
+                        ", alpha: " + this.alpha +
+                        ", period index: " + this.period_index;
     }
 
     private void assertValues(List<Integer> list) throws Exception {
@@ -289,7 +299,7 @@ public class OstrowskiNumeration {
             int d = it.next();
             if (d <= 0) {
                 throw new Exception(
-                    "Error: All digits of the continued fraction must be positive integers.");
+                        "Error: All digits of the continued fraction must be positive integers.");
             }
         }
     }
@@ -407,18 +417,18 @@ public class OstrowskiNumeration {
                     if (index_of_node.containsKey(node)) {
                         // This node already exists, don't create a new NodeState.
                         addTransitions(
-                            this.state_transitions.get(cur_node_idx),
-                            a*r + s,
-                            index_of_node.get(node));
+                                this.state_transitions.get(cur_node_idx),
+                                a * r + s,
+                                index_of_node.get(node));
                     } else {
                         // Need to create a new NodeState.
                         index_of_node.put(node, this.total_nodes);
                         node_of_index.put(this.total_nodes, node);
                         queue.add(this.total_nodes);
                         addTransitions(
-                            this.state_transitions.get(cur_node_idx),
-                            a*r + s,
-                            this.total_nodes);
+                                this.state_transitions.get(cur_node_idx),
+                                a * r + s,
+                                this.total_nodes);
                         ++this.total_nodes;
                     }
                 }
@@ -434,17 +444,17 @@ public class OstrowskiNumeration {
                     a = alphaI(sz_alpha - 1);
                     if (index_of_node.containsKey(node)) {
                         addTransitions(
-                            this.state_transitions.get(cur_node_idx),
-                            a*r + s,
-                            index_of_node.get(node));
+                                this.state_transitions.get(cur_node_idx),
+                                a * r + s,
+                                index_of_node.get(node));
                     } else {
                         index_of_node.put(node, this.total_nodes);
                         node_of_index.put(this.total_nodes, node);
                         queue.add(this.total_nodes);
                         addTransitions(
-                            this.state_transitions.get(cur_node_idx),
-                            a*r + s,
-                            this.total_nodes);
+                                this.state_transitions.get(cur_node_idx),
+                                a * r + s,
+                                this.total_nodes);
                         ++this.total_nodes;
                     }
                 }
@@ -519,23 +529,23 @@ public class OstrowskiNumeration {
                 for (int inp = 0; inp < a; ++inp) {
                     if (index_of_node.containsKey(node)) {
                         this.state_transitions
-                            .get(cur_node_idx)
-                            .putIfAbsent(inp, new IntArrayList());
+                                .get(cur_node_idx)
+                                .putIfAbsent(inp, new IntArrayList());
                         this.state_transitions
-                            .get(cur_node_idx)
-                            .get(inp)
-                            .add((int)index_of_node.get(node));
+                                .get(cur_node_idx)
+                                .get(inp)
+                                .add((int) index_of_node.get(node));
                     } else {
                         index_of_node.put(node, this.total_nodes);
                         node_of_index.put(this.total_nodes, node);
                         queue.add(this.total_nodes);
                         this.state_transitions
-                            .get(cur_node_idx)
-                            .putIfAbsent(inp, new IntArrayList());
+                                .get(cur_node_idx)
+                                .putIfAbsent(inp, new IntArrayList());
                         this.state_transitions
-                            .get(cur_node_idx)
-                            .get(inp)
-                            .add(this.total_nodes);
+                                .get(cur_node_idx)
+                                .get(inp)
+                                .add(this.total_nodes);
                         ++this.total_nodes;
                     }
                 }
@@ -545,23 +555,23 @@ public class OstrowskiNumeration {
                     node = new NodeState(1, start_index, seen_index - 1);
                     if (index_of_node.containsKey(node)) {
                         this.state_transitions
-                            .get(cur_node_idx)
-                            .putIfAbsent(a, new IntArrayList());
+                                .get(cur_node_idx)
+                                .putIfAbsent(a, new IntArrayList());
                         this.state_transitions
-                            .get(cur_node_idx)
-                            .get(a)
-                            .add((int)index_of_node.get(node));
+                                .get(cur_node_idx)
+                                .get(a)
+                                .add((int) index_of_node.get(node));
                     } else {
                         index_of_node.put(node, this.total_nodes);
                         node_of_index.put(this.total_nodes, node);
                         queue.add(this.total_nodes);
                         this.state_transitions
-                            .get(cur_node_idx)
-                            .putIfAbsent(a, new IntArrayList());
+                                .get(cur_node_idx)
+                                .putIfAbsent(a, new IntArrayList());
                         this.state_transitions
-                            .get(cur_node_idx)
-                            .get(a)
-                            .add(this.total_nodes);
+                                .get(cur_node_idx)
+                                .get(a)
+                                .add(this.total_nodes);
                         ++this.total_nodes;
                     }
                 }
@@ -582,23 +592,23 @@ public class OstrowskiNumeration {
                 for (int inp = 0; inp < a; ++inp) {
                     if (index_of_node.containsKey(node)) {
                         this.state_transitions
-                            .get(cur_node_idx)
-                            .putIfAbsent(inp, new IntArrayList());
+                                .get(cur_node_idx)
+                                .putIfAbsent(inp, new IntArrayList());
                         this.state_transitions
-                            .get(cur_node_idx)
-                            .get(inp)
-                            .add((int)index_of_node.get(node));
+                                .get(cur_node_idx)
+                                .get(inp)
+                                .add((int) index_of_node.get(node));
                     } else {
                         index_of_node.put(node, this.total_nodes);
                         node_of_index.put(this.total_nodes, node);
                         queue.add(this.total_nodes);
                         this.state_transitions
-                            .get(cur_node_idx)
-                            .putIfAbsent(inp, new IntArrayList());
+                                .get(cur_node_idx)
+                                .putIfAbsent(inp, new IntArrayList());
                         this.state_transitions
-                            .get(cur_node_idx)
-                            .get(inp)
-                            .add(this.total_nodes);
+                                .get(cur_node_idx)
+                                .get(inp)
+                                .add(this.total_nodes);
                         ++this.total_nodes;
                     }
                 }
@@ -608,23 +618,23 @@ public class OstrowskiNumeration {
                     node = new NodeState(1, start_index, sz_alpha - 1);
                     if (index_of_node.containsKey(node)) {
                         this.state_transitions
-                            .get(cur_node_idx)
-                            .putIfAbsent(a, new IntArrayList());
+                                .get(cur_node_idx)
+                                .putIfAbsent(a, new IntArrayList());
                         this.state_transitions
-                            .get(cur_node_idx)
-                            .get(a)
-                            .add((int)index_of_node.get(node));
+                                .get(cur_node_idx)
+                                .get(a)
+                                .add((int) index_of_node.get(node));
                     } else {
                         index_of_node.put(node, this.total_nodes);
                         node_of_index.put(this.total_nodes, node);
                         queue.add(this.total_nodes);
                         this.state_transitions
-                            .get(cur_node_idx)
-                            .putIfAbsent(a, new IntArrayList());
+                                .get(cur_node_idx)
+                                .putIfAbsent(a, new IntArrayList());
                         this.state_transitions
-                            .get(cur_node_idx)
-                            .get(a)
-                            .add(this.total_nodes);
+                                .get(cur_node_idx)
+                                .get(a)
+                                .add(this.total_nodes);
                         ++this.total_nodes;
                     }
                 }
@@ -634,8 +644,8 @@ public class OstrowskiNumeration {
 
     private void addTransitions(
             Int2ObjectRBTreeMap<IntList> current_state_transitions,
-        int diff,
-        int encodedDestination) {
+            int diff,
+            int encodedDestination) {
         for (int x = 0; x <= d_max; ++x) {
             for (int y = 0; y <= d_max; ++y) {
                 for (int z = 0; z <= d_max; ++z) {
@@ -650,15 +660,15 @@ public class OstrowskiNumeration {
     }
 
     private int inputEncode(int x, int y, int z) {
-        return x + (d_max+1)*y + (d_max+1)*(d_max+1)*z;
+        return x + (d_max + 1) * y + (d_max + 1) * (d_max + 1) * z;
     }
 
     private boolean isFinal(int node_index) {
         NodeState node = node_of_index.get(node_index);
         return (
-            // (node.getState() + node.getStartIndex() + node.getSeenIndex() == 0) ||
-            ((node.getState() == 0 || node.getState() == 2 || node.getState() == 6) &&
-                node.getSeenIndex() == 1));
+                // (node.getState() + node.getStartIndex() + node.getSeenIndex() == 0) ||
+                ((node.getState() == 0 || node.getState() == 2 || node.getState() == 6) &&
+                        node.getSeenIndex() == 1));
     }
 
     private void resetAutomaton() {

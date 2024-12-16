@@ -14,7 +14,7 @@
  *
  *   You should have received a copy of the GNU General Public License
  *   along with Walnut.  If not, see <http://www.gnu.org/licenses/>.
-*/
+ */
 
 package Automata;
 
@@ -45,23 +45,23 @@ public class NodeState implements Comparable<NodeState> {
     @Override
     public int hashCode() {
         // Randomly chosen prime numbers.
-        return state*12553 + start_index*19423 + seen_index*23321;
+        return state * 12553 + start_index * 19423 + seen_index * 23321;
     }
 
     @Override
     public boolean equals(Object obj) {
         return (obj instanceof NodeState) &&
-               ((NodeState) obj).state == state &&
-               ((NodeState) obj).start_index == start_index &&
-               ((NodeState) obj).seen_index == seen_index;
+                ((NodeState) obj).state == state &&
+                ((NodeState) obj).start_index == start_index &&
+                ((NodeState) obj).seen_index == seen_index;
     }
 
     public int compareTo(NodeState obj) {
         if (this.equals(obj)) {
             return 0;
         } else if ((obj.state > state) ||
-            (obj.state == state && obj.start_index > start_index) ||
-            (obj.state == state && obj.start_index == start_index && obj.seen_index > seen_index)) {
+                (obj.state == state && obj.start_index > start_index) ||
+                (obj.state == state && obj.start_index == start_index && obj.seen_index > seen_index)) {
             return -1;
         } else {
             return 1;

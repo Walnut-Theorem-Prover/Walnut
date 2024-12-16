@@ -14,7 +14,7 @@
  *
  *   You should have received a copy of the GNU General Public License
  *   along with Walnut.  If not, see <http://www.gnu.org/licenses/>.
-*/
+ */
 
 package Automata;
 
@@ -29,197 +29,196 @@ import Main.Predicate;
 import Main.UtilityMethods;
 
 public class ParseMethods {
-	static int ALPHABET_SET = 12;
-	static int ALPHABET_NUMBER_SYSTEM = 2;
-	static int STATE_DECLARATION_STATE_NAME = 1;
-	static int STATE_DECLARATION_OUTPUT = 2;
-	static int TRANSDUCER_STATE_DECLARATION_STATE_NAME = 1;
-	static int TRANSITION_INPUT = 1;
-	static int TRANSITION_DESTINATION = 6;
+    static int ALPHABET_SET = 12;
+    static int ALPHABET_NUMBER_SYSTEM = 2;
+    static int STATE_DECLARATION_STATE_NAME = 1;
+    static int STATE_DECLARATION_OUTPUT = 2;
+    static int TRANSDUCER_STATE_DECLARATION_STATE_NAME = 1;
+    static int TRANSITION_INPUT = 1;
+    static int TRANSITION_DESTINATION = 6;
 
-	static int TRANSDUCER_TRANSITION_INPUT = 1;
-	static int TRANSDUCER_TRANSITION_DESTINATION = 6;
-	static int TRANSDUCER_TRANSITION_OUTPUT = 8; // character output by the transition, not the state.
+    static int TRANSDUCER_TRANSITION_INPUT = 1;
+    static int TRANSDUCER_TRANSITION_DESTINATION = 6;
+    static int TRANSDUCER_TRANSITION_OUTPUT = 8; // character output by the transition, not the state.
 
-	static String REGEXP_FOR_TRUE_FALSE = "^\\s*(true|false)\\s*$";
-	static Pattern PATTERN_FOR_TRUE_FALSE = Pattern.compile(REGEXP_FOR_TRUE_FALSE);
+    static String REGEXP_FOR_TRUE_FALSE = "^\\s*(true|false)\\s*$";
+    static Pattern PATTERN_FOR_TRUE_FALSE = Pattern.compile(REGEXP_FOR_TRUE_FALSE);
 
-	static String NEXT_ALPHABET_TOKEN = "\\G\\s*((((msd|lsd)_(\\d+|\\w+))|((msd|lsd)(\\d+|\\w+))|(msd|lsd)|(\\d+|\\w+))|(\\{\\s*((\\+|\\-)?\\s*\\d+\\s*(\\s*,\\s*(\\+|\\-)?\\s*\\d+)*)\\s*\\}))\\s*";
-	static Pattern PATTERN_NEXT_ALPHABET_TOKEN = Pattern.compile(NEXT_ALPHABET_TOKEN);
+    static String NEXT_ALPHABET_TOKEN = "\\G\\s*((((msd|lsd)_(\\d+|\\w+))|((msd|lsd)(\\d+|\\w+))|(msd|lsd)|(\\d+|\\w+))|(\\{\\s*((\\+|\\-)?\\s*\\d+\\s*(\\s*,\\s*(\\+|\\-)?\\s*\\d+)*)\\s*\\}))\\s*";
+    static Pattern PATTERN_NEXT_ALPHABET_TOKEN = Pattern.compile(NEXT_ALPHABET_TOKEN);
 
-	static String ELEMENT = "\\G\\s*,?\\s*(((\\+|\\-)?\\s*\\d+)|\\*)";
-	static Pattern PATTERN_ELEMENT = Pattern.compile(ELEMENT);
+    static String ELEMENT = "\\G\\s*,?\\s*(((\\+|\\-)?\\s*\\d+)|\\*)";
+    static Pattern PATTERN_ELEMENT = Pattern.compile(ELEMENT);
 
-	static String REGEXP_FOR_STATE_DECLARATION = "^\\s*(\\d+)\\s+((\\+|\\-)?\\s*\\d+)\\s*$";
-	static Pattern PATTERN_FOR_STATE_DECLARATION = Pattern.compile(REGEXP_FOR_STATE_DECLARATION);
-
-
-
-	static String REGEXP_FOR_TRANSITION = "^\\s*((((\\+|\\-)?\\s*\\d+\\s*)|(\\s*\\*\\s*))+)\\s*\\->\\s*((\\d+\\s*)+)\\s*$";
-	static Pattern PATTERN_FOR_TRANSITION = Pattern.compile(REGEXP_FOR_TRANSITION);
-
-	static String REGEXP_FOR_MAPPING_IN_morphism_COMMAND = "(\\d+)\\s*\\-\\>\\s*((\\[(\\+|\\-)?\\s*\\d+\\]|\\d)*)";
-	static Pattern PATTERN_FOR_MAPPING_IN_morphism_COMMAND = Pattern.compile(REGEXP_FOR_MAPPING_IN_morphism_COMMAND);
-	static String REGEXP_FOR_MAPPING_IMAGE_IN_morphism_COMMAND = "\\[(\\+|\\-)?\\s*\\d+\\]|\\d";
-	static Pattern PATTERN_FOR_MAPPING_IMAGE_IN_morphism_COMMAND = Pattern.compile(REGEXP_FOR_MAPPING_IMAGE_IN_morphism_COMMAND);
-
-	static String REGEXP_FOR_TRANSDUCER_STATE_DECLARATION = "^\\s*(\\d+)\\s*$";
-	static Pattern PATTERN_FOR_TRANSDUCER_STATE_DECLARATION = Pattern.compile(REGEXP_FOR_TRANSDUCER_STATE_DECLARATION);
+    static String REGEXP_FOR_STATE_DECLARATION = "^\\s*(\\d+)\\s+((\\+|\\-)?\\s*\\d+)\\s*$";
+    static Pattern PATTERN_FOR_STATE_DECLARATION = Pattern.compile(REGEXP_FOR_STATE_DECLARATION);
 
 
-	static String REGEXP_FOR_TRANSDUCER_TRANSITION = "^\\s*((((\\+|\\-)?\\s*\\d+\\s*)|(\\s*\\*\\s*))+)\\s*\\->\\s*((\\d+\\s*)+)\\s*\\/\\s*((\\+|\\-)?\\s*\\d+)\\s*$";
-	static Pattern PATTERN_FOR_TRANSDUCER_TRANSITION = Pattern.compile(REGEXP_FOR_TRANSDUCER_TRANSITION);
+    static String REGEXP_FOR_TRANSITION = "^\\s*((((\\+|\\-)?\\s*\\d+\\s*)|(\\s*\\*\\s*))+)\\s*\\->\\s*((\\d+\\s*)+)\\s*$";
+    static Pattern PATTERN_FOR_TRANSITION = Pattern.compile(REGEXP_FOR_TRANSITION);
 
-	public static boolean parseTrueFalse(String s,boolean[] singleton){
-		Matcher m = PATTERN_FOR_TRUE_FALSE.matcher(s);
-		if(m.find()){
-			singleton[0] = m.group(1).equals("true");
-			return true;
-		}
-		return false;
-	}
+    static String REGEXP_FOR_MAPPING_IN_morphism_COMMAND = "(\\d+)\\s*\\-\\>\\s*((\\[(\\+|\\-)?\\s*\\d+\\]|\\d)*)";
+    static Pattern PATTERN_FOR_MAPPING_IN_morphism_COMMAND = Pattern.compile(REGEXP_FOR_MAPPING_IN_morphism_COMMAND);
+    static String REGEXP_FOR_MAPPING_IMAGE_IN_morphism_COMMAND = "\\[(\\+|\\-)?\\s*\\d+\\]|\\d";
+    static Pattern PATTERN_FOR_MAPPING_IMAGE_IN_morphism_COMMAND = Pattern.compile(REGEXP_FOR_MAPPING_IMAGE_IN_morphism_COMMAND);
 
-	public static boolean parseAlphabetDeclaration(
-		String s,
-		List<List<Integer>> A,
-		List<NumberSystem> bases) throws Exception {
-		Matcher m = PATTERN_NEXT_ALPHABET_TOKEN.matcher(s);
-		int index = 0;
-		while(m.find(index)){
-			if(m.group(ALPHABET_SET) != null){
-				List<Integer> list = new ArrayList<>();
-				parseList(m.group(ALPHABET_SET),list);
-				A.add(list);
-				bases.add(null);
-			}
+    static String REGEXP_FOR_TRANSDUCER_STATE_DECLARATION = "^\\s*(\\d+)\\s*$";
+    static Pattern PATTERN_FOR_TRANSDUCER_STATE_DECLARATION = Pattern.compile(REGEXP_FOR_TRANSDUCER_STATE_DECLARATION);
 
-			if(m.group(ALPHABET_NUMBER_SYSTEM) != null) {
-				String ns = "msd_2";
-				if(m.group(3) != null) {
-					ns = m.group(3);
-				}
 
-				if(m.group(6) != null) {
-					ns = "msd_" + m.group(6);
-				}
+    static String REGEXP_FOR_TRANSDUCER_TRANSITION = "^\\s*((((\\+|\\-)?\\s*\\d+\\s*)|(\\s*\\*\\s*))+)\\s*\\->\\s*((\\d+\\s*)+)\\s*\\/\\s*((\\+|\\-)?\\s*\\d+)\\s*$";
+    static Pattern PATTERN_FOR_TRANSDUCER_TRANSITION = Pattern.compile(REGEXP_FOR_TRANSDUCER_TRANSITION);
 
-				if(m.group(9) != null) {
-					ns =  m.group(9) + "_2";
-				}
+    public static boolean parseTrueFalse(String s, boolean[] singleton) {
+        Matcher m = PATTERN_FOR_TRUE_FALSE.matcher(s);
+        if (m.find()) {
+            singleton[0] = m.group(1).equals("true");
+            return true;
+        }
+        return false;
+    }
 
-				if(m.group(10) != null) {
-					ns = "msd_" + m.group(10);
-				}
+    public static boolean parseAlphabetDeclaration(
+            String s,
+            List<List<Integer>> A,
+            List<NumberSystem> bases) throws Exception {
+        Matcher m = PATTERN_NEXT_ALPHABET_TOKEN.matcher(s);
+        int index = 0;
+        while (m.find(index)) {
+            if (m.group(ALPHABET_SET) != null) {
+                List<Integer> list = new ArrayList<>();
+                parseList(m.group(ALPHABET_SET), list);
+                A.add(list);
+                bases.add(null);
+            }
 
-				HashMap<String,NumberSystem> H = Predicate.get_number_system_Hash();
-				if(!H.containsKey(ns)) {
-					try {
-						H.put(ns, new NumberSystem(ns));
-					} catch (Exception e) {
-						// TODO Auto-generated catch block
-						throw new Exception(
-							e.getMessage() + UtilityMethods.newLine() +
-							"\tNumber system " + ns + " does not exist.");
-					}
-				}
+            if (m.group(ALPHABET_NUMBER_SYSTEM) != null) {
+                String ns = "msd_2";
+                if (m.group(3) != null) {
+                    ns = m.group(3);
+                }
 
-				A.add(H.get(ns).getAlphabet());
-				bases.add(H.get(ns));
-			}
+                if (m.group(6) != null) {
+                    ns = "msd_" + m.group(6);
+                }
 
-			index = m.end();
-		}
+                if (m.group(9) != null) {
+                    ns = m.group(9) + "_2";
+                }
 
-		if(index < s.length()) {
-			return false;
-		}
-		return true;
-	}
-	public static boolean parseStateDeclaration(String s, int[] pair) throws Exception {
-		Matcher m = PATTERN_FOR_STATE_DECLARATION.matcher(s);
-		if(m.find()){
-			pair[0] = UtilityMethods.parseInt(m.group(STATE_DECLARATION_STATE_NAME));
-			pair[1] = UtilityMethods.parseInt(m.group(STATE_DECLARATION_OUTPUT));
-			return true;
-		}
+                if (m.group(10) != null) {
+                    ns = "msd_" + m.group(10);
+                }
 
-		return false;
-	}
-	
-	public static boolean parseTransducerStateDeclaration(String s, int[] singleton) throws Exception {
-		Matcher m = PATTERN_FOR_TRANSDUCER_STATE_DECLARATION.matcher(s);
-		if (m.find()) {
-			singleton[0] = UtilityMethods.parseInt(m.group(TRANSDUCER_STATE_DECLARATION_STATE_NAME));
-			return true;
-		}
+                HashMap<String, NumberSystem> H = Predicate.get_number_system_Hash();
+                if (!H.containsKey(ns)) {
+                    try {
+                        H.put(ns, new NumberSystem(ns));
+                    } catch (Exception e) {
+                        // TODO Auto-generated catch block
+                        throw new Exception(
+                                e.getMessage() + UtilityMethods.newLine() +
+                                        "\tNumber system " + ns + " does not exist.");
+                    }
+                }
 
-		return false;
-	}
+                A.add(H.get(ns).getAlphabet());
+                bases.add(H.get(ns));
+            }
 
-	public static boolean parseTransition(
-		String s,
-		List<Integer> input,
-		List<Integer> dest) throws Exception {
-		Matcher m = PATTERN_FOR_TRANSITION.matcher(s);
-		if(m.find()){
-			parseList(m.group(TRANSITION_INPUT), input);
-			parseList(m.group(TRANSITION_DESTINATION), dest);
-			return true;
-		}
-		return false;
-	}
+            index = m.end();
+        }
 
-	public static boolean parseTransducerTransition(
-			String s,
-			List<Integer> input,
-			List<Integer> dest,
-			List<Integer> output
-	) throws Exception {
-		Matcher m = PATTERN_FOR_TRANSDUCER_TRANSITION.matcher(s);
-		if (m.find()) {
-			parseList(m.group(TRANSDUCER_TRANSITION_INPUT), input);
-			parseList(m.group(TRANSDUCER_TRANSITION_DESTINATION), dest);
-			parseList(m.group(TRANSDUCER_TRANSITION_OUTPUT), output);
-			return true;
-		}
-		return false;
-	}
+        if (index < s.length()) {
+            return false;
+        }
+        return true;
+    }
 
-	public static void parseList(String s, List<Integer> list) throws Exception {
-		int index = 0;
-		Matcher m = PATTERN_ELEMENT.matcher(s);
-		while (m.find(index)) {
-			if (m.group(1).equals("*")) list.add(null);
-			else list.add(UtilityMethods.parseInt(m.group(1)));
-			index = m.end();
-		}
-	}
+    public static boolean parseStateDeclaration(String s, int[] pair) throws Exception {
+        Matcher m = PATTERN_FOR_STATE_DECLARATION.matcher(s);
+        if (m.find()) {
+            pair[0] = UtilityMethods.parseInt(m.group(STATE_DECLARATION_STATE_NAME));
+            pair[1] = UtilityMethods.parseInt(m.group(STATE_DECLARATION_OUTPUT));
+            return true;
+        }
 
-	public static TreeMap<Integer, List<Integer>> parseMorphism(String mapString) throws Exception {
-		TreeMap<Integer, List<Integer>> mapping = new TreeMap<>();
-		
-		Matcher m1 = ParseMethods.PATTERN_FOR_MAPPING_IN_morphism_COMMAND.matcher(mapString);
-		while(m1.find()) {
-			String input = m1.group(1);
-			String imageString = m1.group(2);
-			List<Integer> image = new ArrayList<>();
+        return false;
+    }
 
-			Matcher m2 = PATTERN_FOR_MAPPING_IMAGE_IN_morphism_COMMAND.matcher(imageString);
-			while(m2.find()) {
-				String imagePiece = m2.group();
-				if (imagePiece.charAt(0) == '[') {
-					imagePiece = imagePiece.substring(1, imagePiece.length()-1);
-					image.add(Integer.parseInt(imagePiece));
-				}
-				else {
-					image.add(Integer.parseInt(imagePiece));
-				}
-			}
-			mapping.put(Integer.parseInt(input), image);
-		}
-		if (mapping.size() == 0) {
-			throw new Exception("Morphism has no valid mappings.");
-		}
-		return mapping;
-	}
+    public static boolean parseTransducerStateDeclaration(String s, int[] singleton) throws Exception {
+        Matcher m = PATTERN_FOR_TRANSDUCER_STATE_DECLARATION.matcher(s);
+        if (m.find()) {
+            singleton[0] = UtilityMethods.parseInt(m.group(TRANSDUCER_STATE_DECLARATION_STATE_NAME));
+            return true;
+        }
+
+        return false;
+    }
+
+    public static boolean parseTransition(
+            String s,
+            List<Integer> input,
+            List<Integer> dest) throws Exception {
+        Matcher m = PATTERN_FOR_TRANSITION.matcher(s);
+        if (m.find()) {
+            parseList(m.group(TRANSITION_INPUT), input);
+            parseList(m.group(TRANSITION_DESTINATION), dest);
+            return true;
+        }
+        return false;
+    }
+
+    public static boolean parseTransducerTransition(
+            String s,
+            List<Integer> input,
+            List<Integer> dest,
+            List<Integer> output
+    ) throws Exception {
+        Matcher m = PATTERN_FOR_TRANSDUCER_TRANSITION.matcher(s);
+        if (m.find()) {
+            parseList(m.group(TRANSDUCER_TRANSITION_INPUT), input);
+            parseList(m.group(TRANSDUCER_TRANSITION_DESTINATION), dest);
+            parseList(m.group(TRANSDUCER_TRANSITION_OUTPUT), output);
+            return true;
+        }
+        return false;
+    }
+
+    public static void parseList(String s, List<Integer> list) throws Exception {
+        int index = 0;
+        Matcher m = PATTERN_ELEMENT.matcher(s);
+        while (m.find(index)) {
+            if (m.group(1).equals("*")) list.add(null);
+            else list.add(UtilityMethods.parseInt(m.group(1)));
+            index = m.end();
+        }
+    }
+
+    public static TreeMap<Integer, List<Integer>> parseMorphism(String mapString) throws Exception {
+        TreeMap<Integer, List<Integer>> mapping = new TreeMap<>();
+
+        Matcher m1 = ParseMethods.PATTERN_FOR_MAPPING_IN_morphism_COMMAND.matcher(mapString);
+        while (m1.find()) {
+            String input = m1.group(1);
+            String imageString = m1.group(2);
+            List<Integer> image = new ArrayList<>();
+
+            Matcher m2 = PATTERN_FOR_MAPPING_IMAGE_IN_morphism_COMMAND.matcher(imageString);
+            while (m2.find()) {
+                String imagePiece = m2.group();
+                if (imagePiece.charAt(0) == '[') {
+                    imagePiece = imagePiece.substring(1, imagePiece.length() - 1);
+                    image.add(Integer.parseInt(imagePiece));
+                } else {
+                    image.add(Integer.parseInt(imagePiece));
+                }
+            }
+            mapping.put(Integer.parseInt(input), image);
+        }
+        if (mapping.size() == 0) {
+            throw new Exception("Morphism has no valid mappings.");
+        }
+        return mapping;
+    }
 }

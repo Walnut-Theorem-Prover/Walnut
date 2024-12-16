@@ -14,7 +14,7 @@
  *
  *   You should have received a copy of the GNU General Public License
  *   along with Walnut.  If not, see <http://www.gnu.org/licenses/>.
-*/
+ */
 
 package Automata;
 
@@ -35,14 +35,14 @@ import java.util.stream.IntStream;
 import java.util.TreeMap;
 
 /**
- * The class Morphism represents a morphism from a finite alphabet to the integers, 
+ * The class Morphism represents a morphism from a finite alphabet to the integers,
  * defined by the integer word it sends each member of the alphabet to.
- *
- * For example, with an alphabet of {0, 1, 2}, we define the mappings 
+ * <p>
+ * For example, with an alphabet of {0, 1, 2}, we define the mappings
  * 0 -> [-3]0102[11],
  * 1 -> 2113,
  * 2 -> 314
- * 
+ * <p>
  * Here square brackets are used to specify a number not in the range 0-9
  */
 public class Morphism {
@@ -79,13 +79,12 @@ public class Morphism {
     public void write(String address) throws Exception {
         PrintWriter out = new PrintWriter(address, "UTF-8");
         for (Integer x : mapping.keySet()) {
-            out.write(x.toString()+" -> ");
+            out.write(x.toString() + " -> ");
             for (Integer y : mapping.get(x)) {
                 if ((0 <= y) && (9 >= y)) {
                     out.write(y.toString());
-                }
-                else {
-                    out.write("["+y.toString()+"]");
+                } else {
+                    out.write("[" + y + "]");
                 }
             }
             out.write(UtilityMethods.newLine());
@@ -102,26 +101,25 @@ public class Morphism {
             }
         }
         Automaton promotion = new Automaton();
-        List<Integer> alphabet = IntStream.rangeClosed(0, maxImageLength-1).boxed().collect(Collectors.toList());
+        List<Integer> alphabet = IntStream.rangeClosed(0, maxImageLength - 1).boxed().collect(Collectors.toList());
         promotion.A.add(alphabet);
         int maxEntry = 0;
         for (int x : mapping.keySet()) {
             for (int y : mapping.get(x)) {
                 if (y < 0) {
                     throw new Exception("Cannot promote a morphism with negative values.");
-                }
-                else if (y > maxEntry) {
+                } else if (y > maxEntry) {
                     maxEntry = y;
                 }
             }
         }
-        promotion.Q = maxEntry+1;
-        promotion.O = IntArrayList.toList(IntStream.rangeClosed(0, promotion.Q -1));
+        promotion.Q = maxEntry + 1;
+        promotion.O = IntArrayList.toList(IntStream.rangeClosed(0, promotion.Q - 1));
         for (int x : mapping.keySet()) {
             Int2ObjectRBTreeMap<IntList> xmap = new Int2ObjectRBTreeMap<>();
-            for (int i=0; i<mapping.get(x).size(); i++) {
+            for (int i = 0; i < mapping.get(x).size(); i++) {
                 IntList newList = new IntArrayList();
-                newList.add((int)mapping.get(x).get(i));
+                newList.add((int) mapping.get(x).get(i));
                 xmap.put(i, newList);
             }
             promotion.d.add(xmap);
@@ -143,8 +141,7 @@ public class Morphism {
             if (firstElement) {
                 imageLength = mapping.get(x).size();
                 firstElement = false;
-            }
-            else if (mapping.get(x).size() != imageLength) {
+            } else if (mapping.get(x).size() != imageLength) {
                 return false;
             }
         }
@@ -159,34 +156,31 @@ public class Morphism {
             numSys = "?" + numSys;
         }
         String interCommand = "def " + baseAutomatonName + "_" + i;
-		interCommand += " \"" + numSys + " E q, r (n=" + length.toString() + "*q+r & r>=0 & r<" + length.toString();
-		for (Integer key : this.mapping.keySet()) {
-			boolean exists = false;
-			String clause = " & (" + baseAutomatonName + "[q]";
+        interCommand += " \"" + numSys + " E q, r (n=" + length.toString() + "*q+r & r>=0 & r<" + length.toString();
+        for (Integer key : this.mapping.keySet()) {
+            boolean exists = false;
+            String clause = " & (" + baseAutomatonName + "[q]";
             List<Integer> symbolImage = this.mapping.get(key);
-			for (int j = 0; j<symbolImage.size(); j++) {
-    			if (symbolImage.get(j) == i) {
-					if(! exists) {
-						clause += "= @" + key.toString() + " => (r=" + Integer.toString(j);
-						exists = true;
-					}
-					else {
-						clause += "|r=" + Integer.toString(j);
-					}
-				}
-			}
-			if (exists) {
-				clause += "))";
-			}
-			else {
-				clause += "!= @" + key.toString() + ")";
-			}
-			interCommand += clause;
-		}
-		interCommand += ")\":";
+            for (int j = 0; j < symbolImage.size(); j++) {
+                if (symbolImage.get(j) == i) {
+                    if (!exists) {
+                        clause += "= @" + key.toString() + " => (r=" + j;
+                        exists = true;
+                    } else {
+                        clause += "|r=" + j;
+                    }
+                }
+            }
+            if (exists) {
+                clause += "))";
+            } else {
+                clause += "!= @" + key.toString() + ")";
+            }
+            interCommand += clause;
+        }
+        interCommand += ")\":";
         return interCommand;
     }
-
 
 
 }
