@@ -32,7 +32,6 @@ public class Computer {
 	Predicate predicate_object;
 	String predicate_string;
 	Expression result;
-	Automaton D;
 	StringBuilder log;
 	StringBuilder log_details;
 	String mpl;
@@ -103,13 +102,12 @@ public class Computer {
 		List<Token> postOrder = predicate_object.get_postOrder();
 		String prefix = "";
 		long timeBeginning = System.currentTimeMillis();
-		String step,preStep;
+		String step;
 
 		for(Token t:postOrder) {
 			try{
 
 				long timeBefore = System.currentTimeMillis();
-				String operands = "";
 				t.act(expression_Stack, printDetails, prefix, log_details);
 				long timeAfter = System.currentTimeMillis();
 				if(t.isOperator() && expression_Stack.peek().is(Type.automaton)) {
@@ -143,7 +141,7 @@ public class Computer {
 			String message =
 				"Cannot evaluate the following into a single automaton:" +
 				UtilityMethods.newLine();
-			Stack<Expression> tmp = new Stack<Expression>();
+			Stack<Expression> tmp = new Stack<>();
 
 			while(!expression_Stack.isEmpty()) {
 				tmp.push(expression_Stack.pop());

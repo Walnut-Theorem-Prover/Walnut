@@ -44,8 +44,6 @@ public class ParseMethods {
 	static String REGEXP_FOR_TRUE_FALSE = "^\\s*(true|false)\\s*$";
 	static Pattern PATTERN_FOR_TRUE_FALSE = Pattern.compile(REGEXP_FOR_TRUE_FALSE);
 
-	// static String REGEXP_FOR_ALPHABET_DECLARATION = "^(\\s*((((msd|lsd)_(\\d+|\\w+))|((msd|lsd)(\\d+|\\w+))|(msd|lsd)|(\\d+|\\w+))|(\\{\\s*(\\+|\\-)?\\s*\\d+\\s*(\\s*,\\s*(\\+|\\-)?\\s*\\d+\\s*)*\\}))\\s*)+\\s*$";
-
 	static String NEXT_ALPHABET_TOKEN = "\\G\\s*((((msd|lsd)_(\\d+|\\w+))|((msd|lsd)(\\d+|\\w+))|(msd|lsd)|(\\d+|\\w+))|(\\{\\s*((\\+|\\-)?\\s*\\d+\\s*(\\s*,\\s*(\\+|\\-)?\\s*\\d+)*)\\s*\\}))\\s*";
 	static Pattern PATTERN_NEXT_ALPHABET_TOKEN = Pattern.compile(NEXT_ALPHABET_TOKEN);
 
@@ -85,7 +83,6 @@ public class ParseMethods {
 		String s,
 		List<List<Integer>> A,
 		List<NumberSystem> bases) throws Exception {
-		//if(!s.matches(REGEXP_FOR_ALPHABET_DECLARATION))return false;
 		Matcher m = PATTERN_NEXT_ALPHABET_TOKEN.matcher(s);
 		int index = 0;
 		while(m.find(index)){

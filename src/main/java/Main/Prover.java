@@ -740,7 +740,6 @@ public class Prover {
 		}
 
 		boolean printSteps = m.group(GROUP_COMBINE_END).equals(":");
-		boolean printDetails = m.group(GROUP_COMBINE_END).equals("::");
 
 		String prefix = new String();
 		StringBuilder log = new StringBuilder();
@@ -774,11 +773,6 @@ public class Prover {
 		automataNames.remove(0);
 
 		Automaton C = first.combine(automataNames, outputs, printSteps, prefix, log);
-
-//		C.canonized = false;
-//		C.canonize();
-//
-//		C.canonizeAndApplyAllRepresentations();
 
 		C.draw(UtilityMethods.get_address_for_result()+m.group(GROUP_COMBINE_NAME)+".gv", s, true);
 		C.write(UtilityMethods.get_address_for_result()+m.group(GROUP_COMBINE_NAME)+".txt");
@@ -1319,10 +1313,10 @@ public class Prover {
 				throw new Exception("List of alphabets for alphabet command must not be empty.");
 			}
 
-			NumberSystem ns = null;
+			NumberSystem ns;
 			List<List<Integer>> alphabets = new ArrayList<>();
 			List<NumberSystem> numSys = new ArrayList<>();
-			List<Integer> alphabet = null;
+			List<Integer> alphabet;
 
 			boolean printSteps = m.group(GROUP_alphabet_END).equals(":");
 			boolean printDetails = m.group(GROUP_alphabet_END).equals("::");

@@ -1406,22 +1406,6 @@ public class Automaton {
 
                 }
             }
-//
-//
-//            // now add a new "initial" state that has a self-loop on 0.
-//            TreeMap<Integer, List<Integer>> newInitialStateMap = new TreeMap<>>();
-//
-//            newInitialStateMap.put(0, Arrays.asList(newStates.size()));
-//
-//            for (int di = 1; di < root; di++) {
-//                newInitialStateMap.put(di, newD.get(q0).get(di));
-//            }
-//
-//            newD.add(newInitialStateMap);
-//
-//            newO.add(newO.get(q0));
-//
-//            q0 = newStates.size();
 
             Q = newStates.size();
 
@@ -1516,10 +1500,6 @@ public class Automaton {
                     throw new Exception("in computing cross product of two automaton, "
                             + "variables with the same label must have the same alphabet");
                 }
-                /*if(M.NS.get(i) != NS.get(j)){
-                    System.out.println(M.NS.get(i) + " "+ NS.get(j));
-                    throw new Exception("in computing cross product of two automaton, variables with the same label must be of the same type");
-                }*/
                 sameInputsInMAndThis[i] = j;
             }
         }
@@ -2512,10 +2492,6 @@ public class Automaton {
         }
         M.d = newD;
 
-//        if (isDFAO) {
-//            M.totalize(print, prefix, log);
-//        }
-
         if (isDFAO) {
             M.minimizeSelfWithOutput(print, prefix, log);
         }
@@ -2534,23 +2510,6 @@ public class Automaton {
             System.out.println(msg);
         }
     }
-
-//
-//    public void determinizeWithOutput(boolean print, String prefix, StringBuilder log) throws Exception {
-//        List<Integer> outputs = new ArrayList<>(O);
-//        UtilityMethods.removeDuplicates(outputs);
-//        List<Automaton> subautomata = uncombine(outputs,print,prefix,log);
-//        for (Automaton subautomaton : subautomata) {
-//            HashSet<Integer> qqq = new HashSet<>();
-//            qqq.add(subautomaton.q0);
-//            subautomaton.subsetConstruction(qqq,print,prefix,log);
-//        }
-//        Automaton N = subautomata.remove(0);
-//        List<String> label = new ArrayList<>(N.label); // We keep the old labels, since they are replaced in the combine
-//        N = N.combine(new LinkedList<>(subautomata),outputs,print, prefix,log);
-//        N.label = label;
-//        copy(N);
-//    }
 
     // Determines whether an automaton accepts infinitely many values. If it does, a regex of infinitely many accepted values (not all)
     // is given. This is true iff there exists a cycle in a minimized version of the automaton, which previously had leading or
@@ -4402,42 +4361,4 @@ public class Automaton {
                 y.add(x.get(i));
         return encode(y, newAlphabet, newEncoder);
     }
-
-    public List<Int2ObjectRBTreeMap<IntList>> get_transition_function() {
-        return d;
-    }
-    /*private boolean connected(int p,int q,int i){
-        if(d.get(p).containsKey(i)){
-            if(d.get(p).get(i).contains(q))return true;
-        }
-        return false;
-    }
-    public void computeMatrices(List<String> inputToComputeMatrices, List<String> variationsOfTheInputs, List<int[][]> matrices) throws Exception{
-        canonize();
-
-        for(String x:inputToComputeMatrices){
-            if(!label.contains(x)){
-                throw new Exception("no free variable with label "+x +" to compute the matrix");
-            }
-        }
-        HashMap<String,List<Integer>> H = computeAllVariationsOfInputs(inputToComputeMatrices);
-        for(String x:H.keySet()){
-            variationsOfTheInputs.add(x);
-            List<Integer> var = H.get(x);
-            int[][] mat = new int[Q][Q];
-            matrices.add(mat);
-            for(int p = 0; p < Q;p++){
-                for(int q = 0;q < Q;q++){
-                    int count = 0;
-                    for(int i:var){
-                        if(connected(p,q,i))count++;
-                    }
-                    mat[p][q] = count;
-                }
-            }
-        }
-    }
-    private HashMap<String,List<Integer>> computeAllVariationsOfInputs(List<String> inputToComputeMatrices){
-
-    }*/
 }

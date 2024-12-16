@@ -1,7 +1,5 @@
 package Automata;
 
-import java.util.ArrayList;
-
 public class Partition {
 	static int[] M,W;
 	static int w = 0;
@@ -26,12 +24,6 @@ public class Partition {
 		int s = S[e];
 		int i = L[e];
 		int j = F[s]+M[s];
-		/*System.out.println("s = " + s);	
-		System.out.println("F[s] = " + F[s]);	
-		System.out.println("M[s] = " + M[s]);
-		System.out.println("i = " + i);
-		System.out.println("j = " + j);
-		System.out.println("|E| = " + E.length);*/
 
 	    E[i] = E[j]; 
 	    L[E[i]] = i;

@@ -33,9 +33,6 @@ public class LogicalOperator extends Operator{
 		this.op = op;
 		setPriority();
 
-
-
-
 		if(this.isNegation(op) || op.equals("`")) setArity(1);
 		else setArity(2);
 		setPositionInPredicate(position);
