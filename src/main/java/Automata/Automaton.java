@@ -1,15 +1,11 @@
 
 package Automata;
-import Main.GraphViz;
 import Main.UtilityMethods;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.PrintWriter;
-import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -383,7 +379,7 @@ public class Automaton {
                     in.close();
                     return;
                 } else {
-                    boolean flag = false;
+                    boolean flag;
                     try {
                         flag = ParseMethods.parseAlphabetDeclaration(line, A, NS);
                     } catch(Exception e){
@@ -911,8 +907,6 @@ public class Automaton {
             e.printStackTrace();
             throw new Exception("Error reversing word automaton");
         }
-
-
     }
 
 
@@ -3042,152 +3036,6 @@ public class Automaton {
             String msg = prefix + "compared ("+operator+ ") against "+o+":" + Q + " states - "+(timeAfter-timeBefore)+"ms";
             log.append(msg + UtilityMethods.newLine());
             System.out.println(msg);
-        }
-    }
-
-    /**
-     * Writes this automaton to a file given by the address.
-     * This automaton can be non deterministic. It can also be a DFAO. However it cannot have epsilon transition.
-     * @param automaton
-     * @param address
-     * @throws
-     */
-    public static void write(Automaton automaton, String address){
-        try {
-            PrintWriter out = new PrintWriter(address, "UTF-8");
-            if(automaton.TRUE_FALSE_AUTOMATON){
-                if(automaton.TRUE_AUTOMATON)
-                    out.write("true");
-                else
-                    out.write("false");
-            }
-            else{
-                automaton.canonize();
-                Automaton.writeAlphabet(automaton, out);
-                for(int q = 0; q < automaton.Q; q++){
-                    Automaton.writeState(automaton, out, q);
-                }
-            }
-            out.close();
-        } catch (FileNotFoundException e2) {
-            e2.printStackTrace();
-        } catch (UnsupportedEncodingException e2) {
-            e2.printStackTrace();
-        }
-    }
-
-    private static void writeAlphabet(Automaton automaton, PrintWriter out) {
-        for(int i = 0; i < automaton.A.size(); i++){
-            List<Integer> l = automaton.A.get(i);
-            if(automaton.NS.get(i) == null){
-                out.write("{");
-                for(int j = 0 ; j < l.size(); j++) {
-                    if(j == 0) {
-                        out.write(Integer.toString(l.get(j)));
-                    }
-                    else out.write(", " + l.get(j));
-                }
-
-                out.write("} ");
-            }
-            else {
-                if(i == 0)
-                    out.write(automaton.NS.get(i).toString());
-                else
-                    out.write(" " + automaton.NS.get(i).toString());
-
-            }
-        }
-        out.write(UtilityMethods.newLine());
-    }
-
-    private static void writeState(Automaton automaton, PrintWriter out, int q){
-        out.write(
-            UtilityMethods.newLine() + q + " " +
-                    automaton.O.getInt(q) + UtilityMethods.newLine());
-        for(int n: automaton.d.get(q).keySet()){
-            List<Integer> l = automaton.decode(n);
-            for(int j = 0 ; j < l.size();j++)
-                out.write(l.get(j) + " ");
-            out.write("->");
-            for(int dest: automaton.d.get(q).get(n))
-                out.write(" " + dest);
-            out.write(UtilityMethods.newLine());
-        }
-    }
-
-    /**
-     * Writes down this automaton to a .gv file given by the address. It uses the predicate that
-     * caused this automaton as the label of this drawing.
-     * Unlike prior versions of Walnut, this automaton can be a non deterministic automaton and also a DFAO.
-     * In case of a DFAO the drawing contains state outputs with a slash (eg. "0/2" represents an output
-     * of 2 from state 0)
-     * @param automaton
-     * @param address
-     */
-    public static void draw(Automaton automaton, String address, String predicate, boolean isDFAO) {
-        GraphViz gv = new GraphViz();
-        if(automaton.TRUE_FALSE_AUTOMATON){
-            gv.addln(gv.start_graph());
-            gv.addln("label = \"(): "+predicate+"\";");
-            gv.addln("rankdir = LR;");
-            if(automaton.TRUE_AUTOMATON)
-                gv.addln("node [shape = doublecircle, label=\""+0+"\", fontsize=12]"+0 +";");
-            else
-                gv.addln("node [shape = circle, label=\""+0+"\", fontsize=12]"+0 +";");
-            gv.addln("node [shape = point ]; qi");
-            gv.addln("qi ->" + 0+";");
-            if(automaton.TRUE_AUTOMATON)
-                gv.addln(0 + " -> " + 0+ "[ label = \"*\"];");
-            gv.addln(gv.end_graph());
-        }
-        else{
-            automaton.canonize();
-            gv.addln(gv.start_graph());
-            gv.addln("label = \""+ UtilityMethods.toTuple(automaton.label) +": "+predicate+"\";");
-            gv.addln("rankdir = LR;");
-            for(int q = 0; q < automaton.Q; q++){
-                if(isDFAO)
-                    gv.addln("node [shape = circle, label=\""+q+"/"+ automaton.O.getInt(q)+"\", fontsize=12]"+q +";");
-                else if(automaton.O.getInt(q)!=0)
-                    gv.addln("node [shape = doublecircle, label=\""+q+"\", fontsize=12]"+q +";");
-                else
-                    gv.addln("node [shape = circle, label=\""+q+"\", fontsize=12]"+q +";");
-            }
-
-            gv.addln("node [shape = point ]; qi");
-            gv.addln("qi -> " + automaton.q0 +";");
-
-            TreeMap<Integer, TreeMap<Integer, List<String>>> transitions =
-                new TreeMap<>();
-            for(int q = 0; q < automaton.Q; q++) {
-                transitions.put(q, new TreeMap<>());
-                for(int x : automaton.d.get(q).keySet()) {
-                    for(int dest : automaton.d.get(q).get(x)) {
-                        transitions.get(q).putIfAbsent(dest, new ArrayList<>());
-                        transitions.get(q).get(dest).add(
-                            UtilityMethods.toTransitionLabel(automaton.decode(x)));
-                    }
-                }
-            }
-
-            for(int q = 0; q < automaton.Q; q++) {
-                for(int dest : transitions.get(q).keySet()) {
-                    String transition_label = String.join(", ", transitions.get(q).get(dest));
-                    gv.addln(q + " -> " + dest + "[ label = \"" + transition_label + "\"];");
-                }
-            }
-
-            gv.addln(gv.end_graph());
-        }
-        try {
-            PrintWriter out = new PrintWriter(address, "UTF-8");
-            out.write(gv.getDotSource());
-            out.close();
-        } catch (FileNotFoundException e2) {
-            e2.printStackTrace();
-        } catch (UnsupportedEncodingException e2) {
-            e2.printStackTrace();
         }
     }
 

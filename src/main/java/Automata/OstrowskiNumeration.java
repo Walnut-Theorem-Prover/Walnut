@@ -202,7 +202,7 @@ public class OstrowskiNumeration {
         if(f.exists() && !f.isDirectory()) {
             throw new Exception("Error: number system " + this.name + " already exists.");
         }
-        Automaton.write(repr, repr_file_name);
+        AutomatonWriter.write(repr, repr_file_name);
         System.out.println("Ostrowski representation automaton created and written to file " + repr_file_name);
     }
 
@@ -269,7 +269,7 @@ public class OstrowskiNumeration {
             System.out.println("Warning: number system " + this.name + "was previously defined and is being overwritten.");
         }
 
-        Automaton.write(adder, adder_file_name);
+        AutomatonWriter.write(adder, adder_file_name);
         System.out.println("Ostrowski adder automaton created and written to file " + adder_file_name);
     }
 

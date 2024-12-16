@@ -30,6 +30,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import Automata.Automaton;
+import Automata.AutomatonWriter;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
@@ -1106,7 +1107,7 @@ public class IntegrationTest {
 		for(int i = 0 ; i < testCases.size();i++){
 			TestCase t = testCases.get(i);
 			if(t.result != null){
-				Automaton.write(t.result, directory+"automaton" +Integer.toString(i)+ ".txt");
+				AutomatonWriter.write(t.result, directory+"automaton" +Integer.toString(i)+ ".txt");
 			}
 			if(t.error != null && t.error.length() > 0){
 				PrintWriter errorWriter = new PrintWriter(directory+"error"+Integer.toString(i)+".txt", "UTF-8");

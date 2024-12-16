@@ -90,10 +90,10 @@ public class Computer {
 		}
 	}
 	public void drawAutomaton(String address) throws Exception{
-		Automaton.draw(result.M, address, predicate_string, false);
+		AutomatonWriter.draw(result.M, address, predicate_string, false);
 	}
 	public void write(String address){
-		Automaton.write(result.M, address);
+		AutomatonWriter.write(result.M, address);
 	}
 	public String toString(){
 		return result.toString();
