@@ -59,9 +59,7 @@ public abstract class Operator extends Token {
     }
 
     public boolean rightAssociativity() {
-        if (op.equals("`") || this.isNegation(op))
-            return true;
-        return false;
+        return op.equals("`") || this.isNegation(op);
     }
 
     public void setPriority() {
@@ -69,49 +67,19 @@ public abstract class Operator extends Token {
             case "_":
                 priority = 5;
                 break;
-            case "*":
+            case "*", "/":
                 priority = 10;
                 break;
-            case "/":
-                priority = 10;
-                break;
-            case "+":
+            case "+", "-":
                 priority = 20;
                 break;
-            case "-":
-                priority = 20;
-                break;
-            case "=":
+            case "=", "!=", "<", ">", "<=", ">=":
                 priority = 40;
                 break;
-            case "!=":
-                priority = 40;
-                break;
-            case "<":
-                priority = 40;
-                break;
-            case ">":
-                priority = 40;
-                break;
-            case "<=":
-                priority = 40;
-                break;
-            case ">=":
-                priority = 40;
-                break;
-            case "~":
+            case "~", "`":
                 priority = 80;
                 break;
-            case "`":
-                priority = 80;
-                break;
-            case "&":
-                priority = 90;
-                break;
-            case "|":
-                priority = 90;
-                break;
-            case "^":
+            case "&", "|", "^":
                 priority = 90;
                 break;
             case "=>":
@@ -120,13 +88,7 @@ public abstract class Operator extends Token {
             case "<=>":
                 priority = 110;
                 break;
-            case "E":
-                priority = 150;
-                break;
-            case "A":
-                priority = 150;
-                break;
-            case "I":
+            case "E", "A", "I":
                 priority = 150;
                 break;
             case "(":
@@ -154,7 +116,7 @@ public abstract class Operator extends Token {
         boolean specialNegation = false;
 
         if (op.length() == 1) {
-            String hexString = Integer.toHexString((int) op.charAt(0));
+            String hexString = Integer.toHexString(op.charAt(0));
             // check if the string has unicode code 2dc or 303. different types of tildes.
             specialNegation = hexString.equals("2dc") || hexString.equals("303");
         }

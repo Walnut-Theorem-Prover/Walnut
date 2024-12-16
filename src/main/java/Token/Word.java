@@ -46,8 +46,7 @@ public class Word extends Token {
 
     public void act(Stack<Expression> S, boolean print, String prefix, StringBuilder log) throws Exception {
         if (S.size() < getArity()) throw new Exception("word " + name + " requires " + getArity() + " indices");
-        Stack<Expression> temp = new Stack<Expression>();
-        List<Expression> indices = new ArrayList<>();
+        Stack<Expression> temp = new Stack<>();
         for (int i = 1; i <= getArity(); i++) {
             temp.push(S.pop());
         }
@@ -62,7 +61,6 @@ public class Word extends Token {
         Automaton M = new Automaton(true);
         for (int i = 0; i < getArity(); i++) {
             Expression currentIndex = temp.pop();
-            indices.add(currentIndex);
             stringValue += "[" + currentIndex + "]";
             /**
              * type checking

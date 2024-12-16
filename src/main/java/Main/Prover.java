@@ -265,7 +265,6 @@ public class Prover {
             } catch (IOException e) {
                 System.out.flush();
                 System.err.println(e.getMessage());
-                //e.printStackTrace();
             } finally {
                 try {
                     if (in != null) {
@@ -367,74 +366,46 @@ public class Prover {
             throw new Exception("No such command exists.");
         }
 
-        if (commandName.equals("exit") || commandName.equals("quit")) {
-            if (s.matches(REGEXP_FOR_exit_COMMAND)) {
-                return false;
+        switch (commandName) {
+            case "exit", "quit" -> {
+                if (s.matches(REGEXP_FOR_exit_COMMAND)) {
+                    return false;
+                }
+                throw new Exception("Invalid command.");
             }
-
-            throw new Exception("Invalid command.");
-        } else if (commandName.equals("load")) {
-            if (!loadCommand(s)) return false;
-        } else if (commandName.equals("eval") || commandName.equals("def")) {
-            eval_def_commands(s);
-        } else if (commandName.equals("macro")) {
-            macroCommand(s);
-        } else if (commandName.equals("reg")) {
-            regCommand(s);
-        } else if (commandName.equals("ost")) {
-            ostCommand(s);
-        } else if (commandName.equals("cls") || commandName.equals("clear")) {
-            clearScreen();
-        } else if (commandName.equals("combine")) {
-            combineCommand(s);
-        } else if (commandName.equals("morphism")) {
-            morphismCommand(s);
-        } else if (commandName.equals("promote")) {
-            promoteCommand(s);
-        } else if (commandName.equals("image")) {
-            imageCommand(s);
-        } else if (commandName.equals("inf")) {
-            infCommand(s);
-        } else if (commandName.equals("split")) {
-            splitCommand(s);
-        } else if (commandName.equals("rsplit")) {
-            rsplitCommand(s);
-        } else if (commandName.equals("join")) {
-            joinCommand(s);
-        } else if (commandName.equals("test")) {
-            testCommand(s);
-        } else if (commandName.equals("transduce")) {
-            transduceCommand(s);
-        } else if (commandName.equals("reverse")) {
-            reverseCommand(s);
-        } else if (commandName.equals("minimize")) {
-            minimizeCommand(s);
-        } else if (commandName.equals("convert")) {
-            convertCommand(s);
-        } else if (commandName.equals("fixleadzero")) {
-            fixLeadZeroCommand(s);
-        } else if (commandName.equals("fixtrailzero")) {
-            fixTrailZeroCommand(s);
-        } else if (commandName.equals("alphabet")) {
-            alphabetCommand(s);
-        } else if (commandName.equals("union")) {
-            unionCommand(s);
-        } else if (commandName.equals("intersect")) {
-            intersectCommand(s);
-        } else if (commandName.equals("star")) {
-            starCommand(s);
-        } else if (commandName.equals("concat")) {
-            concatCommand(s);
-        } else if (commandName.equals("rightquo")) {
-            rightquoCommand(s);
-        } else if (commandName.equals("leftquo")) {
-            leftquoCommand(s);
-        } else if (commandName.equals("draw")) {
-            drawCommand(s);
-        } else if (commandName.equals("help")) {
-            helpCommand(s);
-        } else {
-            throw new Exception("Invalid command " + commandName + ".");
+            case "load" -> {
+                if (!loadCommand(s)) return false;
+            }
+            case "eval", "def" -> eval_def_commands(s);
+            case "macro" -> macroCommand(s);
+            case "reg" -> regCommand(s);
+            case "ost" -> ostCommand(s);
+            case "cls", "clear" -> clearScreen();
+            case "combine" -> combineCommand(s);
+            case "morphism" -> morphismCommand(s);
+            case "promote" -> promoteCommand(s);
+            case "image" -> imageCommand(s);
+            case "inf" -> infCommand(s);
+            case "split" -> splitCommand(s);
+            case "rsplit" -> rsplitCommand(s);
+            case "join" -> joinCommand(s);
+            case "test" -> testCommand(s);
+            case "transduce" -> transduceCommand(s);
+            case "reverse" -> reverseCommand(s);
+            case "minimize" -> minimizeCommand(s);
+            case "convert" -> convertCommand(s);
+            case "fixleadzero" -> fixLeadZeroCommand(s);
+            case "fixtrailzero" -> fixTrailZeroCommand(s);
+            case "alphabet" -> alphabetCommand(s);
+            case "union" -> unionCommand(s);
+            case "intersect" -> intersectCommand(s);
+            case "star" -> starCommand(s);
+            case "concat" -> concatCommand(s);
+            case "rightquo" -> rightquoCommand(s);
+            case "leftquo" -> leftquoCommand(s);
+            case "draw" -> drawCommand(s);
+            case "help" -> helpCommand(s);
+            default -> throw new Exception("Invalid command " + commandName + ".");
         }
         return true;
     }
@@ -452,61 +423,85 @@ public class Prover {
             throw new Exception("No such command exists.");
         }
 
-        if (commandName.equals("exit") || commandName.equals("quit")) {
-            if (s.matches(REGEXP_FOR_exit_COMMAND)) return null;
-            throw new Exception("Invalid command.");
-        } else if (commandName.equals("load")) {
-            if (!loadCommand(s)) return null;
-        } else if (commandName.equals("eval") || commandName.equals("def")) {
-            return eval_def_commands(s);
-        } else if (commandName.equals("macro")) {
-            return macroCommand(s);
-        } else if (commandName.equals("reg")) {
-            return regCommand(s);
-        } else if (commandName.equals("combine")) {
-            return combineCommand(s);
-        } else if (commandName.equals("promote")) {
-            return promoteCommand(s);
-        } else if (commandName.equals("image")) {
-            return imageCommand(s);
-        } else if (commandName.equals("split")) {
-            return splitCommand(s);
-        } else if (commandName.equals("rsplit")) {
-            return rsplitCommand(s);
-        } else if (commandName.equals("join")) {
-            return joinCommand(s);
-        } else if (commandName.equals("transduce")) {
-            return transduceCommand(s);
-        } else if (commandName.equals("reverse")) {
-            return reverseCommand(s);
-        } else if (commandName.equals("minimize")) {
-            return minimizeCommand(s);
-        } else if (commandName.equals("convert")) {
-            return convertCommand(s);
-        } else if (commandName.equals("fixleadzero")) {
-            return fixLeadZeroCommand(s);
-        } else if (commandName.equals("fixtrailzero")) {
-            return fixTrailZeroCommand(s);
-        } else if (commandName.equals("alphabet")) {
-            return alphabetCommand(s);
-        } else if (commandName.equals("union")) {
-            return unionCommand(s);
-        } else if (commandName.equals("intersect")) {
-            return intersectCommand(s);
-        } else if (commandName.equals("star")) {
-            return starCommand(s);
-        } else if (commandName.equals("concat")) {
-            return concatCommand(s);
-        } else if (commandName.equals("rightquo")) {
-            return rightquoCommand(s);
-        } else if (commandName.equals("leftquo")) {
-            return leftquoCommand(s);
-        } else if (commandName.equals("draw")) {
-            return drawCommand(s);
-        } else if (commandName.equals("help")) {
-            helpCommand(s);
-        } else {
-            throw new Exception("Invalid command: " + commandName);
+        switch (commandName) {
+            case "exit", "quit" -> {
+                if (s.matches(REGEXP_FOR_exit_COMMAND)) return null;
+                throw new Exception("Invalid command.");
+            }
+            case "load" -> {
+                if (!loadCommand(s)) return null;
+            }
+            case "eval", "def" -> {
+                return eval_def_commands(s);
+            }
+            case "macro" -> {
+                return macroCommand(s);
+            }
+            case "reg" -> {
+                return regCommand(s);
+            }
+            case "combine" -> {
+                return combineCommand(s);
+            }
+            case "promote" -> {
+                return promoteCommand(s);
+            }
+            case "image" -> {
+                return imageCommand(s);
+            }
+            case "split" -> {
+                return splitCommand(s);
+            }
+            case "rsplit" -> {
+                return rsplitCommand(s);
+            }
+            case "join" -> {
+                return joinCommand(s);
+            }
+            case "transduce" -> {
+                return transduceCommand(s);
+            }
+            case "reverse" -> {
+                return reverseCommand(s);
+            }
+            case "minimize" -> {
+                return minimizeCommand(s);
+            }
+            case "convert" -> {
+                return convertCommand(s);
+            }
+            case "fixleadzero" -> {
+                return fixLeadZeroCommand(s);
+            }
+            case "fixtrailzero" -> {
+                return fixTrailZeroCommand(s);
+            }
+            case "alphabet" -> {
+                return alphabetCommand(s);
+            }
+            case "union" -> {
+                return unionCommand(s);
+            }
+            case "intersect" -> {
+                return intersectCommand(s);
+            }
+            case "star" -> {
+                return starCommand(s);
+            }
+            case "concat" -> {
+                return concatCommand(s);
+            }
+            case "rightquo" -> {
+                return rightquoCommand(s);
+            }
+            case "leftquo" -> {
+                return leftquoCommand(s);
+            }
+            case "draw" -> {
+                return drawCommand(s);
+            }
+            case "help" -> helpCommand(s);
+            default -> throw new Exception("Invalid command: " + commandName);
         }
         return null;
     }
@@ -523,10 +518,9 @@ public class Prover {
     public static boolean loadCommand(String s) throws Exception {
         Matcher m = PATTERN_FOR_load_COMMAND.matcher(s);
         if (!m.find()) throw new Exception("Invalid use of the load command.");
-        BufferedReader in = null;
 
         try {
-            in = new BufferedReader(
+            BufferedReader in = new BufferedReader(
                     new InputStreamReader(
                             new FileInputStream(
                                     UtilityMethods.get_address_for_command_files() +
@@ -613,10 +607,10 @@ public class Prover {
         if (!m.find()) {
             throw new Exception("Invalid use of the reg command");
         }
-        NumberSystem ns = null;
+        NumberSystem ns;
         List<List<Integer>> alphabets = new ArrayList<>();
         List<NumberSystem> numSys = new ArrayList<>();
-        List<Integer> alphabet = null;
+        List<Integer> alphabet;
         if (m.group(R_LIST_OF_ALPHABETS) == null) {
             String base = "msd_2";
             try {
@@ -735,7 +729,7 @@ public class Prover {
 
         boolean printSteps = m.group(GROUP_COMBINE_END).equals(":");
 
-        String prefix = new String();
+        String prefix = "";
         StringBuilder log = new StringBuilder();
 
 
@@ -877,8 +871,7 @@ public class Prover {
         }
 
         boolean printSteps = m.group(GROUP_SPLIT_END).equals(":");
-        boolean printDetails = m.group(GROUP_SPLIT_END).equals("::");
-        String prefix = new String();
+        String prefix = "";
         StringBuilder log = new StringBuilder();
 
         Matcher m1 = PATTERN_FOR_INPUT_IN_split_COMMAND.matcher(m.group(GROUP_SPLIT_INPUT));
@@ -934,7 +927,7 @@ public class Prover {
         }
 
         boolean printSteps = m.group(GROUP_RSPLIT_END).equals(":");
-        String prefix = new String();
+        String prefix = "";
         StringBuilder log = new StringBuilder();
 
         Matcher m1 = PATTERN_FOR_INPUT_IN_rsplit_COMMAND.matcher(m.group(GROUP_RSPLIT_INPUT));
@@ -975,8 +968,7 @@ public class Prover {
         }
 
         boolean printSteps = m.group(GROUP_JOIN_END).equals(":");
-        boolean printDetails = m.group(GROUP_JOIN_END).equals("::");
-        String prefix = new String();
+        String prefix = "";
         StringBuilder log = new StringBuilder();
 
         Matcher m1 = PATTERN_FOR_AN_AUTOMATON_IN_join_COMMAND.matcher(m.group(GROUP_JOIN_AUTOMATA));
@@ -1109,7 +1101,7 @@ public class Prover {
 
             boolean printSteps = m.group(GROUP_TRANSDUCE_END).equals(":");
             boolean printDetails = m.group(GROUP_TRANSDUCE_END).equals("::");
-            String prefix = new String();
+            String prefix = "";
             StringBuilder log = new StringBuilder();
 
             Transducer T = new Transducer(UtilityMethods.get_address_for_transducer_library() + m.group(GROUP_TRANSDUCE_TRANSDUCER) + ".txt");
@@ -1140,7 +1132,7 @@ public class Prover {
 
             boolean printSteps = m.group(GROUP_REVERSE_END).equals(":");
             boolean printDetails = m.group(GROUP_REVERSE_END).equals("::");
-            String prefix = new String();
+            String prefix = "";
             StringBuilder log = new StringBuilder();
 
             boolean isDFAO = true;
@@ -1179,7 +1171,7 @@ public class Prover {
 
             boolean printSteps = m.group(GROUP_MINIMIZE_END).equals(":");
             boolean printDetails = m.group(GROUP_MINIMIZE_END).equals("::");
-            String prefix = new String();
+            String prefix = "";
             StringBuilder log = new StringBuilder();
 
             Automaton M = new Automaton(UtilityMethods.get_address_for_words_library() +
@@ -1209,11 +1201,9 @@ public class Prover {
                 throw new Exception("Cannot convert a Word Automaton into a function");
             }
 
-            String numberSystem = m.group(GROUP_CONVERT_NUMBER_SYSTEM);
-
             boolean printSteps = m.group(GROUP_CONVERT_END).equals(":");
             boolean printDetails = m.group(GROUP_CONVERT_END).equals("::");
-            String prefix = new String();
+            String prefix = "";
             StringBuilder log = new StringBuilder();
 
             String library = UtilityMethods.get_address_for_words_library();
@@ -1250,7 +1240,7 @@ public class Prover {
 
             boolean printSteps = m.group(GROUP_FIXLEADZERO_END).equals(":");
             boolean printDetails = m.group(GROUP_FIXLEADZERO_END).equals("::");
-            String prefix = new String();
+            String prefix = "";
             StringBuilder log = new StringBuilder();
 
             Automaton M = new Automaton(UtilityMethods.get_address_for_automata_library() + m.group(GROUP_FIXLEADZERO_OLD_NAME) + ".txt");
@@ -1276,7 +1266,7 @@ public class Prover {
 
             boolean printSteps = m.group(GROUP_FIXTRAILZERO_END).equals(":");
             boolean printDetails = m.group(GROUP_FIXTRAILZERO_END).equals("::");
-            String prefix = new String();
+            String prefix = "";
             StringBuilder log = new StringBuilder();
 
             Automaton M = new Automaton(UtilityMethods.get_address_for_automata_library() + m.group(GROUP_FIXTRAILZERO_OLD_NAME) + ".txt");
@@ -1311,7 +1301,7 @@ public class Prover {
 
             boolean printSteps = m.group(GROUP_alphabet_END).equals(":");
             boolean printDetails = m.group(GROUP_alphabet_END).equals("::");
-            String prefix = new String();
+            String prefix = "";
             StringBuilder log = new StringBuilder();
 
             boolean isDFAO = true;
@@ -1377,7 +1367,7 @@ public class Prover {
             boolean printSteps = m.group(GROUP_UNION_END).equals(":");
             boolean printDetails = m.group(GROUP_UNION_END).equals("::");
 
-            String prefix = new String();
+            String prefix = "";
             StringBuilder log = new StringBuilder();
 
 
@@ -1420,7 +1410,7 @@ public class Prover {
             boolean printSteps = m.group(GROUP_INTERSECT_END).equals(":");
             boolean printDetails = m.group(GROUP_INTERSECT_END).equals("::");
 
-            String prefix = new String();
+            String prefix = "";
             StringBuilder log = new StringBuilder();
 
 
@@ -1462,7 +1452,7 @@ public class Prover {
 
             boolean printSteps = m.group(GROUP_STAR_END).equals(":");
             boolean printDetails = m.group(GROUP_STAR_END).equals("::");
-            String prefix = new String();
+            String prefix = "";
             StringBuilder log = new StringBuilder();
 
             Automaton M = new Automaton(UtilityMethods.get_address_for_automata_library() + m.group(GROUP_STAR_OLD_NAME) + ".txt");
@@ -1490,7 +1480,7 @@ public class Prover {
             boolean printSteps = m.group(GROUP_CONCAT_END).equals(":");
             boolean printDetails = m.group(GROUP_CONCAT_END).equals("::");
 
-            String prefix = new String();
+            String prefix = "";
             StringBuilder log = new StringBuilder();
 
 
@@ -1534,7 +1524,7 @@ public class Prover {
             boolean printSteps = m.group(GROUP_rightquo_END).equals(":");
             boolean printDetails = m.group(GROUP_rightquo_END).equals("::");
 
-            String prefix = new String();
+            String prefix = "";
             StringBuilder log = new StringBuilder();
 
             Automaton M1 = new Automaton(UtilityMethods.get_address_for_automata_library() + m.group(GROUP_rightquo_OLD_NAME1) + ".txt");
@@ -1564,7 +1554,7 @@ public class Prover {
             boolean printSteps = m.group(GROUP_leftquo_END).equals(":");
             boolean printDetails = m.group(GROUP_leftquo_END).equals("::");
 
-            String prefix = new String();
+            String prefix = "";
             StringBuilder log = new StringBuilder();
 
             Automaton M1 = new Automaton(UtilityMethods.get_address_for_automata_library() + m.group(GROUP_leftquo_OLD_NAME1) + ".txt");
@@ -1616,7 +1606,7 @@ public class Prover {
 
             File f = new File(UtilityMethods.get_address_for_help_commands());
 
-            ArrayList<String> pathnames = new ArrayList<String>(Arrays.asList(f.list()));
+            ArrayList<String> pathnames = new ArrayList<>(Arrays.asList(f.list()));
 
             String commandName = m.group(GROUP_help_NAME);
             if (commandName == null) {

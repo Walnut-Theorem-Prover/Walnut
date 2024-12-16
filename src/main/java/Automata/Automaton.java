@@ -1360,7 +1360,7 @@ public class Automaton {
      *
      * @throws Exception
      */
-    public boolean addDistinguishedDeadState(boolean print, String prefix, StringBuilder log) throws Exception {
+    public boolean addDistinguishedDeadState(boolean print, String prefix, StringBuilder log) {
         long timeBefore = System.currentTimeMillis();
         if (print) {
             String msg = prefix + "Adding distinguished dead state: " + Q + " states";
@@ -1535,7 +1535,7 @@ public class Automaton {
      * @return
      * @throws Exception
      */
-    public dk.brics.automaton.Automaton to_dk_bricks_automaton() throws Exception {
+    public dk.brics.automaton.Automaton to_dk_bricks_automaton() {
         /**
          * Since the dk.bricks.automaton uses char as its input alphabet for an automaton, then in order to transform
          * Automata.Automaton to dk.bricks.automaton.Automata we've got to make sure, the input alphabet is less than

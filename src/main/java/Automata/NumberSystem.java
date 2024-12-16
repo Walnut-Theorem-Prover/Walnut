@@ -772,22 +772,15 @@ public class NumberSystem {
      */
     public Automaton comparison(int a, String b, String comparisonOperator) throws Exception {
         if (!is_neg && a < 0) throw ExceptionHelper.negativeConstant(a);
-        switch (comparisonOperator) {
-            case "<":
-                return comparison(b, a, ">");
-            case ">":
-                return comparison(b, a, "<");
-            case "=":
-                return comparison(b, a, "=");
-            case "!=":
-                return comparison(b, a, "!=");
-            case "<=":
-                return comparison(b, a, ">=");
-            case ">=":
-                return comparison(b, a, "<=");
-            default:
-                throw new Exception("undefined comparison operator");
-        }
+        return switch (comparisonOperator) {
+            case "<" -> comparison(b, a, ">");
+            case ">" -> comparison(b, a, "<");
+            case "=" -> comparison(b, a, "=");
+            case "!=" -> comparison(b, a, "!=");
+            case "<=" -> comparison(b, a, ">=");
+            case ">=" -> comparison(b, a, "<=");
+            default -> throw new Exception("undefined comparison operator");
+        };
     }
 
     /**

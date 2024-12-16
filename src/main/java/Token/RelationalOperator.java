@@ -51,7 +51,7 @@ public class RelationalOperator extends Operator {
         Expression a = S.pop();
 
         if ((a.is(Type.numberLiteral) || a.is(Type.alphabetLetter)) && (b.is(Type.numberLiteral) || b.is(Type.alphabetLetter))) {
-            S.push(new Expression(a + op + b, new Automaton(compare(a.constant, b.constant))));
+            S.push(new Expression(a + op + b, new Automaton(compare(op, a.constant, b.constant))));
             return;
         }
         String preStep = prefix + "computing " + a + op + b;
@@ -154,42 +154,27 @@ public class RelationalOperator extends Operator {
         }
     }
 
-    private boolean compare(int a, int b) {
-        switch (op) {
-            case "=":
-                return a == b;
-            case "!=":
-                return a != b;
-            case "<":
-                return a < b;
-            case ">":
-                return a > b;
-            case "<=":
-                return a <= b;
-            case ">=":
-                return a >= b;
-            default:
-                return false;
-        }
-
+    private static boolean compare(String op, int a, int b) {
+        return switch (op) {
+            case "=" -> a == b;
+            case "!=" -> a != b;
+            case "<" -> a < b;
+            case ">" -> a > b;
+            case "<=" -> a <= b;
+            case ">=" -> a >= b;
+            default -> false;
+        };
     }
 
-    public String reverseOperator(String a) {
-        switch (op) {
-            case "=":
-                return "=";
-            case "!=":
-                return "!=";
-            case "<":
-                return ">";
-            case ">":
-                return "<";
-            case "<=":
-                return ">=";
-            case ">=":
-                return "<=";
-            default:
-                return "";
-        }
+    private static String reverseOperator(String op) {
+        return switch (op) {
+            case "=" -> "=";
+            case "!=" -> "!=";
+            case "<" -> ">";
+            case ">" -> "<";
+            case "<=" -> ">=";
+            case ">=" -> "<=";
+            default -> "";
+        };
     }
 }

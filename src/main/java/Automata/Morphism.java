@@ -181,6 +181,4 @@ public class Morphism {
         interCommand += ")\":";
         return interCommand;
     }
-
-
 }

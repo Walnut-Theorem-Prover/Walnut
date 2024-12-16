@@ -22,21 +22,13 @@ public enum Type {
     automaton, word, arithmetic, alphabetLetter, variable, numberLiteral;
 
     public String toString() {
-        switch (this) {
-            case automaton:
-                return "automaton";
-            case word:
-                return "word";
-            case arithmetic:
-                return "arithmetic";
-            case alphabetLetter:
-                return "alphabet letter";
-            case variable:
-                return "variable";
-            case numberLiteral:
-                return "number literal";
-            default:
-                return "unknown";
-        }
+        return switch (this) {
+            case automaton -> "automaton";
+            case word -> "word";
+            case arithmetic -> "arithmetic";
+            case alphabetLetter -> "alphabet letter";
+            case variable -> "variable";
+            case numberLiteral -> "number literal";
+        };
     }
 }
