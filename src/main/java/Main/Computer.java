@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Stack;
 
 import Automata.Automaton;
+import Automata.AutomatonWriter;
 import Token.Token;
 
 
@@ -54,7 +55,7 @@ public class Computer {
 
 	public void writeMatrices(String address, List<String> free_variables) throws Exception{
 		try {
-			mpl = result.M.write_matrices(address, free_variables);
+			mpl = AutomatonWriter.write_matrices(result.M, address, free_variables);
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw new Exception(e.getMessage());
@@ -89,10 +90,10 @@ public class Computer {
 		}
 	}
 	public void drawAutomaton(String address) throws Exception{
-		result.M.draw(address, predicate_string, false);
+		Automaton.draw(result.M, address, predicate_string, false);
 	}
 	public void write(String address){
-		result.M.write(address);
+		Automaton.write(result.M, address);
 	}
 	public String toString(){
 		return result.toString();

@@ -19,12 +19,10 @@
 package Automata;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.io.File;
 import java.util.Iterator;
 import java.util.List;
 import java.util.LinkedList;
-import java.util.Map;
 import java.util.Queue;
 import java.util.TreeMap;
 import Main.UtilityMethods;
@@ -204,7 +202,7 @@ public class OstrowskiNumeration {
         if(f.exists() && !f.isDirectory()) {
             throw new Exception("Error: number system " + this.name + " already exists.");
         }
-        repr.write(repr_file_name);
+        Automaton.write(repr, repr_file_name);
         System.out.println("Ostrowski representation automaton created and written to file " + repr_file_name);
     }
 
@@ -271,7 +269,7 @@ public class OstrowskiNumeration {
             System.out.println("Warning: number system " + this.name + "was previously defined and is being overwritten.");
         }
 
-        adder.write(adder_file_name);
+        Automaton.write(adder, adder_file_name);
         System.out.println("Ostrowski adder automaton created and written to file " + adder_file_name);
     }
 

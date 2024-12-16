@@ -28,7 +28,6 @@ import java.io.File;
 import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.LinkedList;
@@ -726,9 +725,9 @@ public class Prover {
 		R.alphabetSize = M.alphabetSize;
 		R.NS = numSys;
 
-		R.draw(UtilityMethods.get_address_for_result()+m.group(R_NAME)+".gv",m.group(R_REGEXP), false);
-		R.write(UtilityMethods.get_address_for_result()+m.group(R_NAME)+".txt");
-		R.write(UtilityMethods.get_address_for_automata_library()+m.group(R_NAME)+".txt");
+		Automaton.draw(R, UtilityMethods.get_address_for_result()+m.group(R_NAME)+".gv",m.group(R_REGEXP), false);
+		Automaton.write(R, UtilityMethods.get_address_for_result()+m.group(R_NAME)+".txt");
+		Automaton.write(R, UtilityMethods.get_address_for_automata_library()+m.group(R_NAME)+".txt");
 
 		return new TestCase(s,R,"","","");
 	}
@@ -774,9 +773,9 @@ public class Prover {
 
 		Automaton C = first.combine(automataNames, outputs, printSteps, prefix, log);
 
-		C.draw(UtilityMethods.get_address_for_result()+m.group(GROUP_COMBINE_NAME)+".gv", s, true);
-		C.write(UtilityMethods.get_address_for_result()+m.group(GROUP_COMBINE_NAME)+".txt");
-		C.write(UtilityMethods.get_address_for_words_library()+m.group(GROUP_COMBINE_NAME)+".txt");
+		Automaton.draw(C, UtilityMethods.get_address_for_result()+m.group(GROUP_COMBINE_NAME)+".gv", s, true);
+		Automaton.write(C, UtilityMethods.get_address_for_result()+m.group(GROUP_COMBINE_NAME)+".txt");
+		Automaton.write(C, UtilityMethods.get_address_for_words_library()+m.group(GROUP_COMBINE_NAME)+".txt");
 
 		return new TestCase(s,C,"","","");
 	}
@@ -804,9 +803,9 @@ public class Prover {
 		}
 		Morphism h = new Morphism(UtilityMethods.get_address_for_morphism_library()+m.group(GROUP_PROMOTE_MORPHISM)+".txt");
 		Automaton P = h.toWordAutomaton();
-		P.draw(UtilityMethods.get_address_for_result()+m.group(GROUP_PROMOTE_NAME)+".gv", s, true);
-		P.write(UtilityMethods.get_address_for_result()+m.group(GROUP_PROMOTE_NAME)+".txt");
-		P.write(UtilityMethods.get_address_for_words_library()+m.group(GROUP_PROMOTE_NAME)+".txt");
+		Automaton.draw(P, UtilityMethods.get_address_for_result()+m.group(GROUP_PROMOTE_NAME)+".gv", s, true);
+		Automaton.write(P, UtilityMethods.get_address_for_result()+m.group(GROUP_PROMOTE_NAME)+".txt");
+		Automaton.write(P, UtilityMethods.get_address_for_words_library()+m.group(GROUP_PROMOTE_NAME)+".txt");
 
 		return new TestCase(s,P,"","","");
 	}
@@ -840,9 +839,9 @@ public class Prover {
 		TestCase retrieval = combineCommand(combineString);
 		Automaton I = retrieval.result.clone();
 		
-		I.draw(UtilityMethods.get_address_for_result()+m.group(GROUP_IMAGE_NEW_NAME)+".gv", s, true);
-		I.write(UtilityMethods.get_address_for_result()+m.group(GROUP_IMAGE_NEW_NAME)+".txt");
-		I.write(UtilityMethods.get_address_for_words_library()+m.group(GROUP_IMAGE_NEW_NAME)+".txt");
+		Automaton.draw(I, UtilityMethods.get_address_for_result()+m.group(GROUP_IMAGE_NEW_NAME)+".gv", s, true);
+		Automaton.write(I, UtilityMethods.get_address_for_result()+m.group(GROUP_IMAGE_NEW_NAME)+".txt");
+		Automaton.write(I, UtilityMethods.get_address_for_words_library()+m.group(GROUP_IMAGE_NEW_NAME)+".txt");
 		return new TestCase(s,I,"","","");
 	}
 
@@ -910,12 +909,12 @@ public class Prover {
 		Automaton N = subautomata.remove(0);
 		N = N.combine(new LinkedList<>(subautomata),outputs,printSteps, prefix,log);
 
-		N.draw(UtilityMethods.get_address_for_result()+m.group(GROUP_SPLIT_NAME)+".gv", s, isDFAO);
-		N.write(UtilityMethods.get_address_for_result()+m.group(GROUP_SPLIT_NAME)+".txt");
+		Automaton.draw(N, UtilityMethods.get_address_for_result()+m.group(GROUP_SPLIT_NAME)+".gv", s, isDFAO);
+		Automaton.write(N, UtilityMethods.get_address_for_result()+m.group(GROUP_SPLIT_NAME)+".txt");
 		if (isDFAO) {
-			N.write(UtilityMethods.get_address_for_words_library()+m.group(GROUP_SPLIT_NAME)+".txt");
+			Automaton.write(N, UtilityMethods.get_address_for_words_library()+m.group(GROUP_SPLIT_NAME)+".txt");
 		} else {
-			N.write(UtilityMethods.get_address_for_automata_library()+m.group(GROUP_SPLIT_NAME)+".txt");
+			Automaton.write(N, UtilityMethods.get_address_for_automata_library()+m.group(GROUP_SPLIT_NAME)+".txt");
 		}
 		return new TestCase(s, N, "", "", "");
 	}
@@ -966,12 +965,12 @@ public class Prover {
 		Automaton N = subautomata.remove(0);
 		N = N.combine(new LinkedList<>(subautomata),outputs,printSteps, prefix,log);
 
-		N.draw(UtilityMethods.get_address_for_result()+m.group(GROUP_RSPLIT_NAME)+".gv", s, isDFAO);
-		N.write(UtilityMethods.get_address_for_result()+m.group(GROUP_RSPLIT_NAME)+".txt");
+		Automaton.draw(N, UtilityMethods.get_address_for_result()+m.group(GROUP_RSPLIT_NAME)+".gv", s, isDFAO);
+		Automaton.write(N, UtilityMethods.get_address_for_result()+m.group(GROUP_RSPLIT_NAME)+".txt");
 		if (isDFAO) {
-			N.write(UtilityMethods.get_address_for_words_library()+m.group(GROUP_RSPLIT_NAME)+".txt");
+			Automaton.write(N, UtilityMethods.get_address_for_words_library()+m.group(GROUP_RSPLIT_NAME)+".txt");
 		} else {
-			N.write(UtilityMethods.get_address_for_automata_library()+m.group(GROUP_RSPLIT_NAME)+".txt");
+			Automaton.write(N, UtilityMethods.get_address_for_automata_library()+m.group(GROUP_RSPLIT_NAME)+".txt");
 		}
 		return new TestCase(s, N, "", "", "");
 	}
@@ -1022,12 +1021,12 @@ public class Prover {
 		Automaton N = subautomata.remove(0);
 		N = N.join(new LinkedList<>(subautomata),printSteps, prefix,log);
 
-		N.draw(UtilityMethods.get_address_for_result()+m.group(GROUP_JOIN_NAME)+".gv", s, isDFAO);
-		N.write(UtilityMethods.get_address_for_result()+m.group(GROUP_JOIN_NAME)+".txt");
+		Automaton.draw(N, UtilityMethods.get_address_for_result()+m.group(GROUP_JOIN_NAME)+".gv", s, isDFAO);
+		Automaton.write(N, UtilityMethods.get_address_for_result()+m.group(GROUP_JOIN_NAME)+".txt");
 		if (isDFAO) {
-			N.write(UtilityMethods.get_address_for_words_library()+m.group(GROUP_JOIN_NAME)+".txt");
+			Automaton.write(N, UtilityMethods.get_address_for_words_library()+m.group(GROUP_JOIN_NAME)+".txt");
 		} else {
-			N.write(UtilityMethods.get_address_for_automata_library()+m.group(GROUP_JOIN_NAME)+".txt");
+			Automaton.write(N, UtilityMethods.get_address_for_automata_library()+m.group(GROUP_JOIN_NAME)+".txt");
 		}
 		return new TestCase(s, N, "", "", "");
 	}
@@ -1128,9 +1127,9 @@ public class Prover {
 			Automaton M =  new Automaton(library + m.group(GROUP_TRANSDUCE_OLD_NAME)+".txt");
 
 			Automaton C = T.transduceNonDeterministic(M, printSteps || printDetails, prefix, log);
-			C.draw(UtilityMethods.get_address_for_result()+m.group(GROUP_TRANSDUCE_NEW_NAME)+".gv", s, true);
-			C.write(UtilityMethods.get_address_for_result()+m.group(GROUP_TRANSDUCE_NEW_NAME)+".txt");
-			C.write(UtilityMethods.get_address_for_words_library()+m.group(GROUP_TRANSDUCE_NEW_NAME)+".txt");
+			Automaton.draw(C, UtilityMethods.get_address_for_result()+m.group(GROUP_TRANSDUCE_NEW_NAME)+".gv", s, true);
+			Automaton.write(C, UtilityMethods.get_address_for_result()+m.group(GROUP_TRANSDUCE_NEW_NAME)+".txt");
+			Automaton.write(C, UtilityMethods.get_address_for_words_library()+m.group(GROUP_TRANSDUCE_NEW_NAME)+".txt");
 			return new TestCase(s,C,"","","");
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -1168,9 +1167,9 @@ public class Prover {
 				M.reverse(printSteps || printDetails, prefix, log, true);
 			}
 
-			M.draw(UtilityMethods.get_address_for_result()+m.group(GROUP_REVERSE_NEW_NAME)+".gv", s, true);
-			M.write(UtilityMethods.get_address_for_result()+m.group(GROUP_REVERSE_NEW_NAME)+".txt");
-			M.write(library + m.group(GROUP_REVERSE_NEW_NAME)+".txt");
+			Automaton.draw(M, UtilityMethods.get_address_for_result()+m.group(GROUP_REVERSE_NEW_NAME)+".gv", s, true);
+			Automaton.write(M, UtilityMethods.get_address_for_result()+m.group(GROUP_REVERSE_NEW_NAME)+".txt");
+			Automaton.write(M, library + m.group(GROUP_REVERSE_NEW_NAME)+".txt");
 			return new TestCase(s,M,"","","");
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -1196,9 +1195,9 @@ public class Prover {
 
 			M.minimizeSelfWithOutput(printSteps || printDetails, prefix, log);
 
-			M.draw(UtilityMethods.get_address_for_result()+m.group(GROUP_MINIMIZE_NEW_NAME)+".gv", s, true);
-			M.write(UtilityMethods.get_address_for_result()+m.group(GROUP_MINIMIZE_NEW_NAME)+".txt");
-			M.write(UtilityMethods.get_address_for_words_library()+m.group(GROUP_MINIMIZE_NEW_NAME)+".txt");
+			Automaton.draw(M, UtilityMethods.get_address_for_result()+m.group(GROUP_MINIMIZE_NEW_NAME)+".gv", s, true);
+			Automaton.write(M, UtilityMethods.get_address_for_result()+m.group(GROUP_MINIMIZE_NEW_NAME)+".txt");
+			Automaton.write(M, UtilityMethods.get_address_for_words_library()+m.group(GROUP_MINIMIZE_NEW_NAME)+".txt");
 			return new TestCase(s,M,"","","");
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -1235,14 +1234,14 @@ public class Prover {
 					Integer.parseInt(m.group(GROUP_CONVERT_BASE)), printSteps || printDetails,
 					prefix, log);
 
-			M.draw(UtilityMethods.get_address_for_result()+m.group(GROUP_CONVERT_NEW_NAME)+".gv", s, true);
-			M.write(UtilityMethods.get_address_for_result()+m.group(GROUP_CONVERT_NEW_NAME)+".txt");
+			Automaton.draw(M, UtilityMethods.get_address_for_result()+m.group(GROUP_CONVERT_NEW_NAME)+".gv", s, true);
+			Automaton.write(M, UtilityMethods.get_address_for_result()+m.group(GROUP_CONVERT_NEW_NAME)+".txt");
 
 			String outLibrary = UtilityMethods.get_address_for_words_library();
 			if (m.group(GROUP_CONVERT_NEW_DOLLAR_SIGN).equals("$")) {
 				outLibrary = UtilityMethods.get_address_for_automata_library();
 			}
-			M.write(outLibrary + m.group(GROUP_CONVERT_NEW_NAME)+".txt");
+			Automaton.write(M, outLibrary + m.group(GROUP_CONVERT_NEW_NAME)+".txt");
 			return new TestCase(s,M,"","","");
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -1266,9 +1265,9 @@ public class Prover {
 
 			M.fixLeadingZerosProblem(printSteps || printDetails, prefix, log);
 
-			M.draw(UtilityMethods.get_address_for_result()+m.group(GROUP_FIXLEADZERO_NEW_NAME)+".gv", s, false);
-			M.write(UtilityMethods.get_address_for_result()+m.group(GROUP_FIXLEADZERO_NEW_NAME)+".txt");
-			M.write(UtilityMethods.get_address_for_automata_library() + m.group(GROUP_FIXLEADZERO_NEW_NAME)+".txt");
+			Automaton.draw(M, UtilityMethods.get_address_for_result()+m.group(GROUP_FIXLEADZERO_NEW_NAME)+".gv", s, false);
+			Automaton.write(M, UtilityMethods.get_address_for_result()+m.group(GROUP_FIXLEADZERO_NEW_NAME)+".txt");
+			Automaton.write(M, UtilityMethods.get_address_for_automata_library() + m.group(GROUP_FIXLEADZERO_NEW_NAME)+".txt");
 			return new TestCase(s,M,"","","");
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -1292,9 +1291,9 @@ public class Prover {
 
 			M.fixTrailingZerosProblem(printSteps || printDetails, prefix, log);
 
-			M.draw(UtilityMethods.get_address_for_result()+m.group(GROUP_FIXTRAILZERO_NEW_NAME)+".gv", s, false);
-			M.write(UtilityMethods.get_address_for_result()+m.group(GROUP_FIXTRAILZERO_NEW_NAME)+".txt");
-			M.write(UtilityMethods.get_address_for_automata_library() + m.group(GROUP_FIXTRAILZERO_NEW_NAME)+".txt");
+			Automaton.draw(M, UtilityMethods.get_address_for_result()+m.group(GROUP_FIXTRAILZERO_NEW_NAME)+".gv", s, false);
+			Automaton.write(M, UtilityMethods.get_address_for_result()+m.group(GROUP_FIXTRAILZERO_NEW_NAME)+".txt");
+			Automaton.write(M, UtilityMethods.get_address_for_automata_library() + m.group(GROUP_FIXTRAILZERO_NEW_NAME)+".txt");
 			return new TestCase(s,M,"","","");
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -1368,9 +1367,9 @@ public class Prover {
 			// here, call the function to set the number system.
 			M.setAlphabet(isDFAO, numSys, alphabets, printDetails || printSteps, prefix, log);
 
-			M.draw(UtilityMethods.get_address_for_result()+m.group(GROUP_alphabet_NEW_NAME)+".gv", s, false);
-			M.write(UtilityMethods.get_address_for_result()+m.group(GROUP_alphabet_NEW_NAME)+".txt");
-			M.write(library + m.group(GROUP_alphabet_NEW_NAME)+".txt");
+			Automaton.draw(M, UtilityMethods.get_address_for_result()+m.group(GROUP_alphabet_NEW_NAME)+".gv", s, false);
+			Automaton.write(M, UtilityMethods.get_address_for_result()+m.group(GROUP_alphabet_NEW_NAME)+".txt");
+			Automaton.write(M, library + m.group(GROUP_alphabet_NEW_NAME)+".txt");
 
 			return new TestCase(s,M,"","","");
 		} catch (Exception e) {
@@ -1409,9 +1408,9 @@ public class Prover {
 
 			C = C.unionOrIntersect(automataNames, "union", printDetails || printSteps, prefix, log);
 
-			C.draw(UtilityMethods.get_address_for_result()+m.group(GROUP_UNION_NAME)+".gv", s, true);
-			C.write(UtilityMethods.get_address_for_result()+m.group(GROUP_UNION_NAME)+".txt");
-			C.write(UtilityMethods.get_address_for_automata_library()+m.group(GROUP_UNION_NAME)+".txt");
+			Automaton.draw(C, UtilityMethods.get_address_for_result()+m.group(GROUP_UNION_NAME)+".gv", s, true);
+			Automaton.write(C, UtilityMethods.get_address_for_result()+m.group(GROUP_UNION_NAME)+".txt");
+			Automaton.write(C, UtilityMethods.get_address_for_automata_library()+m.group(GROUP_UNION_NAME)+".txt");
 
 			return new TestCase(s,C,"","","");
 
@@ -1452,9 +1451,9 @@ public class Prover {
 
 			C = C.unionOrIntersect(automataNames, "intersect", printDetails || printSteps, prefix, log);
 
-			C.draw(UtilityMethods.get_address_for_result()+m.group(GROUP_INTERSECT_NAME)+".gv", s, true);
-			C.write(UtilityMethods.get_address_for_result()+m.group(GROUP_INTERSECT_NAME)+".txt");
-			C.write(UtilityMethods.get_address_for_automata_library()+m.group(GROUP_INTERSECT_NAME)+".txt");
+			Automaton.draw(C, UtilityMethods.get_address_for_result()+m.group(GROUP_INTERSECT_NAME)+".gv", s, true);
+			Automaton.write(C, UtilityMethods.get_address_for_result()+m.group(GROUP_INTERSECT_NAME)+".txt");
+			Automaton.write(C, UtilityMethods.get_address_for_automata_library()+m.group(GROUP_INTERSECT_NAME)+".txt");
 
 			return new TestCase(s,C,"","","");
 
@@ -1481,9 +1480,9 @@ public class Prover {
 
 			 Automaton C = M.star(printSteps || printDetails, prefix, log);
 
-			 C.draw(UtilityMethods.get_address_for_result()+m.group(GROUP_STAR_NEW_NAME)+".gv", s, false);
-			 C.write(UtilityMethods.get_address_for_result()+m.group(GROUP_STAR_NEW_NAME)+".txt");
-			 C.write(UtilityMethods.get_address_for_automata_library() + m.group(GROUP_STAR_NEW_NAME)+".txt");
+			 Automaton.draw(C, UtilityMethods.get_address_for_result()+m.group(GROUP_STAR_NEW_NAME)+".gv", s, false);
+			 Automaton.write(C, UtilityMethods.get_address_for_result()+m.group(GROUP_STAR_NEW_NAME)+".txt");
+			 Automaton.write(C, UtilityMethods.get_address_for_automata_library() + m.group(GROUP_STAR_NEW_NAME)+".txt");
 			 return new TestCase(s,C,"","","");
 
 		 } catch (Exception e) {
@@ -1522,9 +1521,9 @@ public class Prover {
 
 			C = C.concat(automataNames, printDetails || printSteps, prefix, log);
 
-			C.draw(UtilityMethods.get_address_for_result()+m.group(GROUP_CONCAT_NAME)+".gv", s, true);
-			C.write(UtilityMethods.get_address_for_result()+m.group(GROUP_CONCAT_NAME)+".txt");
-			C.write(UtilityMethods.get_address_for_automata_library()+m.group(GROUP_CONCAT_NAME)+".txt");
+			Automaton.draw(C, UtilityMethods.get_address_for_result()+m.group(GROUP_CONCAT_NAME)+".gv", s, true);
+			Automaton.write(C, UtilityMethods.get_address_for_result()+m.group(GROUP_CONCAT_NAME)+".txt");
+			Automaton.write(C, UtilityMethods.get_address_for_automata_library()+m.group(GROUP_CONCAT_NAME)+".txt");
 
 			return new TestCase(s,C,"","","");
 
@@ -1554,9 +1553,9 @@ public class Prover {
 
 			Automaton C = M1.rightQuotient(M2, false, printSteps || printDetails, prefix, log);
 
-			C.draw(UtilityMethods.get_address_for_result()+m.group(GROUP_rightquo_NEW_NAME)+".gv", s, false);
-			C.write(UtilityMethods.get_address_for_result()+m.group(GROUP_rightquo_NEW_NAME)+".txt");
-			C.write(UtilityMethods.get_address_for_automata_library() + m.group(GROUP_rightquo_NEW_NAME)+".txt");
+			Automaton.draw(C, UtilityMethods.get_address_for_result()+m.group(GROUP_rightquo_NEW_NAME)+".gv", s, false);
+			Automaton.write(C, UtilityMethods.get_address_for_result()+m.group(GROUP_rightquo_NEW_NAME)+".txt");
+			Automaton.write(C, UtilityMethods.get_address_for_automata_library() + m.group(GROUP_rightquo_NEW_NAME)+".txt");
 			return new TestCase(s,C,"","","");
 
 		} catch (Exception e) {
@@ -1584,9 +1583,9 @@ public class Prover {
 
 			Automaton C = M1.leftQuotient(M2, printSteps || printDetails, prefix, log);
 
-			C.draw(UtilityMethods.get_address_for_result()+m.group(GROUP_leftquo_NEW_NAME)+".gv", s, false);
-			C.write(UtilityMethods.get_address_for_result()+m.group(GROUP_leftquo_NEW_NAME)+".txt");
-			C.write(UtilityMethods.get_address_for_automata_library() + m.group(GROUP_leftquo_NEW_NAME)+".txt");
+			Automaton.draw(C, UtilityMethods.get_address_for_result()+m.group(GROUP_leftquo_NEW_NAME)+".gv", s, false);
+			Automaton.write(C, UtilityMethods.get_address_for_result()+m.group(GROUP_leftquo_NEW_NAME)+".txt");
+			Automaton.write(C, UtilityMethods.get_address_for_automata_library() + m.group(GROUP_leftquo_NEW_NAME)+".txt");
 			return new TestCase(s,C,"","","");
 
 		} catch (Exception e) {
@@ -1608,7 +1607,7 @@ public class Prover {
 				library = UtilityMethods.get_address_for_automata_library();
 			}
 			Automaton M = new Automaton(library + m.group(GROUP_draw_NAME)+".txt");
-			M.draw(UtilityMethods.get_address_for_result()+m.group(GROUP_draw_NAME) + ".gv", s, false);
+			Automaton.draw(M, UtilityMethods.get_address_for_result()+m.group(GROUP_draw_NAME) + ".gv", s, false);
 
 			return new TestCase(s, M, "", "", "");
 
