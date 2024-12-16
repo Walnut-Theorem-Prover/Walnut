@@ -61,6 +61,7 @@ class AutomatonTest {
             alphabet.add(2);
 
             a = new Automaton("01*", alphabet);
+            //Assertions.assertEquals("[{0=>[1]}, {1=>[1]}]", a.d.toString());
             Assertions.assertTrue(a.equals(a.clone()));
             List<String> labels = new ArrayList<>();
             labels.add("");
@@ -72,6 +73,7 @@ class AutomatonTest {
             b = a.clone();
             b.reverse(false, "", null);
             Assertions.assertFalse(a.equals(b));
+            Assertions.assertEquals("[{0=>[1], 1=>[0]}, {}]", b.d.toString());
             b.reverse(false, "", null);
             Assertions.assertTrue(a.equals(b));
 
