@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
 
+import Automata.AutomatonLogicalOps;
 import Main.Expression;
 import Main.UtilityMethods;
 import Automata.Automaton;
@@ -72,14 +73,14 @@ public class Word extends Token{
 					String new_identifier = currentIndex.identifier+getUniqueString();
 					Automaton eq = W.NS.get(i).equality.clone();
 					eq.bind(currentIndex.identifier,new_identifier);
-					M = M.and(eq,print,prefix+" ",log);
+					M = AutomatonLogicalOps.and(M, eq,print,prefix+" ",log);
 					quantify.add(new_identifier);
 					identifiers.add(new_identifier);
 				}
 				break;
 			case arithmetic:
 				identifiers.add(currentIndex.identifier);
-				M = M.and(currentIndex.M,print,prefix+" ",log);
+				M = AutomatonLogicalOps.and(M, currentIndex.M,print,prefix+" ",log);
 				quantify.add(currentIndex.identifier);
 				break;
 			case automaton:
@@ -89,7 +90,7 @@ public class Word extends Token{
 				if(!currentIndex.M.isBound()){
 					throw new Exception("index " + (i+1) + " of word " + name + " cannot be an automaton with unlabeled input");					
 				}
-				M = M.and(currentIndex.M,print,prefix+" ",log);
+				M = AutomatonLogicalOps.and(M, currentIndex.M,print,prefix+" ",log);
 				identifiers.add(currentIndex.M.getLabel().get(0));
 				break;
 			case numberLiteral:
@@ -98,7 +99,7 @@ public class Word extends Token{
 				constant.bind(id);
 				identifiers.add(id);
 				quantify.add(id);
-				M = M.and(constant,print,prefix+" ",log);
+				M = AutomatonLogicalOps.and(M, constant,print,prefix+" ",log);
 				break;
 			default:
 				throw new Exception("index "+ (i+1) +" of word " + name + " cannot be of type " +currentIndex.getType());			

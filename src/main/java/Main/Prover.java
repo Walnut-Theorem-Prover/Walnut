@@ -1068,7 +1068,7 @@ public class Prover {
 
 			// and-ing automata uses the cross product routine, which requires labeled automata
 			R.label = M.label;
-			Automaton N = M.and(R, false, null, null);
+			Automaton N = AutomatonLogicalOps.and(M, R, false, null, null);
 			N.findAccepted(searchLength, needed - accepted.size());
 			accepted.addAll(N.accepted);
 			if(accepted.size() >= needed) {
@@ -1259,7 +1259,7 @@ public class Prover {
 
 			Automaton M = new Automaton(UtilityMethods.get_address_for_automata_library() + m.group(GROUP_FIXLEADZERO_OLD_NAME) + ".txt");
 
-			M.fixLeadingZerosProblem(printSteps || printDetails, prefix, log);
+			AutomatonLogicalOps.fixLeadingZerosProblem(M, printSteps || printDetails, prefix, log);
 
 			AutomatonWriter.draw(M, UtilityMethods.get_address_for_result()+m.group(GROUP_FIXLEADZERO_NEW_NAME)+".gv", s, false);
 			AutomatonWriter.write(M, UtilityMethods.get_address_for_result()+m.group(GROUP_FIXLEADZERO_NEW_NAME)+".txt");
@@ -1285,7 +1285,7 @@ public class Prover {
 
 			Automaton M = new Automaton(UtilityMethods.get_address_for_automata_library() + m.group(GROUP_FIXTRAILZERO_OLD_NAME) + ".txt");
 
-			M.fixTrailingZerosProblem(printSteps || printDetails, prefix, log);
+			AutomatonLogicalOps.fixTrailingZerosProblem(M, printSteps || printDetails, prefix, log);
 
 			AutomatonWriter.draw(M, UtilityMethods.get_address_for_result()+m.group(GROUP_FIXTRAILZERO_NEW_NAME)+".gv", s, false);
 			AutomatonWriter.write(M, UtilityMethods.get_address_for_result()+m.group(GROUP_FIXTRAILZERO_NEW_NAME)+".txt");
@@ -1547,7 +1547,7 @@ public class Prover {
 			Automaton M1 = new Automaton(UtilityMethods.get_address_for_automata_library() + m.group(GROUP_rightquo_OLD_NAME1) + ".txt");
 			Automaton M2 = new Automaton(UtilityMethods.get_address_for_automata_library() + m.group(GROUP_rightquo_OLD_NAME2) + ".txt");
 
-			Automaton C = M1.rightQuotient(M2, false, printSteps || printDetails, prefix, log);
+			Automaton C = AutomatonLogicalOps.rightQuotient(M1, M2, false, printSteps || printDetails, prefix, log);
 
 			AutomatonWriter.draw(C, UtilityMethods.get_address_for_result()+m.group(GROUP_rightquo_NEW_NAME)+".gv", s, false);
 			AutomatonWriter.write(C, UtilityMethods.get_address_for_result()+m.group(GROUP_rightquo_NEW_NAME)+".txt");
@@ -1577,7 +1577,7 @@ public class Prover {
 			Automaton M1 = new Automaton(UtilityMethods.get_address_for_automata_library() + m.group(GROUP_leftquo_OLD_NAME1) + ".txt");
 			Automaton M2 = new Automaton(UtilityMethods.get_address_for_automata_library() + m.group(GROUP_leftquo_OLD_NAME2) + ".txt");
 
-			Automaton C = M1.leftQuotient(M2, printSteps || printDetails, prefix, log);
+			Automaton C = AutomatonLogicalOps.leftQuotient(M1, M2, printSteps || printDetails, prefix, log);
 
 			AutomatonWriter.draw(C, UtilityMethods.get_address_for_result()+m.group(GROUP_leftquo_NEW_NAME)+".gv", s, false);
 			AutomatonWriter.write(C, UtilityMethods.get_address_for_result()+m.group(GROUP_leftquo_NEW_NAME)+".txt");
@@ -1687,6 +1687,6 @@ public class Prover {
 		// and trailing zeroes in the case of lsd. To do this, we construct a reg subcommand that generates the complement
 		// of zero-prefixed strings for msd and zero suffixed strings for lsd, then intersect this with our original automaton.
 		M.randomLabel();
-		return M.removeLeadingZeroes(M.label, false, null, null);
+		return AutomatonLogicalOps.removeLeadingZeroes(M, M.label, false, null, null);
 	}
 }

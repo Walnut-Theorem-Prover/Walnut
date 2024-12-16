@@ -22,6 +22,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Stack;
 
+import Automata.AutomatonLogicalOps;
 import Main.Expression;
 import Main.UtilityMethods;
 import Automata.Automaton;
@@ -83,14 +84,14 @@ public class Function extends Token {
 					String new_identifier = currentArg.identifier+getUniqueString();
 					Automaton eq = this.ns.equality.clone();
 					eq.bind(currentArg.identifier,new_identifier);
-					M = M.and(eq,print,prefix+" ",log);
+					M = AutomatonLogicalOps.and(M, eq,print,prefix+" ",log);
 					quantify.add(new_identifier);
 					identifiers.add(new_identifier);
 				}
 				break;
 			case arithmetic:
 				identifiers.add(currentArg.identifier);
-				M = M.and(currentArg.M,print,prefix+" ",log);
+				M = AutomatonLogicalOps.and(M, currentArg.M,print,prefix+" ",log);
 				quantify.add(currentArg.identifier);
 				break;
 			case numberLiteral:
@@ -99,7 +100,7 @@ public class Function extends Token {
 				constant.bind(id);
 				identifiers.add(id);
 				quantify.add(id);
-				M = M.and(constant,print,prefix+" ",log);
+				M = AutomatonLogicalOps.and(M, constant,print,prefix+" ",log);
 				break;
 			case automaton:
 				if(currentArg.M.getArity() != 1){
@@ -108,7 +109,7 @@ public class Function extends Token {
 				if(!currentArg.M.isBound()){
 					throw new Exception("argument " + (i+1) + " of function " + name + " cannot be an automaton with unlabeled input");					
 				}
-				M = M.and(currentArg.M,print,prefix+" ",log);
+				M = AutomatonLogicalOps.and(M, currentArg.M,print,prefix+" ",log);
 				identifiers.add(currentArg.M.getLabel().get(0));
 				break;
 			default:
@@ -119,7 +120,7 @@ public class Function extends Token {
 		stringValue += ")";
 		
 		A.bind(identifiers);
-		A = A.and(M,print,prefix+" ",log);
+		A = AutomatonLogicalOps.and(A, M,print,prefix+" ",log);
 		A.quantify(new HashSet<>(quantify),print,prefix + " ",log);
 		
 		stringValue += ")";

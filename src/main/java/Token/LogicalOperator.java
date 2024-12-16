@@ -22,6 +22,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Stack;
 
+import Automata.AutomatonLogicalOps;
 import Main.Expression;
 import Automata.Automaton;
 import Main.Type;
@@ -65,11 +66,11 @@ public class LogicalOperator extends Operator{
 				System.out.println(preStep);
 			}
 			switch(op){
-				case "&":S.push(new Expression("("+a+op+b+")",a.M.and(b.M,print,prefix+" ",log)));break;
-				case "|":S.push(new Expression("("+a+op+b+")",a.M.or(b.M,print,prefix+" ",log)));break;
-				case "^":S.push(new Expression("("+a+op+b+")",a.M.xor(b.M,print,prefix+" ",log)));break;
-				case "=>":S.push(new Expression("("+a+op+b+")",a.M.imply(b.M,print,prefix+" ",log)));break;
-				case "<=>":S.push(new Expression("("+a+op+b+")",a.M.iff(b.M,print,prefix+" ",log)));break;
+				case "&":S.push(new Expression("("+a+op+b+")", AutomatonLogicalOps.and(a.M, b.M,print,prefix+" ",log)));break;
+				case "|":S.push(new Expression("("+a+op+b+")", AutomatonLogicalOps.or(a.M, b.M,print,prefix+" ",log)));break;
+				case "^":S.push(new Expression("("+a+op+b+")", AutomatonLogicalOps.xor(a.M, b.M,print,prefix+" ",log)));break;
+				case "=>":S.push(new Expression("("+a+op+b+")", AutomatonLogicalOps.imply(a.M, b.M,print,prefix+" ",log)));break;
+				case "<=>":S.push(new Expression("("+a+op+b+")", AutomatonLogicalOps.iff(a.M, b.M,print,prefix+" ",log)));break;
 			}
 			String postStep = prefix + "computed "+a+op+b;  
 			log.append(postStep + UtilityMethods.newLine());
@@ -92,7 +93,7 @@ public class LogicalOperator extends Operator{
 			if(op.equals("`"))
 				a.M.reverse(print, prefix+" ", log, true);
 			if(this.isNegation(op))
-				a.M.not(print,prefix+" ",log);
+				AutomatonLogicalOps.not(a.M, print,prefix+" ",log);
 			S.push(new Expression(op + a,a.M));
 			String postStep = prefix + "computed "+op+a;
 			log.append(postStep + UtilityMethods.newLine());
@@ -137,11 +138,11 @@ public class LogicalOperator extends Operator{
 				if(op.equals("E")){
 					M.quantify(new HashSet<>(list_of_identifiers_to_quantify),print,prefix+" ",log);
 				} else if (op.equals("A")){
-					M.not(print,prefix+" ",log);
+					AutomatonLogicalOps.not(M, print,prefix+" ",log);
 					M.quantify(new HashSet<>(list_of_identifiers_to_quantify),print,prefix+" ",log);
-					M.not(print,prefix+" ",log);
+					AutomatonLogicalOps.not(M, print,prefix+" ",log);
 				} else {
-					M = M.removeLeadingZeroes(list_of_identifiers_to_quantify, print, prefix+" ", log);
+					M = AutomatonLogicalOps.removeLeadingZeroes(M, list_of_identifiers_to_quantify, print, prefix+" ", log);
 					String infReg = M.infinite();
 					M = infReg.equals("") ? new Automaton(false) : new Automaton(true);
 				}

@@ -23,7 +23,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
-import java.util.TreeMap;
 
 import Main.UtilityMethods;
 import it.unimi.dsi.fastutil.ints.Int2ObjectRBTreeMap;
@@ -700,17 +699,17 @@ public class NumberSystem {
 			case "!=":
 				M = equality.clone();
 				M.bind(a,b);
-				M.not(false,null,null);
+				AutomatonLogicalOps.not(M, false,null,null);
 				break;
 			case ">=":
 				M = lessThan.clone();
 				M.bind(a,b);
-				M.not(false,null,null);
+				AutomatonLogicalOps.not(M, false,null,null);
 				break;
 			case "<=":
 				M = lessThan.clone();
 				M.bind(b,a);
-				M.not(false,null,null);
+				AutomatonLogicalOps.not(M, false,null,null);
 				break;
 			default:
 				throw new Exception("undefined comparison operator");
@@ -735,11 +734,12 @@ public class NumberSystem {
 		} else { // b >= 0
 			N = get(b);
 			if(comparisonOperator.equals("=")){N.bind(a);return N;}
-			else if(comparisonOperator.equals("!=")){N.bind(a);N.not(false,null,null);return N;}
+			else if(comparisonOperator.equals("!=")){N.bind(a);
+				AutomatonLogicalOps.not(N, false,null,null);return N;}
 			N.bind(B);
 			M = comparison(a, B, comparisonOperator);
 		}
-		M = M.and(N,false,null,null);
+		M = AutomatonLogicalOps.and(M, N,false,null,null);
 		M.quantify(B,false,null,null);
 		return M;
 	}
@@ -843,7 +843,7 @@ public class NumberSystem {
 			N.bind(B);
 			M = arithmetic(a, B, c, arithmeticOperator);
 		}
-		M = M.and(N,false,null,null);
+		M = AutomatonLogicalOps.and(M, N,false,null,null);
 		M.quantify(B,false,null,null);
 		return M;
 	}
@@ -892,7 +892,7 @@ public class NumberSystem {
 			N.bind(A);
 			M = arithmetic(A, b, c, arithmeticOperator);
 		}
-		M = M.and(N,false,null,null);
+		M = AutomatonLogicalOps.and(M, N,false,null,null);
 		M.quantify(A,false,null,null);
 		return M;
 	}
@@ -938,7 +938,7 @@ public class NumberSystem {
 			N.bind(C);
 			M = arithmetic(a, b, C, arithmeticOperator);
 		}
-		M = M.and(N,false,null,null);
+		M = AutomatonLogicalOps.and(M, N,false,null,null);
 		M.quantify(C,false,null,null);
 		return M;
 	}
@@ -969,7 +969,7 @@ public class NumberSystem {
 			M.bind(b);
 			// Eb, a + b = 0 & b = -n
 			P = arithmetic(a,b,0, "+");
-			P = P.and(M, false, null, null);
+			P = AutomatonLogicalOps.and(P, M, false, null, null);
 			P.quantify(b, false, null, null);
 		} else { // n > 0
 			String a = "a", b = "b", c = "c";
@@ -981,8 +981,8 @@ public class NumberSystem {
 			N.bind(b);
 			// Ea,Eb, a + b = c & a = floor(n/2) & b = ciel(n/2)
 			P = arithmetic(a,b,c, "+");
-			P = P.and(M, false, null, null);
-			P = P.and(N, false, null, null);
+			P = AutomatonLogicalOps.and(P, M, false, null, null);
+			P = AutomatonLogicalOps.and(P, N, false, null, null);
 			P.quantify(a, b, is_msd, false, null, null);
 		}
 		constantsDynamicTable.put(n, P);
@@ -1010,7 +1010,7 @@ public class NumberSystem {
 			M.bind(a,c);
 			// Ec b + c = 0 & c = (-n)*a
 			P = arithmetic(b,c,0, "+");
-			P = P.and(M, false, null, null);
+			P = AutomatonLogicalOps.and(P, M, false, null, null);
 			P.quantify(c,false,null,null);
 			P.sortLabel();
 		} else if (n==2) {
@@ -1029,14 +1029,14 @@ public class NumberSystem {
 
 			if (n % 2 == 0) { // suppose n = 2k
 				D.bind(b, d);
-				P = M.and(D, false, null, null);
+				P = AutomatonLogicalOps.and(M, D, false, null, null);
 				P.quantify(b, false, null, null);
 			}
 			else { // n = 2k+1
 				D.bind(b, c);
 				P = arithmetic(c, a, d, "+");
-				P = P.and(M, false, null, null);
-				P = P.and(D, false, null, null);
+				P = AutomatonLogicalOps.and(P, M, false, null, null);
+				P = AutomatonLogicalOps.and(P, D, false, null, null);
 				P.quantify(b, c, is_msd, false, null, null);
 				
 			}
@@ -1084,9 +1084,9 @@ public class NumberSystem {
 			P1 = comparison(r,0, ">=");
 			P2 = comparison(r,n, "<");
 		}
-		Automaton P = P1.and(P2,false,null,null);
-		Automaton R = M.and(N,false,null,null);
-		R = R.and(P,false,null,null);
+		Automaton P = AutomatonLogicalOps.and(P1, P2,false,null,null);
+		Automaton R = AutomatonLogicalOps.and(M, N,false,null,null);
+		R = AutomatonLogicalOps.and(R, P,false,null,null);
 		R.quantify(q,r, is_msd,false,null,null);
 		R.sortLabel();
 		divisionsDynamicTable.put(n, R);

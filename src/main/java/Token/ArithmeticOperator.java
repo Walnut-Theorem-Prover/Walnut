@@ -20,6 +20,7 @@ package Token;
 import java.util.HashSet;
 import java.util.Stack;
 
+import Automata.AutomatonLogicalOps;
 import Main.Expression;
 import Automata.Automaton;
 import Automata.NumberSystem;
@@ -71,7 +72,7 @@ public class ArithmeticOperator extends Operator{
 			}
 			if(b.is(Type.arithmetic)){
 				// Eb, b + c = 0 & M(b,...)
-				M = M.and(b.M,print,prefix+" ",log);
+				M = AutomatonLogicalOps.and(M, b.M,print,prefix+" ",log);
 				M.quantify(b.identifier,print,prefix+" ",log);
 			}
 			S.push(new Expression("("+op+b+")",M,c));
@@ -89,7 +90,7 @@ public class ArithmeticOperator extends Operator{
 
 		if(a.is(Type.word) && b.is(Type.word)) {
 			a.W = a.W.applyOperator(b.W, op, print, prefix, log);
-			a.M = a.M.and(b.M, print, prefix+" ", log);
+			a.M = AutomatonLogicalOps.and(a.M, b.M, print, prefix+" ", log);
 			a.list_of_identifiers_to_quantify.addAll(b.list_of_identifiers_to_quantify);
 			S.push(a);
 			return;
@@ -159,13 +160,13 @@ public class ArithmeticOperator extends Operator{
 				} else {
 					C = number_system.arithmetic(o, arithmetic.identifier,c, op);
 				}
-				N = N.imply(C, print, prefix+" ",log);
-				M = M.and(N,print,prefix+" ",log);
+				N = AutomatonLogicalOps.imply(N, C, print, prefix+" ",log);
+				M = AutomatonLogicalOps.and(M, N,print,prefix+" ",log);
 			}
-			M = M.and(word.M,print,prefix+" ",log);
+			M = AutomatonLogicalOps.and(M, word.M,print,prefix+" ",log);
 			M.quantify(new HashSet<>(word.list_of_identifiers_to_quantify),print,prefix+" ",log);
 			if(arithmetic.is(Type.arithmetic)){
-				M = M.and(arithmetic.M,print,prefix+" ",log);
+				M = AutomatonLogicalOps.and(M, arithmetic.M,print,prefix+" ",log);
 				M.quantify(arithmetic.identifier,print,prefix+" ",log);
 			}
 		} else {
@@ -189,11 +190,11 @@ public class ArithmeticOperator extends Operator{
 			}
 
 			if(a.is(Type.arithmetic)){
-				M = M.and(a.M,print,prefix+" ",log);
+				M = AutomatonLogicalOps.and(M, a.M,print,prefix+" ",log);
 				M.quantify(a.identifier,print,prefix+" ",log);
 			}
 			if(b.is(Type.arithmetic)){
-				M = M.and(b.M,print,prefix+" ",log);
+				M = AutomatonLogicalOps.and(M, b.M,print,prefix+" ",log);
 				M.quantify(b.identifier,print,prefix+" ",log);
 			}
 		}

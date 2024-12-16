@@ -3,7 +3,6 @@ package Automata;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -78,9 +77,9 @@ class AutomatonTest {
             Assertions.assertTrue(a.equals(b));
 
             b = a.clone();
-            b.not(false, "", null);
+            AutomatonLogicalOps.not(b, false, "", null);
             Assertions.assertFalse(a.equals(b));
-            b.not(false, "", null);
+            AutomatonLogicalOps.not(b, false, "", null);
             Assertions.assertTrue(a.equals(b));
 
 
