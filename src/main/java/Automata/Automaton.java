@@ -13,7 +13,6 @@ import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -79,7 +78,7 @@ public class Automaton {
      * When TRUE_FALSE_AUTOMATON = true and TRUE_AUTOMATON = false then this is a false automaton.
      * When TRUE_FALSE_AUTOMATON = true and TRUE_AUTOMATON = true then this is a true automaton.
     */
-    public boolean TRUE_FALSE_AUTOMATON = false;
+    public boolean TRUE_FALSE_AUTOMATON;
     public boolean TRUE_AUTOMATON = false;
 
     /**
@@ -170,23 +169,7 @@ public class Automaton {
      */
     public List<Int2ObjectRBTreeMap<IntList>> d;
 
-    /**
-     * Valmari fields
-     */
-    // blocks (consist of states)
-    Partition B;
-    // cords (consist of transitions)
-    Partition C;
 
-    // number of states
-    public int num_states;
-    // number of transitions
-    public int num_transitions;
-    // number of final states
-    public int num_finalstates;
-
-    /* Adjacent transitions */
-    int[] _A, _F;
 
     // for use in the combine command, counts how many products we have taken so far, and hence what to set outputs to
     public int combineIndex;
@@ -210,181 +193,20 @@ public class Automaton {
     // we find that many
     public int maxNeeded;
 
-    void make_adjacent(int K[]) {
-        int q, t;
-        for( q = 0; q <= num_states; ++q ) {
-            _F[q] = 0;
-        }
-
-        for( t = 0; t < num_transitions; ++t ) {
-            ++_F[K[t]];
-        }
-
-        for( q = 0; q < num_states; ++q ) {
-            _F[q+1] += _F[q];
-        }
-
-        for( t = num_transitions; t-- != 0; ) {
-            _A[--_F[K[t]]] = t;
-        }
-    }
-
-    /* Removal of irrelevant parts */
-    int rr = 0;   // number of reached states
-
-    void reach( int q ) {
-      int i = B.L[q];
-      if( i >= rr ){
-        B.E[i] = B.E[rr]; B.L[B.E[i]] = i;
-        B.E[rr] = q; B.L[q] = rr++; }
-    }
-
-    void rem_unreachable( int T[], int H[], int L[] ){
-        make_adjacent( T ); int i, j;
-        for( i = 0; i < rr; ++i ){
-            for( j = _F[B.E[i]]; j < _F[B.E[i] + 1]; ++j ){
-                reach( H[_A[j]] );
-            }
-        }
-        j = 0;
-        for( int t = 0; t < num_transitions; ++t ){
-            if( B.L[T[t]] < rr ){
-                H[j] = H[t]; L[j] = L[t];
-                T[j] = T[t]; ++j;
-            }
-        }
-        num_transitions = j; B.P[0] = rr; rr = 0;
-    }
-
     /* Minimization algorithm */
     void minimize_valmari(List<Int2IntMap> newMemD, boolean print, String prefix,StringBuilder log) throws Exception{
         IntSet qqq = new IntOpenHashSet();
         qqq.add(q0);
         newMemD = subsetConstruction(newMemD, qqq,print,prefix,log);
-        num_states = Q;
-        num_transitions = 0;
-        B = new Partition();
-        C = new Partition();
 
-        // Pre-size the arrays. This is much more efficient than creating new ArrayLists and then copying from them.
-        for(int q = 0; q != newMemD.size();++q){
-            num_transitions += newMemD.get(q).keySet().size();
-        }
+        ValmariDFA v = new ValmariDFA(newMemD, Q);
+        v.minValmari(O);
+        Q = v.blocks.z;
+        q0 = v.blocks.S[q0];
+        O = v.determineO();
+        d = v.determineD();
 
-        // tails of transitions
-        int[] T = new int[num_transitions];
-        // labels of transitions
-        int[] L = new int[num_transitions];
-        // heads of transitions
-        int[] H = new int[num_transitions];
-
-        int arrIndex = 0;
-        for(int q = 0; q != newMemD.size();++q){
-            for(int l : newMemD.get(q).keySet()) {
-                int p = newMemD.get(q).get(l);
-                H[arrIndex] = p;
-                T[arrIndex] = q;
-                L[arrIndex] = l;
-                arrIndex++;
-            }
-        }
-
-        B.init( num_states );
-        _A = new int[ num_transitions ]; _F = new int[ num_states+1 ];
-
-          //reach( q0 ); rem_unreachable( T, H );
-        for( int q = 0; q < num_states; ++q ){
-            if(O.getInt(q) != 0){
-                reach( q );
-            }
-        }
-        num_finalstates = rr; rem_unreachable( H, T, L);
-
-        /* Make initial partition */
-        Partition.W = new int[ num_transitions+1 ]; Partition.M = new int[ num_transitions+1];
-        Partition.M[0] = num_finalstates;
-        if( num_finalstates != 0 ){ Partition.W[Partition.w++] = 0; B.split(); }
-
-        /* Make transition partition */
-        C.init( num_transitions );
-        if( num_transitions != 0 ){
-            Arrays.sort(C.E, new Comparator<Integer>() {
-                @Override
-                public int compare(Integer a, Integer b)
-                {
-
-                    return L[a] - L[b];
-                }
-            });
-            C.z = Partition.M[0] = 0; int a = L[C.E[0]];
-            for( int i = 0; i < num_transitions; ++i ){
-                int t = C.E[i];
-                if( L[t] != a ){
-                    a = L[t]; C.P[C.z++] = i;
-                    C.F[C.z] = i; Partition.M[C.z] = 0;
-                }
-                C.S[t] = C.z; C.L[t] = i;
-            }
-            C.P[C.z++] = num_transitions;
-        }
-
-        /* Split blocks and cords */
-        make_adjacent( H );
-        int b = 1, c = 0;
-        while( c < C.z ){
-            for(int i = C.F[c]; i < C.P[c]; ++i ){
-                B.mark( T[C.E[i]] );
-            }
-            B.split(); ++c;
-            while( b < B.z ){
-                for(int i = B.F[b]; i < B.P[b]; ++i ){
-                    for(int j = _F[B.E[i]];j < _F[B.E[i]+1]; ++j){
-                        C.mark( _A[j] );
-                    }
-                }
-                C.split(); ++b;
-            }
-        }
-
-        convertValmariToWalnut(T, L, H);
         canonized = false;
-    }
-
-    /**
-     * Turn the result back to Walnut format for Automata
-     * @param T
-     * @param L
-     * @param H
-     */
-    private void convertValmariToWalnut(int[] T, int[] L, int[] H) {
-        Q = B.z;
-
-        q0 = B.S[q0];
-        O = new IntArrayList(Q);
-        for( int q = 0; q < B.z; ++q ){
-            if( B.F[q] < num_finalstates ){
-                O.add(1);
-            }
-            else {
-                O.add(0);
-            }
-        }
-
-        d = new ArrayList<>(Q);
-        for( int q = 0; q < Q;++q){
-            d.add(new Int2ObjectRBTreeMap<>());
-        }
-        for( int t = 0; t < num_transitions; ++t ){
-            if( B.L[T[t]] == B.F[B.S[T[t]]] ){
-                int q = B.S[T[t]];
-                int l = L[t];
-                int p = B.S[H[t]];
-                if(!d.get(q).containsKey(l)){
-                    d.get(q).put(l, new IntArrayList());
-                }
-                d.get(q).get(l).add(p);
-            }
-        }
     }
 
     /**
