@@ -75,7 +75,7 @@ public class RelationalOperator extends Operator{
 			Automaton M = new Automaton(true);
 			for(int o : word.W.O) {
 				Automaton N = word.W.clone();
-				N.compare(o, "=",print,prefix+" ",log);
+				AutomatonLogicalOps.compare(N, o, "=",print,prefix+" ",log);
 				Automaton C;
 				if (reverse) {
 					C = number_system.comparison(arithmetic.identifier, o, op);
@@ -86,10 +86,10 @@ public class RelationalOperator extends Operator{
 				M = AutomatonLogicalOps.and(M, N,print,prefix+" ",log);
 			}
 			M = AutomatonLogicalOps.and(M, word.M,print,prefix+" ",log);
-			M.quantify(new HashSet<>(word.list_of_identifiers_to_quantify),print,prefix+" ",log);
+			AutomatonLogicalOps.quantify(M, new HashSet<>(word.list_of_identifiers_to_quantify),print,prefix+" ",log);
 			if(arithmetic.is(Type.arithmetic)){
 				M = AutomatonLogicalOps.and(M, arithmetic.M,print,prefix+" ",log);
-				M.quantify(arithmetic.identifier,print,prefix+" ",log);
+				AutomatonLogicalOps.quantify(M, arithmetic.identifier,print,prefix+" ",log);
 			}
 			S.push(new Expression(word.toString(), M));
 		}
@@ -98,11 +98,11 @@ public class RelationalOperator extends Operator{
 			Automaton M = number_system.comparison(a.identifier, b.identifier, op);
 			if(a.is(Type.arithmetic)){
 				M = AutomatonLogicalOps.and(M, a.M,print,prefix+" ",log);
-				M.quantify(a.identifier,print,prefix+" ",log);
+				AutomatonLogicalOps.quantify(M, a.identifier,print,prefix+" ",log);
 			}
 			if(b.is(Type.arithmetic)){
 				M = AutomatonLogicalOps.and(M, b.M,print,prefix+" ",log);
-				M.quantify(b.identifier,print,prefix+" ",log);
+				AutomatonLogicalOps.quantify(M, b.identifier,print,prefix+" ",log);
 			}
 			
 			S.push(new Expression(a+op+b,M));
@@ -111,7 +111,7 @@ public class RelationalOperator extends Operator{
 			Automaton M = number_system.comparison(a.constant, b.identifier, op);
 			if(b.is(Type.arithmetic)){
 				M = AutomatonLogicalOps.and(M, b.M,print,prefix+" ",log);
-				M.quantify(b.identifier,print,prefix+" ",log);
+				AutomatonLogicalOps.quantify(M, b.identifier,print,prefix+" ",log);
 			}
 			S.push(new Expression(a+op+b,M));
 		}
@@ -119,30 +119,30 @@ public class RelationalOperator extends Operator{
 			Automaton M = number_system.comparison(a.identifier, b.constant, op);
 			if(a.is(Type.arithmetic)){
 				M = AutomatonLogicalOps.and(M, a.M,print,prefix+" ",log);
-				M.quantify(a.identifier,print,prefix+" ",log);
+				AutomatonLogicalOps.quantify(M, a.identifier,print,prefix+" ",log);
 			}	
 			S.push(new Expression(a+op+b,M));
 		}
 		else if(a.is(Type.word) && b.is(Type.word)){
-			Automaton M = a.W.compare(b.W, op,print,prefix+" ",log);
+			Automaton M = AutomatonLogicalOps.compare(a.W, b.W, op,print,prefix+" ",log);
 			M = AutomatonLogicalOps.and(M, a.M,print,prefix+" ",log);
 			M = AutomatonLogicalOps.and(M, b.M,print,prefix+" ",log);
-			M.quantify(new HashSet<>(a.list_of_identifiers_to_quantify),print,prefix+" ",log);
-			M.quantify(new HashSet<>(b.list_of_identifiers_to_quantify),print,prefix+" ",log);
+			AutomatonLogicalOps.quantify(M, new HashSet<>(a.list_of_identifiers_to_quantify),print,prefix+" ",log);
+			AutomatonLogicalOps.quantify(M, new HashSet<>(b.list_of_identifiers_to_quantify),print,prefix+" ",log);
 			S.push(new Expression(a+op+b,M));
 		}
 		else if(a.is(Type.word) && (b.is(Type.numberLiteral) || b.is(Type.alphabetLetter))){
-			a.W.compare(b.constant, op,print,prefix+" ",log);
+			AutomatonLogicalOps.compare(a.W, b.constant, op,print,prefix+" ",log);
 			Automaton M = a.W;
 			M = AutomatonLogicalOps.and(M, a.M,print,prefix+" ",log);
-			M.quantify(new HashSet<>(a.list_of_identifiers_to_quantify),print,prefix+" ",log);
+			AutomatonLogicalOps.quantify(M, new HashSet<>(a.list_of_identifiers_to_quantify),print,prefix+" ",log);
 			S.push(new Expression(a+op+b,M));
 		}
 		else if((a.is(Type.numberLiteral) || a.is(Type.alphabetLetter)) && b.is(Type.word)){
-			b.W.compare(a.constant, reverseOperator(op),print,prefix+" ",log);
+			AutomatonLogicalOps.compare(b.W, a.constant, reverseOperator(op),print,prefix+" ",log);
 			Automaton M = b.W;
 			M = AutomatonLogicalOps.and(M, b.M,print,prefix+" ",log);
-			M.quantify(new HashSet<>(b.list_of_identifiers_to_quantify),print,prefix+" ",log);
+			AutomatonLogicalOps.quantify(M, new HashSet<>(b.list_of_identifiers_to_quantify),print,prefix+" ",log);
 			S.push(new Expression(a+op+b,M));
 		}
 		else{

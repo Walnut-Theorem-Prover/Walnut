@@ -73,7 +73,7 @@ public class ArithmeticOperator extends Operator{
 			if(b.is(Type.arithmetic)){
 				// Eb, b + c = 0 & M(b,...)
 				M = AutomatonLogicalOps.and(M, b.M,print,prefix+" ",log);
-				M.quantify(b.identifier,print,prefix+" ",log);
+				AutomatonLogicalOps.quantify(M, b.identifier,print,prefix+" ",log);
 			}
 			S.push(new Expression("("+op+b+")",M,c));
 			String postStep = prefix + "computed " + op+b;
@@ -89,7 +89,7 @@ public class ArithmeticOperator extends Operator{
 			throw new Exception("operator " + op + " cannot be applied to the operand "+ a+ " of type " + a.getType());
 
 		if(a.is(Type.word) && b.is(Type.word)) {
-			a.W = a.W.applyOperator(b.W, op, print, prefix, log);
+			a.W = AutomatonLogicalOps.applyOperator(a.W, b.W, op, print, prefix, log);
 			a.M = AutomatonLogicalOps.and(a.M, b.M, print, prefix+" ", log);
 			a.list_of_identifiers_to_quantify.addAll(b.list_of_identifiers_to_quantify);
 			S.push(a);
@@ -150,7 +150,7 @@ public class ArithmeticOperator extends Operator{
 			M = new Automaton(true);
 			for(int o : word.W.O) {
 				Automaton N = word.W.clone();
-				N.compare(o, "=",print,prefix+" ",log);
+				AutomatonLogicalOps.compare(N, o, "=",print,prefix+" ",log);
 				Automaton C;
 				if(o == 0 && op.equals("*")){
 					C = number_system.get(0);
@@ -164,10 +164,10 @@ public class ArithmeticOperator extends Operator{
 				M = AutomatonLogicalOps.and(M, N,print,prefix+" ",log);
 			}
 			M = AutomatonLogicalOps.and(M, word.M,print,prefix+" ",log);
-			M.quantify(new HashSet<>(word.list_of_identifiers_to_quantify),print,prefix+" ",log);
+			AutomatonLogicalOps.quantify(M, new HashSet<>(word.list_of_identifiers_to_quantify),print,prefix+" ",log);
 			if(arithmetic.is(Type.arithmetic)){
 				M = AutomatonLogicalOps.and(M, arithmetic.M,print,prefix+" ",log);
-				M.quantify(arithmetic.identifier,print,prefix+" ",log);
+				AutomatonLogicalOps.quantify(M, arithmetic.identifier,print,prefix+" ",log);
 			}
 		} else {
 			if(a.is(Type.numberLiteral)){
@@ -191,11 +191,11 @@ public class ArithmeticOperator extends Operator{
 
 			if(a.is(Type.arithmetic)){
 				M = AutomatonLogicalOps.and(M, a.M,print,prefix+" ",log);
-				M.quantify(a.identifier,print,prefix+" ",log);
+				AutomatonLogicalOps.quantify(M, a.identifier,print,prefix+" ",log);
 			}
 			if(b.is(Type.arithmetic)){
 				M = AutomatonLogicalOps.and(M, b.M,print,prefix+" ",log);
-				M.quantify(b.identifier,print,prefix+" ",log);
+				AutomatonLogicalOps.quantify(M, b.identifier,print,prefix+" ",log);
 			}
 		}
 		S.push(new Expression("("+a+op+b+")",M,c));

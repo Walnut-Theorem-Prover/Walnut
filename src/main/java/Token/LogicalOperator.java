@@ -91,7 +91,7 @@ public class LogicalOperator extends Operator{
 				System.out.println(preStep);
 			}
 			if(op.equals("`"))
-				a.M.reverse(print, prefix+" ", log, true);
+				AutomatonLogicalOps.reverse(a.M, print, prefix+" ", log, true);
 			if(this.isNegation(op))
 				AutomatonLogicalOps.not(a.M, print,prefix+" ",log);
 			S.push(new Expression(op + a,a.M));
@@ -136,10 +136,10 @@ public class LogicalOperator extends Operator{
 					throw new Exception("the last operand of "+op+" can only be of type " + Type.automaton);
 				M = operands.get(i).M;
 				if(op.equals("E")){
-					M.quantify(new HashSet<>(list_of_identifiers_to_quantify),print,prefix+" ",log);
+					AutomatonLogicalOps.quantify(M, new HashSet<>(list_of_identifiers_to_quantify),print,prefix+" ",log);
 				} else if (op.equals("A")){
 					AutomatonLogicalOps.not(M, print,prefix+" ",log);
-					M.quantify(new HashSet<>(list_of_identifiers_to_quantify),print,prefix+" ",log);
+					AutomatonLogicalOps.quantify(M, new HashSet<>(list_of_identifiers_to_quantify),print,prefix+" ",log);
 					AutomatonLogicalOps.not(M, print,prefix+" ",log);
 				} else {
 					M = AutomatonLogicalOps.removeLeadingZeroes(M, list_of_identifiers_to_quantify, print, prefix+" ", log);

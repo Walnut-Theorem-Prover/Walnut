@@ -20,7 +20,6 @@ package Automata;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
@@ -35,8 +34,6 @@ import java.util.LinkedList;
 import java.util.Queue;
 import java.util.Set;
 import java.util.Iterator;
-
-import java.lang.Math;
 
 import Main.UtilityMethods;
 import it.unimi.dsi.fastutil.ints.Int2ObjectRBTreeMap;
@@ -624,7 +621,7 @@ public class Transducer extends Automaton {
                 System.out.println(msg);
             }
             toLsd = true;
-            M.reverseWithOutput(true, print, prefix+" ", log);
+            AutomatonLogicalOps.reverseWithOutput(M, true, print, prefix+" ", log);
         }
 
 
@@ -698,7 +695,7 @@ public class Transducer extends Automaton {
         }
 
         if (toLsd) {
-            N.reverseWithOutput(true, print, prefix+" ", log);
+            AutomatonLogicalOps.reverseWithOutput(N, true, print, prefix+" ", log);
         }
 
         return N;

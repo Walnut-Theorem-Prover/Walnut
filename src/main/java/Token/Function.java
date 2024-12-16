@@ -121,7 +121,7 @@ public class Function extends Token {
 		
 		A.bind(identifiers);
 		A = AutomatonLogicalOps.and(A, M,print,prefix+" ",log);
-		A.quantify(new HashSet<>(quantify),print,prefix + " ",log);
+		AutomatonLogicalOps.quantify(A, new HashSet<>(quantify),print,prefix + " ",log);
 		
 		stringValue += ")";
 		S.push(new Expression(stringValue,A));

@@ -600,18 +600,18 @@ public class AutomatonLogicalOps {
         }
 
         Automaton M1 = automaton.clone();
-        M1.reverse(print, prefix, log, true);
+        reverse(M1, print, prefix, log, true);
         M1.canonized = false;
         M1.canonize();
 
         Automaton M2 = other.clone();
-        M2.reverse(print, prefix, log, true);
+        reverse(M2, print, prefix, log, true);
         M2.canonized = false;
         M2.canonize();
 
         Automaton M = rightQuotient(M1, M2, true, print, prefix, log);
 
-        M.reverse(print, prefix, log, true);
+        reverse(M, print, prefix, log, true);
 
         long timeAfter = System.currentTimeMillis();
         if(print){
@@ -857,7 +857,7 @@ public class AutomatonLogicalOps {
             M.d.get(1).put(i, new IntArrayList(dest));
         }
         if (!automaton.NS.get(n).isMsd()) {
-            M.reverse(print, prefix, log, false);
+            reverse(M, print, prefix, log, false);
         }
         return M;
     }
@@ -978,5 +978,916 @@ public class AutomatonLogicalOps {
         for(List<Integer> x: automaton.A)
             automaton.alphabetSize *= x.size();
         UtilityMethods.removeIndices(automaton.label, I);
+    }
+
+    /**
+     * The operator can be one of "+" "-" "*" "/".
+     * For example if operator = "+" then this method returns
+     * a DFAO that outputs this[x] + W[x] on input x.
+     * To be used only when this automaton and M are DFAOs (words).
+     * @param automaton
+     * @param W
+     * @param operator
+     * @return
+     * @throws Exception
+     */
+    public static Automaton applyOperator(Automaton automaton, Automaton W, String operator, boolean print, String prefix, StringBuilder log) throws Exception{
+        long timeBefore = System.currentTimeMillis();
+        if(print){
+            String msg = prefix + "applying operator ("+operator+"):" + automaton.Q + " states - " + W.Q + " states";
+            log.append(msg + UtilityMethods.newLine());
+            System.out.println(msg);
+        }
+        Automaton M = crossProduct(automaton, W,operator,print,prefix+" ",log);
+        M.minimizeWithOutput(print,prefix+" ",log);
+        long timeAfter = System.currentTimeMillis();
+        if(print){
+            String msg = prefix + "applied operator ("+operator+ "):" + automaton.Q + " states - "+(timeAfter-timeBefore)+"ms";
+            log.append(msg + UtilityMethods.newLine());
+            System.out.println(msg);
+        }
+        return M;
+    }
+
+    public static void quantify(Automaton automaton, String labelToQuantify, boolean print, String prefix, StringBuilder log)throws Exception{
+        Set<String> listOfLabelsToQuantify = new HashSet<>();
+        listOfLabelsToQuantify.add(labelToQuantify);
+        quantify(automaton, listOfLabelsToQuantify,print,prefix,log);
+    }
+
+    public static void quantify(Automaton automaton, String labelToQuantify1, String labelToQuantify2, boolean leadingZeros, boolean print, String prefix, StringBuilder log)throws Exception{
+        Set<String> listOfLabelsToQuantify = new HashSet<>();
+        listOfLabelsToQuantify.add(labelToQuantify1);
+        listOfLabelsToQuantify.add(labelToQuantify2);
+        quantify(automaton, listOfLabelsToQuantify,print,prefix,log);
+    }
+
+    /**
+     * This method computes the existential quantification of this automaton.
+     * Takes a list of labels and performs the existential quantifier over
+     * the inputs with labels in listOfLabelsToQuantify. It simply eliminates inputs in listOfLabelsToQuantify.
+     * After the quantification is done, we address the issue of
+     * leadingZeros or trailingZeros (depending on the value of leadingZeros), if all of the inputs
+     * of the resulting automaton are of type arithmetic.
+     * This is why we mandate that an input of type arithmetic must have 0 in its alphabet, also that
+     * every number system must use 0 to denote its additive identity.
+     * @param automaton
+     * @param listOfLabelsToQuantify must contain at least one element. listOfLabelsToQuantify must be a subset of this.label.
+     * @return
+     */
+    public static void quantify(Automaton automaton, Set<String> listOfLabelsToQuantify, boolean print, String prefix, StringBuilder log)throws Exception{
+        quantifyHelper(automaton, listOfLabelsToQuantify,print,prefix,log);
+        if(automaton.TRUE_FALSE_AUTOMATON)return;
+
+        boolean isMsd = true;
+        boolean flag = false;
+        for(NumberSystem ns: automaton.NS){
+            if(ns == null)
+                return;
+            if(flag && (ns.isMsd() != isMsd) )
+                return;
+            isMsd = ns.isMsd();
+            flag = true;
+        }
+        if(isMsd)
+            fixLeadingZerosProblem(automaton, print,prefix,log);
+        else
+            fixTrailingZerosProblem(automaton, print,prefix,log);
+    }
+
+    /**
+     * This method is very similar to public void quantify(Set<String> listOfLabelsToQuantify,boolean leadingZeros)throws Exception
+     * with the exception that, this method does not deal with leading/trailing zeros problem.
+     * @param automaton
+     * @param listOfLabelsToQuantify
+     * @throws Exception
+     */
+    private static void quantifyHelper(Automaton automaton,
+                                       Set<String> listOfLabelsToQuantify,
+                                       boolean print,
+                                       String prefix,
+                                       StringBuilder log) throws Exception {
+        if(listOfLabelsToQuantify.isEmpty() || automaton.label == null) {
+            return;
+        }
+
+        String name_of_labels = "";
+        for(String s:listOfLabelsToQuantify) {
+            if(!automaton.label.contains(s)) {
+                throw new Exception(
+                    "Variable " + s + " in the list of quantified variables is not a free variable.");
+            }
+
+            if(name_of_labels.length() == 0) {
+                name_of_labels += s;
+            } else {
+                name_of_labels += "," + s;
+            }
+        }
+        long timeBefore = System.currentTimeMillis();
+        if(print) {
+            String msg = prefix + "quantifying:" + automaton.Q + " states";
+            log.append(msg + UtilityMethods.newLine());
+            System.out.println(msg);
+        }
+
+        /**
+         * If this is the case, then the quantified automaton is either the true or false automaton.
+         * It is true if this's language is not empty.
+         */
+        if(listOfLabelsToQuantify.size() == automaton.A.size()){
+            if(automaton.isEmpty())
+                automaton.TRUE_AUTOMATON = false;
+            else
+                automaton.TRUE_AUTOMATON = true;
+            automaton.TRUE_FALSE_AUTOMATON = true;
+            automaton.clear();
+            return;
+        }
+
+        List<Integer> listOfInputsToQuantify = new ArrayList<>();//extract the list of indices of inputs we would like to quantify
+        for(String l:listOfLabelsToQuantify)
+            listOfInputsToQuantify.add(automaton.label.indexOf(l));
+        List<List<Integer>> allInputs = new ArrayList<>();
+        for(int i = 0; i < automaton.alphabetSize; i++)
+            allInputs.add(Automaton.decode(automaton, i));
+        //now we remove those indices in listOfInputsToQuantify from A,T,label, and allInputs
+        UtilityMethods.removeIndices(automaton.A,listOfInputsToQuantify);
+        automaton.encoder = null;
+        automaton.alphabetSize = 1;
+        for(List<Integer> x: automaton.A)
+            automaton.alphabetSize *=x.size();
+        UtilityMethods.removeIndices(automaton.NS,listOfInputsToQuantify);
+        UtilityMethods.removeIndices(automaton.label,listOfInputsToQuantify);
+        for(List<Integer> i:allInputs)
+            UtilityMethods.removeIndices(i,listOfInputsToQuantify);
+        //example: permutation[1] = 7 means that encoded old input 1 becomes encoded new input 7
+        List<Integer> permutation = new ArrayList<>();
+        for(List<Integer> i:allInputs)
+            permutation.add(automaton.encode(i));
+        List<Int2ObjectRBTreeMap<IntList>> new_d = new ArrayList<>();
+        for(int q = 0; q < automaton.Q; q++){
+            Int2ObjectRBTreeMap<IntList> newMemDransitionFunction = new Int2ObjectRBTreeMap<>();
+            new_d.add(newMemDransitionFunction);
+            for(int x: automaton.d.get(q).keySet()){
+                int y = permutation.get(x);
+                if(newMemDransitionFunction.containsKey(y))
+                    UtilityMethods.addAllWithoutRepetition(newMemDransitionFunction.get(y), automaton.d.get(q).get(x));
+                else
+                    newMemDransitionFunction.put(y,new IntArrayList(automaton.d.get(q).get(x)));
+            }
+        }
+        automaton.d = new_d;
+        automaton.minimize(null, print,prefix +" ",log);
+        long timeAfter = System.currentTimeMillis();
+        if(print){
+            String msg = prefix + "quantified:" + automaton.Q + " states - "+(timeAfter-timeBefore)+"ms";
+            log.append(msg + UtilityMethods.newLine());
+            System.out.println(msg);
+        }
+    }
+
+    /**
+     * this automaton should not be a word automaton (automaton with output). However, it can be non deterministic.
+     * Enabling the reverseMsd flag will flip the number system of the automaton from msd to lsd, and vice versa.
+     * Note that reversing the Msd will also call this function as reversals are done in the NumberSystem class upon
+     * initializing.
+     *
+     * @return the reverse of this automaton
+     * @throws Exception
+     */
+    public static void reverse(Automaton automaton, boolean print, String prefix, StringBuilder log, boolean reverseMsd, boolean skipMinimize) throws Exception {
+        if (automaton.TRUE_FALSE_AUTOMATON) {
+            return;
+        }
+
+        long timeBefore = System.currentTimeMillis();
+        if(print) {
+            String msg = prefix + "Reversing:" + automaton.Q + " states";
+            log.append(msg + UtilityMethods.newLine());
+            System.out.println(msg);
+        }
+
+        // We change the direction of transitions first.
+        List<Int2ObjectRBTreeMap<IntList>> new_d = new ArrayList<>();
+        for(int q = 0; q < automaton.Q; q++)new_d.add(new Int2ObjectRBTreeMap<>());
+        for(int q = 0; q < automaton.Q; q++){
+            for(int x: automaton.d.get(q).keySet()){
+                for(int dest: automaton.d.get(q).get(x)){
+                    if(new_d.get(dest).containsKey(x))
+                        new_d.get(dest).get(x).add(q);
+                    else{
+                        IntList destinationSet = new IntArrayList();
+                        destinationSet.add(q);
+                        new_d.get(dest).put(x, destinationSet);
+                    }
+                }
+            }
+        }
+        automaton.d = new_d;
+        IntSet setOfFinalStates = new IntOpenHashSet();
+        /**final states become non final*/
+        for(int q = 0; q < automaton.Q; q++){
+            if(automaton.O.getInt(q) != 0){
+                setOfFinalStates.add(q);
+                automaton.O.set(q, 0);
+            }
+        }
+        automaton.O.set(automaton.q0, 1);/**initial state becomes the final state.*/
+
+        List<Int2IntMap> newMemD = automaton.subsetConstruction(null, setOfFinalStates,print,prefix+" ",log);
+
+        if (!skipMinimize) {
+            automaton.minimize(newMemD, print,prefix+" ",log);
+        }
+
+        // flip the number system from msd to lsd and vice versa.
+        if (reverseMsd) {
+            for (int i = 0; i < automaton.NS.size(); i++) {
+                if (automaton.NS.get(i) == null) {
+                    continue;
+                }
+                int indexOfUnderscore = automaton.NS.get(i).getName().indexOf("_");
+                String msd_or_lsd = automaton.NS.get(i).getName().substring(0, indexOfUnderscore);
+                String suffix = automaton.NS.get(i).getName().substring(indexOfUnderscore);
+                String newName;
+                if (msd_or_lsd.equals("msd")) {
+                    newName = "lsd" + suffix;
+                }
+                else {
+                    newName = "msd" + suffix;
+                }
+                automaton.NS.set(i, new NumberSystem(newName));
+            }
+        }
+
+        long timeAfter = System.currentTimeMillis();
+        if(print){
+            String msg = prefix + "reversed:" + automaton.Q + " states - "+(timeAfter-timeBefore)+"ms";
+            log.append(msg + UtilityMethods.newLine());
+            System.out.println(msg);
+        }
+    }
+
+    public static void reverse(Automaton automaton, boolean print, String prefix, StringBuilder log, boolean reverseMsd) throws Exception {
+        reverse(automaton, print, prefix, log, reverseMsd, false);
+    }
+
+    public static void reverse(Automaton automaton, boolean print, String prefix, StringBuilder log) throws Exception {
+        reverse(automaton, print, prefix, log, false);
+    }
+
+    /**
+     * Reverse a DFAO. Use Theorem 4.3.3 from Allouche & Shallit.
+     * @throws Exception
+     */
+    public static void reverseWithOutput(Automaton automaton, boolean reverseMsd, boolean print, String prefix, StringBuilder log) throws Exception {
+        if (automaton.TRUE_FALSE_AUTOMATON) {
+            return;
+        }
+        try {
+            long timeBefore = System.currentTimeMillis();
+            if(print) {
+                String msg = prefix + "reversing: " + automaton.Q + " states";
+                log.append(msg + UtilityMethods.newLine());
+                System.out.println(msg);
+            }
+
+            boolean addedDeadState = automaton.addDistinguishedDeadState(print, prefix, log);
+
+            int minOutput = 0;
+            if (addedDeadState) {
+                // get state with smallest output. all states with this output will be removed.
+                // after transducing, all states with this minimum output will be removed.
+
+                for (int i = 0; i < automaton.O.size(); i++) {
+                    if (automaton.O.getInt(i) < minOutput) {
+                        minOutput = automaton.O.getInt(i);
+                    }
+                }
+            }
+
+
+
+            // need to define states, an initial state, transitions, and outputs.
+
+            ArrayList<Map<Integer, Integer>> newStates = new ArrayList<>();
+
+            HashMap<Map<Integer, Integer>, Integer> newStatesHash = new HashMap<>();
+
+            Queue<Map<Integer, Integer>> newStatesQueue = new LinkedList<>();
+
+            Map<Integer, Integer> newInitState = new HashMap<>();
+
+            IntList newO = new IntArrayList();
+
+            List<Int2ObjectRBTreeMap<IntList>> newD = new ArrayList<>();
+
+            for (int i = 0; i < automaton.Q; i++) {
+                newInitState.put(i, automaton.O.getInt(i));
+            }
+
+            newStates.add(newInitState);
+
+            newStatesHash.put(newInitState, newStates.size() - 1);
+
+            newStatesQueue.add(newInitState);
+
+            while (newStatesQueue.size() > 0) {
+                Map<Integer, Integer> currState = newStatesQueue.remove();
+
+                // set up the output of this state to be g(q0), where g = currState.
+                newO.add((int)currState.get(automaton.q0));
+
+                newD.add(new Int2ObjectRBTreeMap<>());
+
+                // assume that the
+                // System.out.println("alphabet: " + d.get(q0) + ", " + d + ", " + alphabetSize);
+                if (automaton.d.get(automaton.q0).keySet().size() != automaton.alphabetSize) {
+                    throw new Exception("Automaton should be deterministic!");
+                }
+                for (int l : automaton.d.get(automaton.q0).keySet()) {
+                    Map<Integer, Integer> toState = new HashMap<>();
+
+                    for (int i = 0; i < automaton.Q; i++) {
+                        toState.put(i, currState.get(automaton.d.get(i).get(l).getInt(0)));
+                    }
+
+                    if (!newStatesHash.containsKey(toState)) {
+                        newStates.add(toState);
+                        newStatesHash.put(toState, newStates.size() - 1);
+                        newStatesQueue.add(toState);
+                    }
+
+                    // set up the transition.
+                    IntList newList = new IntArrayList();
+                    newList.add((int)newStatesHash.get(toState));
+                    newD.get(newD.size() - 1).put(l, newList);
+                }
+            }
+
+            automaton.Q = newStates.size();
+
+            automaton.O = newO;
+
+            automaton.d = newD;
+
+            // flip the number system from msd to lsd and vice versa.
+            if (reverseMsd) {
+                for (int i = 0; i < automaton.NS.size(); i++) {
+                    if (automaton.NS.get(i) == null) {
+                        continue;
+                    }
+                    int indexOfUnderscore = automaton.NS.get(i).getName().indexOf("_");
+                    String msd_or_lsd = automaton.NS.get(i).getName().substring(0, indexOfUnderscore);
+                    String suffix = automaton.NS.get(i).getName().substring(indexOfUnderscore);
+                    String newName;
+                    if (msd_or_lsd.equals("msd")) {
+                        newName = "lsd" + suffix;
+                    }
+                    else {
+                        newName = "msd" + suffix;
+                    }
+                    automaton.NS.set(i, new NumberSystem(newName));
+                }
+            }
+
+            automaton.minimizeSelfWithOutput(print, prefix+" ", log);
+
+            if (addedDeadState) {
+                // remove all states that have an output of minOutput
+                HashSet<Integer> statesRemoved = new HashSet<>();
+
+                for (int q = 0; q < automaton.Q; q++) {
+                    if (automaton.O.getInt(q) == minOutput) {
+                        statesRemoved.add(q);
+                    }
+                }
+                for (int q = 0; q < automaton.Q; q++) {
+
+                    Iterator<Integer> iter = automaton.d.get(q).keySet().iterator();
+
+                    while (iter.hasNext()) {
+                        int x = iter.next();
+
+                        if (statesRemoved.contains(automaton.d.get(q).get(x).getInt(0))) {
+                            iter.remove();
+                        }
+                    }
+                }
+
+                automaton.canonized = false;
+                automaton.canonize();
+            }
+
+            long timeAfter = System.currentTimeMillis();
+            if(print){
+                String msg = prefix + "reversed: " + automaton.Q + " states - "+(timeAfter-timeBefore)+"ms";
+                log.append(msg + UtilityMethods.newLine());
+                System.out.println(msg);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new Exception("Error reversing word automaton");
+        }
+    }
+
+    /**
+     * Convert the number system of a word automaton from [msd/lsd]_k^i to [msd/lsd]_k^j.
+     * @throws Exception
+     */
+    public static void convertNS(Automaton automaton, boolean toMsd, int toBase, boolean print,
+                                 String prefix, StringBuilder log) throws Exception {
+        try {
+            // assume that the format of ns is in the form msd_k or lsd_k. let the Prover.java check it with a regex.
+
+            if (automaton.NS.size() != 1) {
+                throw new Exception("Automaton must have one input to be converted.");
+            }
+
+            String nsName = automaton.NS.get(0).getName();
+
+            String base = nsName.substring(nsName.indexOf("_") + 1);
+
+            if(!UtilityMethods.isNumber(base) || Integer.parseInt(base) <= 1) {
+                throw new Exception("Base of number system of original automaton must be a positive integer greater than 1.");
+            }
+
+            int fromBase = Integer.parseInt(base);
+
+            if (fromBase == toBase) {
+                if (automaton.NS.get(0).isMsd() == toMsd) {
+                    throw new Exception("New and old number systems " + automaton.NS.get(0).getName() +
+                            " to be converted cannot be equal.");
+                }
+                else {
+                    // if all that differs is msd/lsd, just reverse the automaton.
+                    reverseWithOutput(automaton, true, print, prefix+" ", log);
+                    return;
+                }
+            }
+
+            // check that the bases are powers of the same integer, and figure out that integer.
+            // make a different function for this.
+            int commonRoot = UtilityMethods.commonRoot(fromBase, toBase);
+
+            if (commonRoot == -1) {
+                throw new Exception("New and old number systems must have bases of the form k^i and k^j for integers i, j, k.");
+            }
+
+            // if originally in lsd, reverse and convert to msd.
+            if (!automaton.NS.get(0).isMsd()) {
+                reverseWithOutput(automaton, true, print, prefix+" ", log);
+            }
+
+            // run  convert algorithm assuming MSD.
+
+            boolean currentlyReversed = false;
+
+            if (fromBase != commonRoot) {
+                // do k^i to k construction.
+
+                int exponent = (int)(Math.log(fromBase) / Math.log(commonRoot));
+
+                reverseWithOutput(automaton, true, print, prefix+" ", log);
+
+                currentlyReversed = true;
+
+                convertLsdBaseToRoot(automaton, commonRoot, exponent, print, prefix+" ", log);
+
+                automaton.minimizeSelfWithOutput(print, prefix+" ", log);
+
+                // reverseWithOutput(true, print, prefix+" ", log);
+            }
+
+            if (toBase != commonRoot) {
+                // do k to k^i construction.
+
+                if (currentlyReversed) {
+                    reverseWithOutput(automaton, true, print, prefix+" ", log);
+                    currentlyReversed = false;
+                }
+
+                int exponent = (int)(Math.log(toBase) / Math.log(commonRoot));
+
+                convertMsdBaseToExponent(automaton, exponent, print, prefix+" ", log);
+
+                automaton.minimizeSelfWithOutput(print, prefix+" ", log);
+            }
+
+            // if desired base is in lsd, reverse again to lsd.
+            if (toMsd == currentlyReversed) {
+                reverseWithOutput(automaton, true, print, prefix+" ", log);
+                currentlyReversed = !currentlyReversed;
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new Exception("Error converting the number system of an automaton");
+        }
+    }
+
+    /**
+     * Assuming this automaton is in number system msd_k with one input, convert it to number system msd_k^j with one
+     * input.
+     * Used as a helper method in convert()
+     * @param automaton
+     * @param exponent
+     * @throws Exception
+     */
+    private static void convertMsdBaseToExponent(Automaton automaton, int exponent, boolean print,
+                                                 String prefix, StringBuilder log) throws Exception {
+        try {
+
+            String nsName = automaton.NS.get(0).getName();
+            int base = Integer.parseInt(nsName.substring(nsName.indexOf("_") + 1));
+
+            long timeBefore = System.currentTimeMillis();
+            if (print) {
+                String msg = prefix + "Converting: msd_" + base + " to msd_" + (int)Math.pow(base, exponent) + ", " + automaton.Q + " states";
+                log.append(msg + UtilityMethods.newLine());
+                System.out.println(msg);
+            }
+
+            List<Int2ObjectRBTreeMap<IntList>> newD = new ArrayList<>();
+
+            // need to generate the new morphism, which is h^{exponent}, where h is the original morphism.
+
+            List<List<Integer>> prevMorphism = new ArrayList<>();
+
+            for (int q = 0; q < automaton.Q; q++) {
+                List<Integer> morphismString = new ArrayList<>();
+
+                if (automaton.d.get(q).keySet().size() != automaton.alphabetSize) {
+                    throw new Exception("Automaton must be deterministic");
+                }
+
+                for (int di = 0; di < automaton.alphabetSize; di++) {
+                    morphismString.add(automaton.d.get(q).get(di).getInt(0));
+                }
+                prevMorphism.add(morphismString);
+            }
+
+            for (int i = 2; i <= exponent; i++) {
+
+                List<List<Integer>> newMorphism = new ArrayList<>();
+
+                for (int j = 0; j < automaton.Q; j++) {
+                    List<Integer> morphismString = new ArrayList<>();
+                    for (int k = 0; k < prevMorphism.get(j).size(); k++) {
+                        for (int di : automaton.d.get(j).keySet()) {
+                            morphismString.add(automaton.d.get(prevMorphism.get(j).get(k)).get(di).getInt(0));
+                        }
+                    }
+                    newMorphism.add(morphismString);
+                }
+                prevMorphism = new ArrayList<>(newMorphism);
+            }
+
+            for (int q = 0; q < automaton.Q; q++) {
+                newD.add(new Int2ObjectRBTreeMap<>());
+                for (int di = 0; di < prevMorphism.get(q).size(); di++) {
+
+                    int toState = prevMorphism.get(q).get(di);
+
+                    // set up transition
+                    IntList newList = new IntArrayList();
+                    newList.add(toState);
+                    newD.get(q).put(di, newList);
+                }
+            }
+
+            automaton.d = newD;
+
+            // change number system too.
+
+            automaton.NS.set(0, new NumberSystem("msd_" + (int)(Math.pow(base, exponent))));
+
+            ArrayList<Integer> ints = new ArrayList<>();
+            for (int i = 0; i < (int)(Math.pow(base, exponent)); i++) {
+                ints.add(i);
+            }
+            automaton.A = Arrays.asList(ints);
+            automaton.alphabetSize = ints.size();
+
+            if (print) {
+                long timeAfter = System.currentTimeMillis();
+                String msg = prefix + "Converted: msd_" + base + " to msd_" + (int)(Math.pow(base, exponent)) + ", " + automaton.Q + " states - " + (timeAfter-timeBefore) + "ms";
+                log.append(msg + UtilityMethods.newLine());
+                System.out.println(msg);
+            }
+
+        } catch(Exception e) {
+            e.printStackTrace();
+            throw new Exception("Error converting the number system msd_k of an automaton to msd_k^j");
+        }
+
+    }
+
+    /**
+     * Assuming this automaton is in number system lsd_k^j with one input, convert it to number system lsd_k with one
+     * input.
+     * Used as a helper method in convert()
+     * @param automaton
+     * @param exponent
+     * @throws Exception
+     */
+    private static void convertLsdBaseToRoot(Automaton automaton, int root, int exponent, boolean print,
+                                             String prefix, StringBuilder log) throws Exception {
+
+        try {
+            String nsName = automaton.NS.get(0).getName();
+            int base = Integer.parseInt(nsName.substring(nsName.indexOf("_") + 1));
+
+            long timeBefore = System.currentTimeMillis();
+            if (print) {
+                String msg = prefix + "Converting: lsd_" + base + " to lsd_" + (int)Math.pow(root, exponent) + ", " + automaton.Q + " states";
+                log.append(msg + UtilityMethods.newLine());
+                System.out.println(msg);
+            }
+
+            if (base != Math.pow(root, exponent)) {
+                throw new Exception("Base of automaton must be equal to the given root to the power of the given exponent.");
+            }
+
+            class StateTuple {
+                final int state;
+                final List<Integer> string;
+                StateTuple(int state, List<Integer> string) {
+                    this.state = state;
+                    this.string = string;
+                }
+
+                @Override
+                public boolean equals(Object o) {
+
+                    // DO NOT compare the string.
+                    if (this == o) {
+                        return true;
+                    }
+                    if (o == null || this.getClass() != o.getClass()) {
+                        return false;
+                    }
+                    StateTuple other = (StateTuple) o;
+                    return this.state == other.state && this.string.equals(other.string);
+                }
+
+                @Override
+                public int hashCode() {
+                    int result = this.state ^ (this.state >>> 32);
+                    result = 31 * result + this.string.hashCode();
+                    return result;
+                }
+            }
+
+            ArrayList<StateTuple> newStates = new ArrayList<>();
+
+            Queue<StateTuple> newStatesQueue = new LinkedList<>();
+
+            HashMap<StateTuple, Integer> newStatesHash = new HashMap<>();
+
+            List<Int2ObjectRBTreeMap<IntList>> newD = new ArrayList<>();
+
+            IntList newO = new IntArrayList();
+
+            StateTuple initState = new StateTuple(automaton.q0, Arrays.asList());
+
+            newStates.add(initState);
+            newStatesQueue.add(initState);
+            newStatesHash.put(initState, newStates.size() - 1);
+
+
+            while (newStatesQueue.size() > 0) {
+                StateTuple currState = newStatesQueue.remove();
+
+                newD.add(new Int2ObjectRBTreeMap<>());
+
+                if (currState.string.size() == 0) {
+                    newO.add(automaton.O.getInt(currState.state));
+                }
+                else {
+                    int stringValue = 0;
+
+                    for (int i = 0; i < currState.string.size(); i++) {
+                        stringValue += currState.string.get(i) * (int)(Math.pow(root, i));
+                    }
+
+                    // set up output
+                    newO.add(automaton.O.getInt(automaton.d.get(currState.state).get(stringValue).getInt(0)));
+                }
+
+                for (int di = 0; di < root; di++) {
+
+                    StateTuple toState;
+
+                    List<Integer> toStateString = new ArrayList<>(currState.string);
+
+                    toStateString.add(di);
+
+                    if (currState.string.size() < exponent - 1) {
+                        toState = new StateTuple(currState.state, toStateString);
+                    }
+                    else {
+
+                        int toStateStringValue = 0;
+
+                        for (int i = 0; i < toStateString.size(); i++) {
+                            toStateStringValue += toStateString.get(i) * (int)(Math.pow(root, i));
+                        }
+
+                        toState = new StateTuple(automaton.d.get(currState.state).get(toStateStringValue).getInt(0), Arrays.asList());
+                    }
+
+
+                    if (!newStatesHash.containsKey(toState)) {
+                        newStates.add(toState);
+                        newStatesQueue.add(toState);
+                        newStatesHash.put(toState, newStates.size() - 1);
+                    }
+
+                    IntList newList = new IntArrayList();
+                    newList.add((int)newStatesHash.get(toState));
+                    newD.get(newD.size() - 1).put(di, newList);
+
+                }
+            }
+
+            automaton.Q = newStates.size();
+
+            automaton.O = newO;
+
+            automaton.d = newD;
+
+            automaton.canonized = false;
+
+            // change number system too.
+            automaton.NS.set(0, new NumberSystem("lsd_" + root));
+
+            ArrayList<Integer> ints = new ArrayList<>();
+            for (int i = 0; i < root; i++) {
+                ints.add(i);
+            }
+            automaton.A = Arrays.asList(ints);
+            automaton.alphabetSize = ints.size();
+
+            if(print) {
+                long timeAfter = System.currentTimeMillis();
+                String msg = prefix + prefix + "Converted: lsd_" + base + " to lsd_" + (int)(Math.pow(root, exponent)) + ", " + automaton.Q + " states - " + (timeAfter-timeBefore) + "ms";
+                log.append(msg + UtilityMethods.newLine());
+                System.out.println(msg);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new Exception("Error converting the number system msd_k^j of an automaton to msd_k");
+        }
+
+
+    }
+
+    public static Automaton combine(Automaton automaton, Queue<Automaton> subautomata, IntList outputs, boolean print, String prefix, StringBuilder log) throws Exception {
+
+        Automaton first = automaton.clone();
+
+        // In an automaton without output, every non-zero output value represents an accepting state
+        // we change this to correspond to the value assigned to the first automaton by our command
+        for (int q = 0; q < first.Q; q++) {
+            if (first.O.getInt(q) != 0) {
+                first.O.set(q, outputs.getInt(0));
+            }
+        }
+        first.combineIndex = 1;
+        first.combineOutputs = outputs;
+        while (subautomata.size() > 0) {
+            Automaton next = subautomata.remove();
+            long timeBefore = System.currentTimeMillis();
+            if (print) {
+                String msg = prefix + "computing =>:" + first.Q + " states - " + next.Q + " states";
+                log.append(msg + UtilityMethods.newLine());
+                System.out.println(msg);
+            }
+
+            // crossProduct requires labelling so we make an arbitrary labelling and use it for both: this is valid since
+            // input alphabets and arities are assumed to be identical for the combine method
+            first.randomLabel();
+            next.label = first.label;
+            // crossProduct requires both automata to be totalized, otherwise it has no idea which cartesian states to transition to
+            totalize(first, print,prefix+" ",log);
+            totalize(next, print,prefix+" ",log);
+            Automaton product = crossProduct(first, next, "combine", print, prefix+" ", log);
+            product.combineIndex = first.combineIndex + 1;
+            product.combineOutputs = first.combineOutputs;
+            first = product;
+
+            long timeAfter = System.currentTimeMillis();
+            if(print){
+                String msg = prefix + "computed =>:" + first.Q + " states - "+(timeAfter-timeBefore)+"ms";
+                log.append(msg + UtilityMethods.newLine());
+                System.out.println(msg);
+            }
+        }
+
+        // totalize the resulting automaton
+        totalize(first, print, prefix+" ", log);
+        first.canonizeAndApplyAllRepresentationsWithOutput(print, prefix+" ", log);
+
+        return first;
+    }
+
+    /**
+     * The operator can be one of "<" ">" "=" "!=" "<=" ">=".
+     * For example if operator = "<" then this method returns
+     * a DFA that accepts x iff this[x] < W[x] lexicographically.
+     * To be used only when this automaton and M are DFAOs (words).
+     * @param automaton
+     * @param W
+     * @param operator
+     * @return
+     * @throws Exception
+     */
+    public static Automaton compare(Automaton automaton, Automaton W, String operator, boolean print, String prefix, StringBuilder log) throws Exception{
+        long timeBefore = System.currentTimeMillis();
+        if(print){
+            String msg = prefix + "comparing ("+operator+"):" + automaton.Q + " states - " + W.Q + " states";
+            log.append(msg + UtilityMethods.newLine());
+            System.out.println(msg);
+        }
+        Automaton M = crossProduct(automaton, W,operator,print,prefix+" ",log);
+        M.minimize(null, print,prefix+" ",log);
+        long timeAfter = System.currentTimeMillis();
+        if(print){
+            String msg = prefix + "compared ("+operator+ "):" + automaton.Q + " states - "+(timeAfter-timeBefore)+"ms";
+            log.append(msg + UtilityMethods.newLine());
+            System.out.println(msg);
+        }
+        return M;
+    }
+
+    /**
+     * The operator can be one of "<" ">" "=" "!=" "<=" ">=".
+     * For example if operator = "<" then this method changes the word automaton
+     * to a DFA that accepts x iff this[x] < o lexicographically.
+     * To be used only when this automaton is a DFAO (word).
+     * @param automaton
+     * @param operator
+     * @return
+     * @throws Exception
+     */
+    public static void compare(Automaton automaton, int o, String operator, boolean print, String prefix, StringBuilder log) throws Exception{
+        long timeBefore = System.currentTimeMillis();
+        if(print){
+            String msg = prefix + "comparing ("+operator+") against "+ o +":" + automaton.Q + " states";
+            log.append(msg + UtilityMethods.newLine());
+            System.out.println(msg);
+        }
+        for(int p = 0; p < automaton.Q; p++){
+            switch(operator){
+            case "<":
+                automaton.O.set(p,(automaton.O.getInt(p) < o) ? 1 : 0);
+                break;
+            case ">":
+                automaton.O.set(p,(automaton.O.getInt(p) > o) ? 1 : 0);
+                break;
+            case "=":
+                automaton.O.set(p,(automaton.O.getInt(p) == o) ? 1 : 0);
+                break;
+            case "!=":
+                automaton.O.set(p,(automaton.O.getInt(p) != o) ? 1 : 0);
+                break;
+            case "<=":
+                automaton.O.set(p,(automaton.O.getInt(p) <= o) ? 1 : 0);
+                break;
+            case ">=":
+                automaton.O.set(p,(automaton.O.getInt(p) >= o) ? 1 : 0);
+                break;
+            }
+        }
+        automaton.minimize(null, print,prefix+" ",log);
+        long timeAfter = System.currentTimeMillis();
+        if(print){
+            String msg = prefix + "compared ("+operator+ ") against "+o+":" + automaton.Q + " states - "+(timeAfter-timeBefore)+"ms";
+            log.append(msg + UtilityMethods.newLine());
+            System.out.println(msg);
+        }
+    }
+
+    static <T> List<List<T>> cartesianProduct(List<List<T>> lists) {
+        List<List<T>> resultLists = new ArrayList<>();
+        if (lists.size() == 0) {
+            resultLists.add(new ArrayList<>());
+            return resultLists;
+        } else {
+            List<T> firstList = lists.get(0);
+            List<List<T>> remainingLists = cartesianProduct(lists.subList(1, lists.size()));
+            for (T condition : firstList) {
+                for (List<T> remainingList : remainingLists) {
+                    ArrayList<T> resultList = new ArrayList<>();
+                    resultList.add(condition);
+                    resultList.addAll(remainingList);
+                    resultLists.add(resultList);
+                }
+            }
+        }
+        return resultLists;
     }
 }

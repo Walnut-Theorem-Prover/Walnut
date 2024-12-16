@@ -903,7 +903,7 @@ public class Prover {
 			subautomata.set(i, N);
 		}
 		Automaton N = subautomata.remove(0);
-		N = N.combine(new LinkedList<>(subautomata),outputs,printSteps, prefix,log);
+		N = AutomatonLogicalOps.combine(N, new LinkedList<>(subautomata),outputs,printSteps, prefix,log);
 
 		AutomatonWriter.draw(N, UtilityMethods.get_address_for_result()+m.group(GROUP_SPLIT_NAME)+".gv", s, isDFAO);
 		AutomatonWriter.write(N, UtilityMethods.get_address_for_result()+m.group(GROUP_SPLIT_NAME)+".txt");
@@ -959,7 +959,7 @@ public class Prover {
 			subautomata.set(i, N);
 		}
 		Automaton N = subautomata.remove(0);
-		N = N.combine(new LinkedList<>(subautomata),outputs,printSteps, prefix,log);
+		N = AutomatonLogicalOps.combine(N, new LinkedList<>(subautomata),outputs,printSteps, prefix,log);
 
 		AutomatonWriter.draw(N, UtilityMethods.get_address_for_result()+m.group(GROUP_RSPLIT_NAME)+".gv", s, isDFAO);
 		AutomatonWriter.write(N, UtilityMethods.get_address_for_result()+m.group(GROUP_RSPLIT_NAME)+".txt");
@@ -1157,10 +1157,10 @@ public class Prover {
 			Automaton M = new Automaton(library + m.group(GROUP_REVERSE_OLD_NAME) + ".txt");
 
 			if (isDFAO) {
-				M.reverseWithOutput(true, printSteps || printDetails, prefix, log);
+				AutomatonLogicalOps.reverseWithOutput(M, true, printSteps || printDetails, prefix, log);
 			}
 			else {
-				M.reverse(printSteps || printDetails, prefix, log, true);
+				AutomatonLogicalOps.reverse(M, printSteps || printDetails, prefix, log, true);
 			}
 
 			AutomatonWriter.draw(M, UtilityMethods.get_address_for_result()+m.group(GROUP_REVERSE_NEW_NAME)+".gv", s, true);
@@ -1226,7 +1226,7 @@ public class Prover {
 			}
 			Automaton M =  new Automaton(library + m.group(GROUP_CONVERT_OLD_NAME)+".txt");
 
-			M.convert(m.group(GROUP_CONVERT_MSD_OR_LSD).equals("msd"),
+			AutomatonLogicalOps.convertNS(M, m.group(GROUP_CONVERT_MSD_OR_LSD).equals("msd"),
 					Integer.parseInt(m.group(GROUP_CONVERT_BASE)), printSteps || printDetails,
 					prefix, log);
 

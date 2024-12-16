@@ -175,7 +175,7 @@ public class NumberSystem {
 			addition = new Automaton(addressForAddition);
 		} else if(new File(complement_addressForAddition).isFile()) {
 			addition = new Automaton(complement_addressForAddition);
-			addition.reverse(false, null, null, false);
+			AutomatonLogicalOps.reverse(addition, false, null, null, false);
 		} else {
 			if(UtilityMethods.isNumber(base) && Integer.parseInt(base) > 1) {
 				base_n_addition(Integer.parseInt(base));
@@ -223,7 +223,7 @@ public class NumberSystem {
 			lessThan = new Automaton(addressForLessThan);
 		} else if(new File(complement_addressForLessThan).isFile()) {
 			lessThan = new Automaton(complement_addressForLessThan);
-			lessThan.reverse(false,null,null,false);
+			AutomatonLogicalOps.reverse(lessThan, false,null,null,false);
 		} else if(UtilityMethods.parseNegNumber(base) > 1) {
 			base_neg_n_less_than(UtilityMethods.parseNegNumber(base));
 		} else {
@@ -257,7 +257,7 @@ public class NumberSystem {
 			allRepresentations = new Automaton(addressForTheSetOfAllRepresentations);
 		} else if(new File(complement_addressForTheSetOfAllRepresentations).isFile()) {
 			allRepresentations = new Automaton(complement_addressForTheSetOfAllRepresentations);
-			allRepresentations.reverse(false,null,null, false);
+			AutomatonLogicalOps.reverse(allRepresentations, false,null,null, false);
 		} else {
 			flag_should_we_use_allRepresentations = false;
 		}
@@ -333,7 +333,7 @@ public class NumberSystem {
 			}
 		}
 		if(!is_msd) {
-			lessThan.reverse(false,null,null,false);
+			AutomatonLogicalOps.reverse(lessThan, false,null,null,false);
 		}
 	}
 
@@ -369,7 +369,7 @@ public class NumberSystem {
 			baseChange = new Automaton(addressForComparison);
 		} else if(new File(complement_addressForComparison).isFile()) {
 			baseChange = new Automaton(complement_addressForComparison);
-			baseChange.reverse(false, null, null);
+			AutomatonLogicalOps.reverse(baseChange, false, null, null);
 		} else if(UtilityMethods.parseNegNumber(base) > 1) {
 			base_n_base_change(UtilityMethods.parseNegNumber(base));
 		}
@@ -436,7 +436,7 @@ public class NumberSystem {
 		}
 
 		if(!is_msd) {
-			addition.reverse(false,null,null,false);
+			AutomatonLogicalOps.reverse(addition, false,null,null,false);
         }
 	}
 
@@ -508,7 +508,7 @@ public class NumberSystem {
 		}
 
 		if(!is_msd) {
-			addition.reverse(false,null,null,false);
+			AutomatonLogicalOps.reverse(addition, false,null,null,false);
 		}
 	}
 
@@ -562,7 +562,7 @@ public class NumberSystem {
 		}
 
 		if(!is_msd) {
-			lessThan.reverse(false,null,null,false);
+			AutomatonLogicalOps.reverse(lessThan, false,null,null,false);
 		}
 	}
 
@@ -635,7 +635,7 @@ public class NumberSystem {
 		}
 
 		if(is_msd) {
-			baseChange.reverse(false,null,null);
+			AutomatonLogicalOps.reverse(baseChange, false,null,null);
 		}
 	}
 
@@ -740,7 +740,7 @@ public class NumberSystem {
 			M = comparison(a, B, comparisonOperator);
 		}
 		M = AutomatonLogicalOps.and(M, N,false,null,null);
-		M.quantify(B,false,null,null);
+		AutomatonLogicalOps.quantify(M, B,false,null,null);
 		return M;
 	}
 
@@ -844,7 +844,7 @@ public class NumberSystem {
 			M = arithmetic(a, B, c, arithmeticOperator);
 		}
 		M = AutomatonLogicalOps.and(M, N,false,null,null);
-		M.quantify(B,false,null,null);
+		AutomatonLogicalOps.quantify(M, B,false,null,null);
 		return M;
 	}
 
@@ -893,7 +893,7 @@ public class NumberSystem {
 			M = arithmetic(A, b, c, arithmeticOperator);
 		}
 		M = AutomatonLogicalOps.and(M, N,false,null,null);
-		M.quantify(A,false,null,null);
+		AutomatonLogicalOps.quantify(M, A,false,null,null);
 		return M;
 	}
 
@@ -939,7 +939,7 @@ public class NumberSystem {
 			M = arithmetic(a, b, C, arithmeticOperator);
 		}
 		M = AutomatonLogicalOps.and(M, N,false,null,null);
-		M.quantify(C,false,null,null);
+		AutomatonLogicalOps.quantify(M, C,false,null,null);
 		return M;
 	}
 
@@ -970,7 +970,7 @@ public class NumberSystem {
 			// Eb, a + b = 0 & b = -n
 			P = arithmetic(a,b,0, "+");
 			P = AutomatonLogicalOps.and(P, M, false, null, null);
-			P.quantify(b, false, null, null);
+			AutomatonLogicalOps.quantify(P, b, false, null, null);
 		} else { // n > 0
 			String a = "a", b = "b", c = "c";
 			// a = floor(n/2)
@@ -983,7 +983,7 @@ public class NumberSystem {
 			P = arithmetic(a,b,c, "+");
 			P = AutomatonLogicalOps.and(P, M, false, null, null);
 			P = AutomatonLogicalOps.and(P, N, false, null, null);
-			P.quantify(a, b, is_msd, false, null, null);
+			AutomatonLogicalOps.quantify(P, a, b, is_msd, false, null, null);
 		}
 		constantsDynamicTable.put(n, P);
 		return P;
@@ -1011,7 +1011,7 @@ public class NumberSystem {
 			// Ec b + c = 0 & c = (-n)*a
 			P = arithmetic(b,c,0, "+");
 			P = AutomatonLogicalOps.and(P, M, false, null, null);
-			P.quantify(c,false,null,null);
+			AutomatonLogicalOps.quantify(P, c,false,null,null);
 			P.sortLabel();
 		} else if (n==2) {
 			String a = "a",d = "d";
@@ -1030,14 +1030,14 @@ public class NumberSystem {
 			if (n % 2 == 0) { // suppose n = 2k
 				D.bind(b, d);
 				P = AutomatonLogicalOps.and(M, D, false, null, null);
-				P.quantify(b, false, null, null);
+				AutomatonLogicalOps.quantify(P, b, false, null, null);
 			}
 			else { // n = 2k+1
 				D.bind(b, c);
 				P = arithmetic(c, a, d, "+");
 				P = AutomatonLogicalOps.and(P, M, false, null, null);
 				P = AutomatonLogicalOps.and(P, D, false, null, null);
-				P.quantify(b, c, is_msd, false, null, null);
+				AutomatonLogicalOps.quantify(P, b, c, is_msd, false, null, null);
 				
 			}
 
@@ -1087,7 +1087,7 @@ public class NumberSystem {
 		Automaton P = AutomatonLogicalOps.and(P1, P2,false,null,null);
 		Automaton R = AutomatonLogicalOps.and(M, N,false,null,null);
 		R = AutomatonLogicalOps.and(R, P,false,null,null);
-		R.quantify(q,r, is_msd,false,null,null);
+		AutomatonLogicalOps.quantify(R, q,r, is_msd,false,null,null);
 		R.sortLabel();
 		divisionsDynamicTable.put(n, R);
 		return R;

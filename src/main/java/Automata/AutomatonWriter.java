@@ -37,7 +37,7 @@ public class AutomatonWriter {
         }
         List<Integer> indices = free_variables.stream().map(variable -> automaton.label.indexOf(variable)).collect(Collectors.toList());
         List<List<Integer>> indexValueLists = indices.stream().map(index -> automaton.A.get(index)).collect(Collectors.toList());
-        List<List<Integer>> valueLists = automaton.cartesianProduct(indexValueLists);
+        List<List<Integer>> valueLists = AutomatonLogicalOps.cartesianProduct(indexValueLists);
         for (List<Integer> valueList: valueLists) {
             write_matrix_for_a_variable_list_value_pair(automaton, free_variables,valueList,indices,s);
         }
