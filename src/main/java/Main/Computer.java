@@ -121,8 +121,8 @@ public class Computer {
                 if (t.isOperator() && expression_Stack.peek().is(Type.automaton)) {
                     step = prefix + expression_Stack.peek() + ":" +
                             expression_Stack.peek().M.Q + " states - " + (timeAfter - timeBefore) + "ms";
-                    log.append(step + UtilityMethods.newLine());
-                    log_details.append(step + UtilityMethods.newLine());
+                    log.append(step + System.lineSeparator());
+                    log_details.append(step + System.lineSeparator());
                     if (printSteps || printDetails) {
                         System.out.println(step);
                     }
@@ -132,7 +132,7 @@ public class Computer {
             } catch (Exception e) {
                 e.printStackTrace();
                 String message = e.getMessage();
-                message += UtilityMethods.newLine() + "\t: char at " + t.getPositionInPredicate();
+                message += System.lineSeparator() + "\t: char at " + t.getPositionInPredicate();
                 throw new Exception(message);
             }
         }
@@ -148,7 +148,7 @@ public class Computer {
         if (expression_Stack.size() > 1) {
             String message =
                     "Cannot evaluate the following into a single automaton:" +
-                            UtilityMethods.newLine();
+                            System.lineSeparator();
             Stack<Expression> tmp = new Stack<>();
 
             while (!expression_Stack.isEmpty()) {
@@ -156,7 +156,7 @@ public class Computer {
             }
 
             while (!tmp.isEmpty()) {
-                message += tmp.pop() + UtilityMethods.newLine();
+                message += tmp.pop() + System.lineSeparator();
             }
 
             message += "Probably some operators are missing.";

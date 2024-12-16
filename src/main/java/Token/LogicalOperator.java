@@ -67,7 +67,7 @@ public class LogicalOperator extends Operator {
 
         if (a.is(Type.automaton) && b.is(Type.automaton)) {
             String preStep = prefix + "computing " + a + op + b;
-            log.append(preStep + UtilityMethods.newLine());
+            log.append(preStep + System.lineSeparator());
             if (print) {
                 System.out.println(preStep);
             }
@@ -89,7 +89,7 @@ public class LogicalOperator extends Operator {
                     break;
             }
             String postStep = prefix + "computed " + a + op + b;
-            log.append(postStep + UtilityMethods.newLine());
+            log.append(postStep + System.lineSeparator());
             if (print) {
                 System.out.println(postStep);
             }
@@ -103,7 +103,7 @@ public class LogicalOperator extends Operator {
         Expression a = S.pop();
         if (a.is(Type.automaton)) {
             String preStep = prefix + "computing " + op + a;
-            log.append(preStep + UtilityMethods.newLine());
+            log.append(preStep + System.lineSeparator());
             if (print) {
                 System.out.println(preStep);
             }
@@ -113,7 +113,7 @@ public class LogicalOperator extends Operator {
                 AutomatonLogicalOps.not(a.M, print, prefix + " ", log);
             S.push(new Expression(op + a, a.M));
             String postStep = prefix + "computed " + op + a;
-            log.append(postStep + UtilityMethods.newLine());
+            log.append(postStep + System.lineSeparator());
             if (print) {
                 System.out.println(postStep);
             }
@@ -131,7 +131,7 @@ public class LogicalOperator extends Operator {
             temp.push(S.pop());
         }
         String preStep = prefix + "computing quantifier " + op;
-        log.append(preStep + UtilityMethods.newLine());
+        log.append(preStep + System.lineSeparator());
         if (print) {
             System.out.println(preStep);
         }
@@ -168,7 +168,7 @@ public class LogicalOperator extends Operator {
         stringValue += ")";
         S.push(new Expression(stringValue, M));
         String postStep = prefix + "computed quantifier " + stringValue;
-        log.append(postStep + UtilityMethods.newLine());
+        log.append(postStep + System.lineSeparator());
         if (print) {
             System.out.println(postStep);
         }

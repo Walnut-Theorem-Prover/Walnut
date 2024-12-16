@@ -87,7 +87,7 @@ public class Morphism {
                     out.write("[" + y + "]");
                 }
             }
-            out.write(UtilityMethods.newLine());
+            out.write(System.lineSeparator());
         }
         out.close();
     }

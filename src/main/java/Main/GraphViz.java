@@ -132,17 +132,10 @@ public class GraphViz {
     }
 
     /**
-     * Adds a string to the graph's source (without newline).
-     */
-    public void add(String line) {
-        graph.append(line);
-    }
-
-    /**
      * Adds a string to the graph's source (with newline).
      */
     public void addln(String line) {
-        graph.append(line + UtilityMethods.newLine());
+        graph.append(line + System.lineSeparator());
     }
 
 

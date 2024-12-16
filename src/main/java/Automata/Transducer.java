@@ -112,7 +112,7 @@ public class Transducer extends Automaton {
                     } catch (Exception e) {
                         in.close();
                         throw new Exception(
-                                e.getMessage() + UtilityMethods.newLine() +
+                                e.getMessage() + System.lineSeparator() +
                                         "\t:line "+ lineNumber + " of file " + address);
                     }
 
@@ -288,7 +288,7 @@ public class Transducer extends Automaton {
             long timeBefore = System.currentTimeMillis();
             if(print){
                 String msg = prefix + "transducing: " + M.Q + " state automaton - " + Q + " state transducer";
-                log.append(msg + UtilityMethods.newLine());
+                log.append(msg + System.lineSeparator());
                 System.out.println(msg);
             }
 
@@ -572,7 +572,7 @@ public class Transducer extends Automaton {
             long timeAfter = System.currentTimeMillis();
             if(print){
                 String msg = prefix + "transduced: " + N.Q + " states - "+(timeAfter-timeBefore)+"ms";
-                log.append(msg + UtilityMethods.newLine());
+                log.append(msg + System.lineSeparator());
                 System.out.println(msg);
             }
 
@@ -618,7 +618,7 @@ public class Transducer extends Automaton {
         if (!M.NS.get(0).isMsd()) {
             if(print){
                 String msg = prefix + "Automaton number system is lsd, reversing";
-                log.append(msg + UtilityMethods.newLine());
+                log.append(msg + System.lineSeparator());
                 System.out.println(msg);
             }
             toLsd = true;

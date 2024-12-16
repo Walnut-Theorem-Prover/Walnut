@@ -52,7 +52,7 @@ public class Word extends Token {
         }
         String stringValue = name;
         String preStep = prefix + "computing " + stringValue + "[...]";
-        log.append(preStep + UtilityMethods.newLine());
+        log.append(preStep + System.lineSeparator());
         if (print) {
             System.out.println(preStep);
         }
@@ -110,7 +110,7 @@ public class Word extends Token {
         W.bind(identifiers);
         S.push(new Expression(stringValue, W, M, quantify));
         String postStep = prefix + "computed " + stringValue;
-        log.append(postStep + UtilityMethods.newLine());
+        log.append(postStep + System.lineSeparator());
         if (print) {
             System.out.println(postStep);
         }

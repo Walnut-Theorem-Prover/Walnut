@@ -1047,7 +1047,7 @@ public class IntegrationTest {
 				boolean flag = false;
 				while((temp = errorReader.readLine())!= null){
 					if(flag)
-						error.append(UtilityMethods.newLine() + temp);
+						error.append(System.lineSeparator() + temp);
 					else
 						error.append(temp);
 					flag = true;
@@ -1061,7 +1061,7 @@ public class IntegrationTest {
 				boolean flag = false;
 				while((temp = mplReader.readLine())!= null){
 					if(flag)
-						mpl.append(UtilityMethods.newLine() + temp);
+						mpl.append(System.lineSeparator() + temp);
 					else
 						mpl.append(temp);
 					flag = true;
@@ -1075,7 +1075,7 @@ public class IntegrationTest {
 				boolean flag = false;
 				while((temp = detailsReader.readLine())!= null){
 					if(flag)
-						details.append(UtilityMethods.newLine() + temp);
+						details.append(System.lineSeparator() + temp);
 					else
 						details.append(temp);
 					flag = true;

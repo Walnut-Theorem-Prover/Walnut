@@ -51,7 +51,7 @@ public class AutomatonLogicalOps {
         long timeBefore = System.currentTimeMillis();
         if (print) {
             String msg = prefix + "Computing cross product:" + automaton.Q + " states - " + M.Q + " states";
-            log.append(msg + UtilityMethods.newLine());
+            log.append(msg + System.lineSeparator());
             System.out.println(msg);
         }
 
@@ -119,7 +119,7 @@ public class AutomatonLogicalOps {
                     String msg = prefix + "  Progress: Added " + statesSoFar + " states - "
                             + (statesList.size() - statesSoFar) + " states left in queue - "
                             + statesList.size() + " reachable states - " + (timeAfter - timeBefore) + "ms";
-                    log.append(msg + UtilityMethods.newLine());
+                    log.append(msg + System.lineSeparator());
                     System.out.println(msg);
                 }
             }
@@ -215,7 +215,7 @@ public class AutomatonLogicalOps {
         long timeAfter = System.currentTimeMillis();
         if (print) {
             String msg = prefix + "computed cross product:" + N.Q + " states - " + (timeAfter - timeBefore) + "ms";
-            log.append(msg + UtilityMethods.newLine());
+            log.append(msg + System.lineSeparator());
             System.out.println(msg);
         }
         return N;
@@ -253,7 +253,7 @@ public class AutomatonLogicalOps {
         long timeBefore = System.currentTimeMillis();
         if (print) {
             String msg = prefix + "computing &:" + automaton.Q + " states - " + M.Q + " states";
-            log.append(msg + UtilityMethods.newLine());
+            log.append(msg + System.lineSeparator());
             System.out.println(msg);
         }
 
@@ -263,7 +263,7 @@ public class AutomatonLogicalOps {
         long timeAfter = System.currentTimeMillis();
         if (print) {
             String msg = prefix + "computed &:" + N.Q + " states - " + (timeAfter - timeBefore) + "ms";
-            log.append(msg + UtilityMethods.newLine());
+            log.append(msg + System.lineSeparator());
             System.out.println(msg);
         }
 
@@ -288,7 +288,7 @@ public class AutomatonLogicalOps {
         long timeBefore = System.currentTimeMillis();
         if (print) {
             String msg = prefix + "computing |:" + automaton.Q + " states - " + M.Q + " states";
-            log.append(msg + UtilityMethods.newLine());
+            log.append(msg + System.lineSeparator());
             System.out.println(msg);
         }
 
@@ -302,7 +302,7 @@ public class AutomatonLogicalOps {
         long timeAfter = System.currentTimeMillis();
         if (print) {
             String msg = prefix + "computed |:" + N.Q + " states - " + (timeAfter - timeBefore) + "ms";
-            log.append(msg + UtilityMethods.newLine());
+            log.append(msg + System.lineSeparator());
             System.out.println(msg);
         }
 
@@ -340,7 +340,7 @@ public class AutomatonLogicalOps {
         long timeBefore = System.currentTimeMillis();
         if (print) {
             String msg = prefix + "computing ^:" + automaton.Q + " states - " + M.Q + " states";
-            log.append(msg + UtilityMethods.newLine());
+            log.append(msg + System.lineSeparator());
             System.out.println(msg);
         }
 
@@ -353,7 +353,7 @@ public class AutomatonLogicalOps {
         long timeAfter = System.currentTimeMillis();
         if (print) {
             String msg = prefix + "computed ^:" + N.Q + " states - " + (timeAfter - timeBefore) + "ms";
-            log.append(msg + UtilityMethods.newLine());
+            log.append(msg + System.lineSeparator());
             System.out.println(msg);
         }
         return N;
@@ -379,7 +379,7 @@ public class AutomatonLogicalOps {
         long timeBefore = System.currentTimeMillis();
         if (print) {
             String msg = prefix + "computing =>:" + automaton.Q + " states - " + M.Q + " states";
-            log.append(msg + UtilityMethods.newLine());
+            log.append(msg + System.lineSeparator());
             System.out.println(msg);
         }
 
@@ -392,7 +392,7 @@ public class AutomatonLogicalOps {
         long timeAfter = System.currentTimeMillis();
         if (print) {
             String msg = prefix + "computed =>:" + N.Q + " states - " + (timeAfter - timeBefore) + "ms";
-            log.append(msg + UtilityMethods.newLine());
+            log.append(msg + System.lineSeparator());
             System.out.println(msg);
         }
 
@@ -427,7 +427,7 @@ public class AutomatonLogicalOps {
         long timeBefore = System.currentTimeMillis();
         if (print) {
             String msg = prefix + "computing <=>:" + automaton.Q + " states - " + M.Q + " states";
-            log.append(msg + UtilityMethods.newLine());
+            log.append(msg + System.lineSeparator());
             System.out.println(msg);
         }
 
@@ -440,7 +440,7 @@ public class AutomatonLogicalOps {
         long timeAfter = System.currentTimeMillis();
         if (print) {
             String msg = prefix + "computed <=>:" + N.Q + " states - " + (timeAfter - timeBefore) + "ms";
-            log.append(msg + UtilityMethods.newLine());
+            log.append(msg + System.lineSeparator());
             System.out.println(msg);
         }
 
@@ -460,7 +460,7 @@ public class AutomatonLogicalOps {
         long timeBefore = System.currentTimeMillis();
         if (print) {
             String msg = prefix + "computing ~:" + automaton.Q + " states";
-            log.append(msg + UtilityMethods.newLine());
+            log.append(msg + System.lineSeparator());
             System.out.println(msg);
         }
 
@@ -474,7 +474,7 @@ public class AutomatonLogicalOps {
         long timeAfter = System.currentTimeMillis();
         if (print) {
             String msg = prefix + "computed ~:" + automaton.Q + " states - " + (timeAfter - timeBefore) + "ms";
-            log.append(msg + UtilityMethods.newLine());
+            log.append(msg + System.lineSeparator());
             System.out.println(msg);
         }
     }
@@ -496,7 +496,7 @@ public class AutomatonLogicalOps {
         long timeBefore = System.currentTimeMillis();
         if (print) {
             String msg = prefix + "right quotient: " + automaton.Q + " state automaton with " + other.Q + " state automaton";
-            log.append(msg + UtilityMethods.newLine());
+            log.append(msg + System.lineSeparator());
             System.out.println(msg);
         }
 
@@ -572,7 +572,7 @@ public class AutomatonLogicalOps {
         long timeAfter = System.currentTimeMillis();
         if (print) {
             String msg = prefix + "right quotient complete: " + M.Q + " states - " + (timeAfter - timeBefore) + "ms";
-            log.append(msg + UtilityMethods.newLine());
+            log.append(msg + System.lineSeparator());
             System.out.println(msg);
         }
 
@@ -583,7 +583,7 @@ public class AutomatonLogicalOps {
         long timeBefore = System.currentTimeMillis();
         if (print) {
             String msg = prefix + "left quotient: " + automaton.Q + " state automaton with " + other.Q + " state automaton";
-            log.append(msg + UtilityMethods.newLine());
+            log.append(msg + System.lineSeparator());
             System.out.println(msg);
         }
 
@@ -622,7 +622,7 @@ public class AutomatonLogicalOps {
         long timeAfter = System.currentTimeMillis();
         if (print) {
             String msg = prefix + "left quotient complete: " + M.Q + " states - " + (timeAfter - timeBefore) + "ms";
-            log.append(msg + UtilityMethods.newLine());
+            log.append(msg + System.lineSeparator());
             System.out.println(msg);
         }
 
@@ -638,7 +638,7 @@ public class AutomatonLogicalOps {
         long timeBefore = System.currentTimeMillis();
         if (print) {
             String msg = prefix + "totalizing:" + automaton.Q + " states";
-            log.append(msg + UtilityMethods.newLine());
+            log.append(msg + System.lineSeparator());
             System.out.println(msg);
         }
         //we first check if the automaton is totalized
@@ -667,7 +667,7 @@ public class AutomatonLogicalOps {
         long timeAfter = System.currentTimeMillis();
         if (print) {
             String msg = prefix + "totalized:" + automaton.Q + " states - " + (timeAfter - timeBefore) + "ms";
-            log.append(msg + UtilityMethods.newLine());
+            log.append(msg + System.lineSeparator());
             System.out.println(msg);
         }
     }
@@ -727,7 +727,7 @@ public class AutomatonLogicalOps {
         long timeBefore = System.currentTimeMillis();
         if (print) {
             String msg = prefix + "fixing leading zeros:" + automaton.Q + " states";
-            log.append(msg + UtilityMethods.newLine());
+            log.append(msg + System.lineSeparator());
             System.out.println(msg);
         }
         automaton.canonized = false;
@@ -747,7 +747,7 @@ public class AutomatonLogicalOps {
         long timeAfter = System.currentTimeMillis();
         if (print) {
             String msg = prefix + "fixed leading zeros:" + automaton.Q + " states - " + (timeAfter - timeBefore) + "ms";
-            log.append(msg + UtilityMethods.newLine());
+            log.append(msg + System.lineSeparator());
             System.out.println(msg);
         }
     }
@@ -756,7 +756,7 @@ public class AutomatonLogicalOps {
         long timeBefore = System.currentTimeMillis();
         if (print) {
             String msg = prefix + "fixing trailing zeros:" + automaton.Q + " states";
-            log.append(msg + UtilityMethods.newLine());
+            log.append(msg + System.lineSeparator());
             System.out.println(msg);
         }
         automaton.canonized = false;
@@ -773,7 +773,7 @@ public class AutomatonLogicalOps {
         long timeAfter = System.currentTimeMillis();
         if (print) {
             String msg = prefix + "fixed trailing zeros:" + automaton.Q + " states - " + (timeAfter - timeBefore) + "ms";
-            log.append(msg + UtilityMethods.newLine());
+            log.append(msg + System.lineSeparator());
             System.out.println(msg);
         }
     }
@@ -801,7 +801,7 @@ public class AutomatonLogicalOps {
         long timeBefore = System.currentTimeMillis();
         if (print) {
             String msg = prefix + "removing leading zeroes for:" + automaton.Q + " states";
-            log.append(msg + UtilityMethods.newLine());
+            log.append(msg + System.lineSeparator());
             System.out.println(msg);
         }
 
@@ -819,7 +819,7 @@ public class AutomatonLogicalOps {
         long timeAfter = System.currentTimeMillis();
         if (print) {
             String msg = prefix + "quantified:" + automaton.Q + " states - " + (timeAfter - timeBefore) + "ms";
-            log.append(msg + UtilityMethods.newLine());
+            log.append(msg + System.lineSeparator());
             System.out.println(msg);
         }
         return M;
@@ -1012,7 +1012,7 @@ public class AutomatonLogicalOps {
         long timeBefore = System.currentTimeMillis();
         if (print) {
             String msg = prefix + "applying operator (" + operator + "):" + automaton.Q + " states - " + W.Q + " states";
-            log.append(msg + UtilityMethods.newLine());
+            log.append(msg + System.lineSeparator());
             System.out.println(msg);
         }
         Automaton M = crossProduct(automaton, W, operator, print, prefix + " ", log);
@@ -1020,7 +1020,7 @@ public class AutomatonLogicalOps {
         long timeAfter = System.currentTimeMillis();
         if (print) {
             String msg = prefix + "applied operator (" + operator + "):" + automaton.Q + " states - " + (timeAfter - timeBefore) + "ms";
-            log.append(msg + UtilityMethods.newLine());
+            log.append(msg + System.lineSeparator());
             System.out.println(msg);
         }
         return M;
@@ -1106,7 +1106,7 @@ public class AutomatonLogicalOps {
         long timeBefore = System.currentTimeMillis();
         if (print) {
             String msg = prefix + "quantifying:" + automaton.Q + " states";
-            log.append(msg + UtilityMethods.newLine());
+            log.append(msg + System.lineSeparator());
             System.out.println(msg);
         }
 
@@ -1161,7 +1161,7 @@ public class AutomatonLogicalOps {
         long timeAfter = System.currentTimeMillis();
         if (print) {
             String msg = prefix + "quantified:" + automaton.Q + " states - " + (timeAfter - timeBefore) + "ms";
-            log.append(msg + UtilityMethods.newLine());
+            log.append(msg + System.lineSeparator());
             System.out.println(msg);
         }
     }
@@ -1183,7 +1183,7 @@ public class AutomatonLogicalOps {
         long timeBefore = System.currentTimeMillis();
         if (print) {
             String msg = prefix + "Reversing:" + automaton.Q + " states";
-            log.append(msg + UtilityMethods.newLine());
+            log.append(msg + System.lineSeparator());
             System.out.println(msg);
         }
 
@@ -1242,7 +1242,7 @@ public class AutomatonLogicalOps {
         long timeAfter = System.currentTimeMillis();
         if (print) {
             String msg = prefix + "reversed:" + automaton.Q + " states - " + (timeAfter - timeBefore) + "ms";
-            log.append(msg + UtilityMethods.newLine());
+            log.append(msg + System.lineSeparator());
             System.out.println(msg);
         }
     }
@@ -1268,7 +1268,7 @@ public class AutomatonLogicalOps {
             long timeBefore = System.currentTimeMillis();
             if (print) {
                 String msg = prefix + "reversing: " + automaton.Q + " states";
-                log.append(msg + UtilityMethods.newLine());
+                log.append(msg + System.lineSeparator());
                 System.out.println(msg);
             }
 
@@ -1400,7 +1400,7 @@ public class AutomatonLogicalOps {
             long timeAfter = System.currentTimeMillis();
             if (print) {
                 String msg = prefix + "reversed: " + automaton.Q + " states - " + (timeAfter - timeBefore) + "ms";
-                log.append(msg + UtilityMethods.newLine());
+                log.append(msg + System.lineSeparator());
                 System.out.println(msg);
             }
         } catch (Exception e) {
@@ -1523,7 +1523,7 @@ public class AutomatonLogicalOps {
             long timeBefore = System.currentTimeMillis();
             if (print) {
                 String msg = prefix + "Converting: msd_" + base + " to msd_" + (int) Math.pow(base, exponent) + ", " + automaton.Q + " states";
-                log.append(msg + UtilityMethods.newLine());
+                log.append(msg + System.lineSeparator());
                 System.out.println(msg);
             }
 
@@ -1591,7 +1591,7 @@ public class AutomatonLogicalOps {
             if (print) {
                 long timeAfter = System.currentTimeMillis();
                 String msg = prefix + "Converted: msd_" + base + " to msd_" + (int) (Math.pow(base, exponent)) + ", " + automaton.Q + " states - " + (timeAfter - timeBefore) + "ms";
-                log.append(msg + UtilityMethods.newLine());
+                log.append(msg + System.lineSeparator());
                 System.out.println(msg);
             }
 
@@ -1621,7 +1621,7 @@ public class AutomatonLogicalOps {
             long timeBefore = System.currentTimeMillis();
             if (print) {
                 String msg = prefix + "Converting: lsd_" + base + " to lsd_" + (int) Math.pow(root, exponent) + ", " + automaton.Q + " states";
-                log.append(msg + UtilityMethods.newLine());
+                log.append(msg + System.lineSeparator());
                 System.out.println(msg);
             }
 
@@ -1751,7 +1751,7 @@ public class AutomatonLogicalOps {
             if (print) {
                 long timeAfter = System.currentTimeMillis();
                 String msg = prefix + prefix + "Converted: lsd_" + base + " to lsd_" + (int) (Math.pow(root, exponent)) + ", " + automaton.Q + " states - " + (timeAfter - timeBefore) + "ms";
-                log.append(msg + UtilityMethods.newLine());
+                log.append(msg + System.lineSeparator());
                 System.out.println(msg);
             }
 
@@ -1781,7 +1781,7 @@ public class AutomatonLogicalOps {
             long timeBefore = System.currentTimeMillis();
             if (print) {
                 String msg = prefix + "computing =>:" + first.Q + " states - " + next.Q + " states";
-                log.append(msg + UtilityMethods.newLine());
+                log.append(msg + System.lineSeparator());
                 System.out.println(msg);
             }
 
@@ -1800,7 +1800,7 @@ public class AutomatonLogicalOps {
             long timeAfter = System.currentTimeMillis();
             if (print) {
                 String msg = prefix + "computed =>:" + first.Q + " states - " + (timeAfter - timeBefore) + "ms";
-                log.append(msg + UtilityMethods.newLine());
+                log.append(msg + System.lineSeparator());
                 System.out.println(msg);
             }
         }
@@ -1828,7 +1828,7 @@ public class AutomatonLogicalOps {
         long timeBefore = System.currentTimeMillis();
         if (print) {
             String msg = prefix + "comparing (" + operator + "):" + automaton.Q + " states - " + W.Q + " states";
-            log.append(msg + UtilityMethods.newLine());
+            log.append(msg + System.lineSeparator());
             System.out.println(msg);
         }
         Automaton M = crossProduct(automaton, W, operator, print, prefix + " ", log);
@@ -1836,7 +1836,7 @@ public class AutomatonLogicalOps {
         long timeAfter = System.currentTimeMillis();
         if (print) {
             String msg = prefix + "compared (" + operator + "):" + automaton.Q + " states - " + (timeAfter - timeBefore) + "ms";
-            log.append(msg + UtilityMethods.newLine());
+            log.append(msg + System.lineSeparator());
             System.out.println(msg);
         }
         return M;
@@ -1857,7 +1857,7 @@ public class AutomatonLogicalOps {
         long timeBefore = System.currentTimeMillis();
         if (print) {
             String msg = prefix + "comparing (" + operator + ") against " + o + ":" + automaton.Q + " states";
-            log.append(msg + UtilityMethods.newLine());
+            log.append(msg + System.lineSeparator());
             System.out.println(msg);
         }
         for (int p = 0; p < automaton.Q; p++) {
@@ -1886,7 +1886,7 @@ public class AutomatonLogicalOps {
         long timeAfter = System.currentTimeMillis();
         if (print) {
             String msg = prefix + "compared (" + operator + ") against " + o + ":" + automaton.Q + " states - " + (timeAfter - timeBefore) + "ms";
-            log.append(msg + UtilityMethods.newLine());
+            log.append(msg + System.lineSeparator());
             System.out.println(msg);
         }
     }

@@ -70,7 +70,7 @@ public class ArithmeticOperator extends Operator {
             // b + c = 0
             Automaton M = number_system.arithmetic(b.identifier, c, 0, "+");
             String preStep = prefix + "computing " + op + b;
-            log.append(preStep + UtilityMethods.newLine());
+            log.append(preStep + System.lineSeparator());
             if (print) {
                 System.out.println(preStep);
             }
@@ -81,7 +81,7 @@ public class ArithmeticOperator extends Operator {
             }
             S.push(new Expression("(" + op + b + ")", M, c));
             String postStep = prefix + "computed " + op + b;
-            log.append(postStep + UtilityMethods.newLine());
+            log.append(postStep + System.lineSeparator());
             if (print) {
                 System.out.println(postStep);
             }
@@ -130,7 +130,7 @@ public class ArithmeticOperator extends Operator {
         String c = getUniqueString();
         Automaton M;
         String preStep = prefix + "Computing " + a + op + b;
-        log.append(preStep + UtilityMethods.newLine());
+        log.append(preStep + System.lineSeparator());
         if (print) {
             System.out.println(preStep);
         }
@@ -203,7 +203,7 @@ public class ArithmeticOperator extends Operator {
         }
         S.push(new Expression("(" + a + op + b + ")", M, c));
         String postStep = prefix + "computed " + a + op + b;
-        log.append(postStep + UtilityMethods.newLine());
+        log.append(postStep + System.lineSeparator());
         if (print) {
             System.out.println(postStep);
         }

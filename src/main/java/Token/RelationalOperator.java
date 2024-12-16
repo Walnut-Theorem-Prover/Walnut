@@ -55,7 +55,7 @@ public class RelationalOperator extends Operator {
             return;
         }
         String preStep = prefix + "computing " + a + op + b;
-        log.append(preStep + UtilityMethods.newLine());
+        log.append(preStep + System.lineSeparator());
         if (print) {
             System.out.println(preStep);
         }
@@ -148,7 +148,7 @@ public class RelationalOperator extends Operator {
             throw new Exception("operator " + op + " cannot be applied to operands " + a + " and " + b + " of types " + a.getType() + " and " + b.getType() + " respectively");
         }
         String postStep = prefix + "computed " + a + op + b;
-        log.append(postStep + UtilityMethods.newLine());
+        log.append(postStep + System.lineSeparator());
         if (print) {
             System.out.println(postStep);
         }

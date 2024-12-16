@@ -58,7 +58,7 @@ public class Function extends Token {
         }
         String stringValue = name + "(";
         String preStep = prefix + "computing " + stringValue + "...)";
-        log.append(preStep + UtilityMethods.newLine());
+        log.append(preStep + System.lineSeparator());
         if (print) {
             System.out.println(preStep);
         }
@@ -120,7 +120,7 @@ public class Function extends Token {
 
         S.push(new Expression(stringValue, A));
         String postStep = prefix + "computed " + stringValue;
-        log.append(postStep + UtilityMethods.newLine());
+        log.append(postStep + System.lineSeparator());
         if (print) {
             System.out.println(postStep);
         }

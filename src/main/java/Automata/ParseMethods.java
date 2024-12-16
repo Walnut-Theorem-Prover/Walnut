@@ -117,7 +117,7 @@ public class ParseMethods {
                     } catch (Exception e) {
                         // TODO Auto-generated catch block
                         throw new Exception(
-                                e.getMessage() + UtilityMethods.newLine() +
+                                e.getMessage() + System.lineSeparator() +
                                         "\tNumber system " + ns + " does not exist.");
                     }
                 }

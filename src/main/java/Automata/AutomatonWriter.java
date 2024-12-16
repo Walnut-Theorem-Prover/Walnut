@@ -24,13 +24,13 @@ public class AutomatonWriter {
         }
         automaton.canonize();
         StringBuilder s = new StringBuilder();
-        s.append("with(ArrayTools):" + UtilityMethods.newLine());
+        s.append("with(ArrayTools):" + System.lineSeparator());
         write_initial_state_vector(automaton, s);
-        s.append(UtilityMethods.newLine() + "# In what follows, the M_i_x, for a free variable i and a value x, denotes" + UtilityMethods.newLine());
-        s.append("# an incidence matrix of the underlying graph of (the automaton of)" + UtilityMethods.newLine());
-        s.append("# the predicate in the query." + UtilityMethods.newLine());
-        s.append("# For every pair of states p and q, the entry M_i_x[p][q] denotes the number of" + UtilityMethods.newLine());
-        s.append("# transitions with i=x from p to q." + UtilityMethods.newLine());
+        s.append(System.lineSeparator() + "# In what follows, the M_i_x, for a free variable i and a value x, denotes" + System.lineSeparator());
+        s.append("# an incidence matrix of the underlying graph of (the automaton of)" + System.lineSeparator());
+        s.append("# the predicate in the query." + System.lineSeparator());
+        s.append("# For every pair of states p and q, the entry M_i_x[p][q] denotes the number of" + System.lineSeparator());
+        s.append("# transitions with i=x from p to q." + System.lineSeparator());
         for (String variable : free_variables) {
             if (!automaton.label.contains(variable)) {
                 throw new Exception("incidence matrices for the variable " + variable + " cannot be calculated, because " + variable + " is not a free variable.");
@@ -43,7 +43,7 @@ public class AutomatonWriter {
             write_matrix_for_a_variable_list_value_pair(automaton, free_variables, valueList, indices, s);
         }
         write_final_states_vector(automaton, s);
-        s.append(UtilityMethods.newLine() + "for i from 1 to Size(v)[2] do v := v.M_");
+        s.append(System.lineSeparator() + "for i from 1 to Size(v)[2] do v := v.M_");
         s.append(String.join("_", free_variables) + "_");
         s.append(String.join("_", Collections.nCopies(free_variables.size(), "0")));
         s.append("; od; #fix up v by multiplying");
@@ -63,7 +63,7 @@ public class AutomatonWriter {
     }
 
     private static void write_matrix_for_a_variable_list_value_pair(Automaton automaton, List<String> variables, List<Integer> valueList, List<Integer> indices, StringBuilder s) {
-        s.append(UtilityMethods.newLine() + "M_" + String.join("_", variables) + "_");
+        s.append(System.lineSeparator() + "M_" + String.join("_", variables) + "_");
         s.append(valueList.stream().map(String::valueOf).collect(Collectors.joining("_")));
         s.append(" := Matrix([");
         Set<Integer> encoded_values = new HashSet<>();
@@ -95,15 +95,15 @@ public class AutomatonWriter {
             }
             s.append("]");
             if (p < (automaton.Q - 1)) {
-                s.append("," + UtilityMethods.newLine());
+                s.append("," + System.lineSeparator());
             }
         }
-        s.append("]);" + UtilityMethods.newLine());
+        s.append("]);" + System.lineSeparator());
     }
 
     private static void write_initial_state_vector(Automaton automaton, StringBuilder s) {
-        s.append("# The row vector v denotes the indicator vector of the (singleton)" + UtilityMethods.newLine());
-        s.append("# set of initial states." + UtilityMethods.newLine());
+        s.append("# The row vector v denotes the indicator vector of the (singleton)" + System.lineSeparator());
+        s.append("# set of initial states." + System.lineSeparator());
         s.append("v := Vector[row]([");
         for (int q = 0; q != automaton.Q; ++q) {
             if (q == automaton.q0) {
@@ -115,12 +115,12 @@ public class AutomatonWriter {
                 s.append(",");
             }
         }
-        s.append("]);" + UtilityMethods.newLine());
+        s.append("]);" + System.lineSeparator());
     }
 
     private static void write_final_states_vector(Automaton automaton, StringBuilder s) {
-        s.append(UtilityMethods.newLine() + "# The column vector w denotes the indicator vector of the" + UtilityMethods.newLine());
-        s.append("# set of final states." + UtilityMethods.newLine());
+        s.append(System.lineSeparator() + "# The column vector w denotes the indicator vector of the" + System.lineSeparator());
+        s.append("# set of final states." + System.lineSeparator());
         s.append("w := Vector[column]([");
         for (int q = 0; q != automaton.Q; ++q) {
             if (automaton.O.getInt(q) != 0) {
@@ -132,7 +132,7 @@ public class AutomatonWriter {
                 s.append(",");
             }
         }
-        s.append("]);" + UtilityMethods.newLine());
+        s.append("]);" + System.lineSeparator());
     }
 
     /**
@@ -180,13 +180,13 @@ public class AutomatonWriter {
                     out.write(" " + automaton.NS.get(i).toString());
             }
         }
-        out.write(UtilityMethods.newLine());
+        out.write(System.lineSeparator());
     }
 
     private static void writeState(Automaton automaton, PrintWriter out, int q) {
         out.write(
-                UtilityMethods.newLine() + q + " " +
-                        automaton.O.getInt(q) + UtilityMethods.newLine());
+                System.lineSeparator() + q + " " +
+                        automaton.O.getInt(q) + System.lineSeparator());
         for (int n : automaton.d.get(q).keySet()) {
             List<Integer> l = Automaton.decode(automaton, n);
             for (int j = 0; j < l.size(); j++)
@@ -194,7 +194,7 @@ public class AutomatonWriter {
             out.write("->");
             for (int dest : automaton.d.get(q).get(n))
                 out.write(" " + dest);
-            out.write(UtilityMethods.newLine());
+            out.write(System.lineSeparator());
         }
     }
 

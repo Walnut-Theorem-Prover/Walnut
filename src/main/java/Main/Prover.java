@@ -332,7 +332,7 @@ public class Prover {
                         }
                     } catch (Exception e) {
                         System.out.flush();
-                        System.err.println(e.getMessage() + UtilityMethods.newLine() + "\t: " + s);
+                        System.err.println(e.getMessage() + System.lineSeparator() + "\t: " + s);
                         System.err.flush();
                     }
 
@@ -619,7 +619,7 @@ public class Prover {
                 ns = Predicate.number_system_Hash.get(base);
                 numSys.add(Predicate.number_system_Hash.get(base));
             } catch (Exception e) {
-                throw new Exception("number system " + base + " does not exist: char at " + m.start(R_NUMBER_SYSTEM) + UtilityMethods.newLine() + "\t:" + e.getMessage());
+                throw new Exception("number system " + base + " does not exist: char at " + m.start(R_NUMBER_SYSTEM) + System.lineSeparator() + "\t:" + e.getMessage());
             }
             alphabets.add(ns.getAlphabet());
         }
@@ -637,7 +637,7 @@ public class Prover {
                     ns = Predicate.number_system_Hash.get(base);
                     numSys.add(Predicate.number_system_Hash.get(base));
                 } catch (Exception e) {
-                    throw new Exception("number system " + base + " does not exist: char at " + m.start(R_NUMBER_SYSTEM) + UtilityMethods.newLine() + "\t:" + e.getMessage());
+                    throw new Exception("number system " + base + " does not exist: char at " + m.start(R_NUMBER_SYSTEM) + System.lineSeparator() + "\t:" + e.getMessage());
                 }
                 alphabets.add(ns.getAlphabet());
             } else if (m1.group(R_SET) != null) {
@@ -1328,7 +1328,7 @@ public class Prover {
                         ns = Predicate.number_system_Hash.get(base);
                         numSys.add(Predicate.number_system_Hash.get(base));
                     } catch (Exception e) {
-                        throw new Exception("number system " + base + " does not exist: char at " + m.start(R_NUMBER_SYSTEM) + UtilityMethods.newLine() + "\t:" + e.getMessage());
+                        throw new Exception("number system " + base + " does not exist: char at " + m.start(R_NUMBER_SYSTEM) + System.lineSeparator() + "\t:" + e.getMessage());
                     }
                     alphabets.add(ns.getAlphabet());
                 } else if (m1.group(R_SET) != null) {

@@ -394,7 +394,7 @@ public class Automaton {
                     } catch (Exception e) {
                         in.close();
                         throw new Exception(
-                                e.getMessage() + UtilityMethods.newLine() +
+                                e.getMessage() + System.lineSeparator() +
                                         "\t:line " + lineNumber + " of file " + address);
                     }
 
@@ -607,7 +607,7 @@ public class Automaton {
             long timeAfter = System.currentTimeMillis();
             if (print) {
                 String msg = prefix + "computed =>:" + first.Q + " states - " + (timeAfter - timeBefore) + "ms";
-                log.append(msg + UtilityMethods.newLine());
+                log.append(msg + System.lineSeparator());
                 System.out.println(msg);
             }
         }
@@ -698,7 +698,7 @@ public class Automaton {
 
             // do this whether or not you print!
             String msg = prefix + "WARN: The alphabet of the resulting automaton was changed. Use the alphabet command to change as desired.";
-            log.append(msg + UtilityMethods.newLine());
+            log.append(msg + System.lineSeparator());
             System.out.println(msg);
         }
 
@@ -708,7 +708,7 @@ public class Automaton {
         long timeBefore = System.currentTimeMillis();
         if (print) {
             String msg = prefix + "star: " + Q + " state automaton";
-            log.append(msg + UtilityMethods.newLine());
+            log.append(msg + System.lineSeparator());
             System.out.println(msg);
         }
 
@@ -751,7 +751,7 @@ public class Automaton {
         long timeAfter = System.currentTimeMillis();
         if (print) {
             String msg = prefix + "star complete: " + N.Q + " states - " + (timeAfter - timeBefore) + "ms";
-            log.append(msg + UtilityMethods.newLine());
+            log.append(msg + System.lineSeparator());
             System.out.println(msg);
         }
 
@@ -773,7 +773,7 @@ public class Automaton {
             long timeAfter = System.currentTimeMillis();
             if (print) {
                 String msg = prefix + "concatenated =>:" + first.Q + " states - " + (timeAfter - timeBefore) + "ms";
-                log.append(msg + UtilityMethods.newLine());
+                log.append(msg + System.lineSeparator());
                 System.out.println(msg);
             }
         }
@@ -785,7 +785,7 @@ public class Automaton {
         long timeBefore = System.currentTimeMillis();
         if (print) {
             String msg = prefix + "concat: " + Q + " state automaton with " + other.Q + " state automaton";
-            log.append(msg + UtilityMethods.newLine());
+            log.append(msg + System.lineSeparator());
             System.out.println(msg);
         }
 
@@ -855,7 +855,7 @@ public class Automaton {
         long timeAfter = System.currentTimeMillis();
         if (print) {
             String msg = prefix + "concat complete: " + N.Q + " states - " + (timeAfter - timeBefore) + "ms";
-            log.append(msg + UtilityMethods.newLine());
+            log.append(msg + System.lineSeparator());
             System.out.println(msg);
         }
 
@@ -886,7 +886,7 @@ public class Automaton {
             }
 
             String msg = prefix + "setting alphabet to " + nsNames.toString();
-            log.append(msg + UtilityMethods.newLine());
+            log.append(msg + System.lineSeparator());
             System.out.println(msg);
         }
 
@@ -936,7 +936,7 @@ public class Automaton {
         long timeAfter = System.currentTimeMillis();
         if (print) {
             String msg = prefix + "set alphabet complete:" + (timeAfter - timeBefore) + "ms";
-            log.append(msg + UtilityMethods.newLine());
+            log.append(msg + System.lineSeparator());
             System.out.println(msg);
         }
     }
@@ -1127,7 +1127,7 @@ public class Automaton {
             long timeBefore = System.currentTimeMillis();
             if (print) {
                 String msg = prefix + "computing =>:" + first.Q + " states - " + next.Q + " states";
-                log.append(msg + UtilityMethods.newLine());
+                log.append(msg + System.lineSeparator());
                 System.out.println(msg);
             }
 
@@ -1140,7 +1140,7 @@ public class Automaton {
             long timeAfter = System.currentTimeMillis();
             if (print) {
                 String msg = prefix + "computed =>:" + first.Q + " states - " + (timeAfter - timeBefore) + "ms";
-                log.append(msg + UtilityMethods.newLine());
+                log.append(msg + System.lineSeparator());
                 System.out.println(msg);
             }
         }
@@ -1364,7 +1364,7 @@ public class Automaton {
         long timeBefore = System.currentTimeMillis();
         if (print) {
             String msg = prefix + "Adding distinguished dead state: " + Q + " states";
-            log.append(msg + UtilityMethods.newLine());
+            log.append(msg + System.lineSeparator());
             System.out.println(msg);
         }
         //we first check if the automaton is totalized
@@ -1407,7 +1407,7 @@ public class Automaton {
             if (!totalized) {
                 msg = prefix + "Added distinguished dead state with output of " + (min - 1) + ": " + Q + " states - " + (timeAfter - timeBefore) + "ms";
             }
-            log.append(msg + UtilityMethods.newLine());
+            log.append(msg + System.lineSeparator());
             System.out.println(msg);
         }
         return !totalized;
@@ -1427,7 +1427,7 @@ public class Automaton {
         long timeBefore = System.currentTimeMillis();
         if (print) {
             String msg = prefix + "applying operator (" + operator + "):" + Q + " states";
-            log.append(msg + UtilityMethods.newLine());
+            log.append(msg + System.lineSeparator());
             System.out.println(msg);
         }
         for (int p = 0; p < Q; p++) {
@@ -1454,7 +1454,7 @@ public class Automaton {
         long timeAfter = System.currentTimeMillis();
         if (print) {
             String msg = prefix + "applied operator (" + operator + "):" + Q + " states - " + (timeAfter - timeBefore) + "ms";
-            log.append(msg + UtilityMethods.newLine());
+            log.append(msg + System.lineSeparator());
             System.out.println(msg);
         }
     }
@@ -1473,7 +1473,7 @@ public class Automaton {
         long timeBefore = System.currentTimeMillis();
         if (print) {
             String msg = prefix + "applying operator (" + operator + "):" + Q + " states";
-            log.append(msg + UtilityMethods.newLine());
+            log.append(msg + System.lineSeparator());
             System.out.println(msg);
         }
         for (int p = 0; p < Q; p++) {
@@ -1500,7 +1500,7 @@ public class Automaton {
         long timeAfter = System.currentTimeMillis();
         if (print) {
             String msg = prefix + "applied operator (" + operator + "):" + Q + " states - " + (timeAfter - timeBefore) + "ms";
-            log.append(msg + UtilityMethods.newLine());
+            log.append(msg + System.lineSeparator());
             System.out.println(msg);
         }
     }
@@ -1515,7 +1515,7 @@ public class Automaton {
         if (print) {
             String msg = prefix + "Minimizing: " + Q + " states.";
             System.out.println("----- " + msg);
-            log.append(msg + UtilityMethods.newLine());
+            log.append(msg + System.lineSeparator());
         }
 
         minimize_valmari(newMemD, print, prefix + " ", log);
@@ -1524,7 +1524,7 @@ public class Automaton {
         if (print) {
             String msg = prefix + "Minimized:" + Q + " states - " + (timeAfter - timeBefore) + "ms.";
             System.out.println("----- " + msg);
-            log.append(msg + UtilityMethods.newLine());
+            log.append(msg + System.lineSeparator());
         }
     }
 
@@ -1932,7 +1932,7 @@ public class Automaton {
         long timeBefore = System.currentTimeMillis();
         if (print) {
             String msg = prefix + "Determinizing: " + Q + " states";
-            log.append(msg + UtilityMethods.newLine());
+            log.append(msg + System.lineSeparator());
             System.out.println(msg);
         }
 
@@ -1954,7 +1954,7 @@ public class Automaton {
                     String msg = prefix + "  Progress: Added " + statesSoFar + " states - "
                             + (number_of_states - statesSoFar) + " states left in queue - "
                             + number_of_states + " reachable states - " + (timeAfter - timeBefore) + "ms";
-                    log.append(msg + UtilityMethods.newLine());
+                    log.append(msg + System.lineSeparator());
                     System.out.println(msg);
                 }
             }
@@ -1991,7 +1991,7 @@ public class Automaton {
         long timeAfter = System.currentTimeMillis();
         if (print) {
             String msg = prefix + "Determinized: " + Q + " states - " + (timeAfter - timeBefore) + "ms";
-            log.append(msg + UtilityMethods.newLine());
+            log.append(msg + System.lineSeparator());
             System.out.println(msg);
         }
         return new_d;

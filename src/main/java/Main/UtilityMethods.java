@@ -92,8 +92,6 @@ public class UtilityMethods {
     }
 
 
-    public static String newLineString = System.lineSeparator();
-
     public static char min(char a, char b) {
         if (a < b) return a;
         return b;
@@ -102,10 +100,6 @@ public class UtilityMethods {
     public static char max(char a, char b) {
         if (a < b) return b;
         return a;
-    }
-
-    public static String newLine() {
-        return newLineString;
     }
 
     /**
