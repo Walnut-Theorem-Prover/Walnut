@@ -1,6 +1,5 @@
 package Automata;
 
-import Main.GraphViz;
 import Main.UtilityMethods;
 import it.unimi.dsi.fastutil.ints.Int2ObjectRBTreeMap;
 import it.unimi.dsi.fastutil.ints.IntList;
@@ -209,36 +208,36 @@ public class AutomatonWriter {
      * @param address
      */
     public static void draw(Automaton automaton, String address, String predicate, boolean isDFAO) {
-        GraphViz gv = new GraphViz();
+        StringBuilder gv = new StringBuilder();
         if (automaton.TRUE_FALSE_AUTOMATON) {
-            gv.addln(gv.start_graph());
-            gv.addln("label = \"(): " + predicate + "\";");
-            gv.addln("rankdir = LR;");
+            addln(gv,"digraph G {");
+            addln(gv,"label = \"(): " + predicate + "\";");
+            addln(gv,"rankdir = LR;");
             if (automaton.TRUE_AUTOMATON)
-                gv.addln("node [shape = doublecircle, label=\"" + 0 + "\", fontsize=12]" + 0 + ";");
+                addln(gv,"node [shape = doublecircle, label=\"" + 0 + "\", fontsize=12]" + 0 + ";");
             else
-                gv.addln("node [shape = circle, label=\"" + 0 + "\", fontsize=12]" + 0 + ";");
-            gv.addln("node [shape = point ]; qi");
-            gv.addln("qi ->" + 0 + ";");
+                addln(gv,"node [shape = circle, label=\"" + 0 + "\", fontsize=12]" + 0 + ";");
+            addln(gv,"node [shape = point ]; qi");
+            addln(gv,"qi ->" + 0 + ";");
             if (automaton.TRUE_AUTOMATON)
-                gv.addln(0 + " -> " + 0 + "[ label = \"*\"];");
-            gv.addln(gv.end_graph());
+                addln(gv,0 + " -> " + 0 + "[ label = \"*\"];");
+            addln(gv,"}");
         } else {
             automaton.canonize();
-            gv.addln(gv.start_graph());
-            gv.addln("label = \"" + UtilityMethods.toTuple(automaton.label) + ": " + predicate + "\";");
-            gv.addln("rankdir = LR;");
+            addln(gv,"digraph G {");
+            addln(gv,"label = \"" + UtilityMethods.toTuple(automaton.label) + ": " + predicate + "\";");
+            addln(gv,"rankdir = LR;");
             for (int q = 0; q < automaton.Q; q++) {
                 if (isDFAO)
-                    gv.addln("node [shape = circle, label=\"" + q + "/" + automaton.O.getInt(q) + "\", fontsize=12]" + q + ";");
+                    addln(gv,"node [shape = circle, label=\"" + q + "/" + automaton.O.getInt(q) + "\", fontsize=12]" + q + ";");
                 else if (automaton.O.getInt(q) != 0)
-                    gv.addln("node [shape = doublecircle, label=\"" + q + "\", fontsize=12]" + q + ";");
+                    addln(gv,"node [shape = doublecircle, label=\"" + q + "\", fontsize=12]" + q + ";");
                 else
-                    gv.addln("node [shape = circle, label=\"" + q + "\", fontsize=12]" + q + ";");
+                    addln(gv,"node [shape = circle, label=\"" + q + "\", fontsize=12]" + q + ";");
             }
 
-            gv.addln("node [shape = point ]; qi");
-            gv.addln("qi -> " + automaton.q0 + ";");
+            addln(gv,"node [shape = point ]; qi");
+            addln(gv,"qi -> " + automaton.q0 + ";");
 
             TreeMap<Integer, TreeMap<Integer, List<String>>> transitions =
                     new TreeMap<>();
@@ -256,18 +255,22 @@ public class AutomatonWriter {
             for (int q = 0; q < automaton.Q; q++) {
                 for (int dest : transitions.get(q).keySet()) {
                     String transition_label = String.join(", ", transitions.get(q).get(dest));
-                    gv.addln(q + " -> " + dest + "[ label = \"" + transition_label + "\"];");
+                    addln(gv,q + " -> " + dest + "[ label = \"" + transition_label + "\"];");
                 }
             }
 
-            gv.addln(gv.end_graph());
+            addln(gv,"}");
         }
         try {
             PrintWriter out = new PrintWriter(address, "UTF-8");
-            out.write(gv.getDotSource());
+            out.write(gv.toString());
             out.close();
         } catch (FileNotFoundException | UnsupportedEncodingException e2) {
             e2.printStackTrace();
         }
+    }
+    
+    private static void addln(StringBuilder gv, String line) {
+        gv.append(line).append(System.lineSeparator());
     }
 }
