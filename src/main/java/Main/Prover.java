@@ -562,7 +562,7 @@ public class Prover {
         c.write(UtilityMethods.get_address_for_result() + m.group(ED_NAME) + ".txt");
         c.drawAutomaton(UtilityMethods.get_address_for_result() + m.group(ED_NAME) + ".gv");
 
-        if (free_variables.size() > 0) {
+        if (!free_variables.isEmpty()) {
             c.writeMatrices(
                     UtilityMethods.get_address_for_result() + m.group(ED_NAME) + ".mpl", free_variables);
         }
@@ -758,7 +758,7 @@ public class Prover {
             automataNames.add(t);
         }
 
-        if (automataNames.size() == 0) {
+        if (automataNames.isEmpty()) {
             throw new Exception("Combine requires at least one automaton as input.");
         }
         Automaton first = new Automaton(UtilityMethods.get_address_for_automata_library() + automataNames.get(0) + ".txt");
@@ -818,7 +818,7 @@ public class Prover {
         // We need to know the number system of our old automaton: the new one should match, as should intermediary expressions
         Automaton M = new Automaton(UtilityMethods.get_address_for_words_library() + m.group(GROUP_IMAGE_OLD_NAME) + ".txt");
         String numSysName = "";
-        if (M.NS.size() > 0) {
+        if (!M.NS.isEmpty()) {
             numSysName = M.NS.get(0).toString();
         }
 
@@ -889,7 +889,7 @@ public class Prover {
             hasInput = hasInput || t.equals("+") || t.equals("-");
             inputs.add(t);
         }
-        if (!hasInput || inputs.size() == 0) {
+        if (!hasInput || inputs.isEmpty()) {
             throw new Exception("Cannot split without inputs.");
         }
         IntList outputs = new IntArrayList(M.O);
@@ -946,7 +946,7 @@ public class Prover {
             hasInput = hasInput || t.equals("+") || t.equals("-");
             inputs.add(t);
         }
-        if (!hasInput || inputs.size() == 0) {
+        if (!hasInput || inputs.isEmpty()) {
             throw new Exception("Cannot split without inputs.");
         }
         IntList outputs = new IntArrayList(M.O);
@@ -1389,7 +1389,7 @@ public class Prover {
                 automataNames.add(m1.group(1));
             }
 
-            if (automataNames.size() == 0) {
+            if (automataNames.isEmpty()) {
                 throw new Exception("Union requires at least one automaton as input.");
             }
             Automaton C = new Automaton(UtilityMethods.get_address_for_automata_library() + automataNames.get(0) + ".txt");
@@ -1432,7 +1432,7 @@ public class Prover {
                 automataNames.add(m1.group(1));
             }
 
-            if (automataNames.size() == 0) {
+            if (automataNames.isEmpty()) {
                 throw new Exception("Intersect requires at least one automaton as input.");
             }
             Automaton C = new Automaton(UtilityMethods.get_address_for_automata_library() + automataNames.get(0) + ".txt");

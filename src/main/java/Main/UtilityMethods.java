@@ -23,7 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * This class contains a number of useful public static method.
+ * This class contains a number of useful static methods.
  *
  * @author Hamoon
  */
@@ -37,7 +37,6 @@ public class UtilityMethods {
     static String ADDRESS_FOR_TRANSDUCER_LIBRARY = "Transducer Library/";
     static String ADDRESS_FOR_RESULT = "Result/";
     static String ADDRESS_FOR_CUSTOM_BASES = "Custom Bases/";
-    static String ADDRESS_FOR_TEST_LIBRARY = "Test Library/";
     static String ADDRESS_FOR_HELP_COMMANDS = "Help Documentation/Commands/";
     static String ADDRESS_FOR_INTEGRATION_TEST_RESULTS = "Test Results/Integration Tests/";
     static String ADDRESS_FOR_UNIT_TEST_INTEGRATION_TEST_RESULTS = "src/test/resources/integrationTests/";
@@ -226,7 +225,7 @@ public class UtilityMethods {
      * @param R
      */
     public static <T> void addAllWithoutRepetition(List<T> L, List<T> R) {
-        if (R == null || R.size() == 0) return;
+        if (R == null || R.isEmpty()) return;
         for (T x : R) {
             boolean flag = true;
             for (T y : L) {
@@ -249,7 +248,7 @@ public class UtilityMethods {
     public static <T> void removeIndices(List<T> L, List<Integer> indices) {
         List<T> R = new ArrayList<>();
         for (int i = 0; i < L.size(); i++) {
-            if (indices.indexOf(i) == -1)
+            if (!indices.contains(i))
                 R.add(L.get(i));
         }
         L.clear();

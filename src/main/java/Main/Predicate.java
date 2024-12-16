@@ -345,7 +345,7 @@ public class Predicate {
         }
         for (Predicate p : indices) {
             List<Token> tmp = p.get_postOrder();
-            if (tmp.size() == 0)
+            if (tmp.isEmpty())
                 throw new Exception("index " + (indices.indexOf(p) + 1) + " of the word " + matcher.group(1) + " cannot be empty: char at " + matcher.start(1));
             postOrder.addAll(tmp);
         }
@@ -392,12 +392,12 @@ public class Predicate {
             }
             i++;
         }
-        if (arguments.size() == 1 && arguments.get(0).get_postOrder().size() == 0) {
+        if (arguments.size() == 1 && arguments.get(0).get_postOrder().isEmpty()) {
             arguments.remove(0);
         }
         for (Predicate p : arguments) {
             List<Token> tmp = p.get_postOrder();
-            if (tmp.size() == 0 && arguments.size() > 1)
+            if (tmp.isEmpty() && arguments.size() > 1)
                 throw new Exception("argument " + (arguments.indexOf(p) + 1) + " of the function " + matcher.group(1) + " cannot be empty: char at " + matcher.start(1));
             postOrder.addAll(tmp);
         }

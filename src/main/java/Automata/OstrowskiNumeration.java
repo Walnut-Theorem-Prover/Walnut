@@ -112,7 +112,7 @@ public class OstrowskiNumeration {
         while (it.hasNext() && it.next() == 0) ++first_non_zero;
         this.preperiod.subList(0, first_non_zero).clear();
 
-        if (this.preperiod.size() == 0) {
+        if (this.preperiod.isEmpty()) {
             // Easier implementation.
             this.preperiod.addAll(this.period);
         }
@@ -291,12 +291,10 @@ public class OstrowskiNumeration {
     }
 
     private void assertValues(List<Integer> list) throws Exception {
-        if (list == null || list.size() == 0) {
+        if (list == null || list.isEmpty()) {
             throw new Exception("The period cannot be empty.");
         }
-        Iterator<Integer> it = list.iterator();
-        while (it.hasNext()) {
-            int d = it.next();
+        for (int d : list) {
             if (d <= 0) {
                 throw new Exception(
                         "Error: All digits of the continued fraction must be positive integers.");
@@ -390,7 +388,7 @@ public class OstrowskiNumeration {
         }
 
         int r, s, a;
-        while (queue.size() > 0) {
+        while (!queue.isEmpty()) {
             int cur_node_idx = queue.remove();
             NodeState cur_node = node_of_index.get(cur_node_idx);
             int state = cur_node.getState();
@@ -502,7 +500,7 @@ public class OstrowskiNumeration {
             ++this.total_nodes;
         }
 
-        while (queue.size() > 0) {
+        while (!queue.isEmpty()) {
             int cur_node_idx = queue.remove();
 
             NodeState cur_node = node_of_index.get(cur_node_idx);

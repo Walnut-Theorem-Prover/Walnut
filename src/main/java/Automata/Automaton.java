@@ -262,7 +262,7 @@ public class Automaton {
      */
     public Automaton(String regularExpression, List<Integer> alphabet) throws Exception {
         this();
-        if (alphabet == null || alphabet.size() == 0) throw new Exception("empty alphabet is not accepted");
+        if (alphabet == null || alphabet.isEmpty()) throw new Exception("empty alphabet is not accepted");
         long timeBefore = System.currentTimeMillis();
         alphabet = new ArrayList<>(alphabet);
         NS.add(null);
@@ -520,7 +520,7 @@ public class Automaton {
         for (int i = 0; i < A.size(); i++) {
             M.A.add(new ArrayList<>(A.get(i)));
             M.NS.add(NS.get(i));
-            if (encoder != null && encoder.size() > 0) {
+            if (encoder != null && !encoder.isEmpty()) {
                 if (M.encoder == null) M.encoder = new ArrayList<>();
                 M.encoder.add(encoder.get(i));
             }
@@ -1000,7 +1000,7 @@ public class Automaton {
         Automaton M = clone();
         Set<String> quantifiers = new HashSet<>();
         // We label M [b0,b1,...,b(A.size()-1)]
-        if (M.label == null || M.label.size() > 0) M.label = new ArrayList<>();
+        if (M.label == null || !M.label.isEmpty()) M.label = new ArrayList<>();
         for (int i = 0; i < A.size(); i++) {
             M.label.add("b" + i);
         }
@@ -1067,7 +1067,7 @@ public class Automaton {
         Set<String> quantifiers = new HashSet<>();
         // We label M [b0,b1,...,b(A.size()-1)]
         if (M.label == null) M.label = new ArrayList<>();
-        else if (M.label.size() > 0) M.label = new ArrayList<>();
+        else if (!M.label.isEmpty()) M.label = new ArrayList<>();
         for (int i = 0; i < A.size(); i++) {
             M.label.add("b" + i);
         }
@@ -1122,7 +1122,7 @@ public class Automaton {
     public Automaton join(Queue<Automaton> subautomata, boolean print, String prefix, StringBuilder log) throws Exception {
         Automaton first = this.clone();
 
-        while (subautomata.size() > 0) {
+        while (!subautomata.isEmpty()) {
             Automaton next = subautomata.remove();
             long timeBefore = System.currentTimeMillis();
             if (print) {
@@ -1326,7 +1326,7 @@ public class Automaton {
 
     public void randomLabel() {
         if (label == null) label = new ArrayList<>();
-        else if (label.size() > 0) label = new ArrayList<>();
+        else if (!label.isEmpty()) label = new ArrayList<>();
         for (int i = 0; i < A.size(); i++) {
             label.add(Integer.toString(i));
         }
@@ -1383,7 +1383,7 @@ public class Automaton {
 
         if (!totalized) {
             // obtain the minimum output
-            if (O.size() == 0) {
+            if (O.isEmpty()) {
                 throw ExceptionHelper.alphabetIsEmpty();
             }
             for (int i = 0; i < O.size(); i++) {
@@ -1669,7 +1669,7 @@ public class Automaton {
                     }
                 }
 
-                if (newDestination.size() > 0) {
+                if (!newDestination.isEmpty()) {
                     d.get(q).put(x, newDestination);
                 } else {
                     d.get(q).remove(x);
@@ -1850,14 +1850,14 @@ public class Automaton {
 
     public void bind(String a) {
         if (TRUE_FALSE_AUTOMATON || A.size() != 1) throw ExceptionHelper.invalidBind();
-        if (label == null || label.size() != 0) label = new ArrayList<>();
+        if (label == null || !label.isEmpty()) label = new ArrayList<>();
         label.add(a);
         labelSorted = false;
     }
 
     public void bind(String a, String b) throws Exception {
         if (TRUE_FALSE_AUTOMATON || A.size() != 2) throw ExceptionHelper.invalidBind();
-        if (label == null || label.size() != 0) label = new ArrayList<>();
+        if (label == null || !label.isEmpty()) label = new ArrayList<>();
         label.add(a);
         label.add(b);
         canonized = false;
@@ -1867,7 +1867,7 @@ public class Automaton {
 
     public void bind(String a, String b, String c) throws Exception {
         if (TRUE_FALSE_AUTOMATON || A.size() != 3) throw ExceptionHelper.invalidBind();
-        if (label == null || label.size() != 0) label = new ArrayList<>();
+        if (label == null || !label.isEmpty()) label = new ArrayList<>();
         label.add(a);
         label.add(b);
         label.add(c);
@@ -1878,7 +1878,7 @@ public class Automaton {
 
     public void bind(List<String> names) throws Exception {
         if (TRUE_FALSE_AUTOMATON || A.size() != names.size()) throw ExceptionHelper.invalidBind();
-        if (label == null || label.size() != 0) label = new ArrayList<>();
+        if (label == null || !label.isEmpty()) label = new ArrayList<>();
         this.label.addAll(names);
         labelSorted = false;
         canonized = false;

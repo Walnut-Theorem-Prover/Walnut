@@ -35,6 +35,7 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.Iterator;
 
+import Main.ExceptionHelper;
 import Main.UtilityMethods;
 import it.unimi.dsi.fastutil.ints.Int2ObjectRBTreeMap;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
@@ -251,7 +252,7 @@ public class Transducer extends Automaton {
         for(int i = 0 ; i < A.size();i++){
             T.A.add(new ArrayList<>(A.get(i)));
             T.NS.add(NS.get(i));
-            if(encoder != null && encoder.size()>0){
+            if(encoder != null && !encoder.isEmpty()){
                 if(T.encoder == null) T.encoder = new ArrayList<>();
                 T.encoder.add(encoder.get(i));
             }
@@ -304,7 +305,7 @@ public class Transducer extends Automaton {
                 N.NS.add(M.NS.get(i));
 
                 // Copy the encoder
-                if (M.encoder != null && M.encoder.size() > 0) {
+                if (M.encoder != null && !M.encoder.isEmpty()) {
                     if (N.encoder == null) {
                         N.encoder = new ArrayList<>();
                     }
@@ -492,7 +493,7 @@ public class Transducer extends Automaton {
 
             Queue<StateTuple> statesQueue = new LinkedList<>();
 
-            StateTuple initState = new StateTuple(M.q0, Arrays.asList(), createIterates(M, Arrays.asList(), p+q));
+            StateTuple initState = new StateTuple(M.q0, List.of(), createIterates(M, List.of(), p+q));
 
             states.add(initState);
 
@@ -500,12 +501,12 @@ public class Transducer extends Automaton {
 
             statesQueue.add(initState);
 
-            while (statesQueue.size() > 0) {
+            while (!statesQueue.isEmpty()) {
                 StateTuple currState = statesQueue.remove();
 
                 // set up the output of this state.
 
-                N.O.add((int)sigma.get(currState.iterates.get(0).get(q0)).get( encode(Arrays.asList(M.O.getInt(currState.state))) ));
+                N.O.add((int)sigma.get(currState.iterates.get(0).get(q0)).get( encode(List.of(M.O.getInt(currState.state))) ));
 
                 N.d.add(new Int2ObjectRBTreeMap<>());
 
@@ -605,7 +606,7 @@ public class Transducer extends Automaton {
 
         // Check that the output alphabet of the automaton is compatible with the input alphabet of the transducer.
         for (int i = 0; i < M.O.size(); i++) {
-            int encoded = encode(Arrays.asList(M.O.getInt(i)));
+            int encoded = encode(List.of(M.O.getInt(i)));
             if (!d.get(0).containsKey(encoded)) {
                 throw new Exception("Output alphabet of automaton must be compatible with the transducer input alphabet");
             }
@@ -648,8 +649,8 @@ public class Transducer extends Automaton {
 
             // after transducing, all states with this minimum output will be removed.
             int minOutput = 0;
-            if (Mnew.O.size() == 0) {
-                throw new Exception("Output alphabet is empty");
+            if (Mnew.O.isEmpty()) {
+                throw ExceptionHelper.alphabetIsEmpty();
             }
             for (int i = 0; i < Mnew.O.size(); i++) {
                 if (Mnew.O.getInt(i) < minOutput) {

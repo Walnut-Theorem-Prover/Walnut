@@ -1,5 +1,9 @@
 package Main;
 
+/**
+ * Exceptions are centralized for easier maintenance.
+ * @author jn1z
+ */
 public class ExceptionHelper {
     public static RuntimeException alphabetIsEmpty() {
         return new RuntimeException("Output alphabet is empty");

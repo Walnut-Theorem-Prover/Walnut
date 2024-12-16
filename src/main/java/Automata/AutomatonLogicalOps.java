@@ -795,7 +795,7 @@ public class AutomatonLogicalOps {
                 throw new Exception("Variable " + s + " in the list of quantified variables is not a free variable.");
             }
         }
-        if (listOfLabels.size() == 0) {
+        if (listOfLabels.isEmpty()) {
             return automaton.clone();
         }
         long timeBefore = System.currentTimeMillis();
@@ -1311,7 +1311,7 @@ public class AutomatonLogicalOps {
 
             newStatesQueue.add(newInitState);
 
-            while (newStatesQueue.size() > 0) {
+            while (!newStatesQueue.isEmpty()) {
                 Map<Integer, Integer> currState = newStatesQueue.remove();
 
                 // set up the output of this state to be g(q0), where g = currState.
@@ -1585,7 +1585,7 @@ public class AutomatonLogicalOps {
             for (int i = 0; i < (int) (Math.pow(base, exponent)); i++) {
                 ints.add(i);
             }
-            automaton.A = Arrays.asList(ints);
+            automaton.A = List.of(ints);
             automaton.alphabetSize = ints.size();
 
             if (print) {
@@ -1670,19 +1670,19 @@ public class AutomatonLogicalOps {
 
             IntList newO = new IntArrayList();
 
-            StateTuple initState = new StateTuple(automaton.q0, Arrays.asList());
+            StateTuple initState = new StateTuple(automaton.q0, List.of());
 
             newStates.add(initState);
             newStatesQueue.add(initState);
             newStatesHash.put(initState, newStates.size() - 1);
 
 
-            while (newStatesQueue.size() > 0) {
+            while (!newStatesQueue.isEmpty()) {
                 StateTuple currState = newStatesQueue.remove();
 
                 newD.add(new Int2ObjectRBTreeMap<>());
 
-                if (currState.string.size() == 0) {
+                if (currState.string.isEmpty()) {
                     newO.add(automaton.O.getInt(currState.state));
                 } else {
                     int stringValue = 0;
@@ -1776,7 +1776,7 @@ public class AutomatonLogicalOps {
         }
         first.combineIndex = 1;
         first.combineOutputs = outputs;
-        while (subautomata.size() > 0) {
+        while (!subautomata.isEmpty()) {
             Automaton next = subautomata.remove();
             long timeBefore = System.currentTimeMillis();
             if (print) {
@@ -1893,7 +1893,7 @@ public class AutomatonLogicalOps {
 
     static <T> List<List<T>> cartesianProduct(List<List<T>> lists) {
         List<List<T>> resultLists = new ArrayList<>();
-        if (lists.size() == 0) {
+        if (lists.isEmpty()) {
             resultLists.add(new ArrayList<>());
             return resultLists;
         } else {
