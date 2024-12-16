@@ -1,6 +1,7 @@
 
 package Automata;
 
+import Main.ExceptionHelper;
 import Main.UtilityMethods;
 
 import java.io.BufferedReader;
@@ -563,9 +564,9 @@ public class Automaton {
     public Automaton unionOrIntersect(List<String> automataNames, String op, boolean print, String prefix, StringBuilder log) throws Exception {
         Automaton first = this.clone();
 
-        for (int i = 0; i < automataNames.size(); i++) {
+        for (String automataName : automataNames) {
             long timeBefore = System.currentTimeMillis();
-            Automaton N = new Automaton(UtilityMethods.get_address_for_automata_library() + automataNames.get(i) + ".txt");
+            Automaton N = new Automaton(UtilityMethods.get_address_for_automata_library() + automataName + ".txt");
 
             // ensure that N has the same number system as first.
             boolean differingNS = false;
@@ -635,9 +636,8 @@ public class Automaton {
      * @return A list of automata, each corresponding to the list of outputs.
      * For the sake of an example, suppose that outputs is [0,1,2], then we return the list of automaton without output
      * which accepts if the output in our automaton is 0,1 or 2 respectively.
-     * @throws Exception
      */
-    public List<Automaton> uncombine(List<Integer> outputs, boolean print, String prefix, StringBuilder log) throws Exception {
+    public List<Automaton> uncombine(List<Integer> outputs) {
         List<Automaton> automata = new ArrayList<>();
         for (Integer output : outputs) {
             Automaton M = clone();
@@ -663,7 +663,7 @@ public class Automaton {
     public Automaton minimizeWithOutput(boolean print, String prefix, StringBuilder log) throws Exception {
         IntList outputs = new IntArrayList(O);
         UtilityMethods.removeDuplicates(outputs);
-        List<Automaton> subautomata = uncombine(outputs, print, prefix, log);
+        List<Automaton> subautomata = uncombine(outputs);
         for (Automaton subautomaton : subautomata) {
             subautomaton.minimize(null, print, prefix, log);
         }
@@ -1316,7 +1316,6 @@ public class Automaton {
                     N.bind(label.get(i));
 
                     K = AutomatonLogicalOps.crossProduct(this, N, "if_other", print, prefix, log);
-//                    K.minimizeSelfWithOutput(print, prefix, log);
                 }
             }
         }
@@ -1385,7 +1384,7 @@ public class Automaton {
         if (!totalized) {
             // obtain the minimum output
             if (O.size() == 0) {
-                throw new Exception("Output alphabet is empty");
+                throw ExceptionHelper.alphabetIsEmpty();
             }
             for (int i = 0; i < O.size(); i++) {
                 if (O.getInt(i) < min) {
@@ -1443,7 +1442,7 @@ public class Automaton {
                     O.set(p, O.getInt(p) * o);
                     break;
                 case "/":
-                    if (o == 0) throw new Exception("division by zero");
+                    if (o == 0) throw ExceptionHelper.divisionByZero();
                     O.set(p, O.getInt(p) / o);
                     break;
                 case "_":
@@ -1489,7 +1488,7 @@ public class Automaton {
                     O.set(p, o * O.getInt(p));
                     break;
                 case "/":
-                    if (O.getInt(p) == 0) throw new Exception("division by zero");
+                    if (O.getInt(p) == 0) throw ExceptionHelper.divisionByZero();
                     O.set(p, o / O.getInt(p));
                     break;
                 case "_":
@@ -1543,8 +1542,7 @@ public class Automaton {
          * size of char which 2^16 - 1
          */
         if (alphabetSize > ((1 << Character.SIZE) - 1)) {
-            //System.out.println("Character size: " + );
-            throw new Exception("size of input alphabet exceeds the limit of " + ((1 << Character.SIZE) - 1));
+            throw ExceptionHelper.alphabetExceedsSize(((1 << Character.SIZE) - 1));
         }
         boolean deterministic = true;
         List<dk.brics.automaton.State> setOfStates = new ArrayList<>();
@@ -1578,7 +1576,7 @@ public class Automaton {
      */
     private void setThisAutomatonToRepresent(dk.brics.automaton.Automaton M) throws Exception {
         if (!M.isDeterministic())
-            throw new Exception("cannot set an automaton of type Automaton to a non-deterministic automaton of type dk.bricks.automaton.Automaton");
+            throw ExceptionHelper.bricsNFA();
         List<State> setOfStates = new ArrayList<>(M.getStates());
         Q = setOfStates.size();
         q0 = setOfStates.indexOf(M.getInitialState());
@@ -1595,7 +1593,7 @@ public class Automaton {
                 for (char a = t.getMin(); a <= t.getMax(); a++) {
                     IntList dest = new IntArrayList();
                     dest.add(setOfStates.indexOf(t.getDest()));
-                    currentStatesTransitions.put((int) a, dest);
+                    currentStatesTransitions.put(a, dest);
                 }
             }
         }
@@ -1850,15 +1848,15 @@ public class Automaton {
         return R;
     }
 
-    public void bind(String a) throws Exception {
-        if (TRUE_FALSE_AUTOMATON || A.size() != 1) throw new Exception("invalid use of method bind");
+    public void bind(String a) {
+        if (TRUE_FALSE_AUTOMATON || A.size() != 1) throw ExceptionHelper.invalidBind();
         if (label == null || label.size() != 0) label = new ArrayList<>();
         label.add(a);
         labelSorted = false;
     }
 
     public void bind(String a, String b) throws Exception {
-        if (TRUE_FALSE_AUTOMATON || A.size() != 2) throw new Exception("invalid use of method bind");
+        if (TRUE_FALSE_AUTOMATON || A.size() != 2) throw ExceptionHelper.invalidBind();
         if (label == null || label.size() != 0) label = new ArrayList<>();
         label.add(a);
         label.add(b);
@@ -1868,7 +1866,7 @@ public class Automaton {
     }
 
     public void bind(String a, String b, String c) throws Exception {
-        if (TRUE_FALSE_AUTOMATON || A.size() != 3) throw new Exception("invalid use of method bind");
+        if (TRUE_FALSE_AUTOMATON || A.size() != 3) throw ExceptionHelper.invalidBind();
         if (label == null || label.size() != 0) label = new ArrayList<>();
         label.add(a);
         label.add(b);
@@ -1879,7 +1877,7 @@ public class Automaton {
     }
 
     public void bind(List<String> names) throws Exception {
-        if (TRUE_FALSE_AUTOMATON || A.size() != names.size()) throw new Exception("invalid use of method bind");
+        if (TRUE_FALSE_AUTOMATON || A.size() != names.size()) throw ExceptionHelper.invalidBind();
         if (label == null || label.size() != 0) label = new ArrayList<>();
         this.label.addAll(names);
         labelSorted = false;

@@ -894,7 +894,7 @@ public class Prover {
         }
         IntList outputs = new IntArrayList(M.O);
         UtilityMethods.removeDuplicates(outputs);
-        List<Automaton> subautomata = M.uncombine(outputs, printSteps, prefix, log);
+        List<Automaton> subautomata = M.uncombine(outputs);
         for (int i = 0; i < subautomata.size(); i++) {
             Automaton N = subautomata.get(i).split(inputs, printSteps, prefix, log);
             subautomata.set(i, N);
@@ -951,7 +951,7 @@ public class Prover {
         }
         IntList outputs = new IntArrayList(M.O);
         UtilityMethods.removeDuplicates(outputs);
-        List<Automaton> subautomata = M.uncombine(outputs, printSteps, prefix, log);
+        List<Automaton> subautomata = M.uncombine(outputs);
         for (int i = 0; i < subautomata.size(); i++) {
             Automaton N = subautomata.get(i).reverseSplit(inputs, printSteps, prefix, log);
             subautomata.set(i, N);

@@ -135,7 +135,7 @@ public class Predicate {
             String default_number_system,
             String predicate,
             int real_starting_position) throws Exception {
-        operator_Stack = new Stack<Operator>();
+        operator_Stack = new Stack<>();
         postOrder = new ArrayList<>();
         this.real_starting_position = real_starting_position;
         this.predicate = predicate;
@@ -165,7 +165,7 @@ public class Predicate {
                                         (real_starting_position + index));
                     }
 
-                    index = handle_quantifier(current_number_system);
+                    index = handle_quantifier();
                 } else {
                     op = new LogicalOperator(
                             real_starting_position + matcher.start(1), matcher.group(1));
@@ -209,15 +209,13 @@ public class Predicate {
                         "An operator is missing: char at " + (real_starting_position + index));
                 index = put_macro();
             } else if (MATCHER_FOR_VARIABLE.find(index)) {
-                if (!lastTokenWasOperator) throw new Exception(
-                        "An operator is missing: char at " + (real_starting_position + index));
+                if (!lastTokenWasOperator) throw ExceptionHelper.operatorMissing(real_starting_position + index);
                 lastTokenWasOperator = false;
                 t = new Variable(real_starting_position + MATCHER_FOR_VARIABLE.start(1), MATCHER_FOR_VARIABLE.group(1));
                 t.put(postOrder);
                 index = MATCHER_FOR_VARIABLE.end();
             } else if (MATCHER_FOR_NUMBER_LITERAL.find(index)) {
-                if (!lastTokenWasOperator) throw new Exception(
-                        "An operator is missing: char at " + (real_starting_position + index));
+                if (!lastTokenWasOperator) throw ExceptionHelper.operatorMissing(real_starting_position + index);
                 lastTokenWasOperator = false;
                 if (!number_system_Hash.containsKey(current_number_system))
                     number_system_Hash.put(current_number_system, new NumberSystem(current_number_system));
@@ -225,7 +223,7 @@ public class Predicate {
                 t.put(postOrder);
                 index = MATCHER_FOR_NUMBER_LITERAL.end();
             } else if (MATCHER_FOR_ALPHABET_LETTER.find(index)) {
-                if (!lastTokenWasOperator) throw new Exception("an operator is missing: char at " + index);
+                if (!lastTokenWasOperator) throw ExceptionHelper.operatorMissing(index);
                 lastTokenWasOperator = false;
                 t = new AlphabetLetter(real_starting_position + MATCHER_FOR_ALPHABET_LETTER.start(1), UtilityMethods.parseInt(MATCHER_FOR_ALPHABET_LETTER.group(1)));
                 t.put(postOrder);
@@ -255,8 +253,7 @@ public class Predicate {
         while (!operator_Stack.isEmpty()) {
             op = operator_Stack.pop();
             if (op.isLeftParenthesis()) {
-                throw new Exception(
-                        "Unbalanced parenthesis: char at " + op.getPositionInPredicate());
+                throw ExceptionHelper.unbalancedParen(op.getPositionInPredicate());
             } else {
                 postOrder.add(op);
             }
@@ -284,7 +281,7 @@ public class Predicate {
         return current_number_system;
     }
 
-    private int handle_quantifier(String numberSystem) throws Exception {
+    private int handle_quantifier() throws Exception {
         String[] list_of_vars = MATCHER_FOR_LIST_OF_QUANTIFIED_VARIABLES.group(1).split("(\\s|,)+");
         Operator op = new LogicalOperator(MATCHER_FOR_LOGICAL_OPERATORS.start(), MATCHER_FOR_LOGICAL_OPERATORS.group(1), list_of_vars.length);
         op.put(postOrder, operator_Stack);
@@ -296,7 +293,6 @@ public class Predicate {
     }
 
     private String derive_number_system() {
-        //"\\G\\s*\\?(((msd|lsd)_(\\d+|\\w+))|((msd|lsd)(\\d+\\w+))|(msd|lsd)|(\\d+|\\w+))";
         if (MATCHER_FOR_NUMBER_SYSTEM.group(2) != null) return MATCHER_FOR_NUMBER_SYSTEM.group(2);
         if (MATCHER_FOR_NUMBER_SYSTEM.group(5) != null) return "msd_" + MATCHER_FOR_NUMBER_SYSTEM.group(5);
         if (MATCHER_FOR_NUMBER_SYSTEM.group(8) != null) return MATCHER_FOR_NUMBER_SYSTEM.group(8) + "_2";
@@ -362,7 +358,7 @@ public class Predicate {
         Matcher matcher = MATCHER_FOR_FUNCTION;
         Automaton A = new Automaton(UtilityMethods.get_address_for_automata_library() + matcher.group(1) + ".txt");
 
-        Stack<Character> parenthesis_Stack = new Stack<Character>();
+        Stack<Character> parenthesis_Stack = new Stack<>();
         parenthesis_Stack.push('(');
         int i = matcher.end();
         List<Predicate> arguments = new ArrayList<>();
@@ -375,7 +371,7 @@ public class Predicate {
             }
             if (ch == ')') {
                 if (parenthesis_Stack.isEmpty())
-                    throw new Exception("unbalanced parenthesis: char at " + (real_starting_position + i));
+                    throw ExceptionHelper.unbalancedParen(real_starting_position + i);
                 parenthesis_Stack.pop();
                 if (parenthesis_Stack.isEmpty()) {
                     arguments.add(new Predicate(default_number_system, buf.toString(), real_starting_position + startingPosition));
@@ -384,14 +380,13 @@ public class Predicate {
                 buf.append(')');
             } else if (ch == ',') {
                 if (parenthesis_Stack.size() != 1)
-                    throw new Exception("unbalanced parenthesis: char at " + (real_starting_position + i));
+                    throw ExceptionHelper.unbalancedParen(real_starting_position + i);
                 arguments.add(new Predicate(default_number_system, buf.toString(), real_starting_position + startingPosition));
                 buf = new StringBuilder();
                 startingPosition = i + 1;
             } else {
                 buf.append(ch);
                 if (ch == '(') {
-
                     parenthesis_Stack.push('(');
                 }
             }
@@ -429,7 +424,7 @@ public class Predicate {
             e.printStackTrace();
             throw new Exception("macro does not exist: " + matcher.group(2));
         }
-        Stack<Character> parenthesis_Stack = new Stack<Character>();
+        Stack<Character> parenthesis_Stack = new Stack<>();
         parenthesis_Stack.push('(');
         int i = matcher.end();
         List<String> arguments = new ArrayList<>();
@@ -441,7 +436,7 @@ public class Predicate {
             }
             if (ch == ')') {
                 if (parenthesis_Stack.isEmpty())
-                    throw new Exception("unbalanced parenthesis: char at " + (real_starting_position + i));
+                    throw ExceptionHelper.unbalancedParen(real_starting_position + i);
                 parenthesis_Stack.pop();
                 if (parenthesis_Stack.isEmpty()) {
                     arguments.add(buf.toString());
@@ -450,7 +445,7 @@ public class Predicate {
                 buf.append(')');
             } else if (ch == ',') {
                 if (parenthesis_Stack.size() != 1)
-                    throw new Exception("unbalanced parenthesis: char at " + (real_starting_position + i));
+                    throw ExceptionHelper.unbalancedParen(real_starting_position + i);
                 arguments.add(buf.toString());
                 buf = new StringBuilder();
             } else {

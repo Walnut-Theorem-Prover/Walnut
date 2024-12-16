@@ -1,5 +1,6 @@
 package Automata;
 
+import Main.ExceptionHelper;
 import Main.UtilityMethods;
 import it.unimi.dsi.fastutil.ints.*;
 
@@ -175,7 +176,7 @@ public class AutomatonLogicalOps {
                     N.O.add(automaton.O.getInt(p) * M.O.getInt(q));
                     break;
                 case "/":
-                    if (M.O.getInt(q) == 0) throw new Exception("division by zero");
+                    if (M.O.getInt(q) == 0) throw ExceptionHelper.divisionByZero();
                     N.O.add(Math.floorDiv(automaton.O.getInt(p), M.O.getInt(q)));
                     break;
                 case "combine":

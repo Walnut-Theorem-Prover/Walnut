@@ -24,6 +24,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
+import Main.ExceptionHelper;
 import Main.UtilityMethods;
 import it.unimi.dsi.fastutil.ints.Int2ObjectRBTreeMap;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
@@ -738,7 +739,7 @@ public class NumberSystem {
      * @throws Exception
      */
     public Automaton comparison(String a, int b, String comparisonOperator) throws Exception {
-        if (!is_neg && b < 0) throw new Exception("negative constant " + b);
+        if (!is_neg && b < 0) throw ExceptionHelper.negativeConstant(b);
         String B = "new " + a;//this way, we make sure B != a.
         Automaton N, M;
         if (b < 0) {
@@ -770,7 +771,7 @@ public class NumberSystem {
      * @throws Exception
      */
     public Automaton comparison(int a, String b, String comparisonOperator) throws Exception {
-        if (!is_neg && a < 0) throw new Exception("negative constant " + a);
+        if (!is_neg && a < 0) throw ExceptionHelper.negativeConstant(a);
         switch (comparisonOperator) {
             case "<":
                 return comparison(b, a, ">");
@@ -839,7 +840,7 @@ public class NumberSystem {
             int b,
             String c,
             String arithmeticOperator) throws Exception {
-        if (!is_neg && b < 0) throw new Exception("negative constant " + b);
+        if (!is_neg && b < 0) throw ExceptionHelper.negativeConstant(b);
         Automaton N;
         if (arithmeticOperator.equals("*")) {
             //note that the case of b = 0 is handled in Computer class
@@ -886,7 +887,7 @@ public class NumberSystem {
             String b,
             String c,
             String arithmeticOperator) throws Exception {
-        if (!is_neg && a < 0) throw new Exception("negative constant " + a);
+        if (!is_neg && a < 0) throw ExceptionHelper.negativeConstant(a);
         Automaton N;
         if (arithmeticOperator.equals("*")) {
             N = getMultiplication(a);
@@ -933,7 +934,7 @@ public class NumberSystem {
             String b,
             int c,
             String arithmeticOperator) throws Exception {
-        if (!is_neg && c < 0) throw new Exception("negative constant " + c);
+        if (!is_neg && c < 0) throw ExceptionHelper.negativeConstant(c);
         Automaton N;
         if (arithmeticOperator.equals("*")) {
             throw new Exception("the operator * cannot be applied to two variables");
@@ -968,7 +969,7 @@ public class NumberSystem {
      */
     private Automaton constant(int n) throws Exception {
         if (!is_neg && n < 0) {
-            throw new Exception("Constant cannot be negative.");
+            throw ExceptionHelper.negativeConstant(n);
         }
         if (constantsDynamicTable.containsKey(n)) {
             return constantsDynamicTable.get(n);
@@ -1014,7 +1015,7 @@ public class NumberSystem {
      * @throws Exception
      */
     private Automaton multiplication(int n) throws Exception {
-        if (!is_neg && n < 0) throw new Exception("constant cannot be negative");
+        if (!is_neg && n < 0) throw ExceptionHelper.negativeConstant(n);
         if (n == 0) throw new Exception("multiplication(0)");
         if (multiplicationsDynamicTable.containsKey(n)) return multiplicationsDynamicTable.get(n);
         //note that the case of n==0 is handled in Computer class
