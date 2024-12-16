@@ -216,7 +216,7 @@ public class ParseMethods {
             }
             mapping.put(Integer.parseInt(input), image);
         }
-        if (mapping.size() == 0) {
+        if (mapping.isEmpty()) {
             throw new Exception("Morphism has no valid mappings.");
         }
         return mapping;

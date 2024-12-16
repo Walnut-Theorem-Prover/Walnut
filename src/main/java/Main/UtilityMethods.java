@@ -18,6 +18,8 @@
 
 package Main;
 
+import Token.Token;
+
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
@@ -152,13 +154,7 @@ public class UtilityMethods {
      * @return
      */
     public static <T> String toTuple(List<T> l) {
-        String s = "(";
-        for (int i = 0; i < l.size(); i++) {
-            if (i == 0) s += l.get(i);
-            else s += "," + l.get(i);
-        }
-
-        return s + ")";
+        return "(" + UtilityMethods.genericListString(l, ",") + ")";
     }
 
     public static <T> String toTransitionLabel(List<T> l) {
@@ -167,17 +163,7 @@ public class UtilityMethods {
             s += l.get(0);
             return s;
         }
-
-        s += "[";
-        for (int i = 0; i < l.size(); i++) {
-            if (i == 0) {
-                s += l.get(i);
-            } else {
-                s += "," + l.get(i);
-            }
-        }
-
-        return s + "]";
+        return "[" + UtilityMethods.genericListString(l, ",") + "]";
     }
 
     /**
@@ -301,4 +287,19 @@ public class UtilityMethods {
         }
     }
 
+
+    /**
+     * Many objects are stringified as: a_0 , a_1, a_2, ..., a_n
+     * Where a_i can be represented as a string, and "," is an arbitrary separator.
+     */
+    public static String genericListString(List<?> objects, String separator) {
+        StringBuilder sb = new StringBuilder();
+        for(int i=0;i<objects.size();i++) {
+            if (i > 0) {
+                sb.append(separator);
+            }
+            sb.append(objects.get(i));
+        }
+        return sb.toString();
+    }
 }

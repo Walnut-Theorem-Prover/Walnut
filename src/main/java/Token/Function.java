@@ -52,8 +52,7 @@ public class Function extends Token {
 
     public void act(Stack<Expression> S, boolean print, String prefix, StringBuilder log) throws Exception {
         if (S.size() < getArity()) throw new Exception("function " + name + " requires " + getArity() + " arguments");
-        Stack<Expression> temp = new Stack<Expression>();
-        List<Expression> args = new ArrayList<>();
+        Stack<Expression> temp = new Stack<>();
         for (int i = 0; i < getArity(); i++) {
             temp.push(S.pop());
         }
@@ -66,18 +65,13 @@ public class Function extends Token {
         Automaton M = new Automaton(true);
         List<String> identifiers = new ArrayList<>();
         List<String> quantify = new ArrayList<>();
+        List<Expression> args = new ArrayList<>(getArity());
         for (int i = 0; i < getArity(); i++) {
             args.add(temp.pop());
+        }
+        stringValue += UtilityMethods.genericListString(args, ",") + "))";
+        for (int i = 0; i < getArity(); i++) {
             Expression currentArg = args.get(i);
-            if (i == 0)
-                stringValue += args.get(i);
-            else
-                stringValue += "," + args.get(i);
-			
-			/*if(args.get(i).is(Type.arithmetic) && A.NS.get(i) == null)
-				throw new Exception("argument "+ (i+1) +" of function " + name + " cannot be of type arithmetic");
-			if(!args.get(i).is(Type.arithmetic) && !args.get(i).is(Type.variable) && !args.get(i).is(Type.numberLiteral))
-				throw new Exception("argument "+ (i+1) +" of function " + name + " cannot be of type " +args.get(i).getType());	*/
 
             switch (currentArg.T) {
                 case variable:
@@ -120,13 +114,10 @@ public class Function extends Token {
             }
 
         }
-        stringValue += ")";
-
         A.bind(identifiers);
         A = AutomatonLogicalOps.and(A, M, print, prefix + " ", log);
         AutomatonLogicalOps.quantify(A, new HashSet<>(quantify), print, prefix + " ", log);
 
-        stringValue += ")";
         S.push(new Expression(stringValue, A));
         String postStep = prefix + "computed " + stringValue;
         log.append(postStep + UtilityMethods.newLine());

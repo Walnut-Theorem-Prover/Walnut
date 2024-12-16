@@ -469,14 +469,6 @@ public class Predicate {
     }
 
     public String toString() {
-        String stringValue = "";
-        for (int i = 0; i < postOrder.size(); i++) {
-            Token t = postOrder.get(i);
-            if (i == 0)
-                stringValue += t;
-            else
-                stringValue += ":" + t;
-        }
-        return stringValue;
+        return UtilityMethods.genericListString(postOrder, ":");
     }
 }

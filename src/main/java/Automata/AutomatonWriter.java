@@ -171,19 +171,13 @@ public class AutomatonWriter {
             List<Integer> l = automaton.A.get(i);
             if (automaton.NS.get(i) == null) {
                 out.write("{");
-                for (int j = 0; j < l.size(); j++) {
-                    if (j == 0) {
-                        out.write(Integer.toString(l.get(j)));
-                    } else out.write(", " + l.get(j));
-                }
-
+                out.write(UtilityMethods.genericListString(l, ", "));
                 out.write("} ");
             } else {
                 if (i == 0)
                     out.write(automaton.NS.get(i).toString());
                 else
                     out.write(" " + automaton.NS.get(i).toString());
-
             }
         }
         out.write(UtilityMethods.newLine());

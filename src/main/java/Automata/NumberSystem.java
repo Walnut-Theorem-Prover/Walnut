@@ -849,7 +849,7 @@ public class NumberSystem {
             return N;
         }
         if (arithmeticOperator.equals("/")) {
-            if (b == 0) throw new Exception("division by zero");
+            if (b == 0) throw ExceptionHelper.divisionByZero();
             N = getDivision(b);
             N.bind(a, c);
             return N;
@@ -1085,7 +1085,7 @@ public class NumberSystem {
     // a / n = b <=> Er,q a = q + r & q = n*b & n < r <= 0 if n < 0
     private Automaton division(int n) throws Exception {
         if (!is_neg && n < 0) throw new Exception("constant cannot be negative");
-        if (n == 0) throw new Exception("division by zero");
+        if (n == 0) throw ExceptionHelper.divisionByZero();
         if (divisionsDynamicTable.containsKey(n)) return divisionsDynamicTable.get(n);
         String a = "a", b = "b", r = "r", q = "q";
         // We want to construct the following expressions
