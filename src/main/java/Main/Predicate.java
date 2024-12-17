@@ -312,7 +312,7 @@ public class Predicate {
 
         Automaton A = new Automaton(UtilityMethods.get_address_for_words_library() + matcher.group(1) + ".txt");
 
-        Stack<Character> bracket_Stack = new Stack<Character>();
+        Stack<Character> bracket_Stack = new Stack<>();
         bracket_Stack.push('[');
         int i = matcher.end();
         List<Predicate> indices = new ArrayList<>();

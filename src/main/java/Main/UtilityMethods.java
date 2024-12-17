@@ -199,7 +199,7 @@ public class UtilityMethods {
     }
 
     /**
-     * add elements of R that do not exits in L to L.
+     * add elements of R that do not exist in L to L.
      *
      * @param L
      * @param R
@@ -249,7 +249,7 @@ public class UtilityMethods {
         BigInteger min = BigInteger.valueOf(Integer.MIN_VALUE);
         BigInteger max = BigInteger.valueOf(Integer.MAX_VALUE);
         if (val.compareTo(min) < 0 || val.compareTo(max) > 0) {
-            throw new Exception("Trying to parse the number " + b.toString() + ", which is outside of the integer limit [" + Integer.MIN_VALUE + ", " + Integer.MAX_VALUE + "].");
+            throw new Exception("Trying to parse the number " + b + ", which is outside of the integer limit [" + Integer.MIN_VALUE + ", " + Integer.MAX_VALUE + "].");
         }
         return Integer.parseInt(b.toString());
     }

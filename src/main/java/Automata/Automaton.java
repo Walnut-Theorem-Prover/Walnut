@@ -762,13 +762,11 @@ public class Automaton {
     public Automaton concat(List<String> automataNames, boolean print, String prefix, StringBuilder log) throws Exception {
         Automaton first = this.clone();
 
-        for (int i = 0; i < automataNames.size(); i++) {
+        for (String automataName : automataNames) {
             long timeBefore = System.currentTimeMillis();
-            Automaton N = new Automaton(UtilityMethods.get_address_for_automata_library() + automataNames.get(i) + ".txt");
-
+            Automaton N = new Automaton(UtilityMethods.get_address_for_automata_library() + automataName + ".txt");
 
             first = first.concat(N, print, prefix, log);
-
 
             long timeAfter = System.currentTimeMillis();
             if (print) {
@@ -781,7 +779,6 @@ public class Automaton {
     }
 
     public Automaton concat(Automaton other, boolean print, String prefix, StringBuilder log) throws Exception {
-
         long timeBefore = System.currentTimeMillis();
         if (print) {
             String msg = prefix + "concat: " + Q + " state automaton with " + other.Q + " state automaton";
@@ -885,7 +882,7 @@ public class Automaton {
                 }
             }
 
-            String msg = prefix + "setting alphabet to " + nsNames.toString();
+            String msg = prefix + "setting alphabet to " + nsNames;
             log.append(msg + System.lineSeparator());
             System.out.println(msg);
         }
