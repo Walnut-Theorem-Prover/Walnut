@@ -190,23 +190,19 @@ public class Predicate {
                 op.put(postOrder, operator_Stack);
                 index = matcher.end();
             } else if (MATCHER_FOR_WORD.find(index)) {
-                if (!lastTokenWasOperator) throw new RuntimeException(
-                        "An operator is missing: char at " + (real_starting_position + index));
+                if (!lastTokenWasOperator) throw ExceptionHelper.operatorMissing(real_starting_position + index);
                 lastTokenWasOperator = false;
                 index = put_word(current_number_system, false);
             } else if (MATCHER_FOR_WORD_WITH_DELIMITER.find(index)) {
-                if (!lastTokenWasOperator) throw new RuntimeException(
-                        "An operator is missing: char at " + (real_starting_position + index));
+                if (!lastTokenWasOperator) throw ExceptionHelper.operatorMissing(real_starting_position + index);
                 lastTokenWasOperator = false;
                 index = put_word(current_number_system, true);
             } else if (MATCHER_FOR_FUNCTION.find(index)) {
-                if (!lastTokenWasOperator) throw new RuntimeException(
-                        "An operator is missing: char at " + (real_starting_position + index));
+                if (!lastTokenWasOperator) throw ExceptionHelper.operatorMissing(real_starting_position + index);
                 lastTokenWasOperator = false;
                 index = put_function(current_number_system);
             } else if (MATCHER_FOR_MACRO.find(index)) {
-                if (!lastTokenWasOperator) throw new RuntimeException(
-                        "An operator is missing: char at " + (real_starting_position + index));
+                if (!lastTokenWasOperator) throw ExceptionHelper.operatorMissing(real_starting_position + index);
                 index = put_macro();
             } else if (MATCHER_FOR_VARIABLE.find(index)) {
                 if (!lastTokenWasOperator) throw ExceptionHelper.operatorMissing(real_starting_position + index);
@@ -246,7 +242,7 @@ public class Predicate {
             } else if (MATCHER_FOR_WHITESPACE.find(index)) {
                 index = MATCHER_FOR_WHITESPACE.end();
             } else {
-                throw new RuntimeException("undefined token: at char " + (real_starting_position + index));
+                throw ExceptionHelper.undefinedToken(real_starting_position + index);
             }
         }
 
@@ -367,7 +363,7 @@ public class Predicate {
         while (i < predicate.length()) {
             char ch = predicate.charAt(i);
             if (ch == '#' || ch == '$') {
-                throw new RuntimeException("a function/macro cannot be called from inside another function/macro's argument list: char at " + (real_starting_position + i));
+                throw ExceptionHelper.internalMacro(real_starting_position + i);
             }
             if (ch == ')') {
                 if (parenthesis_Stack.isEmpty())
@@ -432,7 +428,7 @@ public class Predicate {
         while (i < predicate.length()) {
             char ch = predicate.charAt(i);
             if (ch == '#' || ch == '$') {
-                throw new RuntimeException("a function/macro cannot be called from inside another function/macro's argument list: char at " + (real_starting_position + i));
+                throw ExceptionHelper.internalMacro(real_starting_position + i);
             }
             if (ch == ')') {
                 if (parenthesis_Stack.isEmpty())

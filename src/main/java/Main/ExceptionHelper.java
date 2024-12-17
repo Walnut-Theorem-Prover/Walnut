@@ -40,13 +40,24 @@ public class ExceptionHelper {
     public static RuntimeException invalidCommand() {
         return new RuntimeException("Invalid command.");
     }
+
     public static RuntimeException invalidCommand(String command) {
         return new RuntimeException("Invalid command: " + command);
     }
+
     public static RuntimeException invalidCommandUse(String command) {
-        return new RuntimeException("Invalid use of the " + command +" command.");
+        return new RuntimeException("Invalid use of the " + command + " command.");
     }
+
     public static RuntimeException noSuchCommand() {
         return new RuntimeException("No such command exists.");
+    }
+
+    public static RuntimeException undefinedToken(int position) {
+        return new RuntimeException("Undefined token: char at " + position);
+    }
+
+    public static RuntimeException internalMacro(int index) {
+        return new RuntimeException("a function/macro cannot be called from inside another function/macro's argument list: char at " + index);
     }
 }
