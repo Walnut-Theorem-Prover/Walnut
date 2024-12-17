@@ -18,14 +18,7 @@
 
 package Main;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
-import java.io.UnsupportedEncodingException;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -37,7 +30,6 @@ import org.junit.jupiter.api.TestFactory;
 
 public class IntegrationTest {
 	String directoryAddress = UtilityMethods.get_address_for_integration_test_results();
-	String performanceTestFileName = "performance_test.txt";
 	List<TestCase> testCases;//list of test cases
 	List<String> L;//list of commands
 	private void initialize(){
@@ -852,40 +844,21 @@ public class IntegrationTest {
 		//L.add("combine test624 test622=1 test623=2;"); // combine FD3 phid3a=1 phid3b=2:
 	}
 
-	public void runPerformanceTest(String name,int numberOfRuns) throws Exception{
-		PrintWriter out = new PrintWriter(new FileOutputStream(directoryAddress+performanceTestFileName, true /* append = true */));
-		out.println("----------------------------------------");
-		out.println("Performance Test Result for " + name);
-		out.println("Number of runs: " + numberOfRuns);
-		out.println("Number of testcases: " + L.size());
-		long total = 0;
-		for(int i=0;i!=numberOfRuns;++i){
-			long runtime = runTestCases();
-			out.println((i+1) + "th run: " + runtime + "ms");
-			total += runtime;
-		}
-		out.println();
-		out.println("total: " + total + "ms");
-		out.println("run average: " + total/numberOfRuns + "ms");
-		out.println("testcase average: " + total/(numberOfRuns*L.size()) + "ms");
-		out.println("----------------------------------------");
-		out.close();
-	}
-	public long runTestCases() throws Exception{
+	public long runTestCases() throws IOException {
 		return runTestCases(0,L.size());
 	}
-	public long runTestCases(int begin) throws Exception{
+	public long runTestCases(int begin) throws IOException {
 		return runTestCases(begin,L.size());
 	}
-	public long runTestCases(int begin, int end) throws Exception{
+	public long runTestCases(int begin, int end) throws IOException {
 		loadTestCases(directoryAddress);
 		int failedTestsCount = 0;
 		int mplFailedTestsCount = 0;
 		int detailsFailedTestsCount = 0;
 		int errorFailedTestsCount = 0;
 		int automataFailedTestsCount = 0;
-		long before = 0;
-		long after = 0;
+		long before;
+		long after;
 		long total = 0;
 		if(testCases == null || testCases.isEmpty())return total;
 		System.out.println("Running test cases from test case " + begin +" to test case " + end);
@@ -947,7 +920,7 @@ public class IntegrationTest {
 
 
 	@TestFactory
-	List<DynamicTest> runAllIntegrationTests() throws Exception {
+	List<DynamicTest> runAllIntegrationTests() throws IOException {
 		loadTestCases(UtilityMethods.ADDRESS_FOR_UNIT_TEST_INTEGRATION_TEST_RESULTS);
 		List<DynamicTest> dynamicTests = new ArrayList<>(L.size());
 		for (int i = 0; i < L.size(); i++) {
@@ -978,7 +951,7 @@ public class IntegrationTest {
 	private boolean conformMPL(String expected_mpl,String actual_mpl){
 		if(expected_mpl == null && actual_mpl == null)return true;
 		if(expected_mpl == null) return false;
-		if(expected_mpl.length() == 0 && actual_mpl.length() == 0) return true;
+		if(expected_mpl.isEmpty() && actual_mpl.isEmpty()) return true;
 		//if(expected_mpl.length() != actual_mpl.length()){
 		//	return false;
 		//}
@@ -989,7 +962,7 @@ public class IntegrationTest {
 	private boolean conformDetails(String expected_details,String actual_details){
 		if(expected_details == null && actual_details == null)return true;
 		if(expected_details == null) return false;
-		if(expected_details.length() == 0 && actual_details.length() == 0) return true;
+		if(expected_details.isEmpty() && actual_details.isEmpty()) return true;
 		expected_details = expected_details.replaceAll("\\d+ms", "");
 		actual_details = actual_details.replaceAll("\\d+ms", "");
 		return expected_details.equals(actual_details);
@@ -1027,7 +1000,7 @@ public class IntegrationTest {
 		return true;*/
 	}
 
-	void loadTestCases(String directoryAddress) throws Exception{
+	void loadTestCases(String directoryAddress) throws IOException {
 		String command;
 		testCases = new ArrayList<>();
 		for(int i = 0 ; i < L.size();i++){
@@ -1085,7 +1058,7 @@ public class IntegrationTest {
 		}
 	}
 	//@Test // uncomment this line if you want to regenerate test cases
-	public void createTestCases() throws Exception{
+	public void createTestCases() throws FileNotFoundException, UnsupportedEncodingException {
 		for(int i = 0; i < L.size();i++){
 			String command = L.get(i);
 			System.out.println(command);
@@ -1100,24 +1073,24 @@ public class IntegrationTest {
 		}
 		writeTestCases(UtilityMethods.ADDRESS_FOR_UNIT_TEST_INTEGRATION_TEST_RESULTS);
 	}
-	private void writeTestCases(String directory) throws Exception{
+	private void writeTestCases(String directory) throws FileNotFoundException, UnsupportedEncodingException {
 		new File(directory).mkdirs();
 		for(int i = 0 ; i < testCases.size();i++){
 			TestCase t = testCases.get(i);
 			if(t.result != null){
 				AutomatonWriter.write(t.result, directory+"automaton" + i + ".txt");
 			}
-			if(t.error != null && t.error.length() > 0){
+			if(t.error != null && !t.error.isEmpty()){
 				PrintWriter errorWriter = new PrintWriter(directory+"error"+ i +".txt", "UTF-8");
 				errorWriter.println(t.error);
 				errorWriter.close();
 			}
-			if(t.mpl != null && t.mpl.length() > 0){
+			if(t.mpl != null && !t.mpl.isEmpty()){
 				PrintWriter mplWriter = new PrintWriter(directory+"mpl"+ i +".mpl", "UTF-8");
 				mplWriter.println(t.mpl);
 				mplWriter.close();
 			}
-			if(t.details != null && t.details.length() > 0){
+			if(t.details != null && !t.details.isEmpty()){
 				PrintWriter detailsWriter = new PrintWriter(directory+"details"+ i +".txt", "utf-8");
 				detailsWriter.println(t.details);
 				detailsWriter.close();

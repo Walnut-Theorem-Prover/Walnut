@@ -84,7 +84,7 @@ public class Transducer extends Automaton {
      * @param address
      * @throws Exception
      */
-    public Transducer(String address) throws Exception {
+    public Transducer(String address) {
         this();
         final String REGEXP_FOR_WHITESPACE = "^\\s*$";
 
@@ -110,7 +110,7 @@ public class Transducer extends Automaton {
                     flag = ParseMethods.parseAlphabetDeclaration(line, A, NS);
                 } catch (Exception e) {
                     in.close();
-                    throw new Exception(
+                    throw new RuntimeException(
                             e.getMessage() + System.lineSeparator() +
                                     "\t:line " + lineNumber + " of file " + address);
                 }
@@ -120,7 +120,7 @@ public class Transducer extends Automaton {
                         if (NS.get(i) != null &&
                                 (!A.get(i).contains(0) || !A.get(i).contains(1))) {
                             in.close();
-                            throw new Exception(
+                            throw new RuntimeException(
                                     "The " + (i + 1) + "th input of type arithmetic " +
                                             "of the automaton declared in file " + address +
                                             " requires 0 and 1 in its input alphabet: line " +
@@ -132,7 +132,7 @@ public class Transducer extends Automaton {
                     break;
                 } else {
                     in.close();
-                    throw new Exception(
+                    throw new RuntimeException(
                             "Undefined statement: line " +
                                     lineNumber + " of file " + address);
                 }
@@ -181,14 +181,14 @@ public class Transducer extends Automaton {
 
                     if(currentState == -1){
                         in.close();
-                        throw new Exception(
+                        throw new RuntimeException(
                                 "Must declare a state before declaring a list of transitions: line " +
                                         lineNumber + " of file " + address);
                     }
 
                     if(input.size() != A.size()) {
                         in.close();
-                        throw new Exception("This automaton requires a " + A.size() +
+                        throw new RuntimeException("This automaton requires a " + A.size() +
                                 "-tuple as input: line " + lineNumber + " of file " + address);
                     }
                     List<List<Integer>> inputs = expandWildcard(this.A, input);
@@ -199,7 +199,7 @@ public class Transducer extends Automaton {
                         }
                         else {
                             in.close();
-                            throw new Exception("Transducers must have one output for each transition: line "
+                            throw new RuntimeException("Transducers must have one output for each transition: line "
                                     + lineNumber + " of file " + address);
                         }
                     }
@@ -210,13 +210,13 @@ public class Transducer extends Automaton {
                 }
                 else{
                     in.close();
-                    throw new Exception("Undefined statement: line "+ lineNumber + " of file " + address);
+                    throw new RuntimeException("Undefined statement: line "+ lineNumber + " of file " + address);
                 }
             }
             in.close();
             for(int q:setOfDestinationStates) {
                 if(!state_output.containsKey(q)) {
-                    throw new Exception(
+                    throw new RuntimeException(
                             "State " + q + " is used but never declared anywhere in file: " + address);
                 }
             }
@@ -229,7 +229,7 @@ public class Transducer extends Automaton {
 
         } catch (IOException e) {
             e.printStackTrace();
-            throw new Exception("File does not exist: " + address);
+            throw new RuntimeException("File does not exist: " + address);
         }
     }
 
@@ -276,7 +276,7 @@ public class Transducer extends Automaton {
      * @return The transduced Automaton after applying this Transducer to M.
      * @throws Exception
      */
-    public Automaton transduceMsdDeterministic(Automaton M, boolean print, String prefix, StringBuilder log) throws Exception {
+    public Automaton transduceMsdDeterministic(Automaton M, boolean print, String prefix, StringBuilder log) {
         try {
             long timeBefore = System.currentTimeMillis();
             if(print){
@@ -571,7 +571,7 @@ public class Transducer extends Automaton {
             return N;
         } catch (Exception e) {
             e.printStackTrace();
-            throw new Exception("Error transducing automaton");
+            throw new RuntimeException("Error transducing automaton");
         }
 
     }
@@ -587,11 +587,11 @@ public class Transducer extends Automaton {
      * @return The transduced Automaton after applying this Transducer to M.
      * @throws Exception
      */
-    public Automaton transduceNonDeterministic(Automaton M, boolean print, String prefix, StringBuilder log) throws Exception {
+    public Automaton transduceNonDeterministic(Automaton M, boolean print, String prefix, StringBuilder log) {
 
         // check that the input automaton only has one input!
         if (M.NS.size() != 1) {
-            throw new Exception("Automata with only one input can be transduced.");
+            throw new RuntimeException("Automata with only one input can be transduced.");
         }
 
 
@@ -599,7 +599,7 @@ public class Transducer extends Automaton {
         for (int i = 0; i < M.O.size(); i++) {
             int encoded = encode(List.of(M.O.getInt(i)));
             if (!d.get(0).containsKey(encoded)) {
-                throw new Exception("Output alphabet of automaton must be compatible with the transducer input alphabet");
+                throw new RuntimeException("Output alphabet of automaton must be compatible with the transducer input alphabet");
             }
         }
 
@@ -625,7 +625,7 @@ public class Transducer extends Automaton {
                     totalized = false;
                 }
                 else if (M.d.get(q).get(x).size() > 1) {
-                    throw new Exception("Automaton must have at most one transition per input per state.");
+                    throw new RuntimeException("Automaton must have at most one transition per input per state.");
                 }
             }
         }

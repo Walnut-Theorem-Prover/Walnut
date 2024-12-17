@@ -79,13 +79,13 @@ public class Expression {
         T = Type.variable;
     }
 
-    public Expression(String expressionInString, int value) throws Exception {
+    public Expression(String expressionInString, int value) {
         this.expressionInString = expressionInString;
         this.constant = value;
         T = Type.alphabetLetter;
     }
 
-    public Expression(String expressionInString, int value, NumberSystem base) throws Exception {
+    public Expression(String expressionInString, int value, NumberSystem base) {
         this.expressionInString = expressionInString;
         this.constant = value;
         this.base = base;

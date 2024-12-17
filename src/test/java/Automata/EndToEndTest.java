@@ -16,7 +16,7 @@ public class EndToEndTest {
             /*a = new Automaton("src/test/resources/input2.txt");
             a.draw("src/test/tempOutput.gv", "original", true);*/
         } catch (Exception ex) {
-            // Hack because everything throws exceptions
+            // Hack because everything s
             Assertions.fail(ex);
         }
     }

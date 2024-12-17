@@ -105,11 +105,11 @@ public class Predicate {
     static Pattern PATTERN_FOR_RIGHT_PARENTHESIS = Pattern.compile(REGEXP_FOR_RIGHT_PARENTHESIS);
     static Pattern PATTERN_FOR_WHITESPACE = Pattern.compile(REGEXP_FOR_WHITESPACE);
 
-    public Predicate(String predicate) throws Exception {
+    public Predicate(String predicate) {
         this("msd_2", predicate, 0);
     }
 
-    public Predicate(String predicate, int startingPosition) throws Exception {
+    public Predicate(String predicate, int startingPosition) {
         this("msd_2", predicate, startingPosition);
     }
 
@@ -134,7 +134,7 @@ public class Predicate {
     public Predicate(
             String default_number_system,
             String predicate,
-            int real_starting_position) throws Exception {
+            int real_starting_position) {
         operator_Stack = new Stack<>();
         postOrder = new ArrayList<>();
         this.real_starting_position = real_starting_position;
@@ -145,7 +145,7 @@ public class Predicate {
         tokenize_and_compute_post_order();
     }
 
-    private void tokenize_and_compute_post_order() throws Exception {
+    private void tokenize_and_compute_post_order() {
         Stack<String> number_system_Stack = new Stack<>();
         number_system_Stack.push(default_number_system);
         String current_number_system = default_number_system;
@@ -159,7 +159,7 @@ public class Predicate {
                 Matcher matcher = MATCHER_FOR_LOGICAL_OPERATORS;
                 if (matcher.group(1).equals("E") || matcher.group(1).equals("A") || matcher.group(1).equals("I")) {
                     if (!MATCHER_FOR_LIST_OF_QUANTIFIED_VARIABLES.find(matcher.end())) {
-                        throw new Exception(
+                        throw new RuntimeException(
                                 "Operator " + matcher.group(1) +
                                         " requires a list of variables: char at " +
                                         (real_starting_position + index));
@@ -190,22 +190,22 @@ public class Predicate {
                 op.put(postOrder, operator_Stack);
                 index = matcher.end();
             } else if (MATCHER_FOR_WORD.find(index)) {
-                if (!lastTokenWasOperator) throw new Exception(
+                if (!lastTokenWasOperator) throw new RuntimeException(
                         "An operator is missing: char at " + (real_starting_position + index));
                 lastTokenWasOperator = false;
                 index = put_word(current_number_system, false);
             } else if (MATCHER_FOR_WORD_WITH_DELIMITER.find(index)) {
-                if (!lastTokenWasOperator) throw new Exception(
+                if (!lastTokenWasOperator) throw new RuntimeException(
                         "An operator is missing: char at " + (real_starting_position + index));
                 lastTokenWasOperator = false;
                 index = put_word(current_number_system, true);
             } else if (MATCHER_FOR_FUNCTION.find(index)) {
-                if (!lastTokenWasOperator) throw new Exception(
+                if (!lastTokenWasOperator) throw new RuntimeException(
                         "An operator is missing: char at " + (real_starting_position + index));
                 lastTokenWasOperator = false;
                 index = put_function(current_number_system);
             } else if (MATCHER_FOR_MACRO.find(index)) {
-                if (!lastTokenWasOperator) throw new Exception(
+                if (!lastTokenWasOperator) throw new RuntimeException(
                         "An operator is missing: char at " + (real_starting_position + index));
                 index = put_macro();
             } else if (MATCHER_FOR_VARIABLE.find(index)) {
@@ -246,7 +246,7 @@ public class Predicate {
             } else if (MATCHER_FOR_WHITESPACE.find(index)) {
                 index = MATCHER_FOR_WHITESPACE.end();
             } else {
-                throw new Exception("undefined token: at char " + (real_starting_position + index));
+                throw new RuntimeException("undefined token: at char " + (real_starting_position + index));
             }
         }
 
@@ -281,7 +281,7 @@ public class Predicate {
         return current_number_system;
     }
 
-    private int handle_quantifier() throws Exception {
+    private int handle_quantifier() {
         String[] list_of_vars = MATCHER_FOR_LIST_OF_QUANTIFIED_VARIABLES.group(1).split("(\\s|,)+");
         Operator op = new LogicalOperator(MATCHER_FOR_LOGICAL_OPERATORS.start(), MATCHER_FOR_LOGICAL_OPERATORS.group(1), list_of_vars.length);
         op.put(postOrder, operator_Stack);
@@ -300,7 +300,7 @@ public class Predicate {
         return "msd_2";
     }
 
-    private int put_word(String default_number_system, boolean with_delimiter) throws Exception {
+    private int put_word(String default_number_system, boolean with_delimiter) {
         Matcher matcher = MATCHER_FOR_WORD;
         if (with_delimiter) {
             matcher = MATCHER_FOR_WORD_WITH_DELIMITER;
@@ -322,7 +322,7 @@ public class Predicate {
             char ch = predicate.charAt(i);
             if (ch == ']') {
                 if (bracket_Stack.isEmpty())
-                    throw new Exception("unbalanced bracket: chat at " + (real_starting_position + i));
+                    throw new RuntimeException("unbalanced bracket: chat at " + (real_starting_position + i));
                 bracket_Stack.pop();
                 if (bracket_Stack.isEmpty()) {
                     indices.add(new Predicate(default_number_system, buf.toString(), real_starting_position + startingPosition));
@@ -346,7 +346,7 @@ public class Predicate {
         for (Predicate p : indices) {
             List<Token> tmp = p.get_postOrder();
             if (tmp.isEmpty())
-                throw new Exception("index " + (indices.indexOf(p) + 1) + " of the word " + matcher.group(1) + " cannot be empty: char at " + matcher.start(1));
+                throw new RuntimeException("index " + (indices.indexOf(p) + 1) + " of the word " + matcher.group(1) + " cannot be empty: char at " + matcher.start(1));
             postOrder.addAll(tmp);
         }
         Word w = new Word(real_starting_position + matcher.start(1), matcher.group(1), A, indices.size());
@@ -354,7 +354,7 @@ public class Predicate {
         return i + 1;
     }
 
-    private int put_function(String default_number_system) throws Exception {
+    private int put_function(String default_number_system) {
         Matcher matcher = MATCHER_FOR_FUNCTION;
         Automaton A = new Automaton(UtilityMethods.get_address_for_automata_library() + matcher.group(1) + ".txt");
 
@@ -367,7 +367,7 @@ public class Predicate {
         while (i < predicate.length()) {
             char ch = predicate.charAt(i);
             if (ch == '#' || ch == '$') {
-                throw new Exception("a function/macro cannot be called from inside another function/macro's argument list: char at " + (real_starting_position + i));
+                throw new RuntimeException("a function/macro cannot be called from inside another function/macro's argument list: char at " + (real_starting_position + i));
             }
             if (ch == ')') {
                 if (parenthesis_Stack.isEmpty())
@@ -398,7 +398,7 @@ public class Predicate {
         for (Predicate p : arguments) {
             List<Token> tmp = p.get_postOrder();
             if (tmp.isEmpty() && arguments.size() > 1)
-                throw new Exception("argument " + (arguments.indexOf(p) + 1) + " of the function " + matcher.group(1) + " cannot be empty: char at " + matcher.start(1));
+                throw new RuntimeException("argument " + (arguments.indexOf(p) + 1) + " of the function " + matcher.group(1) + " cannot be empty: char at " + matcher.start(1));
             postOrder.addAll(tmp);
         }
         Function f = new Function(default_number_system, real_starting_position + matcher.start(1), matcher.group(1), A, arguments.size());
@@ -406,7 +406,7 @@ public class Predicate {
         return i + 1;
     }
 
-    private int put_macro() throws Exception {
+    private int put_macro() {
         Matcher matcher = MATCHER_FOR_MACRO;
 
         String macro = "";
@@ -422,7 +422,7 @@ public class Predicate {
             }
         } catch (IOException e) {
             e.printStackTrace();
-            throw new Exception("macro does not exist: " + matcher.group(2));
+            throw new RuntimeException("macro does not exist: " + matcher.group(2));
         }
         Stack<Character> parenthesis_Stack = new Stack<>();
         parenthesis_Stack.push('(');
@@ -432,7 +432,7 @@ public class Predicate {
         while (i < predicate.length()) {
             char ch = predicate.charAt(i);
             if (ch == '#' || ch == '$') {
-                throw new Exception("a function/macro cannot be called from inside another function/macro's argument list: char at " + (real_starting_position + i));
+                throw new RuntimeException("a function/macro cannot be called from inside another function/macro's argument list: char at " + (real_starting_position + i));
             }
             if (ch == ')') {
                 if (parenthesis_Stack.isEmpty())

@@ -36,7 +36,7 @@ public class Variable extends Token {
         return name;
     }
 
-    public void act(Stack<Expression> S, boolean print, String prefix, StringBuilder log) throws Exception {
+    public void act(Stack<Expression> S, boolean print, String prefix, StringBuilder log) {
         S.push(new Expression(name));
     }
 }

@@ -81,7 +81,7 @@ public class ParseMethods {
     public static boolean parseAlphabetDeclaration(
             String s,
             List<List<Integer>> A,
-            List<NumberSystem> bases) throws Exception {
+            List<NumberSystem> bases) {
         Matcher m = PATTERN_NEXT_ALPHABET_TOKEN.matcher(s);
         int index = 0;
         while (m.find(index)) {
@@ -116,7 +116,7 @@ public class ParseMethods {
                         H.put(ns, new NumberSystem(ns));
                     } catch (Exception e) {
                         // TODO Auto-generated catch block
-                        throw new Exception(
+                        throw new RuntimeException(
                                 e.getMessage() + System.lineSeparator() +
                                         "\tNumber system " + ns + " does not exist.");
                     }
@@ -132,7 +132,7 @@ public class ParseMethods {
         return index >= s.length();
     }
 
-    public static boolean parseStateDeclaration(String s, int[] pair) throws Exception {
+    public static boolean parseStateDeclaration(String s, int[] pair) {
         Matcher m = PATTERN_FOR_STATE_DECLARATION.matcher(s);
         if (m.find()) {
             pair[0] = UtilityMethods.parseInt(m.group(STATE_DECLARATION_STATE_NAME));
@@ -143,7 +143,7 @@ public class ParseMethods {
         return false;
     }
 
-    public static boolean parseTransducerStateDeclaration(String s, int[] singleton) throws Exception {
+    public static boolean parseTransducerStateDeclaration(String s, int[] singleton) {
         Matcher m = PATTERN_FOR_TRANSDUCER_STATE_DECLARATION.matcher(s);
         if (m.find()) {
             singleton[0] = UtilityMethods.parseInt(m.group(TRANSDUCER_STATE_DECLARATION_STATE_NAME));
@@ -156,7 +156,7 @@ public class ParseMethods {
     public static boolean parseTransition(
             String s,
             List<Integer> input,
-            List<Integer> dest) throws Exception {
+            List<Integer> dest) {
         Matcher m = PATTERN_FOR_TRANSITION.matcher(s);
         if (m.find()) {
             parseList(m.group(TRANSITION_INPUT), input);
@@ -171,7 +171,7 @@ public class ParseMethods {
             List<Integer> input,
             List<Integer> dest,
             List<Integer> output
-    ) throws Exception {
+    ) {
         Matcher m = PATTERN_FOR_TRANSDUCER_TRANSITION.matcher(s);
         if (m.find()) {
             parseList(m.group(TRANSDUCER_TRANSITION_INPUT), input);
@@ -182,7 +182,7 @@ public class ParseMethods {
         return false;
     }
 
-    public static void parseList(String s, List<Integer> list) throws Exception {
+    public static void parseList(String s, List<Integer> list) {
         int index = 0;
         Matcher m = PATTERN_ELEMENT.matcher(s);
         while (m.find(index)) {
@@ -192,7 +192,7 @@ public class ParseMethods {
         }
     }
 
-    public static TreeMap<Integer, List<Integer>> parseMorphism(String mapString) throws Exception {
+    public static TreeMap<Integer, List<Integer>> parseMorphism(String mapString) {
         TreeMap<Integer, List<Integer>> mapping = new TreeMap<>();
 
         Matcher m1 = ParseMethods.PATTERN_FOR_MAPPING_IN_morphism_COMMAND.matcher(mapString);
@@ -214,7 +214,7 @@ public class ParseMethods {
             mapping.put(Integer.parseInt(input), image);
         }
         if (mapping.isEmpty()) {
-            throw new Exception("Morphism has no valid mappings.");
+            throw new RuntimeException("Morphism has no valid mappings.");
         }
         return mapping;
     }

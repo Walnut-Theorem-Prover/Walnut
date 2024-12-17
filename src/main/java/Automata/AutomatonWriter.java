@@ -17,9 +17,9 @@ public class AutomatonWriter {
      * @param automaton
      * @param address
      */
-    public static String write_matrices(Automaton automaton, String address, List<String> free_variables) throws Exception {
+    public static String write_matrices(Automaton automaton, String address, List<String> free_variables) {
         if (automaton.TRUE_FALSE_AUTOMATON) {
-            throw new Exception("incidence matrices cannot be calculated, because the automaton does not have a free variable.");
+            throw new RuntimeException("incidence matrices cannot be calculated, because the automaton does not have a free variable.");
         }
         automaton.canonize();
         StringBuilder s = new StringBuilder();
@@ -32,7 +32,7 @@ public class AutomatonWriter {
         s.append("# transitions with i=x from p to q." + System.lineSeparator());
         for (String variable : free_variables) {
             if (!automaton.label.contains(variable)) {
-                throw new Exception("incidence matrices for the variable " + variable + " cannot be calculated, because " + variable + " is not a free variable.");
+                throw new RuntimeException("incidence matrices for the variable " + variable + " cannot be calculated, because " + variable + " is not a free variable.");
             }
         }
         List<Integer> indices = free_variables.stream().map(variable -> automaton.label.indexOf(variable)).collect(Collectors.toList());

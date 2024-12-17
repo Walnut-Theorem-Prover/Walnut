@@ -32,7 +32,7 @@ import Main.UtilityMethods;
 public class ArithmeticOperator extends Operator {
     NumberSystem number_system;
 
-    public ArithmeticOperator(int position, String op, NumberSystem number_system) throws Exception {
+    public ArithmeticOperator(int position, String op, NumberSystem number_system) {
         this.op = op;
         setPriority();
         if (op.equals("_")) {
@@ -48,11 +48,11 @@ public class ArithmeticOperator extends Operator {
         return op + "_" + number_system;
     }
 
-    public void act(Stack<Expression> S, boolean print, String prefix, StringBuilder log) throws Exception {
-        if (S.size() < getArity()) throw new Exception("operator " + op + " requires " + getArity() + " operands");
+    public void act(Stack<Expression> S, boolean print, String prefix, StringBuilder log) {
+        if (S.size() < getArity()) throw new RuntimeException("operator " + op + " requires " + getArity() + " operands");
         Expression b = S.pop();
         if (!(b.is(Type.alphabetLetter) || b.is(Type.word) || b.is(Type.arithmetic) || b.is(Type.variable) || b.is(Type.numberLiteral)))
-            throw new Exception("operator " + op + " cannot be applied to the operand " + b + " of type " + b.getType());
+            throw new RuntimeException("operator " + op + " cannot be applied to the operand " + b + " of type " + b.getType());
 
         if (op.equals("_")) {
             if (b.is(Type.numberLiteral)) {
@@ -90,7 +90,7 @@ public class ArithmeticOperator extends Operator {
 
         Expression a = S.pop();
         if (!(a.is(Type.alphabetLetter) || a.is(Type.word) || a.is(Type.arithmetic) || a.is(Type.variable) || a.is(Type.numberLiteral)))
-            throw new Exception("operator " + op + " cannot be applied to the operand " + a + " of type " + a.getType());
+            throw new RuntimeException("operator " + op + " cannot be applied to the operand " + a + " of type " + a.getType());
 
         if (a.is(Type.word) && b.is(Type.word)) {
             a.W = AutomatonLogicalOps.applyOperator(a.W, b.W, op, print, prefix, log);

@@ -195,7 +195,7 @@ public class Automaton {
     public int maxNeeded;
 
     /* Minimization algorithm */
-    void minimize_valmari(List<Int2IntMap> newMemD, boolean print, String prefix, StringBuilder log) throws Exception {
+    void minimize_valmari(List<Int2IntMap> newMemD, boolean print, String prefix, StringBuilder log) {
         IntSet qqq = new IntOpenHashSet();
         qqq.add(q0);
         newMemD = subsetConstruction(newMemD, qqq, print, prefix, log);
@@ -260,9 +260,9 @@ public class Automaton {
      *
      * @throws Exception
      */
-    public Automaton(String regularExpression, List<Integer> alphabet) throws Exception {
+    public Automaton(String regularExpression, List<Integer> alphabet) {
         this();
-        if (alphabet == null || alphabet.isEmpty()) throw new Exception("empty alphabet is not accepted");
+        if (alphabet == null || alphabet.isEmpty()) throw new RuntimeException("empty alphabet is not accepted");
         long timeBefore = System.currentTimeMillis();
         alphabet = new ArrayList<>(alphabet);
         NS.add(null);
@@ -273,7 +273,7 @@ public class Automaton {
         String intersectingRegExp = "[";
         for (int x : alphabet) {
             if (x < 0 || x > 9) {
-                throw new Exception("the input alphabet of an automaton generated from a regular expression must be a subset of {0,1,...,9}");
+                throw new RuntimeException("the input alphabet of an automaton generated from a regular expression must be a subset of {0,1,...,9}");
             }
             intersectingRegExp += x;
         }
@@ -317,18 +317,18 @@ public class Automaton {
     public Automaton(
             String regularExpression,
             List<Integer> alphabet,
-            NumberSystem numSys) throws Exception {
+            NumberSystem numSys) {
         this(regularExpression, alphabet);
         NS.set(0, numSys);
     }
 
     // This handles the generalised case of vectors such as "[0,1]*[0,0][0,1]"
-    public Automaton(String regularExpression, List<List<Integer>> alphabet, Integer alphabetSize) throws Exception {
+    public Automaton(String regularExpression, List<List<Integer>> alphabet, Integer alphabetSize) {
 
         this();
 
         if (alphabetSize > ((1 << Character.SIZE) - 1)) {
-            throw new Exception("size of input alphabet exceeds the limit of " + ((1 << Character.SIZE) - 1));
+            throw new RuntimeException("size of input alphabet exceeds the limit of " + ((1 << Character.SIZE) - 1));
         }
         long timeBefore = System.currentTimeMillis();
         String intersectingRegExp = "[";
@@ -363,7 +363,7 @@ public class Automaton {
      * @param address
      * @throws Exception
      */
-    public Automaton(String address) throws Exception {
+    public Automaton(String address) {
         this();
         final String REGEXP_FOR_WHITESPACE = "^\\s*$";
 
@@ -393,7 +393,7 @@ public class Automaton {
                         flag = ParseMethods.parseAlphabetDeclaration(line, A, NS);
                     } catch (Exception e) {
                         in.close();
-                        throw new Exception(
+                        throw new RuntimeException(
                                 e.getMessage() + System.lineSeparator() +
                                         "\t:line " + lineNumber + " of file " + address);
                     }
@@ -403,7 +403,7 @@ public class Automaton {
                             if (NS.get(i) != null &&
                                     (!A.get(i).contains(0) || !A.get(i).contains(1))) {
                                 in.close();
-                                throw new Exception(
+                                throw new RuntimeException(
                                         "The " + (i + 1) + "th input of type arithmetic " +
                                                 "of the automaton declared in file " + address +
                                                 " requires 0 and 1 in its input alphabet: line " +
@@ -416,7 +416,7 @@ public class Automaton {
                         break;
                     } else {
                         in.close();
-                        throw new Exception(
+                        throw new RuntimeException(
                                 "Undefined statement: line " +
                                         lineNumber + " of file " + address);
                     }
@@ -459,14 +459,14 @@ public class Automaton {
                     setOfDestinationStates.addAll(dest);
                     if (currentState == -1) {
                         in.close();
-                        throw new Exception(
+                        throw new RuntimeException(
                                 "Must declare a state before declaring a list of transitions: line " +
                                         lineNumber + " of file " + address);
                     }
 
                     if (input.size() != A.size()) {
                         in.close();
-                        throw new Exception("This automaton requires a " + A.size() +
+                        throw new RuntimeException("This automaton requires a " + A.size() +
                                 "-tuple as input: line " + lineNumber + " of file " + address);
                     }
                     List<List<Integer>> inputs = expandWildcard(this.A, input);
@@ -479,13 +479,13 @@ public class Automaton {
                     dest = new IntArrayList();
                 } else {
                     in.close();
-                    throw new Exception("Undefined statement: line " + lineNumber + " of file " + address);
+                    throw new RuntimeException("Undefined statement: line " + lineNumber + " of file " + address);
                 }
             }
             in.close();
             for (int q : setOfDestinationStates) {
                 if (!state_output.containsKey(q)) {
-                    throw new Exception(
+                    throw new RuntimeException(
                             "State " + q + " is used but never declared anywhere in file: " + address);
                 }
             }
@@ -496,7 +496,7 @@ public class Automaton {
             }
         } catch (IOException e) {
             e.printStackTrace();
-            throw new Exception("File does not exist: " + address);
+            throw new RuntimeException("File does not exist: " + address);
         }
     }
 
@@ -538,7 +538,7 @@ public class Automaton {
     }
 
 
-    public boolean equals(Automaton M) throws Exception {
+    public boolean equals(Automaton M) {
         if (M == null) return false;
         if (TRUE_FALSE_AUTOMATON != M.TRUE_FALSE_AUTOMATON) return false;
         if (TRUE_FALSE_AUTOMATON && M.TRUE_FALSE_AUTOMATON) {
@@ -561,7 +561,7 @@ public class Automaton {
      * @return The union/intersection of all automata in automataNames and this automaton
      * @throws Exception
      */
-    public Automaton unionOrIntersect(List<String> automataNames, String op, boolean print, String prefix, StringBuilder log) throws Exception {
+    public Automaton unionOrIntersect(List<String> automataNames, String op, boolean print, String prefix, StringBuilder log) {
         Automaton first = this.clone();
 
         for (String automataName : automataNames) {
@@ -587,7 +587,7 @@ public class Automaton {
                 }
             }
             if (differingNS) {
-                throw new Exception("Automata to be unioned must have the same number system(s).");
+                throw new RuntimeException("Automata to be unioned must have the same number system(s).");
             }
 
             // crossProduct requires labelling so we make an arbitrary labelling and use it for both: this is valid since
@@ -600,7 +600,7 @@ public class Automaton {
             } else if (op.equals("intersect")) {
                 first = AutomatonLogicalOps.and(first, N, print, prefix, log);
             } else {
-                throw new Exception("Internal union/intersect error");
+                throw new RuntimeException("Internal union/intersect error");
             }
 
 
@@ -614,7 +614,7 @@ public class Automaton {
         return first;
     }
 
-    public Automaton combine(List<String> automataNames, IntList outputs, boolean print, String prefix, StringBuilder log) throws Exception {
+    public Automaton combine(List<String> automataNames, IntList outputs, boolean print, String prefix, StringBuilder log) {
         Queue<Automaton> subautomata = new LinkedList<>();
 
         for (String name : automataNames) {
@@ -625,7 +625,7 @@ public class Automaton {
     }
 
     // For use in the "combine" command.
-    public void canonizeAndApplyAllRepresentationsWithOutput(boolean print, String prefix, StringBuilder log) throws Exception {
+    public void canonizeAndApplyAllRepresentationsWithOutput(boolean print, String prefix, StringBuilder log) {
         this.canonized = false;
         this.canonize();
         this.applyAllRepresentationsWithOutput(print, prefix, log);
@@ -660,7 +660,7 @@ public class Automaton {
      * then recombining. It follows that if the uncombined automata are minimal, then the combined automata is also minimal
      * @throws Exception
      */
-    public Automaton minimizeWithOutput(boolean print, String prefix, StringBuilder log) throws Exception {
+    public Automaton minimizeWithOutput(boolean print, String prefix, StringBuilder log) {
         IntList outputs = new IntArrayList(O);
         UtilityMethods.removeDuplicates(outputs);
         List<Automaton> subautomata = uncombine(outputs);
@@ -674,12 +674,12 @@ public class Automaton {
         return N;
     }
 
-    public void minimizeSelfWithOutput(boolean print, String prefix, StringBuilder log) throws Exception {
+    public void minimizeSelfWithOutput(boolean print, String prefix, StringBuilder log) {
         Automaton N = minimizeWithOutput(print, prefix, log);
         copy(N);
     }
 
-    public void normalizeNumberSystems(boolean print, String prefix, StringBuilder log) throws Exception {
+    public void normalizeNumberSystems(boolean print, String prefix, StringBuilder log) {
         // set all the number systems to be null.
         boolean switchNS = false;
         List<NumberSystem> numberSystems = new ArrayList<>();
@@ -704,7 +704,7 @@ public class Automaton {
 
     }
 
-    public Automaton star(boolean print, String prefix, StringBuilder log) throws Exception {
+    public Automaton star(boolean print, String prefix, StringBuilder log) {
         long timeBefore = System.currentTimeMillis();
         if (print) {
             String msg = prefix + "star: " + Q + " state automaton";
@@ -759,7 +759,7 @@ public class Automaton {
     }
 
     // concatenate
-    public Automaton concat(List<String> automataNames, boolean print, String prefix, StringBuilder log) throws Exception {
+    public Automaton concat(List<String> automataNames, boolean print, String prefix, StringBuilder log) {
         Automaton first = this.clone();
 
         for (String automataName : automataNames) {
@@ -778,7 +778,7 @@ public class Automaton {
         return first;
     }
 
-    public Automaton concat(Automaton other, boolean print, String prefix, StringBuilder log) throws Exception {
+    public Automaton concat(Automaton other, boolean print, String prefix, StringBuilder log) {
         long timeBefore = System.currentTimeMillis();
         if (print) {
             String msg = prefix + "concat: " + Q + " state automaton with " + other.Q + " state automaton";
@@ -805,7 +805,7 @@ public class Automaton {
             }
         }
         if (differingNS) {
-            throw new Exception("Automata to be concatenated must have the same number system(s).");
+            throw new RuntimeException("Automata to be concatenated must have the same number system(s).");
         }
 
         Automaton N = clone();
@@ -860,13 +860,13 @@ public class Automaton {
     }
 
 
-    public void setAlphabet(boolean isDFAO, List<NumberSystem> numberSystems, List<List<Integer>> alphabet, boolean print, String prefix, StringBuilder log) throws Exception {
+    public void setAlphabet(boolean isDFAO, List<NumberSystem> numberSystems, List<List<Integer>> alphabet, boolean print, String prefix, StringBuilder log) {
 
         if (alphabet.size() != A.size()) {
-            throw new Exception("The number of alphabets must match the number of alphabets in the input automaton.");
+            throw new RuntimeException("The number of alphabets must match the number of alphabets in the input automaton.");
         }
         if (alphabet.size() != numberSystems.size()) {
-            throw new Exception("The number of alphabets must match the number of number systems.");
+            throw new RuntimeException("The number of alphabets must match the number of number systems.");
         }
 
         long timeBefore = System.currentTimeMillis();
@@ -986,12 +986,12 @@ public class Automaton {
      * x' and y' are in the corresponding base -2 representations of x and -y.
      * @throws Exception
      */
-    public Automaton split(List<String> inputs, boolean print, String prefix, StringBuilder log) throws Exception {
+    public Automaton split(List<String> inputs, boolean print, String prefix, StringBuilder log) {
         if (alphabetSize == 0) {
-            throw new Exception("Cannot split automaton with no inputs.");
+            throw new RuntimeException("Cannot split automaton with no inputs.");
         }
         if (inputs.size() != A.size()) {
-            throw new Exception("Split automaton has incorrect number of inputs.");
+            throw new RuntimeException("Split automaton has incorrect number of inputs.");
         }
 
         Automaton M = clone();
@@ -1004,7 +1004,7 @@ public class Automaton {
         for (int i = 0; i < inputs.size(); i++) {
             if (!inputs.get(i).equals("")) {
                 if (NS.get(i) == null)
-                    throw new Exception("Number system for input " + i + " must be defined.");
+                    throw new RuntimeException("Number system for input " + i + " must be defined.");
                 NumberSystem negativeNumberSystem;
                 if (NS.get(i).is_neg) {
                     negativeNumberSystem = NS.get(i);
@@ -1012,12 +1012,12 @@ public class Automaton {
                     try {
                         negativeNumberSystem = NS.get(i).negative_number_system();
                     } catch (Exception e) {
-                        throw new Exception("Negative number system for " + NS.get(i) + " must be defined");
+                        throw new RuntimeException("Negative number system for " + NS.get(i) + " must be defined");
                     }
                 }
                 negativeNumberSystem.setBaseChange();
                 if (negativeNumberSystem.baseChange == null) {
-                    throw new Exception("Number systems " + NS.get(i) + " and " + negativeNumberSystem + " cannot be compared.");
+                    throw new RuntimeException("Number systems " + NS.get(i) + " and " + negativeNumberSystem + " cannot be compared.");
                 }
 
                 Automaton baseChange = negativeNumberSystem.baseChange.clone();
@@ -1052,12 +1052,12 @@ public class Automaton {
      * base 2 representation, then the automaton outputs 0.
      * @throws Exception
      */
-    public Automaton reverseSplit(List<String> inputs, boolean print, String prefix, StringBuilder log) throws Exception {
+    public Automaton reverseSplit(List<String> inputs, boolean print, String prefix, StringBuilder log) {
         if (alphabetSize == 0) {
-            throw new Exception("Cannot reverse split automaton with no inputs.");
+            throw new RuntimeException("Cannot reverse split automaton with no inputs.");
         }
         if (inputs.size() != A.size()) {
-            throw new Exception("Split automaton has incorrect number of inputs.");
+            throw new RuntimeException("Split automaton has incorrect number of inputs.");
         }
 
         Automaton M = clone();
@@ -1071,7 +1071,7 @@ public class Automaton {
         for (int i = 0; i < inputs.size(); i++) {
             if (!inputs.get(i).equals("")) {
                 if (NS.get(i) == null)
-                    throw new Exception("Number system for input " + i + " must be defined.");
+                    throw new RuntimeException("Number system for input " + i + " must be defined.");
                 NumberSystem negativeNumberSystem;
                 if (NS.get(i).is_neg) {
                     negativeNumberSystem = NS.get(i);
@@ -1079,12 +1079,12 @@ public class Automaton {
                     try {
                         negativeNumberSystem = NS.get(i).negative_number_system();
                     } catch (Exception e) {
-                        throw new Exception("Negative number system for " + NS.get(i) + " must be defined");
+                        throw new RuntimeException("Negative number system for " + NS.get(i) + " must be defined");
                     }
                 }
                 negativeNumberSystem.setBaseChange();
                 if (negativeNumberSystem.baseChange == null) {
-                    throw new Exception("Number systems " + NS.get(i) + " and " + negativeNumberSystem + " cannot be compared.");
+                    throw new RuntimeException("Number systems " + NS.get(i) + " and " + negativeNumberSystem + " cannot be compared.");
                 }
 
                 Automaton baseChange = negativeNumberSystem.baseChange.clone();
@@ -1116,7 +1116,7 @@ public class Automaton {
      * Then on input x, returned automaton should output the first non-zero value of [ M1(x), M2(x), M3(x) ].
      * @throws Exception
      */
-    public Automaton join(Queue<Automaton> subautomata, boolean print, String prefix, StringBuilder log) throws Exception {
+    public Automaton join(Queue<Automaton> subautomata, boolean print, String prefix, StringBuilder log) {
         Automaton first = this.clone();
 
         while (!subautomata.isEmpty()) {
@@ -1277,7 +1277,7 @@ public class Automaton {
         return false;
     }
 
-    public void applyAllRepresentations() throws Exception {
+    public void applyAllRepresentations() {
         boolean flag = false;
         if (label == null || label.size() != A.size()) {
             flag = true;
@@ -1298,7 +1298,7 @@ public class Automaton {
         copy(K);
     }
 
-    public void applyAllRepresentationsWithOutput(boolean print, String prefix, StringBuilder log) throws Exception {
+    public void applyAllRepresentationsWithOutput(boolean print, String prefix, StringBuilder log) {
         // this can be a word automaton
         boolean flag = false;
         if (label == null || label.size() != A.size()) {
@@ -1420,7 +1420,7 @@ public class Automaton {
      * @return
      * @throws Exception
      */
-    public void applyOperator(String operator, int o, boolean print, String prefix, StringBuilder log) throws Exception {
+    public void applyOperator(String operator, int o, boolean print, String prefix, StringBuilder log) {
         long timeBefore = System.currentTimeMillis();
         if (print) {
             String msg = prefix + "applying operator (" + operator + "):" + Q + " states";
@@ -1466,7 +1466,7 @@ public class Automaton {
      * @return
      * @throws Exception
      */
-    public void applyOperator(int o, String operator, boolean print, String prefix, StringBuilder log) throws Exception {
+    public void applyOperator(int o, String operator, boolean print, String prefix, StringBuilder log) {
         long timeBefore = System.currentTimeMillis();
         if (print) {
             String msg = prefix + "applying operator (" + operator + "):" + Q + " states";
@@ -1507,7 +1507,7 @@ public class Automaton {
      *
      * @throws Exception
      */
-    public void minimize(List<Int2IntMap> newMemD, boolean print, String prefix, StringBuilder log) throws Exception {
+    public void minimize(List<Int2IntMap> newMemD, boolean print, String prefix, StringBuilder log) {
         long timeBefore = System.currentTimeMillis();
         if (print) {
             String msg = prefix + "Minimizing: " + Q + " states.";
@@ -1571,7 +1571,7 @@ public class Automaton {
      *
      * @param M is a deterministic automaton without output.
      */
-    private void setThisAutomatonToRepresent(dk.brics.automaton.Automaton M) throws Exception {
+    private void setThisAutomatonToRepresent(dk.brics.automaton.Automaton M) {
         if (!M.isDeterministic())
             throw ExceptionHelper.bricsNFA();
         List<State> setOfStates = new ArrayList<>(M.getStates());
@@ -1603,7 +1603,6 @@ public class Automaton {
      * It is also used in write() method.
      * Note that before we try to canonize, we check if this automaton is already canonized.
      *
-     * @throws Exception
      */
     public void canonize() {
         if (canonized) return;
@@ -1852,7 +1851,7 @@ public class Automaton {
         labelSorted = false;
     }
 
-    public void bind(String a, String b) throws Exception {
+    public void bind(String a, String b) {
         if (TRUE_FALSE_AUTOMATON || A.size() != 2) throw ExceptionHelper.invalidBind();
         if (label == null || !label.isEmpty()) label = new ArrayList<>();
         label.add(a);
@@ -1862,7 +1861,7 @@ public class Automaton {
         AutomatonLogicalOps.removeSameInputs(this, 0);
     }
 
-    public void bind(String a, String b, String c) throws Exception {
+    public void bind(String a, String b, String c) {
         if (TRUE_FALSE_AUTOMATON || A.size() != 3) throw ExceptionHelper.invalidBind();
         if (label == null || !label.isEmpty()) label = new ArrayList<>();
         label.add(a);
@@ -1873,7 +1872,7 @@ public class Automaton {
         AutomatonLogicalOps.removeSameInputs(this, 0);
     }
 
-    public void bind(List<String> names) throws Exception {
+    public void bind(List<String> names) {
         if (TRUE_FALSE_AUTOMATON || A.size() != names.size()) throw ExceptionHelper.invalidBind();
         if (label == null || !label.isEmpty()) label = new ArrayList<>();
         this.label.addAll(names);
@@ -1907,7 +1906,7 @@ public class Automaton {
         labelSorted = false;
     }
 
-    protected boolean isEmpty() throws Exception {
+    protected boolean isEmpty() {
         if (TRUE_FALSE_AUTOMATON) {
             return !TRUE_AUTOMATON;
         }

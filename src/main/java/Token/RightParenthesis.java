@@ -26,14 +26,14 @@ import java.util.Stack;
 
 public class RightParenthesis extends Operator {
 
-    public void act(Stack<Expression> S, boolean print, String prefix, StringBuilder log) throws Exception {
+    public void act(Stack<Expression> S, boolean print, String prefix, StringBuilder log) {
     }
 
     public RightParenthesis(int position) {
         setPositionInPredicate(position);
     }
 
-    public void put(List<Token> postOrder, Stack<Operator> S) throws Exception {
+    public void put(List<Token> postOrder, Stack<Operator> S) {
         while (!S.isEmpty()) {
             if (!S.peek().isLeftParenthesis()) {
                 postOrder.add(S.pop());
@@ -42,6 +42,6 @@ public class RightParenthesis extends Operator {
                 return;
             }
         }
-        throw new Exception("unbalanced parenthesis: at char " + getPositionInPredicate());
+        throw new RuntimeException("unbalanced parenthesis: at char " + getPositionInPredicate());
     }
 }

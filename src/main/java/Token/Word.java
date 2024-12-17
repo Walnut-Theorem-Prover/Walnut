@@ -31,21 +31,21 @@ public class Word extends Token {
     Automaton W;
     String name;
 
-    public Word(int position, String name, Automaton W, int number_of_indices) throws Exception {
+    public Word(int position, String name, Automaton W, int number_of_indices) {
         this.name = name;
         setPositionInPredicate(position);
         this.W = W;
         setArity(number_of_indices);
         if (W.getArity() != getArity())
-            throw new Exception("word " + name + " requires " + W.getArity() + " indices: char at " + getPositionInPredicate());
+            throw new RuntimeException("word " + name + " requires " + W.getArity() + " indices: char at " + getPositionInPredicate());
     }
 
     public String toString() {
         return name;
     }
 
-    public void act(Stack<Expression> S, boolean print, String prefix, StringBuilder log) throws Exception {
-        if (S.size() < getArity()) throw new Exception("word " + name + " requires " + getArity() + " indices");
+    public void act(Stack<Expression> S, boolean print, String prefix, StringBuilder log) {
+        if (S.size() < getArity()) throw new RuntimeException("word " + name + " requires " + getArity() + " indices");
         Stack<Expression> temp = new Stack<>();
         for (int i = 1; i <= getArity(); i++) {
             temp.push(S.pop());
@@ -65,7 +65,7 @@ public class Word extends Token {
             /**
              * type checking
              if(W.NS.get(i) == null && (currentIndex.is(Type.arithmetic) || currentIndex.is(Type.numberLiteral)))
-             throw new Exception("index "+ (i+1) +" of word " + name + " cannot be of type arithmetic");	*/
+             throw new RuntimeException("index "+ (i+1) +" of word " + name + " cannot be of type arithmetic");	*/
 
             switch (currentIndex.T) {
                 case variable:
@@ -87,10 +87,10 @@ public class Word extends Token {
                     break;
                 case automaton:
                     if (currentIndex.M.getArity() != 1) {
-                        throw new Exception("index " + (i + 1) + " of word " + name + " cannot be an automaton with != 1 inputs");
+                        throw new RuntimeException("index " + (i + 1) + " of word " + name + " cannot be an automaton with != 1 inputs");
                     }
                     if (!currentIndex.M.isBound()) {
-                        throw new Exception("index " + (i + 1) + " of word " + name + " cannot be an automaton with unlabeled input");
+                        throw new RuntimeException("index " + (i + 1) + " of word " + name + " cannot be an automaton with unlabeled input");
                     }
                     M = AutomatonLogicalOps.and(M, currentIndex.M, print, prefix + " ", log);
                     identifiers.add(currentIndex.M.getLabel().get(0));
@@ -104,7 +104,7 @@ public class Word extends Token {
                     M = AutomatonLogicalOps.and(M, constant, print, prefix + " ", log);
                     break;
                 default:
-                    throw new Exception("index " + (i + 1) + " of word " + name + " cannot be of type " + currentIndex.getType());
+                    throw new RuntimeException("index " + (i + 1) + " of word " + name + " cannot be of type " + currentIndex.getType());
             }
         }
         W.bind(identifiers);

@@ -23,7 +23,10 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectRBTreeMap;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -60,7 +63,7 @@ public class Morphism {
 
     // The syntax for declaring a morphism in the command line is identical to that
     // of a saved morphism file, so we reuse this constructor
-    public Morphism(String name, String mapString) throws Exception {
+    public Morphism(String name, String mapString) {
         this.name = name;
         this.mapping = ParseMethods.parseMorphism(mapString);
         this.range = new HashSet<>();
@@ -70,12 +73,12 @@ public class Morphism {
     }
 
     // Reads the entirety of a file and passes this into the more general constructor
-    public Morphism(String address) throws Exception {
+    public Morphism(String address) throws IOException {
         this("", new String(Files.readAllBytes(Paths.get(address)), StandardCharsets.UTF_8));
     }
 
-    public void write(String address) throws Exception {
-        PrintWriter out = new PrintWriter(address, "UTF-8");
+    public void write(String address) throws IOException {
+        PrintWriter out = new PrintWriter(address, StandardCharsets.UTF_8);
         for (Integer x : mapping.keySet()) {
             out.write(x.toString() + " -> ");
             for (Integer y : mapping.get(x)) {
@@ -90,7 +93,7 @@ public class Morphism {
         out.close();
     }
 
-    public Automaton toWordAutomaton() throws Exception {
+    public Automaton toWordAutomaton() {
         int maxImageLength = 0;
         for (int x : mapping.keySet()) {
             int length = mapping.get(x).size();
@@ -105,7 +108,7 @@ public class Morphism {
         for (int x : mapping.keySet()) {
             for (int y : mapping.get(x)) {
                 if (y < 0) {
-                    throw new Exception("Cannot promote a morphism with negative values.");
+                    throw new RuntimeException("Cannot promote a morphism with negative values.");
                 } else if (y > maxEntry) {
                     maxEntry = y;
                 }

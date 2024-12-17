@@ -32,7 +32,7 @@ import Main.UtilityMethods;
 public class LogicalOperator extends Operator {
     int number_of_quantified_variables;
 
-    public LogicalOperator(int position, String op) throws Exception {
+    public LogicalOperator(int position, String op) {
         this.op = op;
         setPriority();
 
@@ -41,7 +41,7 @@ public class LogicalOperator extends Operator {
         setPositionInPredicate(position);
     }
 
-    public LogicalOperator(int position, String op, int number_of_quantified_variables) throws Exception {
+    public LogicalOperator(int position, String op, int number_of_quantified_variables) {
         this.number_of_quantified_variables = number_of_quantified_variables;
         this.op = op;
 
@@ -50,8 +50,8 @@ public class LogicalOperator extends Operator {
         setPositionInPredicate(position);
     }
 
-    public void act(Stack<Expression> S, boolean print, String prefix, StringBuilder log) throws Exception {
-        if (S.size() < getArity()) throw new Exception("operator " + op + " requires " + getArity() + " operands");
+    public void act(Stack<Expression> S, boolean print, String prefix, StringBuilder log) {
+        if (S.size() < getArity()) throw new RuntimeException("operator " + op + " requires " + getArity() + " operands");
 
         if (this.isNegation(op) || op.equals("`")) {
             actNegationOrReverse(S, print, prefix, log);
@@ -95,11 +95,11 @@ public class LogicalOperator extends Operator {
             }
             return;
         }
-        throw new Exception("operator " + op + " cannot be applied to operands " + a + " and " + b + " of types " + a.getType() + " and " + b.getType() + " respectively");
+        throw new RuntimeException("operator " + op + " cannot be applied to operands " + a + " and " + b + " of types " + a.getType() + " and " + b.getType() + " respectively");
 
     }
 
-    private void actNegationOrReverse(Stack<Expression> S, boolean print, String prefix, StringBuilder log) throws Exception {
+    private void actNegationOrReverse(Stack<Expression> S, boolean print, String prefix, StringBuilder log) {
         Expression a = S.pop();
         if (a.is(Type.automaton)) {
             String preStep = prefix + "computing " + op + a;
@@ -119,10 +119,10 @@ public class LogicalOperator extends Operator {
             }
             return;
         }
-        throw new Exception("operator " + op + " cannot be applied to the operand " + a + " of type " + a.getType());
+        throw new RuntimeException("operator " + op + " cannot be applied to the operand " + a + " of type " + a.getType());
     }
 
-    private void actQuantifier(Stack<Expression> S, boolean print, String prefix, StringBuilder log) throws Exception {
+    private void actQuantifier(Stack<Expression> S, boolean print, String prefix, StringBuilder log) {
         String stringValue = "(" + op + " ";
         Stack<Expression> temp = new Stack<Expression>();
         List<Expression> operands = new ArrayList<>();
@@ -144,13 +144,13 @@ public class LogicalOperator extends Operator {
                 else
                     stringValue += ", " + operands.get(i) + " ";
                 if (!operands.get(i).is(Type.variable))
-                    throw new Exception("operator " + op + " requires a list of " + number_of_quantified_variables + " variables");
+                    throw new RuntimeException("operator " + op + " requires a list of " + number_of_quantified_variables + " variables");
 
                 list_of_identifiers_to_quantify.add(operands.get(i).identifier);
             } else if (i == getArity() - 1) {
                 stringValue += operands.get(i);
                 if (!operands.get(i).is(Type.automaton))
-                    throw new Exception("the last operand of " + op + " can only be of type " + Type.automaton);
+                    throw new RuntimeException("the last operand of " + op + " can only be of type " + Type.automaton);
                 M = operands.get(i).M;
                 if (op.equals("E")) {
                     AutomatonLogicalOps.quantify(M, new HashSet<>(list_of_identifiers_to_quantify), print, prefix + " ", log);

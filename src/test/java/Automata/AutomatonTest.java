@@ -19,7 +19,7 @@ class AutomatonTest {
 
         }
         catch (Exception ex) {
-            // Hack because everything throws exceptions
+            // Hack because everything s
             Assertions.fail(ex);
         }
 
@@ -43,7 +43,7 @@ class AutomatonTest {
 
         }
         catch (Exception ex) {
-            // Hack because everything throws exceptions
+            // Hack because everything s
             Assertions.fail(ex);
         }
     }
@@ -85,7 +85,7 @@ class AutomatonTest {
 
         }
         catch (Exception ex) {
-            // Hack because everything throws exceptions
+            // Hack because everything s
             Assertions.fail(ex);
         }
     }
@@ -96,7 +96,7 @@ class AutomatonTest {
         try {
             a = new Automaton("src/test/resources/LUCAS.txt");
         } catch (Exception ex) {
-            // Hack because everything throws exceptions
+            // Hack because everything s
             Assertions.fail(ex);
         }
     }

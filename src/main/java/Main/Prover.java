@@ -229,7 +229,7 @@ public class Prover {
      * @param args
      * @throws Exception
      */
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) {
         UtilityMethods.setPaths();
 
         // to run test cases, run the following lines:
@@ -350,7 +350,7 @@ public class Prover {
         return true;
     }
 
-    public static boolean dispatch(String s) throws Exception {
+    public static boolean dispatch(String s) throws IOException {
         if (s.matches(REGEXP_FOR_EMPTY_COMMAND)) {
             // If the command is just ; or : do nothing.
             return true;
@@ -410,7 +410,7 @@ public class Prover {
         return true;
     }
 
-    public static TestCase dispatchForIntegrationTest(String s) throws Exception {
+    public static TestCase dispatchForIntegrationTest(String s) throws IOException {
         if (s.matches(REGEXP_FOR_EMPTY_COMMAND)) {//if the command is just ; or : do nothing
             return null;
         }
@@ -513,9 +513,8 @@ public class Prover {
      *
      * @param s
      * @return
-     * @throws Exception
      */
-    public static boolean loadCommand(String s) throws Exception {
+    public static boolean loadCommand(String s) {
         Matcher m = PATTERN_FOR_load_COMMAND.matcher(s);
         if (!m.find()) throw ExceptionHelper.invalidCommandUse("load");
         try {
@@ -536,8 +535,8 @@ public class Prover {
         return true;
     }
 
-    public static TestCase eval_def_commands(String s) throws Exception {
-        Automaton M = null;
+    public static TestCase eval_def_commands(String s) {
+        Automaton M;
 
         Matcher m = PATTERN_FOR_eval_def_COMMANDS.matcher(s);
         if (!m.find()) {
@@ -600,7 +599,7 @@ public class Prover {
         return null;
     }
 
-    public static TestCase regCommand(String s) throws Exception {
+    public static TestCase regCommand(String s) {
         Matcher m = PATTERN_FOR_reg_COMMAND.matcher(s);
         if (!m.find()) {
             throw ExceptionHelper.invalidCommandUse("reg");
@@ -617,7 +616,7 @@ public class Prover {
                 ns = Predicate.number_system_Hash.get(base);
                 numSys.add(Predicate.number_system_Hash.get(base));
             } catch (Exception e) {
-                throw new Exception("number system " + base + " does not exist: char at " + m.start(R_NUMBER_SYSTEM) + System.lineSeparator() + "\t:" + e.getMessage());
+                throw new RuntimeException("number system " + base + " does not exist: char at " + m.start(R_NUMBER_SYSTEM) + System.lineSeparator() + "\t:" + e.getMessage());
             }
             alphabets.add(ns.getAlphabet());
         }
@@ -635,7 +634,7 @@ public class Prover {
                     ns = Predicate.number_system_Hash.get(base);
                     numSys.add(Predicate.number_system_Hash.get(base));
                 } catch (Exception e) {
-                    throw new Exception("number system " + base + " does not exist: char at " + m.start(R_NUMBER_SYSTEM) + System.lineSeparator() + "\t:" + e.getMessage());
+                    throw new RuntimeException("number system " + base + " does not exist: char at " + m.start(R_NUMBER_SYSTEM) + System.lineSeparator() + "\t:" + e.getMessage());
                 }
                 alphabets.add(ns.getAlphabet());
             } else if (m1.group(R_SET) != null) {
@@ -670,7 +669,7 @@ public class Prover {
                 L.add(UtilityMethods.parseInt(m3.group()));
             }
             if (L.size() != M.A.size()) {
-                throw new Exception("Mismatch between vector length in regex and specified number of inputs to automaton");
+                throw new RuntimeException("Mismatch between vector length in regex and specified number of inputs to automaton");
             }
             int vectorEncoding = M.encode(L);
             // dk.brics regex has several reserved characters - we cannot use these or the method that generates the automaton will
@@ -719,7 +718,7 @@ public class Prover {
         return new TestCase(s, R, "", "", "");
     }
 
-    public static TestCase combineCommand(String s) throws Exception {
+    public static TestCase combineCommand(String s) {
         Matcher m = PATTERN_FOR_combine_COMMAND.matcher(s);
         if (!m.find()) {
             throw ExceptionHelper.invalidCommandUse("combine");
@@ -752,7 +751,7 @@ public class Prover {
         }
 
         if (automataNames.isEmpty()) {
-            throw new Exception("Combine requires at least one automaton as input.");
+            throw new RuntimeException("Combine requires at least one automaton as input.");
         }
         Automaton first = new Automaton(UtilityMethods.get_address_for_automata_library() + automataNames.get(0) + ".txt");
         automataNames.remove(0);
@@ -766,7 +765,7 @@ public class Prover {
         return new TestCase(s, C, "", "", "");
     }
 
-    public static void morphismCommand(String s) throws Exception {
+    public static void morphismCommand(String s) throws IOException {
         Matcher m = PATTERN_FOR_morphism_COMMAND.matcher(s);
         if (!m.find()) {
             throw ExceptionHelper.invalidCommandUse("morphism");
@@ -782,7 +781,7 @@ public class Prover {
         M.write(UtilityMethods.get_address_for_morphism_library() + name + ".txt");
     }
 
-    public static TestCase promoteCommand(String s) throws Exception {
+    public static TestCase promoteCommand(String s) throws IOException {
         Matcher m = PATTERN_FOR_promote_COMMAND.matcher(s);
         if (!m.find()) {
             throw ExceptionHelper.invalidCommandUse("prmote");
@@ -796,14 +795,14 @@ public class Prover {
         return new TestCase(s, P, "", "", "");
     }
 
-    public static TestCase imageCommand(String s) throws Exception {
+    public static TestCase imageCommand(String s) throws IOException {
         Matcher m = PATTERN_FOR_image_COMMAND.matcher(s);
         if (!m.find()) {
             throw ExceptionHelper.invalidCommandUse("image");
         }
         Morphism h = new Morphism(UtilityMethods.get_address_for_morphism_library() + m.group(GROUP_IMAGE_MORPHISM) + ".txt");
         if (!h.isUniform()) {
-            throw new Exception("A morphism applied to a word automaton must be uniform.");
+            throw new RuntimeException("A morphism applied to a word automaton must be uniform.");
         }
         String combineString = "combine " + m.group(GROUP_IMAGE_NEW_NAME);
 
@@ -830,7 +829,7 @@ public class Prover {
         return new TestCase(s, I, "", "", "");
     }
 
-    public static boolean infCommand(String s) throws Exception {
+    public static boolean infCommand(String s) {
         Matcher m = PATTERN_FOR_inf_COMMAND.matcher(s);
         if (!m.find()) {
             throw ExceptionHelper.invalidCommandUse("inf");
@@ -847,7 +846,7 @@ public class Prover {
         }
     }
 
-    public static TestCase splitCommand(String s) throws Exception {
+    public static TestCase splitCommand(String s) {
         Matcher m = PATTERN_FOR_split_COMMAND.matcher(s);
         if (!m.find()) {
             throw ExceptionHelper.invalidCommandUse("split");
@@ -865,7 +864,7 @@ public class Prover {
             M = new Automaton(addressForAutomaton);
             isDFAO = false;
         } else {
-            throw new Exception("Automaton " + m.group(GROUP_SPLIT_AUTOMATA) + " does not exist.");
+            throw new RuntimeException("Automaton " + m.group(GROUP_SPLIT_AUTOMATA) + " does not exist.");
         }
 
         boolean printSteps = m.group(GROUP_SPLIT_END).equals(":");
@@ -881,7 +880,7 @@ public class Prover {
             inputs.add(t);
         }
         if (!hasInput || inputs.isEmpty()) {
-            throw new Exception("Cannot split without inputs.");
+            throw new RuntimeException("Cannot split without inputs.");
         }
         IntList outputs = new IntArrayList(M.O);
         UtilityMethods.removeDuplicates(outputs);
@@ -903,7 +902,7 @@ public class Prover {
         return new TestCase(s, N, "", "", "");
     }
 
-    public static TestCase rsplitCommand(String s) throws Exception {
+    public static TestCase rsplitCommand(String s) {
         Matcher m = PATTERN_FOR_rsplit_COMMAND.matcher(s);
         if (!m.find()) {
             throw ExceptionHelper.invalidCommandUse("reverse split");
@@ -921,7 +920,7 @@ public class Prover {
             M = new Automaton(addressForAutomaton);
             isDFAO = false;
         } else {
-            throw new Exception("Automaton " + m.group(GROUP_RSPLIT_AUTOMATA) + " does not exist.");
+            throw new RuntimeException("Automaton " + m.group(GROUP_RSPLIT_AUTOMATA) + " does not exist.");
         }
 
         boolean printSteps = m.group(GROUP_RSPLIT_END).equals(":");
@@ -937,7 +936,7 @@ public class Prover {
             inputs.add(t);
         }
         if (!hasInput || inputs.isEmpty()) {
-            throw new Exception("Cannot split without inputs.");
+            throw new RuntimeException("Cannot split without inputs.");
         }
         IntList outputs = new IntArrayList(M.O);
         UtilityMethods.removeDuplicates(outputs);
@@ -959,7 +958,7 @@ public class Prover {
         return new TestCase(s, N, "", "", "");
     }
 
-    public static TestCase joinCommand(String s) throws Exception {
+    public static TestCase joinCommand(String s) {
         Matcher m = PATTERN_FOR_join_COMMAND.matcher(s);
         if (!m.find()) {
             throw ExceptionHelper.invalidCommandUse("join");
@@ -985,7 +984,7 @@ public class Prover {
             } else if ((new File(addressForAutomaton)).exists()) {
                 M = new Automaton(addressForAutomaton);
             } else {
-                throw new Exception("Automaton " + m.group(GROUP_RSPLIT_AUTOMATA) + " does not exist.");
+                throw new RuntimeException("Automaton " + m.group(GROUP_RSPLIT_AUTOMATA) + " does not exist.");
             }
 
             String automatonInputs = m1.group(GROUP_JOIN_AUTOMATON_INPUT);
@@ -996,7 +995,7 @@ public class Prover {
                 label.add(t);
             }
             if (label.size() != M.A.size()) {
-                throw new Exception("Number of inputs of word automata " + automatonName + " does not match number of inputs specified.");
+                throw new RuntimeException("Number of inputs of word automata " + automatonName + " does not match number of inputs specified.");
             }
             M.label = label;
             subautomata.add(M);
@@ -1014,13 +1013,13 @@ public class Prover {
         return new TestCase(s, N, "", "", "");
     }
 
-    public static void testCommand(String s) throws Exception {
+    public static void testCommand(String s) {
         Matcher m = PATTERN_FOR_test_COMMAND.matcher(s);
         if (!m.find()) {
             throw ExceptionHelper.invalidCommandUse("test");
         }
 
-        Integer needed = Integer.parseInt(m.group(GROUP_TEST_NUM));
+        int needed = Integer.parseInt(m.group(GROUP_TEST_NUM));
 
         // We find the first n inputs accepted by our automaton, lexicographically. If less than n inputs are accepted,
         // we output all that are.
@@ -1076,10 +1075,10 @@ public class Prover {
         }
     }
 
-    public static void ostCommand(String s) throws Exception {
+    public static void ostCommand(String s) {
         Matcher m = PATTERN_FOR_ost_COMMAND.matcher(s);
         if (!m.find()) {
-            throw new Exception("Invalid use of the ost command.");
+            throw new RuntimeException("Invalid use of the ost command.");
         }
 
         Ostrowski ostr = new Ostrowski(
@@ -1090,7 +1089,7 @@ public class Prover {
         ostr.createAdderAutomaton();
     }
 
-    public static TestCase transduceCommand(String s) throws Exception {
+    public static TestCase transduceCommand(String s) {
         try {
             Matcher m = PATTERN_FOR_transduce_COMMAND.matcher(s);
             if (!m.find()) {
@@ -1116,12 +1115,12 @@ public class Prover {
             return new TestCase(s, C, "", "", "");
         } catch (Exception e) {
             e.printStackTrace();
-            throw new Exception("Error transducing automaton");
+            throw new RuntimeException("Error transducing automaton");
         }
     }
 
 
-    public static TestCase reverseCommand(String s) throws Exception {
+    public static TestCase reverseCommand(String s) {
         try {
             Matcher m = PATTERN_FOR_reverse_COMMAND.matcher(s);
             if (!m.find()) {
@@ -1155,12 +1154,12 @@ public class Prover {
             return new TestCase(s, M, "", "", "");
         } catch (Exception e) {
             e.printStackTrace();
-            throw new Exception("Error reversing automaton.");
+            throw new RuntimeException("Error reversing automaton.");
         }
     }
 
 
-    public static TestCase minimizeCommand(String s) throws Exception {
+    public static TestCase minimizeCommand(String s) {
         try {
             Matcher m = PATTERN_FOR_minimize_COMMAND.matcher(s);
             if (!m.find()) {
@@ -1183,11 +1182,11 @@ public class Prover {
             return new TestCase(s, M, "", "", "");
         } catch (Exception e) {
             e.printStackTrace();
-            throw new Exception("Error minimizing word automaton.");
+            throw new RuntimeException("Error minimizing word automaton.");
         }
     }
 
-    public static TestCase convertCommand(String s) throws Exception {
+    public static TestCase convertCommand(String s) {
         try {
             Matcher m = PATTERN_FOR_convert_COMMAND.matcher(s);
             if (!m.find()) {
@@ -1196,7 +1195,7 @@ public class Prover {
 
             if (m.group(GROUP_CONVERT_NEW_DOLLAR_SIGN).equals("$")
                     && !m.group(GROUP_CONVERT_OLD_DOLLAR_SIGN).equals("$")) {
-                throw new Exception("Cannot convert a Word Automaton into a function");
+                throw new RuntimeException("Cannot convert a Word Automaton into a function");
             }
 
             boolean printSteps = m.group(GROUP_CONVERT_END).equals(":");
@@ -1225,11 +1224,11 @@ public class Prover {
             return new TestCase(s, M, "", "", "");
         } catch (Exception e) {
             e.printStackTrace();
-            throw new Exception("Error converting automaton.");
+            throw new RuntimeException("Error converting automaton.");
         }
     }
 
-    public static TestCase fixLeadZeroCommand(String s) throws Exception {
+    public static TestCase fixLeadZeroCommand(String s) {
         try {
             Matcher m = PATTERN_FOR_fixleadzero_COMMAND.matcher(s);
             if (!m.find()) {
@@ -1251,11 +1250,11 @@ public class Prover {
             return new TestCase(s, M, "", "", "");
         } catch (Exception e) {
             e.printStackTrace();
-            throw new Exception("Error fixing leading zeroes for automaton.");
+            throw new RuntimeException("Error fixing leading zeroes for automaton.");
         }
     }
 
-    public static TestCase fixTrailZeroCommand(String s) throws Exception {
+    public static TestCase fixTrailZeroCommand(String s) {
         try {
             Matcher m = PATTERN_FOR_fixtrailzero_COMMAND.matcher(s);
             if (!m.find()) {
@@ -1277,11 +1276,11 @@ public class Prover {
             return new TestCase(s, M, "", "", "");
         } catch (Exception e) {
             e.printStackTrace();
-            throw new Exception("Error fixing trailing zeroes for automaton.");
+            throw new RuntimeException("Error fixing trailing zeroes for automaton.");
         }
     }
 
-    public static TestCase alphabetCommand(String s) throws Exception {
+    public static TestCase alphabetCommand(String s) {
         try {
             Matcher m = PATTERN_FOR_alphabet_COMMAND.matcher(s);
             if (!m.find()) {
@@ -1289,7 +1288,7 @@ public class Prover {
             }
 
             if (m.group(GROUP_alphabet_LIST_OF_ALPHABETS) == null) {
-                throw new Exception("List of alphabets for alphabet command must not be empty.");
+                throw new RuntimeException("List of alphabets for alphabet command must not be empty.");
             }
 
             NumberSystem ns;
@@ -1326,7 +1325,7 @@ public class Prover {
                         ns = Predicate.number_system_Hash.get(base);
                         numSys.add(Predicate.number_system_Hash.get(base));
                     } catch (Exception e) {
-                        throw new Exception("number system " + base + " does not exist: char at " + m.start(R_NUMBER_SYSTEM) + System.lineSeparator() + "\t:" + e.getMessage());
+                        throw new RuntimeException("number system " + base + " does not exist: char at " + m.start(R_NUMBER_SYSTEM) + System.lineSeparator() + "\t:" + e.getMessage());
                     }
                     alphabets.add(ns.getAlphabet());
                 } else if (m1.group(R_SET) != null) {
@@ -1334,7 +1333,7 @@ public class Prover {
                     alphabets.add(alphabet);
                     numSys.add(null);
                 } else {
-                    throw new Exception("Alphabet at position " + counter + " not recognized in alphabet command");
+                    throw new RuntimeException("Alphabet at position " + counter + " not recognized in alphabet command");
                 }
                 counter += 1;
             }
@@ -1351,11 +1350,11 @@ public class Prover {
             return new TestCase(s, M, "", "", "");
         } catch (Exception e) {
             e.printStackTrace();
-            throw new Exception("Error using the alphabet command.");
+            throw new RuntimeException("Error using the alphabet command.");
         }
     }
 
-    public static TestCase unionCommand(String s) throws Exception {
+    public static TestCase unionCommand(String s) {
         try {
             Matcher m = PATTERN_FOR_union_COMMAND.matcher(s);
             if (!m.find()) {
@@ -1377,7 +1376,7 @@ public class Prover {
             }
 
             if (automataNames.isEmpty()) {
-                throw new Exception("Union requires at least one automaton as input.");
+                throw new RuntimeException("Union requires at least one automaton as input.");
             }
             Automaton C = new Automaton(UtilityMethods.get_address_for_automata_library() + automataNames.get(0) + ".txt");
 
@@ -1393,11 +1392,11 @@ public class Prover {
 
         } catch (Exception e) {
             e.printStackTrace();
-            throw new Exception("Error using the union command.");
+            throw new RuntimeException("Error using the union command.");
         }
     }
 
-    public static TestCase intersectCommand(String s) throws Exception {
+    public static TestCase intersectCommand(String s) {
         try {
 
             Matcher m = PATTERN_FOR_intersect_COMMAND.matcher(s);
@@ -1420,7 +1419,7 @@ public class Prover {
             }
 
             if (automataNames.isEmpty()) {
-                throw new Exception("Intersect requires at least one automaton as input.");
+                throw new RuntimeException("Intersect requires at least one automaton as input.");
             }
             Automaton C = new Automaton(UtilityMethods.get_address_for_automata_library() + automataNames.get(0) + ".txt");
 
@@ -1436,11 +1435,11 @@ public class Prover {
 
         } catch (Exception e) {
             e.printStackTrace();
-            throw new Exception("Error using the intersect command.");
+            throw new RuntimeException("Error using the intersect command.");
         }
     }
 
-    public static TestCase starCommand(String s) throws Exception {
+    public static TestCase starCommand(String s) {
         try {
 
             Matcher m = PATTERN_FOR_star_COMMAND.matcher(s);
@@ -1464,11 +1463,11 @@ public class Prover {
 
         } catch (Exception e) {
             e.printStackTrace();
-            throw new Exception("Error using the star command.");
+            throw new RuntimeException("Error using the star command.");
         }
     }
 
-    public static TestCase concatCommand(String s) throws Exception {
+    public static TestCase concatCommand(String s) {
         try {
             Matcher m = PATTERN_FOR_concat_COMMAND.matcher(s);
             if (!m.find()) {
@@ -1490,7 +1489,7 @@ public class Prover {
             }
 
             if (automataNames.size() < 2) {
-                throw new Exception("Concatenation requires at least two automata as input.");
+                throw new RuntimeException("Concatenation requires at least two automata as input.");
             }
             Automaton C = new Automaton(UtilityMethods.get_address_for_automata_library() + automataNames.get(0) + ".txt");
 
@@ -1506,12 +1505,12 @@ public class Prover {
 
         } catch (Exception e) {
             e.printStackTrace();
-            throw new Exception("Error using the concat command.");
+            throw new RuntimeException("Error using the concat command.");
         }
     }
 
 
-    public static TestCase rightquoCommand(String s) throws Exception {
+    public static TestCase rightquoCommand(String s) {
         try {
             Matcher m = PATTERN_FOR_rightquo_COMMAND.matcher(s);
 
@@ -1537,11 +1536,11 @@ public class Prover {
 
         } catch (Exception e) {
             e.printStackTrace();
-            throw new Exception("Error using the rightquo command");
+            throw new RuntimeException("Error using the rightquo command");
         }
     }
 
-    public static TestCase leftquoCommand(String s) throws Exception {
+    public static TestCase leftquoCommand(String s) {
         try {
             Matcher m = PATTERN_FOR_leftquo_COMMAND.matcher(s);
 
@@ -1567,11 +1566,11 @@ public class Prover {
 
         } catch (Exception e) {
             e.printStackTrace();
-            throw new Exception("Error using the leftquo command");
+            throw new RuntimeException("Error using the leftquo command");
         }
     }
 
-    public static TestCase drawCommand(String s) throws Exception {
+    public static TestCase drawCommand(String s) {
         try {
             Matcher m = PATTERN_FOR_draw_COMMAND.matcher(s);
 
@@ -1590,11 +1589,11 @@ public class Prover {
 
         } catch (Exception e) {
             e.printStackTrace();
-            throw new Exception("Error using the draw command");
+            throw new RuntimeException("Error using the draw command");
         }
     }
 
-    public static void helpCommand(String s) throws Exception {
+    public static void helpCommand(String s) {
         try {
             Matcher m = PATTERN_FOR_help_COMMAND.matcher(s);
 
@@ -1630,7 +1629,7 @@ public class Prover {
             }
         } catch (Exception e) {
             e.printStackTrace();
-            throw new Exception("Error using the help command");
+            throw new RuntimeException("Error using the help command");
         }
     }
 
@@ -1648,7 +1647,7 @@ public class Prover {
         }
     }
 
-    private static List<Integer> what_is_the_alphabet(String s) throws Exception {
+    private static List<Integer> what_is_the_alphabet(String s) {
         List<Integer> L = new ArrayList<>();
         s = s.substring(1, s.length() - 1); //truncation { and } from beginning and end
         Matcher m = PATTERN_FOR_A_SINGLE_ELEMENT_OF_A_SET.matcher(s);
@@ -1660,7 +1659,7 @@ public class Prover {
         return L;
     }
 
-    private static Automaton removeLeadTrailZeroes(Automaton M, String name) throws Exception {
+    private static Automaton removeLeadTrailZeroes(Automaton M, String name) {
         // When dealing with enumerating values (eg. inf and test commands), we remove leading zeroes in the case of msd
         // and trailing zeroes in the case of lsd. To do this, we construct a reg subcommand that generates the complement
         // of zero-prefixed strings for msd and zero suffixed strings for lsd, then intersect this with our original automaton.

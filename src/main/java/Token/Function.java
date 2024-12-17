@@ -36,22 +36,22 @@ public class Function extends Token {
     NumberSystem ns;
 
 
-    public Function(String number_system, int position, String name, Automaton A, int number_of_arguments) throws Exception {
+    public Function(String number_system, int position, String name, Automaton A, int number_of_arguments) {
         this.name = name;
         setArity(number_of_arguments);
         setPositionInPredicate(position);
         this.A = A;
         this.ns = new NumberSystem(number_system);
         if (A.getArity() != getArity())
-            throw new Exception("function " + name + " requires " + A.getArity() + " arguments: char at " + getPositionInPredicate());
+            throw new RuntimeException("function " + name + " requires " + A.getArity() + " arguments: char at " + getPositionInPredicate());
     }
 
     public String toString() {
         return name;
     }
 
-    public void act(Stack<Expression> S, boolean print, String prefix, StringBuilder log) throws Exception {
-        if (S.size() < getArity()) throw new Exception("function " + name + " requires " + getArity() + " arguments");
+    public void act(Stack<Expression> S, boolean print, String prefix, StringBuilder log) {
+        if (S.size() < getArity()) throw new RuntimeException("function " + name + " requires " + getArity() + " arguments");
         Stack<Expression> temp = new Stack<>();
         for (int i = 0; i < getArity(); i++) {
             temp.push(S.pop());
@@ -101,16 +101,16 @@ public class Function extends Token {
                     break;
                 case automaton:
                     if (currentArg.M.getArity() != 1) {
-                        throw new Exception("argument " + (i + 1) + " of function " + name + " cannot be an automaton with != 1 inputs");
+                        throw new RuntimeException("argument " + (i + 1) + " of function " + name + " cannot be an automaton with != 1 inputs");
                     }
                     if (!currentArg.M.isBound()) {
-                        throw new Exception("argument " + (i + 1) + " of function " + name + " cannot be an automaton with unlabeled input");
+                        throw new RuntimeException("argument " + (i + 1) + " of function " + name + " cannot be an automaton with unlabeled input");
                     }
                     M = AutomatonLogicalOps.and(M, currentArg.M, print, prefix + " ", log);
                     identifiers.add(currentArg.M.getLabel().get(0));
                     break;
                 default:
-                    throw new Exception("argument " + (i + 1) + " of function " + name + " cannot be of type " + currentArg.getType());
+                    throw new RuntimeException("argument " + (i + 1) + " of function " + name + " cannot be of type " + currentArg.getType());
             }
 
         }

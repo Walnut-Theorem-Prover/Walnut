@@ -32,7 +32,7 @@ import java.util.Stack;
 public class RelationalOperator extends Operator {
     NumberSystem number_system;
 
-    public RelationalOperator(int position, String type, NumberSystem number_system) throws Exception {
+    public RelationalOperator(int position, String type, NumberSystem number_system) {
         this.op = type;
         setPriority();
         setArity(2);
@@ -44,9 +44,9 @@ public class RelationalOperator extends Operator {
         return op + "_" + number_system;
     }
 
-    public void act(Stack<Expression> S, boolean print, String prefix, StringBuilder log) throws Exception {
+    public void act(Stack<Expression> S, boolean print, String prefix, StringBuilder log) {
 
-        if (S.size() < getArity()) throw new Exception("operator " + op + " requires " + getArity() + " operands");
+        if (S.size() < getArity()) throw new RuntimeException("operator " + op + " requires " + getArity() + " operands");
         Expression b = S.pop();
         Expression a = S.pop();
 
@@ -145,7 +145,7 @@ public class RelationalOperator extends Operator {
             AutomatonLogicalOps.quantify(M, new HashSet<>(b.list_of_identifiers_to_quantify), print, prefix + " ", log);
             S.push(new Expression(a + op + b, M));
         } else {
-            throw new Exception("operator " + op + " cannot be applied to operands " + a + " and " + b + " of types " + a.getType() + " and " + b.getType() + " respectively");
+            throw new RuntimeException("operator " + op + " cannot be applied to operands " + a + " and " + b + " of types " + a.getType() + " and " + b.getType() + " respectively");
         }
         String postStep = prefix + "computed " + a + op + b;
         log.append(postStep + System.lineSeparator());

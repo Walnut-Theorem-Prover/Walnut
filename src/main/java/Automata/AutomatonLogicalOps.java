@@ -29,10 +29,10 @@ public class AutomatonLogicalOps {
                                   String op,
                                   boolean print,
                                   String prefix,
-                                  StringBuilder log) throws Exception {
+                                  StringBuilder log) {
 
         if (automaton.TRUE_FALSE_AUTOMATON || M.TRUE_FALSE_AUTOMATON) {
-            throw new Exception("Invalid use of the crossProduct method: " +
+            throw new RuntimeException("Invalid use of the crossProduct method: " +
                     "the automata for this method cannot be true or false automata.");
         }
 
@@ -41,7 +41,7 @@ public class AutomatonLogicalOps {
                 automaton.label.size() != automaton.A.size() ||
                 M.label.size() != M.A.size()
         ) {
-            throw new Exception("Invalid use of the crossProduct method: " +
+            throw new RuntimeException("Invalid use of the crossProduct method: " +
                     "the automata for this method must have labeled inputs.");
         }
 
@@ -65,7 +65,7 @@ public class AutomatonLogicalOps {
             if (automaton.label.contains(M.label.get(i))) {
                 int j = automaton.label.indexOf(M.label.get(i));
                 if (!UtilityMethods.areEqual(automaton.A.get(j), M.A.get(i))) {
-                    throw new Exception("in computing cross product of two automaton, "
+                    throw new RuntimeException("in computing cross product of two automaton, "
                             + "variables with the same label must have the same alphabet");
                 }
                 sameInputsInMAndThis[i] = j;
@@ -231,7 +231,7 @@ public class AutomatonLogicalOps {
                                 Automaton M,
                                 boolean print,
                                 String prefix,
-                                StringBuilder log) throws Exception {
+                                StringBuilder log) {
         if ((automaton.TRUE_FALSE_AUTOMATON && automaton.TRUE_AUTOMATON) &&
                 (M.TRUE_FALSE_AUTOMATON && M.TRUE_AUTOMATON)) {
             return new Automaton(true);
@@ -276,7 +276,7 @@ public class AutomatonLogicalOps {
      * @return this automaton or M
      * @throws Exception
      */
-    public static Automaton or(Automaton automaton, Automaton M, boolean print, String prefix, StringBuilder log) throws Exception {
+    public static Automaton or(Automaton automaton, Automaton M, boolean print, String prefix, StringBuilder log) {
         if ((automaton.TRUE_FALSE_AUTOMATON && automaton.TRUE_AUTOMATON) || (M.TRUE_FALSE_AUTOMATON && M.TRUE_AUTOMATON))
             return new Automaton(true);
         if ((automaton.TRUE_FALSE_AUTOMATON && !automaton.TRUE_AUTOMATON) && (M.TRUE_FALSE_AUTOMATON && !M.TRUE_AUTOMATON))
@@ -315,7 +315,7 @@ public class AutomatonLogicalOps {
      * @return this automaton xor M
      * @throws Exception
      */
-    public static Automaton xor(Automaton automaton, Automaton M, boolean print, String prefix, StringBuilder log) throws Exception {
+    public static Automaton xor(Automaton automaton, Automaton M, boolean print, String prefix, StringBuilder log) {
         if ((automaton.TRUE_FALSE_AUTOMATON && automaton.TRUE_AUTOMATON) && (M.TRUE_FALSE_AUTOMATON && !M.TRUE_AUTOMATON))
             return new Automaton(true);
         if ((automaton.TRUE_FALSE_AUTOMATON && !automaton.TRUE_AUTOMATON) && (M.TRUE_FALSE_AUTOMATON && M.TRUE_AUTOMATON))
@@ -365,7 +365,7 @@ public class AutomatonLogicalOps {
      * @return this automaton imply M
      * @throws Exception
      */
-    public static Automaton imply(Automaton automaton, Automaton M, boolean print, String prefix, StringBuilder log) throws Exception {
+    public static Automaton imply(Automaton automaton, Automaton M, boolean print, String prefix, StringBuilder log) {
         if ((automaton.TRUE_FALSE_AUTOMATON && automaton.TRUE_AUTOMATON) && (M.TRUE_FALSE_AUTOMATON && !M.TRUE_AUTOMATON))
             return new Automaton(false);
         if ((automaton.TRUE_FALSE_AUTOMATON && !automaton.TRUE_AUTOMATON) || (M.TRUE_FALSE_AUTOMATON && M.TRUE_AUTOMATON))
@@ -405,7 +405,7 @@ public class AutomatonLogicalOps {
      * @return this automaton iff M
      * @throws Exception
      */
-    public static Automaton iff(Automaton automaton, Automaton M, boolean print, String prefix, StringBuilder log) throws Exception {
+    public static Automaton iff(Automaton automaton, Automaton M, boolean print, String prefix, StringBuilder log) {
         if (((automaton.TRUE_FALSE_AUTOMATON && automaton.TRUE_AUTOMATON) && (M.TRUE_FALSE_AUTOMATON && M.TRUE_AUTOMATON)) ||
                 ((automaton.TRUE_FALSE_AUTOMATON && !automaton.TRUE_AUTOMATON) && (M.TRUE_FALSE_AUTOMATON && !M.TRUE_AUTOMATON)))
             return new Automaton(true);
@@ -451,7 +451,7 @@ public class AutomatonLogicalOps {
      * @return changes this automaton to its negation
      * @throws Exception
      */
-    public static void not(Automaton automaton, boolean print, String prefix, StringBuilder log) throws Exception {
+    public static void not(Automaton automaton, boolean print, String prefix, StringBuilder log) {
         if (automaton.TRUE_FALSE_AUTOMATON) {
             automaton.TRUE_AUTOMATON = !automaton.TRUE_AUTOMATON;
             return;
@@ -491,7 +491,7 @@ public class AutomatonLogicalOps {
      * @return
      * @throws Exception
      */
-    public static Automaton rightQuotient(Automaton automaton, Automaton other, boolean skipSubsetCheck, boolean print, String prefix, StringBuilder log) throws Exception {
+    public static Automaton rightQuotient(Automaton automaton, Automaton other, boolean skipSubsetCheck, boolean print, String prefix, StringBuilder log) {
 
         long timeBefore = System.currentTimeMillis();
         if (print) {
@@ -516,7 +516,7 @@ public class AutomatonLogicalOps {
             }
 
             if (!isSubset) {
-                throw new Exception("Second automaton's alphabet must be a subset of the first automaton's alphabet for right quotient.");
+                throw new RuntimeException("Second automaton's alphabet must be a subset of the first automaton's alphabet for right quotient.");
             }
         }
 
@@ -579,7 +579,7 @@ public class AutomatonLogicalOps {
         return M;
     }
 
-    public static Automaton leftQuotient(Automaton automaton, Automaton other, boolean print, String prefix, StringBuilder log) throws Exception {
+    public static Automaton leftQuotient(Automaton automaton, Automaton other, boolean print, String prefix, StringBuilder log) {
         long timeBefore = System.currentTimeMillis();
         if (print) {
             String msg = prefix + "left quotient: " + automaton.Q + " state automaton with " + other.Q + " state automaton";
@@ -602,7 +602,7 @@ public class AutomatonLogicalOps {
         }
 
         if (!isSubset) {
-            throw new Exception("First automaton's alphabet must be a subset of the second automaton's alphabet for left quotient.");
+            throw new RuntimeException("First automaton's alphabet must be a subset of the second automaton's alphabet for left quotient.");
         }
 
         Automaton M1 = automaton.clone();
@@ -722,7 +722,7 @@ public class AutomatonLogicalOps {
         return R;
     }
 
-    public static void fixLeadingZerosProblem(Automaton automaton, boolean print, String prefix, StringBuilder log) throws Exception {
+    public static void fixLeadingZerosProblem(Automaton automaton, boolean print, String prefix, StringBuilder log) {
         if (automaton.TRUE_FALSE_AUTOMATON) return;
         long timeBefore = System.currentTimeMillis();
         if (print) {
@@ -756,7 +756,7 @@ public class AutomatonLogicalOps {
         return automaton.encode(ZERO);
     }
 
-    public static void fixTrailingZerosProblem(Automaton automaton, boolean print, String prefix, StringBuilder log) throws Exception {
+    public static void fixTrailingZerosProblem(Automaton automaton, boolean print, String prefix, StringBuilder log) {
         long timeBefore = System.currentTimeMillis();
         if (print) {
             String msg = prefix + "fixing trailing zeros:" + automaton.Q + " states";
@@ -790,10 +790,10 @@ public class AutomatonLogicalOps {
      * @return
      * @throws Exception
      */
-    public static Automaton removeLeadingZeroes(Automaton automaton, List<String> listOfLabels, boolean print, String prefix, StringBuilder log) throws Exception {
+    public static Automaton removeLeadingZeroes(Automaton automaton, List<String> listOfLabels, boolean print, String prefix, StringBuilder log) {
         for (String s : listOfLabels) {
             if (!automaton.label.contains(s)) {
-                throw new Exception("Variable " + s + " in the list of quantified variables is not a free variable.");
+                throw new RuntimeException("Variable " + s + " in the list of quantified variables is not a free variable.");
             }
         }
         if (listOfLabels.isEmpty()) {
@@ -837,9 +837,9 @@ public class AutomatonLogicalOps {
      * @return
      * @throws Exception
      */
-    private static Automaton removeLeadingZeroesHelper(Automaton automaton, int n, boolean print, String prefix, StringBuilder log) throws Exception {
+    private static Automaton removeLeadingZeroesHelper(Automaton automaton, int n, boolean print, String prefix, StringBuilder log) {
         if (n >= automaton.A.size() || n < 0) {
-            throw new Exception("Cannot remove leading zeroes for the "
+            throw new RuntimeException("Cannot remove leading zeroes for the "
                     + (n + 1) + "-th input when automaton only has " + automaton.A.size() + " inputs.");
         }
 
@@ -938,14 +938,14 @@ public class AutomatonLogicalOps {
      * @param i
      * @throws Exception
      */
-    static void removeSameInputs(Automaton automaton, int i) throws Exception {
+    static void removeSameInputs(Automaton automaton, int i) {
         if (i >= automaton.A.size()) return;
         List<Integer> I = new ArrayList<>();
         I.add(i);
         for (int j = i + 1; j < automaton.A.size(); j++) {
             if (automaton.label.get(i).equals(automaton.label.get(j))) {
                 if (!UtilityMethods.areEqual(automaton.A.get(i), automaton.A.get(j))) {
-                    throw new Exception("Inputs " + i + " and " + j + " have the same label but different alphabets.");
+                    throw new RuntimeException("Inputs " + i + " and " + j + " have the same label but different alphabets.");
                 }
                 I.add(j);
             }
@@ -1003,9 +1003,8 @@ public class AutomatonLogicalOps {
      * @param W
      * @param operator
      * @return
-     * @throws Exception
      */
-    public static Automaton applyOperator(Automaton automaton, Automaton W, String operator, boolean print, String prefix, StringBuilder log) throws Exception {
+    public static Automaton applyOperator(Automaton automaton, Automaton W, String operator, boolean print, String prefix, StringBuilder log) {
         long timeBefore = System.currentTimeMillis();
         if (print) {
             String msg = prefix + "applying operator (" + operator + "):" + automaton.Q + " states - " + W.Q + " states";
@@ -1023,13 +1022,13 @@ public class AutomatonLogicalOps {
         return M;
     }
 
-    public static void quantify(Automaton automaton, String labelToQuantify, boolean print, String prefix, StringBuilder log) throws Exception {
+    public static void quantify(Automaton automaton, String labelToQuantify, boolean print, String prefix, StringBuilder log) {
         Set<String> listOfLabelsToQuantify = new HashSet<>();
         listOfLabelsToQuantify.add(labelToQuantify);
         quantify(automaton, listOfLabelsToQuantify, print, prefix, log);
     }
 
-    public static void quantify(Automaton automaton, String labelToQuantify1, String labelToQuantify2, boolean leadingZeros, boolean print, String prefix, StringBuilder log) throws Exception {
+    public static void quantify(Automaton automaton, String labelToQuantify1, String labelToQuantify2, boolean leadingZeros, boolean print, String prefix, StringBuilder log) {
         Set<String> listOfLabelsToQuantify = new HashSet<>();
         listOfLabelsToQuantify.add(labelToQuantify1);
         listOfLabelsToQuantify.add(labelToQuantify2);
@@ -1050,7 +1049,7 @@ public class AutomatonLogicalOps {
      * @param listOfLabelsToQuantify must contain at least one element. listOfLabelsToQuantify must be a subset of this.label.
      * @return
      */
-    public static void quantify(Automaton automaton, Set<String> listOfLabelsToQuantify, boolean print, String prefix, StringBuilder log) throws Exception {
+    public static void quantify(Automaton automaton, Set<String> listOfLabelsToQuantify, boolean print, String prefix, StringBuilder log) {
         quantifyHelper(automaton, listOfLabelsToQuantify, print, prefix, log);
         if (automaton.TRUE_FALSE_AUTOMATON) return;
 
@@ -1082,7 +1081,7 @@ public class AutomatonLogicalOps {
                                        Set<String> listOfLabelsToQuantify,
                                        boolean print,
                                        String prefix,
-                                       StringBuilder log) throws Exception {
+                                       StringBuilder log) {
         if (listOfLabelsToQuantify.isEmpty() || automaton.label == null) {
             return;
         }
@@ -1090,7 +1089,7 @@ public class AutomatonLogicalOps {
         String name_of_labels = "";
         for (String s : listOfLabelsToQuantify) {
             if (!automaton.label.contains(s)) {
-                throw new Exception(
+                throw new RuntimeException(
                         "Variable " + s + " in the list of quantified variables is not a free variable.");
             }
             if (name_of_labels.isEmpty()) {
@@ -1168,7 +1167,7 @@ public class AutomatonLogicalOps {
      * @return the reverse of this automaton
      * @throws Exception
      */
-    public static void reverse(Automaton automaton, boolean print, String prefix, StringBuilder log, boolean reverseMsd, boolean skipMinimize) throws Exception {
+    public static void reverse(Automaton automaton, boolean print, String prefix, StringBuilder log, boolean reverseMsd, boolean skipMinimize) {
         if (automaton.TRUE_FALSE_AUTOMATON) {
             return;
         }
@@ -1226,7 +1225,7 @@ public class AutomatonLogicalOps {
     }
 
     // flip the number system from msd to lsd and vice versa.
-    private static void flipNS(Automaton automaton) throws Exception {
+    private static void flipNS(Automaton automaton) {
         for (int i = 0; i < automaton.NS.size(); i++) {
             if (automaton.NS.get(i) == null) {
                 continue;
@@ -1239,11 +1238,11 @@ public class AutomatonLogicalOps {
         }
     }
 
-    public static void reverse(Automaton automaton, boolean print, String prefix, StringBuilder log, boolean reverseMsd) throws Exception {
+    public static void reverse(Automaton automaton, boolean print, String prefix, StringBuilder log, boolean reverseMsd) {
         reverse(automaton, print, prefix, log, reverseMsd, false);
     }
 
-    public static void reverse(Automaton automaton, boolean print, String prefix, StringBuilder log) throws Exception {
+    public static void reverse(Automaton automaton, boolean print, String prefix, StringBuilder log) {
         reverse(automaton, print, prefix, log, false);
     }
 
@@ -1252,7 +1251,7 @@ public class AutomatonLogicalOps {
      *
      * @throws Exception
      */
-    public static void reverseWithOutput(Automaton automaton, boolean reverseMsd, boolean print, String prefix, StringBuilder log) throws Exception {
+    public static void reverseWithOutput(Automaton automaton, boolean reverseMsd, boolean print, String prefix, StringBuilder log) {
         if (automaton.TRUE_FALSE_AUTOMATON) {
             return;
         }
@@ -1314,7 +1313,7 @@ public class AutomatonLogicalOps {
                 // assume that the
                 // System.out.println("alphabet: " + d.get(q0) + ", " + d + ", " + alphabetSize);
                 if (automaton.d.get(automaton.q0).keySet().size() != automaton.alphabetSize) {
-                    throw new Exception("Automaton should be deterministic!");
+                    throw new RuntimeException("Automaton should be deterministic!");
                 }
                 for (int l : automaton.d.get(automaton.q0).keySet()) {
                     Map<Integer, Integer> toState = new HashMap<>();
@@ -1382,7 +1381,7 @@ public class AutomatonLogicalOps {
             }
         } catch (Exception e) {
             e.printStackTrace();
-            throw new Exception("Error reversing word automaton");
+            throw new RuntimeException("Error reversing word automaton");
         }
     }
 
@@ -1392,12 +1391,12 @@ public class AutomatonLogicalOps {
      * @throws Exception
      */
     public static void convertNS(Automaton automaton, boolean toMsd, int toBase, boolean print,
-                                 String prefix, StringBuilder log) throws Exception {
+                                 String prefix, StringBuilder log) {
         try {
             // assume that the format of ns is in the form msd_k or lsd_k. let the Prover.java check it with a regex.
 
             if (automaton.NS.size() != 1) {
-                throw new Exception("Automaton must have one input to be converted.");
+                throw new RuntimeException("Automaton must have one input to be converted.");
             }
 
             String nsName = automaton.NS.get(0).getName();
@@ -1405,14 +1404,14 @@ public class AutomatonLogicalOps {
             String base = nsName.substring(nsName.indexOf("_") + 1);
 
             if (!UtilityMethods.isNumber(base) || Integer.parseInt(base) <= 1) {
-                throw new Exception("Base of number system of original automaton must be a positive integer greater than 1.");
+                throw new RuntimeException("Base of number system of original automaton must be a positive integer greater than 1.");
             }
 
             int fromBase = Integer.parseInt(base);
 
             if (fromBase == toBase) {
                 if (automaton.NS.get(0).isMsd() == toMsd) {
-                    throw new Exception("New and old number systems " + automaton.NS.get(0).getName() +
+                    throw new RuntimeException("New and old number systems " + automaton.NS.get(0).getName() +
                             " to be converted cannot be equal.");
                 } else {
                     // if all that differs is msd/lsd, just reverse the automaton.
@@ -1426,7 +1425,7 @@ public class AutomatonLogicalOps {
             int commonRoot = UtilityMethods.commonRoot(fromBase, toBase);
 
             if (commonRoot == -1) {
-                throw new Exception("New and old number systems must have bases of the form k^i and k^j for integers i, j, k.");
+                throw new RuntimeException("New and old number systems must have bases of the form k^i and k^j for integers i, j, k.");
             }
 
             // if originally in lsd, reverse and convert to msd.
@@ -1477,7 +1476,7 @@ public class AutomatonLogicalOps {
 
         } catch (Exception e) {
             e.printStackTrace();
-            throw new Exception("Error converting the number system of an automaton");
+            throw new RuntimeException("Error converting the number system of an automaton");
         }
     }
 
@@ -1491,7 +1490,7 @@ public class AutomatonLogicalOps {
      * @throws Exception
      */
     private static void convertMsdBaseToExponent(Automaton automaton, int exponent, boolean print,
-                                                 String prefix, StringBuilder log) throws Exception {
+                                                 String prefix, StringBuilder log) {
         try {
 
             String nsName = automaton.NS.get(0).getName();
@@ -1514,7 +1513,7 @@ public class AutomatonLogicalOps {
                 List<Integer> morphismString = new ArrayList<>();
 
                 if (automaton.d.get(q).keySet().size() != automaton.alphabetSize) {
-                    throw new Exception("Automaton must be deterministic");
+                    throw new RuntimeException("Automaton must be deterministic");
                 }
 
                 for (int di = 0; di < automaton.alphabetSize; di++) {
@@ -1574,7 +1573,7 @@ public class AutomatonLogicalOps {
 
         } catch (Exception e) {
             e.printStackTrace();
-            throw new Exception("Error converting the number system msd_k of an automaton to msd_k^j");
+            throw new RuntimeException("Error converting the number system msd_k of an automaton to msd_k^j");
         }
 
     }
@@ -1589,7 +1588,7 @@ public class AutomatonLogicalOps {
      * @throws Exception
      */
     private static void convertLsdBaseToRoot(Automaton automaton, int root, int exponent, boolean print,
-                                             String prefix, StringBuilder log) throws Exception {
+                                             String prefix, StringBuilder log) {
 
         try {
             String nsName = automaton.NS.get(0).getName();
@@ -1603,7 +1602,7 @@ public class AutomatonLogicalOps {
             }
 
             if (base != Math.pow(root, exponent)) {
-                throw new Exception("Base of automaton must be equal to the given root to the power of the given exponent.");
+                throw new RuntimeException("Base of automaton must be equal to the given root to the power of the given exponent.");
             }
 
             class StateTuple {
@@ -1734,13 +1733,13 @@ public class AutomatonLogicalOps {
 
         } catch (Exception e) {
             e.printStackTrace();
-            throw new Exception("Error converting the number system msd_k^j of an automaton to msd_k");
+            throw new RuntimeException("Error converting the number system msd_k^j of an automaton to msd_k");
         }
 
 
     }
 
-    public static Automaton combine(Automaton automaton, Queue<Automaton> subautomata, IntList outputs, boolean print, String prefix, StringBuilder log) throws Exception {
+    public static Automaton combine(Automaton automaton, Queue<Automaton> subautomata, IntList outputs, boolean print, String prefix, StringBuilder log) {
 
         Automaton first = automaton.clone();
 
@@ -1802,7 +1801,7 @@ public class AutomatonLogicalOps {
      * @throws Exception
      */
     public static Automaton compare(
-            Automaton automaton, Automaton W, String operator, boolean print, String prefix, StringBuilder log) throws Exception {
+            Automaton automaton, Automaton W, String operator, boolean print, String prefix, StringBuilder log) {
         long timeBefore = System.currentTimeMillis();
         if (print) {
             String msg = prefix + "comparing (" + operator + "):" + automaton.Q + " states - " + W.Q + " states";
@@ -1832,7 +1831,7 @@ public class AutomatonLogicalOps {
      * @throws Exception
      */
     public static void compare(
-            Automaton automaton, int o, String operator, boolean print, String prefix, StringBuilder log) throws Exception {
+            Automaton automaton, int o, String operator, boolean print, String prefix, StringBuilder log) {
         long timeBefore = System.currentTimeMillis();
         if (print) {
             String msg = prefix + "comparing (" + operator + ") against " + o + ":" + automaton.Q + " states";

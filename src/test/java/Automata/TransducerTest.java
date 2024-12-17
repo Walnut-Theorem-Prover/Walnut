@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test;
 
 class TransducerTest {
     @Test
-    void testTransducerRUNSUM2_T() throws Exception {
+    void testTransducerRUNSUM2_T() {
         // Adapting an integration test to a unit test
         StringBuilder log = new StringBuilder();
 

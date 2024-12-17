@@ -117,7 +117,7 @@ public class NumberSystem {
     }
 
     // flips the number system from msd to lsd, and vice versa.
-    public void reverseMsd() throws Exception {
+    public void reverseMsd() {
         int indexOfUnderscore = name.indexOf("_");
         String msd_or_lsd = name.substring(0, indexOfUnderscore);
         String suffix = name.substring(indexOfUnderscore);
@@ -145,7 +145,7 @@ public class NumberSystem {
         return allRepresentations;
     }
 
-    public NumberSystem(String name) throws Exception {
+    public NumberSystem(String name) {
         this.name = name;
         String msd_or_lsd = name.substring(0, name.indexOf("_"));
         is_msd = msd_or_lsd.equals("msd");
@@ -182,7 +182,7 @@ public class NumberSystem {
             } else if (UtilityMethods.parseNegNumber(base) > 1) {
                 base_neg_n_addition(UtilityMethods.parseNegNumber(base));
             } else {
-                throw new Exception("Number system " + name + " is not defined.");
+                throw new RuntimeException("Number system " + name + " is not defined.");
             }
         }
 
@@ -192,23 +192,23 @@ public class NumberSystem {
          * All 3 inputs must be of type arithmetic.
          */
         if (addition.A == null || addition.A.size() != 3) {
-            throw new Exception(
+            throw new RuntimeException(
                     "The addition automaton must have exactly 3 inputs: base " + name);
         }
 
         if (!addition.A.get(0).contains(0)) {
-            throw new Exception(
+            throw new RuntimeException(
                     "The input alphabet of addition automaton must contain 0: base " + name);
         }
 
         if (!addition.A.get(0).contains(1)) {
-            throw new Exception(
+            throw new RuntimeException(
                     "The input alphabet of addition automaton must contain 1: base " + name);
         }
 
         for (int i = 1; i < addition.A.size(); i++) {
             if (!UtilityMethods.areEqual(addition.A.get(i), addition.A.get(0))) {
-                throw new Exception(
+                throw new RuntimeException(
                         "All 3 inputs of the addition automaton " +
                                 "must have the same alphabet: base " + name);
             }
@@ -236,13 +236,13 @@ public class NumberSystem {
          * Inputs must have the same alphabet as the addition automaton.
          */
         if (lessThan.A == null || lessThan.A.size() != 2) {
-            throw new Exception(
+            throw new RuntimeException(
                     "The less_than automaton must have exactly 2 inputs: base " + name);
         }
 
         for (int i = 0; i < lessThan.A.size(); i++) {
             if (!UtilityMethods.areEqual(lessThan.A.get(i), addition.A.get(0))) {
-                throw new Exception(
+                throw new RuntimeException(
                         "Inputs of the less_than automaton must have the same alphabet " +
                                 "as the alphabet of inputs of addition automaton: base " + name);
             }
@@ -305,7 +305,7 @@ public class NumberSystem {
      * @param alphabet
      * @throws Exception
      */
-    private void lexicographicLessThan(List<Integer> alphabet) throws Exception {
+    private void lexicographicLessThan(List<Integer> alphabet) {
         alphabet = new ArrayList<>(alphabet);
         Collections.sort(alphabet);
         lessThan = new Automaton();
@@ -351,7 +351,7 @@ public class NumberSystem {
      *
      * @throws Exception
      */
-    public void setBaseChange() throws Exception {
+    public void setBaseChange() {
         if (baseChange != null) return;
 
         String base = name.substring(name.indexOf("_") + 1);
@@ -384,7 +384,7 @@ public class NumberSystem {
         }
     }
 
-    private void applyAllRepresentations() throws Exception {
+    private void applyAllRepresentations() {
         addition.applyAllRepresentations();
         lessThan.applyAllRepresentations();
         equality.applyAllRepresentations();
@@ -397,7 +397,7 @@ public class NumberSystem {
      * @param n
      * @throws Exception
      */
-    private void base_n_addition(int n) throws Exception {
+    private void base_n_addition(int n) {
         List<Integer> alphabet = new ArrayList<>();
         for (int i = 0; i < n; i++) alphabet.add(i);
         addition = new Automaton();
@@ -455,7 +455,7 @@ public class NumberSystem {
      * @param n
      * @throws Exception
      */
-    private void base_neg_n_addition(int n) throws Exception {
+    private void base_neg_n_addition(int n) {
         List<Integer> alphabet = new ArrayList<>();
         for (int i = 0; i < n; i++) alphabet.add(i);
         addition = new Automaton();
@@ -530,7 +530,7 @@ public class NumberSystem {
      * @param n
      * @throws Exception
      */
-    private void base_neg_n_less_than(int n) throws Exception {
+    private void base_neg_n_less_than(int n) {
         List<Integer> alphabet = new ArrayList<>();
         for (int i = 0; i < n; i++) alphabet.add(i);
         lessThan = new Automaton();
@@ -588,7 +588,7 @@ public class NumberSystem {
      * @param n
      * @throws Exception
      */
-    private void base_n_base_change(int n) throws Exception {
+    private void base_n_base_change(int n) {
         List<Integer> alphabet = new ArrayList<>();
         for (int i = 0; i < n; i++) alphabet.add(i);
         baseChange = new Automaton();
@@ -657,7 +657,7 @@ public class NumberSystem {
     /**
      * Gives the corresponding negative number system if one is defined. Throws an exception otherwise.
      */
-    public NumberSystem negative_number_system() throws Exception {
+    public NumberSystem negative_number_system() {
         String msd_or_lsd = name.substring(0, name.indexOf("_"));
         String base = name.substring(name.indexOf("_") + 1);
         return new NumberSystem(msd_or_lsd + "_neg_" + base);
@@ -670,15 +670,15 @@ public class NumberSystem {
      * the false automata. So BE CAREFUL when calling on n < 0.
      * @throws Exception
      */
-    public Automaton get(int n) throws Exception {
+    public Automaton get(int n) {
         return constant(n).clone();
     }
 
-    public Automaton getDivision(int n) throws Exception {
+    public Automaton getDivision(int n) {
         return division(n).clone();
     }
 
-    public Automaton getMultiplication(int n) throws Exception {
+    public Automaton getMultiplication(int n) {
         return multiplication(n).clone();
     }
 
@@ -695,7 +695,7 @@ public class NumberSystem {
      * So the input is not ordered!
      * @throws Exception
      */
-    public Automaton comparison(String a, String b, String comparisonOperator) throws Exception {
+    public Automaton comparison(String a, String b, String comparisonOperator) {
         Automaton M;
         switch (comparisonOperator) {
             case "<":
@@ -726,7 +726,7 @@ public class NumberSystem {
                 AutomatonLogicalOps.not(M, false, null, null);
                 break;
             default:
-                throw new Exception("undefined comparison operator");
+                throw new RuntimeException("undefined comparison operator");
         }
         return M;
     }
@@ -738,7 +738,7 @@ public class NumberSystem {
      * @return an Automaton with single input, with label = [a]. It accepts iff a comparisonOperator b.
      * @throws Exception
      */
-    public Automaton comparison(String a, int b, String comparisonOperator) throws Exception {
+    public Automaton comparison(String a, int b, String comparisonOperator) {
         if (!is_neg && b < 0) throw ExceptionHelper.negativeConstant(b);
         String B = "new " + a;//this way, we make sure B != a.
         Automaton N, M;
@@ -770,7 +770,7 @@ public class NumberSystem {
      * @return an Automaton with single input, with label = [b]. It accepts iff a comparisonOperator b.
      * @throws Exception
      */
-    public Automaton comparison(int a, String b, String comparisonOperator) throws Exception {
+    public Automaton comparison(int a, String b, String comparisonOperator) {
         if (!is_neg && a < 0) throw ExceptionHelper.negativeConstant(a);
         return switch (comparisonOperator) {
             case "<" -> comparison(b, a, ">");
@@ -779,7 +779,7 @@ public class NumberSystem {
             case "!=" -> comparison(b, a, "!=");
             case "<=" -> comparison(b, a, ">=");
             case ">=" -> comparison(b, a, "<=");
-            default -> throw new Exception("undefined comparison operator");
+            default -> throw new RuntimeException("undefined comparison operator");
         };
     }
 
@@ -798,7 +798,7 @@ public class NumberSystem {
             String a,
             String b,
             String c,
-            String arithmeticOperator) throws Exception {
+            String arithmeticOperator) {
         Automaton M = addition.clone();
         switch (arithmeticOperator) {
             case "+":
@@ -808,11 +808,11 @@ public class NumberSystem {
                 M.bind(b, c, a);
                 break;
             case "*":
-                throw new Exception("the operator * cannot be applied to two variables");
+                throw new RuntimeException("the operator * cannot be applied to two variables");
             case "/":
-                throw new Exception("the operator / cannot be applied to two variables");
+                throw new RuntimeException("the operator / cannot be applied to two variables");
             default:
-                throw new Exception("undefined arithmetic operator");
+                throw new RuntimeException("undefined arithmetic operator");
         }
         return M;
     }
@@ -832,7 +832,7 @@ public class NumberSystem {
             String a,
             int b,
             String c,
-            String arithmeticOperator) throws Exception {
+            String arithmeticOperator) {
         if (!is_neg && b < 0) throw ExceptionHelper.negativeConstant(b);
         Automaton N;
         if (arithmeticOperator.equals("*")) {
@@ -879,7 +879,7 @@ public class NumberSystem {
             int a,
             String b,
             String c,
-            String arithmeticOperator) throws Exception {
+            String arithmeticOperator) {
         if (!is_neg && a < 0) throw ExceptionHelper.negativeConstant(a);
         Automaton N;
         if (arithmeticOperator.equals("*")) {
@@ -888,7 +888,7 @@ public class NumberSystem {
             return N;
         }
         if (arithmeticOperator.equals("/"))
-            throw new Exception("constants cannot be divided by variables");
+            throw new RuntimeException("constants cannot be divided by variables");
 
         Automaton M;
         String A = b + c; //this way we make sure that A is not equal to b or c
@@ -926,13 +926,13 @@ public class NumberSystem {
             String a,
             String b,
             int c,
-            String arithmeticOperator) throws Exception {
+            String arithmeticOperator) {
         if (!is_neg && c < 0) throw ExceptionHelper.negativeConstant(c);
         Automaton N;
         if (arithmeticOperator.equals("*")) {
-            throw new Exception("the operator * cannot be applied to two variables");
+            throw new RuntimeException("the operator * cannot be applied to two variables");
         } else if (arithmeticOperator.equals("/"))
-            throw new Exception("the operator / cannot be applied to two variables");
+            throw new RuntimeException("the operator / cannot be applied to two variables");
 
         Automaton M;
         String C = a + b; //this way we make sure that A is not equal to a or b
@@ -960,7 +960,7 @@ public class NumberSystem {
      * @return an Automaton with one input. It accepts when the input equals n.
      * @throws Exception
      */
-    private Automaton constant(int n) throws Exception {
+    private Automaton constant(int n) {
         if (!is_neg && n < 0) {
             throw ExceptionHelper.negativeConstant(n);
         }
@@ -1007,9 +1007,9 @@ public class NumberSystem {
      * @return
      * @throws Exception
      */
-    private Automaton multiplication(int n) throws Exception {
+    private Automaton multiplication(int n) {
         if (!is_neg && n < 0) throw ExceptionHelper.negativeConstant(n);
-        if (n == 0) throw new Exception("multiplication(0)");
+        if (n == 0) throw new RuntimeException("multiplication(0)");
         if (multiplicationsDynamicTable.containsKey(n)) return multiplicationsDynamicTable.get(n);
         //note that the case of n==0 is handled in Computer class
         Automaton P;
@@ -1076,8 +1076,8 @@ public class NumberSystem {
      * @throws Exception
      */
     // a / n = b <=> Er,q a = q + r & q = n*b & n < r <= 0 if n < 0
-    private Automaton division(int n) throws Exception {
-        if (!is_neg && n < 0) throw new Exception("constant cannot be negative");
+    private Automaton division(int n) {
+        if (!is_neg && n < 0) throw new RuntimeException("constant cannot be negative");
         if (n == 0) throw ExceptionHelper.divisionByZero();
         if (divisionsDynamicTable.containsKey(n)) return divisionsDynamicTable.get(n);
         String a = "a", b = "b", r = "r", q = "q";
@@ -1105,7 +1105,7 @@ public class NumberSystem {
         return R;
     }
 
-    private Automaton make_zero() throws Exception {
+    private Automaton make_zero() {
         List<Integer> alph = new ArrayList<>();
         alph.add(0);
         alph.add(1);
@@ -1120,7 +1120,7 @@ public class NumberSystem {
         return M;
     }
 
-    private Automaton make_one() throws Exception {
+    private Automaton make_one() {
         List<Integer> alph = new ArrayList<>();
         alph.add(0);
         alph.add(1);

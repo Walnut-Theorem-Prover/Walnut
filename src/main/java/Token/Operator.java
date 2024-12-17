@@ -31,7 +31,7 @@ public abstract class Operator extends Token {
         return true;
     }
 
-    public void put(List<Token> postOrder, Stack<Operator> S) throws Exception {
+    public void put(List<Token> postOrder, Stack<Operator> S) {
         if (op.equals("(") || op.equals("E") || op.equals("A") || op.equals("I")) {
             S.push(this);
             return;

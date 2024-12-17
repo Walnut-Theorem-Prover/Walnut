@@ -101,7 +101,7 @@ public class Ostrowski {
     Automaton adder;
     Automaton repr;
 
-    public Ostrowski(String name, String preperiod, String period) throws Exception {
+    public Ostrowski(String name, String preperiod, String period) {
         this.name = name;
         this.preperiod = new ArrayList<>();
         this.period = new ArrayList<>();
@@ -154,7 +154,7 @@ public class Ostrowski {
         this.total_nodes = 0;
     }
 
-    public void createRepresentationAutomaton() throws Exception {
+    public void createRepresentationAutomaton() {
         resetAutomaton();
         repr = new Automaton();
 
@@ -213,13 +213,13 @@ public class Ostrowski {
                 UtilityMethods.get_address_for_custom_bases() + "msd_" + this.name + ".txt";
         File f = new File(repr_file_name);
         if (f.exists() && !f.isDirectory()) {
-            throw new Exception("Error: number system " + this.name + " already exists.");
+            throw new RuntimeException("Error: number system " + this.name + " already exists.");
         }
         AutomatonWriter.write(repr, repr_file_name);
         System.out.println("Ostrowski representation automaton created and written to file " + repr_file_name);
     }
 
-    public void createAdderAutomaton() throws Exception {
+    public void createAdderAutomaton() {
         resetAutomaton();
         adder = new Automaton();
 
@@ -293,13 +293,13 @@ public class Ostrowski {
                         ", period index: " + this.period_index;
     }
 
-    private void assertValues(List<Integer> list) throws Exception {
+    private void assertValues(List<Integer> list) {
         if (list == null || list.isEmpty()) {
-            throw new Exception("The period cannot be empty.");
+            throw new RuntimeException("The period cannot be empty.");
         }
         for (int d : list) {
             if (d <= 0) {
-                throw new Exception(
+                throw new RuntimeException(
                         "Error: All digits of the continued fraction must be positive integers.");
             }
         }

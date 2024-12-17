@@ -39,7 +39,7 @@ public class Computer {
     boolean printSteps;
     boolean printDetails;
 
-    public Computer(String predicate, boolean printSteps, boolean printDetails) throws Exception {
+    public Computer(String predicate, boolean printSteps, boolean printDetails) {
         this.log = new StringBuilder();
         this.log_details = new StringBuilder();
         mpl = "";
@@ -54,16 +54,16 @@ public class Computer {
         return result.M;
     }
 
-    public void writeMatrices(String address, List<String> free_variables) throws Exception {
+    public void writeMatrices(String address, List<String> free_variables) {
         try {
             mpl = AutomatonWriter.write_matrices(result.M, address, free_variables);
         } catch (Exception e) {
             e.printStackTrace();
-            throw new Exception(e.getMessage());
+            throw new RuntimeException(e.getMessage());
         }
     }
 
-    public void writeLog(String address) throws Exception {
+    public void writeLog(String address) {
         PrintWriter out;
         try {
             out = new PrintWriter(address, "UTF-8");
@@ -71,14 +71,14 @@ public class Computer {
             out.close();
         } catch (FileNotFoundException e) {
             e.printStackTrace();
-            throw new Exception(e.getMessage());
+            throw new RuntimeException(e.getMessage());
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
-            throw new Exception(e.getMessage());
+            throw new RuntimeException(e.getMessage());
         }
     }
 
-    public void writeDetailedLog(String address) throws Exception {
+    public void writeDetailedLog(String address) {
         PrintWriter out;
         try {
             out = new PrintWriter(address, "UTF-8");
@@ -86,14 +86,14 @@ public class Computer {
             out.close();
         } catch (FileNotFoundException e) {
             e.printStackTrace();
-            throw new Exception(e.getMessage());
+            throw new RuntimeException(e.getMessage());
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
-            throw new Exception(e.getMessage());
+            throw new RuntimeException(e.getMessage());
         }
     }
 
-    public void drawAutomaton(String address) throws Exception {
+    public void drawAutomaton(String address) {
         AutomatonWriter.draw(result.M, address, predicate_string, false);
     }
 
@@ -105,7 +105,7 @@ public class Computer {
         return result.toString();
     }
 
-    private void compute() throws Exception {
+    private void compute() {
         Stack<Expression> expression_Stack = new Stack<Expression>();
         List<Token> postOrder = predicate_object.get_postOrder();
         String prefix = "";
@@ -133,7 +133,7 @@ public class Computer {
                 e.printStackTrace();
                 String message = e.getMessage();
                 message += System.lineSeparator() + "\t: char at " + t.getPositionInPredicate();
-                throw new Exception(message);
+                throw new RuntimeException(message);
             }
         }
 
@@ -160,13 +160,13 @@ public class Computer {
             }
 
             message += "Probably some operators are missing.";
-            throw new Exception(message);
+            throw new RuntimeException(message);
         } else if (expression_Stack.isEmpty()) {
-            throw new Exception("Evaluation ended in no result.");
+            throw new RuntimeException("Evaluation ended in no result.");
         } else if (expression_Stack.size() == 1) {
             result = expression_Stack.pop();
             if (!result.is(Type.automaton)) {
-                throw new Exception("The final result of the evaluation is not of type " + Type.automaton);
+                throw new RuntimeException("The final result of the evaluation is not of type " + Type.automaton);
             }
         }
     }
