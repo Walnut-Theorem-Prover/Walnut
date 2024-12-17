@@ -19,6 +19,7 @@
 package Main;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -37,19 +38,19 @@ public class IntegrationTest {
 		try {
 			File file = new File(UtilityMethods.get_address_for_words_library() + "T2.txt");
 			file.getParentFile().mkdirs();
-			out = new PrintWriter(UtilityMethods.get_address_for_words_library() + "T2.txt", "utf-8");
+			out = new PrintWriter(UtilityMethods.get_address_for_words_library() + "T2.txt", StandardCharsets.UTF_8);
 			out.write("msd_2 msd_2\n0 1\n0 0 -> 0\n1 0 -> 1\n0 1 -> 1\n1 1 -> 0\n1 0\n0 0 -> 1\n1 0 -> 0\n0 1 -> 0\n1 1 -> 1\n");
 			out.close();
-			out = new PrintWriter(UtilityMethods.get_address_for_words_library() + "RS.txt", "utf-8");
+			out = new PrintWriter(UtilityMethods.get_address_for_words_library() + "RS.txt", StandardCharsets.UTF_8);
 			out.write("msd_2\n0 0\n0 -> 0\n1 -> 1\n1 0\n0 -> 0\n1 -> 2\n2 1\n0 -> 3\n1 -> 1\n3 1\n0 -> 3\n1 -> 2\n");
 			out.close();
-			out = new PrintWriter(UtilityMethods.get_address_for_words_library() + "P.txt", "utf-8");
+			out = new PrintWriter(UtilityMethods.get_address_for_words_library() + "P.txt", StandardCharsets.UTF_8);
 			out.write("msd_2\n0 0\n0 -> 0\n1 -> 1\n1 0\n0 -> 0\n1 -> 2\n2 1\n0 -> 3\n1 -> 2\n3 1\n0 -> 3\n1 -> 1\n");
 			out.close();
-			out = new PrintWriter(UtilityMethods.get_address_for_words_library() + "PR.txt", "utf-8");
+			out = new PrintWriter(UtilityMethods.get_address_for_words_library() + "PR.txt", StandardCharsets.UTF_8);
 			out.write("lsd_2\n0 0\n0 -> 1\n1 -> 0\n1 0\n0 -> 2\n1 -> 3\n2 0\n0 -> 2\n1 -> 2\n3 1\n0 -> 3\n1 -> 3\n");
 			out.close();
-			out = new PrintWriter(UtilityMethods.get_address_for_words_library() + "PD.txt", "utf-8");
+			out = new PrintWriter(UtilityMethods.get_address_for_words_library() + "PD.txt", StandardCharsets.UTF_8);
 			out.write("msd_2\n0 1\n0 -> 0\n1 -> 1\n1 0\n0 -> 0\n1 -> 0\n");
 			out.close();
 
@@ -955,9 +956,8 @@ public class IntegrationTest {
 		//if(expected_mpl.length() != actual_mpl.length()){
 		//	return false;
 		//}
-		if(expected_mpl.equals(actual_mpl)) return true;
-		return false;
-	}
+    return expected_mpl.equals(actual_mpl);
+  }
 
 	private boolean conformDetails(String expected_details,String actual_details){
 		if(expected_details == null && actual_details == null)return true;
@@ -1013,7 +1013,7 @@ public class IntegrationTest {
 				M = new Automaton(directoryAddress+"automaton"+i+".txt");
 			}
 			if(new File(directoryAddress+"error"+ i +".txt").isFile()){
-				BufferedReader errorReader = new BufferedReader(new InputStreamReader(new FileInputStream(directoryAddress+"error" + Integer.toString(i)+".txt"), "utf-8"));
+				BufferedReader errorReader = new BufferedReader(new InputStreamReader(new FileInputStream(directoryAddress+"error" + i +".txt"), StandardCharsets.UTF_8));
 				String temp;
 				boolean flag = false;
 				while((temp = errorReader.readLine())!= null){
@@ -1027,7 +1027,7 @@ public class IntegrationTest {
 			}
 
 			if(new File(directoryAddress+"mpl"+ i +".mpl").isFile()){
-				BufferedReader mplReader = new BufferedReader(new InputStreamReader(new FileInputStream(directoryAddress+"mpl" + Integer.toString(i)+".mpl"), "utf-8"));
+				BufferedReader mplReader = new BufferedReader(new InputStreamReader(new FileInputStream(directoryAddress+"mpl" + i +".mpl"), StandardCharsets.UTF_8));
 				String temp;
 				boolean flag = false;
 				while((temp = mplReader.readLine())!= null){
@@ -1041,7 +1041,7 @@ public class IntegrationTest {
 			}
 
 			if(new File(directoryAddress+"details"+ i +".txt").isFile()){
-				BufferedReader detailsReader = new BufferedReader(new InputStreamReader(new FileInputStream(directoryAddress+"details" + Integer.toString(i)+".txt"), "utf-8"));
+				BufferedReader detailsReader = new BufferedReader(new InputStreamReader(new FileInputStream(directoryAddress+"details" + i +".txt"), StandardCharsets.UTF_8));
 				String temp;
 				boolean flag = false;
 				while((temp = detailsReader.readLine())!= null){
@@ -1058,7 +1058,7 @@ public class IntegrationTest {
 		}
 	}
 	//@Test // uncomment this line if you want to regenerate test cases
-	public void createTestCases() throws FileNotFoundException, UnsupportedEncodingException {
+	public void createTestCases() throws IOException {
 		for(int i = 0; i < L.size();i++){
 			String command = L.get(i);
 			System.out.println(command);
@@ -1073,7 +1073,7 @@ public class IntegrationTest {
 		}
 		writeTestCases(UtilityMethods.ADDRESS_FOR_UNIT_TEST_INTEGRATION_TEST_RESULTS);
 	}
-	private void writeTestCases(String directory) throws FileNotFoundException, UnsupportedEncodingException {
+	private void writeTestCases(String directory) throws IOException {
 		new File(directory).mkdirs();
 		for(int i = 0 ; i < testCases.size();i++){
 			TestCase t = testCases.get(i);
@@ -1081,17 +1081,17 @@ public class IntegrationTest {
 				AutomatonWriter.write(t.result, directory+"automaton" + i + ".txt");
 			}
 			if(t.error != null && !t.error.isEmpty()){
-				PrintWriter errorWriter = new PrintWriter(directory+"error"+ i +".txt", "UTF-8");
+				PrintWriter errorWriter = new PrintWriter(directory+"error"+ i +".txt", StandardCharsets.UTF_8);
 				errorWriter.println(t.error);
 				errorWriter.close();
 			}
 			if(t.mpl != null && !t.mpl.isEmpty()){
-				PrintWriter mplWriter = new PrintWriter(directory+"mpl"+ i +".mpl", "UTF-8");
+				PrintWriter mplWriter = new PrintWriter(directory+"mpl"+ i +".mpl", StandardCharsets.UTF_8);
 				mplWriter.println(t.mpl);
 				mplWriter.close();
 			}
 			if(t.details != null && !t.details.isEmpty()){
-				PrintWriter detailsWriter = new PrintWriter(directory+"details"+ i +".txt", "utf-8");
+				PrintWriter detailsWriter = new PrintWriter(directory+"details"+ i +".txt", StandardCharsets.UTF_8);
 				detailsWriter.println(t.details);
 				detailsWriter.close();
 			}

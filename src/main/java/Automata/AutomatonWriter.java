@@ -5,8 +5,10 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectRBTreeMap;
 import it.unimi.dsi.fastutil.ints.IntList;
 
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -50,15 +52,13 @@ public class AutomatonWriter {
         String res = s.toString();
 
         try {
-            PrintWriter out = new PrintWriter(address, "UTF-8");
+            PrintWriter out = new PrintWriter(address, StandardCharsets.UTF_8);
             out.write(res);
             out.close();
-        } catch (FileNotFoundException e2) {
-            e2.printStackTrace();
-        } catch (UnsupportedEncodingException e2) {
-            e2.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-        return res;
+      return res;
     }
 
     private static void write_matrix_for_a_variable_list_value_pair(Automaton automaton, List<String> variables, List<Integer> valueList, List<Integer> indices, StringBuilder s) {
@@ -144,7 +144,7 @@ public class AutomatonWriter {
      */
     public static void write(Automaton automaton, String address) {
         try {
-            PrintWriter out = new PrintWriter(address, "UTF-8");
+            PrintWriter out = new PrintWriter(address, StandardCharsets.UTF_8);
             if (automaton.TRUE_FALSE_AUTOMATON) {
                 if (automaton.TRUE_AUTOMATON)
                     out.write("true");
@@ -158,10 +158,8 @@ public class AutomatonWriter {
                 }
             }
             out.close();
-        } catch (FileNotFoundException e2) {
-            e2.printStackTrace();
-        } catch (UnsupportedEncodingException e2) {
-            e2.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
@@ -262,11 +260,11 @@ public class AutomatonWriter {
             addln(gv,"}");
         }
         try {
-            PrintWriter out = new PrintWriter(address, "UTF-8");
+            PrintWriter out = new PrintWriter(address, StandardCharsets.UTF_8);
             out.write(gv.toString());
             out.close();
-        } catch (FileNotFoundException | UnsupportedEncodingException e2) {
-            e2.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
     

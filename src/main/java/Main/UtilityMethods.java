@@ -47,7 +47,7 @@ public class UtilityMethods {
 
     public static void setPaths() {
         String path = System.getProperty("user.dir");
-        if (path.substring(path.length() - 3).equals("bin"))
+        if (path.endsWith("bin"))
             dir = "../";
     }
 

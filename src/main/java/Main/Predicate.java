@@ -22,6 +22,7 @@ import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -411,7 +412,7 @@ public class Predicate {
                     new BufferedReader(
                             new InputStreamReader(
                                     new FileInputStream(
-                                            UtilityMethods.get_address_for_macro_library() + matcher.group(2) + ".txt"), "utf-8"));
+                                            UtilityMethods.get_address_for_macro_library() + matcher.group(2) + ".txt"), StandardCharsets.UTF_8));
             String line;
             while ((line = in.readLine()) != null) {
                 macro += line;

@@ -19,8 +19,10 @@
 package Main;
 
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Stack;
 
@@ -63,34 +65,16 @@ public class Computer {
         }
     }
 
-    public void writeLog(String address) {
-        PrintWriter out;
-        try {
-            out = new PrintWriter(address, "UTF-8");
-            out.write(log.toString());
-            out.close();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-            throw new RuntimeException(e.getMessage());
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-            throw new RuntimeException(e.getMessage());
-        }
+    public void writeLog(String address) throws IOException {
+        PrintWriter out = new PrintWriter(address, StandardCharsets.UTF_8);
+        out.write(log.toString());
+        out.close();
     }
 
-    public void writeDetailedLog(String address) {
-        PrintWriter out;
-        try {
-            out = new PrintWriter(address, "UTF-8");
-            out.write(log_details.toString());
-            out.close();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-            throw new RuntimeException(e.getMessage());
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-            throw new RuntimeException(e.getMessage());
-        }
+    public void writeDetailedLog(String address) throws IOException {
+        PrintWriter out = new PrintWriter(address, StandardCharsets.UTF_8);
+        out.write(log_details.toString());
+        out.close();
     }
 
     public void drawAutomaton(String address) {

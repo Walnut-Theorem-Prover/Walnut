@@ -27,6 +27,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.File;
 import java.io.FileReader;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -260,7 +261,7 @@ public class Prover {
                         new InputStreamReader(
                                 new FileInputStream(
                                         UtilityMethods.get_address_for_command_files() + args[0]),
-                                "utf-8"));
+                            StandardCharsets.UTF_8));
                 if (!readBuffer(in, false)) return;
             } catch (IOException e) {
                 System.out.flush();
@@ -523,7 +524,7 @@ public class Prover {
                             new FileInputStream(
                                     UtilityMethods.get_address_for_command_files() +
                                             m.group(L_FILENAME)),
-                            "utf-8"));
+                        StandardCharsets.UTF_8));
             if (!readBuffer(in, false)) {
                 return false;
             }
@@ -535,7 +536,7 @@ public class Prover {
         return true;
     }
 
-    public static TestCase eval_def_commands(String s) {
+    public static TestCase eval_def_commands(String s) throws IOException {
         Automaton M;
 
         Matcher m = PATTERN_FOR_eval_def_COMMANDS.matcher(s);
@@ -590,7 +591,7 @@ public class Prover {
                     new BufferedWriter(
                             new OutputStreamWriter(
                                     new FileOutputStream(
-                                            UtilityMethods.get_address_for_macro_library() + m.group(M_NAME) + ".txt"), "utf-8"));
+                                            UtilityMethods.get_address_for_macro_library() + m.group(M_NAME) + ".txt"), StandardCharsets.UTF_8));
             out.write(m.group(M_DEFINITION));
             out.close();
         } catch (Exception o) {
@@ -816,7 +817,7 @@ public class Prover {
         // we construct a define command for a DFA for each x that accepts iff x appears at the nth position
         for (Integer value : h.range) {
             eval_def_commands(h.makeInterCommand(value, m.group(GROUP_IMAGE_OLD_NAME), numSysName));
-            combineString += " " + m.group(GROUP_IMAGE_OLD_NAME) + "_" + value.toString() + "=" + value.toString();
+            combineString += " " + m.group(GROUP_IMAGE_OLD_NAME) + "_" + value + "=" + value;
         }
         combineString += ":";
 

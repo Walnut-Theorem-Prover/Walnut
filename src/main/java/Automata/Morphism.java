@@ -128,7 +128,7 @@ public class Morphism {
         // this word automaton is purely symbolic in input and we want it in the exact order given
         promotion.canonized = true;
         // the base for the automata is the length of the longest image of any letter under the morphism
-        promotion.NS.add(new NumberSystem("msd_" + Integer.toString(maxImageLength)));
+        promotion.NS.add(new NumberSystem("msd_" + maxImageLength));
 
         return promotion;
     }
@@ -157,7 +157,7 @@ public class Morphism {
             numSys = "?" + numSys;
         }
         String interCommand = "def " + baseAutomatonName + "_" + i;
-        interCommand += " \"" + numSys + " E q, r (n=" + length.toString() + "*q+r & r>=0 & r<" + length.toString();
+        interCommand += " \"" + numSys + " E q, r (n=" + length.toString() + "*q+r & r>=0 & r<" + length;
         for (Integer key : this.mapping.keySet()) {
             boolean exists = false;
             String clause = " & (" + baseAutomatonName + "[q]";

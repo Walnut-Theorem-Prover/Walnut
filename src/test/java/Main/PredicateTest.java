@@ -4,6 +4,7 @@ import java.io.BufferedWriter;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.DirectoryNotEmptyException;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
@@ -131,7 +132,7 @@ public class PredicateTest {
 					new BufferedWriter(
 							new OutputStreamWriter(
 									new FileOutputStream(
-											UtilityMethods.get_address_for_macro_library()+name+".txt"), "utf-8"));
+											UtilityMethods.get_address_for_macro_library()+name+".txt"), StandardCharsets.UTF_8));
 			out.write(macro);
 			out.close();
 		}

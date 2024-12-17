@@ -1689,7 +1689,7 @@ public class AutomatonLogicalOps {
                             toStateStringValue += toStateString.get(i) * (int) (Math.pow(root, i));
                         }
 
-                        toState = new StateTuple(automaton.d.get(currState.state).get(toStateStringValue).getInt(0), Arrays.asList());
+                        toState = new StateTuple(automaton.d.get(currState.state).get(toStateStringValue).getInt(0), List.of());
                     }
 
 
@@ -1721,7 +1721,7 @@ public class AutomatonLogicalOps {
             for (int i = 0; i < root; i++) {
                 ints.add(i);
             }
-            automaton.A = Arrays.asList(ints);
+            automaton.A = List.of(ints);
             automaton.alphabetSize = ints.size();
 
             if (print) {

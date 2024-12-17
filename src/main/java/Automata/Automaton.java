@@ -8,6 +8,7 @@ import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -373,7 +374,7 @@ public class Automaton {
 
         try {
             BufferedReader in = new BufferedReader(
-                    new InputStreamReader(new FileInputStream(address), "utf-8"));
+                    new InputStreamReader(new FileInputStream(address), StandardCharsets.UTF_8));
             String line;
             boolean[] singleton = new boolean[1];
             while ((line = in.readLine()) != null) {
@@ -542,8 +543,7 @@ public class Automaton {
         if (M == null) return false;
         if (TRUE_FALSE_AUTOMATON != M.TRUE_FALSE_AUTOMATON) return false;
         if (TRUE_FALSE_AUTOMATON && M.TRUE_FALSE_AUTOMATON) {
-            if (TRUE_AUTOMATON != M.TRUE_AUTOMATON) return false;
-            return true;
+          return TRUE_AUTOMATON == M.TRUE_AUTOMATON;
         }
         dk.brics.automaton.Automaton Y = M.to_dk_bricks_automaton();
         dk.brics.automaton.Automaton X = to_dk_bricks_automaton();
@@ -966,7 +966,7 @@ public class Automaton {
         for (int x : d.get(state).keySet()) {
             for (Integer y : d.get(state).get(x)) {
                 // this adds brackets even when inputs have arity 1 - this is fine, since we just want a usable infinite regex
-                String cycle = infiniteHelper(y, result + decode(this, x).toString());
+                String cycle = infiniteHelper(y, result + decode(this, x));
                 if (cycle != "") {
                     return cycle;
                 }
@@ -1882,9 +1882,7 @@ public class Automaton {
     }
 
     public boolean isBound() {
-        if (label == null || label.size() != A.size())
-            return false;
-        return true;
+      return label != null && label.size() == A.size();
     }
 
     public int getArity() {
