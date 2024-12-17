@@ -358,12 +358,12 @@ public class Prover {
 
         Matcher matcher_for_command = PATTERN_FOR_COMMAND.matcher(s);
         if (!matcher_for_command.find()) {
-            throw new Exception("Invalid command.");
+            throw ExceptionHelper.invalidCommand();
         }
 
         String commandName = matcher_for_command.group(1);
         if (!commandName.matches(REGEXP_FOR_THE_LIST_OF_COMMANDS)) {
-            throw new Exception("No such command exists.");
+            throw ExceptionHelper.noSuchCommand();
         }
 
         switch (commandName) {
@@ -371,7 +371,7 @@ public class Prover {
                 if (s.matches(REGEXP_FOR_exit_COMMAND)) {
                     return false;
                 }
-                throw new Exception("Invalid command.");
+                throw ExceptionHelper.invalidCommand();
             }
             case "load" -> {
                 if (!loadCommand(s)) return false;
@@ -405,7 +405,7 @@ public class Prover {
             case "leftquo" -> leftquoCommand(s);
             case "draw" -> drawCommand(s);
             case "help" -> helpCommand(s);
-            default -> throw new Exception("Invalid command " + commandName + ".");
+            default -> throw ExceptionHelper.invalidCommand(commandName);
         }
         return true;
     }
@@ -416,17 +416,17 @@ public class Prover {
         }
 
         Matcher matcher_for_command = PATTERN_FOR_COMMAND.matcher(s);
-        if (!matcher_for_command.find()) throw new Exception("Invalid command.");
+        if (!matcher_for_command.find()) throw ExceptionHelper.invalidCommand();
 
         String commandName = matcher_for_command.group(1);
         if (!commandName.matches(REGEXP_FOR_THE_LIST_OF_COMMANDS)) {
-            throw new Exception("No such command exists.");
+            throw ExceptionHelper.noSuchCommand();
         }
 
         switch (commandName) {
             case "exit", "quit" -> {
                 if (s.matches(REGEXP_FOR_exit_COMMAND)) return null;
-                throw new Exception("Invalid command.");
+                throw ExceptionHelper.invalidCommand();
             }
             case "load" -> {
                 if (!loadCommand(s)) return null;
@@ -501,7 +501,7 @@ public class Prover {
                 return drawCommand(s);
             }
             case "help" -> helpCommand(s);
-            default -> throw new Exception("Invalid command: " + commandName);
+            default -> throw ExceptionHelper.invalidCommand(commandName);
         }
         return null;
     }
@@ -517,8 +517,7 @@ public class Prover {
      */
     public static boolean loadCommand(String s) throws Exception {
         Matcher m = PATTERN_FOR_load_COMMAND.matcher(s);
-        if (!m.find()) throw new Exception("Invalid use of the load command.");
-
+        if (!m.find()) throw ExceptionHelper.invalidCommandUse("load");
         try {
             BufferedReader in = new BufferedReader(
                     new InputStreamReader(
@@ -542,7 +541,7 @@ public class Prover {
 
         Matcher m = PATTERN_FOR_eval_def_COMMANDS.matcher(s);
         if (!m.find()) {
-            throw new Exception("Invalid use of the eval/def command.");
+            throw ExceptionHelper.invalidCommandUse("eval/def");
         }
 
         List<String> free_variables = new ArrayList<>();
@@ -584,10 +583,9 @@ public class Prover {
         return new TestCase(s, M, "", c.mpl, printDetails ? c.log_details.toString() : "");
     }
 
-    public static TestCase macroCommand(String s) throws Exception {
+    public static TestCase macroCommand(String s) {
         Matcher m = PATTERN_FOR_macro_COMMAND.matcher(s);
-        if (!m.find()) throw new Exception("Invalid use of the macro command");
-
+        if (!m.find()) throw ExceptionHelper.invalidCommandUse("macro");
         try {
             BufferedWriter out =
                     new BufferedWriter(
@@ -605,7 +603,7 @@ public class Prover {
     public static TestCase regCommand(String s) throws Exception {
         Matcher m = PATTERN_FOR_reg_COMMAND.matcher(s);
         if (!m.find()) {
-            throw new Exception("Invalid use of the reg command");
+            throw ExceptionHelper.invalidCommandUse("reg");
         }
         NumberSystem ns;
         List<List<Integer>> alphabets = new ArrayList<>();
@@ -724,7 +722,7 @@ public class Prover {
     public static TestCase combineCommand(String s) throws Exception {
         Matcher m = PATTERN_FOR_combine_COMMAND.matcher(s);
         if (!m.find()) {
-            throw new Exception("Invalid use of the combine command.");
+            throw ExceptionHelper.invalidCommandUse("combine");
         }
 
         boolean printSteps = m.group(GROUP_COMBINE_END).equals(":");
@@ -771,7 +769,7 @@ public class Prover {
     public static void morphismCommand(String s) throws Exception {
         Matcher m = PATTERN_FOR_morphism_COMMAND.matcher(s);
         if (!m.find()) {
-            throw new Exception("Invalid use of the morphism command.");
+            throw ExceptionHelper.invalidCommandUse("morphism");
         }
         String name = m.group(GROUP_MORPHISM_NAME);
 
@@ -787,7 +785,7 @@ public class Prover {
     public static TestCase promoteCommand(String s) throws Exception {
         Matcher m = PATTERN_FOR_promote_COMMAND.matcher(s);
         if (!m.find()) {
-            throw new Exception("Invalid use of the promote command.");
+            throw ExceptionHelper.invalidCommandUse("prmote");
         }
         Morphism h = new Morphism(UtilityMethods.get_address_for_morphism_library() + m.group(GROUP_PROMOTE_MORPHISM) + ".txt");
         Automaton P = h.toWordAutomaton();
@@ -801,7 +799,7 @@ public class Prover {
     public static TestCase imageCommand(String s) throws Exception {
         Matcher m = PATTERN_FOR_image_COMMAND.matcher(s);
         if (!m.find()) {
-            throw new Exception("Invalid use of the promote command.");
+            throw ExceptionHelper.invalidCommandUse("image");
         }
         Morphism h = new Morphism(UtilityMethods.get_address_for_morphism_library() + m.group(GROUP_IMAGE_MORPHISM) + ".txt");
         if (!h.isUniform()) {
@@ -835,7 +833,7 @@ public class Prover {
     public static boolean infCommand(String s) throws Exception {
         Matcher m = PATTERN_FOR_inf_COMMAND.matcher(s);
         if (!m.find()) {
-            throw new Exception("Invalid use of the inf command.");
+            throw ExceptionHelper.invalidCommandUse("inf");
         }
         Automaton M = new Automaton(UtilityMethods.get_address_for_automata_library() + m.group(GROUP_INF_NAME) + ".txt");
         M = removeLeadTrailZeroes(M, m.group(GROUP_INF_NAME));
@@ -852,7 +850,7 @@ public class Prover {
     public static TestCase splitCommand(String s) throws Exception {
         Matcher m = PATTERN_FOR_split_COMMAND.matcher(s);
         if (!m.find()) {
-            throw new Exception("Invalid use of the split command.");
+            throw ExceptionHelper.invalidCommandUse("split");
         }
         String addressForWordAutomaton
                 = UtilityMethods.get_address_for_words_library() + m.group(GROUP_SPLIT_AUTOMATA) + ".txt";
@@ -908,7 +906,7 @@ public class Prover {
     public static TestCase rsplitCommand(String s) throws Exception {
         Matcher m = PATTERN_FOR_rsplit_COMMAND.matcher(s);
         if (!m.find()) {
-            throw new Exception("Invalid use of the reverse split command.");
+            throw ExceptionHelper.invalidCommandUse("reverse split");
         }
         String addressForWordAutomaton
                 = UtilityMethods.get_address_for_words_library() + m.group(GROUP_RSPLIT_AUTOMATA) + ".txt";
@@ -964,7 +962,7 @@ public class Prover {
     public static TestCase joinCommand(String s) throws Exception {
         Matcher m = PATTERN_FOR_join_COMMAND.matcher(s);
         if (!m.find()) {
-            throw new Exception("Invalid use of the join command.");
+            throw ExceptionHelper.invalidCommandUse("join");
         }
 
         boolean printSteps = m.group(GROUP_JOIN_END).equals(":");
@@ -1019,7 +1017,7 @@ public class Prover {
     public static void testCommand(String s) throws Exception {
         Matcher m = PATTERN_FOR_test_COMMAND.matcher(s);
         if (!m.find()) {
-            throw new Exception("Invalid use of the test command.");
+            throw ExceptionHelper.invalidCommandUse("test");
         }
 
         Integer needed = Integer.parseInt(m.group(GROUP_TEST_NUM));
@@ -1071,7 +1069,7 @@ public class Prover {
             }
         }
         if (accepted.size() < needed) {
-            System.out.println(m.group(GROUP_TEST_NAME) + " only accepts " + Integer.toString(accepted.size()) + " inputs, which are as follows: ");
+            System.out.println(m.group(GROUP_TEST_NAME) + " only accepts " + accepted.size() + " inputs, which are as follows: ");
         }
         for (String input : accepted) {
             System.out.println(input);
@@ -1096,7 +1094,7 @@ public class Prover {
         try {
             Matcher m = PATTERN_FOR_transduce_COMMAND.matcher(s);
             if (!m.find()) {
-                throw new Exception("Invalid use of the transduce command.");
+                throw ExceptionHelper.invalidCommandUse("transduce");
             }
 
             boolean printSteps = m.group(GROUP_TRANSDUCE_END).equals(":");
@@ -1127,7 +1125,7 @@ public class Prover {
         try {
             Matcher m = PATTERN_FOR_reverse_COMMAND.matcher(s);
             if (!m.find()) {
-                throw new Exception("Invalid use of the reverse command.");
+                throw ExceptionHelper.invalidCommandUse("reverse");
             }
 
             boolean printSteps = m.group(GROUP_REVERSE_END).equals(":");
@@ -1166,7 +1164,7 @@ public class Prover {
         try {
             Matcher m = PATTERN_FOR_minimize_COMMAND.matcher(s);
             if (!m.find()) {
-                throw new Exception("Invalid use of the minimize command.");
+                throw ExceptionHelper.invalidCommandUse("minimize");
             }
 
             boolean printSteps = m.group(GROUP_MINIMIZE_END).equals(":");
@@ -1193,7 +1191,7 @@ public class Prover {
         try {
             Matcher m = PATTERN_FOR_convert_COMMAND.matcher(s);
             if (!m.find()) {
-                throw new Exception("Invalid use of the convert command.");
+                throw ExceptionHelper.invalidCommandUse("convert");
             }
 
             if (m.group(GROUP_CONVERT_NEW_DOLLAR_SIGN).equals("$")
@@ -1235,7 +1233,7 @@ public class Prover {
         try {
             Matcher m = PATTERN_FOR_fixleadzero_COMMAND.matcher(s);
             if (!m.find()) {
-                throw new Exception("Invalid use of the fixleadzero command.");
+                throw ExceptionHelper.invalidCommandUse("fixleadzero");
             }
 
             boolean printSteps = m.group(GROUP_FIXLEADZERO_END).equals(":");
@@ -1261,7 +1259,7 @@ public class Prover {
         try {
             Matcher m = PATTERN_FOR_fixtrailzero_COMMAND.matcher(s);
             if (!m.find()) {
-                throw new Exception("Invalid use of the fixtrailzero command.");
+                throw ExceptionHelper.invalidCommandUse("fixtrailzero");
             }
 
             boolean printSteps = m.group(GROUP_FIXTRAILZERO_END).equals(":");
@@ -1287,7 +1285,7 @@ public class Prover {
         try {
             Matcher m = PATTERN_FOR_alphabet_COMMAND.matcher(s);
             if (!m.find()) {
-                throw new Exception("Invalid use of the alphabet command.");
+                throw ExceptionHelper.invalidCommandUse("alphabet");
             }
 
             if (m.group(GROUP_alphabet_LIST_OF_ALPHABETS) == null) {
@@ -1361,7 +1359,7 @@ public class Prover {
         try {
             Matcher m = PATTERN_FOR_union_COMMAND.matcher(s);
             if (!m.find()) {
-                throw new Exception("Invalid use of the union command.");
+                throw ExceptionHelper.invalidCommandUse("union");
             }
 
             boolean printSteps = m.group(GROUP_UNION_END).equals(":");
@@ -1404,7 +1402,7 @@ public class Prover {
 
             Matcher m = PATTERN_FOR_intersect_COMMAND.matcher(s);
             if (!m.find()) {
-                throw new Exception("Invalid use of the intersect command.");
+                throw ExceptionHelper.invalidCommandUse("intersect");
             }
 
             boolean printSteps = m.group(GROUP_INTERSECT_END).equals(":");
@@ -1447,7 +1445,7 @@ public class Prover {
 
             Matcher m = PATTERN_FOR_star_COMMAND.matcher(s);
             if (!m.find()) {
-                throw new Exception("Invalid use of the star command.");
+                throw ExceptionHelper.invalidCommandUse("star");
             }
 
             boolean printSteps = m.group(GROUP_STAR_END).equals(":");
@@ -1474,7 +1472,7 @@ public class Prover {
         try {
             Matcher m = PATTERN_FOR_concat_COMMAND.matcher(s);
             if (!m.find()) {
-                throw new Exception("Invalid use of the concat command.");
+                throw ExceptionHelper.invalidCommandUse("concat");
             }
 
             boolean printSteps = m.group(GROUP_CONCAT_END).equals(":");
@@ -1518,7 +1516,7 @@ public class Prover {
             Matcher m = PATTERN_FOR_rightquo_COMMAND.matcher(s);
 
             if (!m.find()) {
-                throw new Exception("Invalid use of the rightquo command.");
+                throw ExceptionHelper.invalidCommandUse("rightquo");
             }
 
             boolean printSteps = m.group(GROUP_rightquo_END).equals(":");
@@ -1548,7 +1546,7 @@ public class Prover {
             Matcher m = PATTERN_FOR_leftquo_COMMAND.matcher(s);
 
             if (!m.find()) {
-                throw new Exception("Invalid use of the leftquo command.");
+                throw ExceptionHelper.invalidCommandUse("leftquo");
             }
 
             boolean printSteps = m.group(GROUP_leftquo_END).equals(":");
@@ -1578,7 +1576,7 @@ public class Prover {
             Matcher m = PATTERN_FOR_draw_COMMAND.matcher(s);
 
             if (!m.find()) {
-                throw new Exception("Invalid use of the draw command.");
+                throw ExceptionHelper.invalidCommandUse("draw");
             }
 
             String library = UtilityMethods.get_address_for_words_library();
@@ -1601,7 +1599,7 @@ public class Prover {
             Matcher m = PATTERN_FOR_help_COMMAND.matcher(s);
 
             if (!m.find()) {
-                throw new Exception("Invalid use of the help command.");
+                throw ExceptionHelper.invalidCommandUse("help");
             }
 
             File f = new File(UtilityMethods.get_address_for_help_commands());

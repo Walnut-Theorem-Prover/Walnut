@@ -85,9 +85,7 @@ public class IntegrationTest {
 			Prover.dispatchForIntegrationTest("macro palindrome \"?%0 Ak (k<n) => %1[i+k] = %1[i+n-1-k]\";");
 			//Prover.dispatchForIntegrationTest("macro factoreq \"%0 Ak (%4<n) => %1[%2+k]=%1[%3+k]\"");
 			Prover.dispatchForIntegrationTest("macro border \"?%0 m>=1 & m<=n & $%1_factoreq(i,i+n-m,m)\";");
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		} catch (UnsupportedEncodingException e) {
+		} catch (FileNotFoundException | UnsupportedEncodingException e) {
 			e.printStackTrace();
 		} catch(Exception e){
 			e.printStackTrace();
@@ -855,7 +853,7 @@ public class IntegrationTest {
 	}
 
 	public void runPerformanceTest(String name,int numberOfRuns) throws Exception{
-		PrintWriter out = new PrintWriter(new FileOutputStream(new File(directoryAddress+performanceTestFileName), true /* append = true */));
+		PrintWriter out = new PrintWriter(new FileOutputStream(directoryAddress+performanceTestFileName, true /* append = true */));
 		out.println("----------------------------------------");
 		out.println("Performance Test Result for " + name);
 		out.println("Number of runs: " + numberOfRuns);
@@ -889,7 +887,7 @@ public class IntegrationTest {
 		long before = 0;
 		long after = 0;
 		long total = 0;
-		if(testCases == null || testCases.size() == 0)return total;
+		if(testCases == null || testCases.isEmpty())return total;
 		System.out.println("Running test cases from test case " + begin +" to test case " + end);
 		for(int i = begin; i < end;i++){
 			TestCase expected = testCases.get(i);
@@ -1038,10 +1036,10 @@ public class IntegrationTest {
 			StringBuilder error = new StringBuilder();
 			StringBuilder details = new StringBuilder();
 			StringBuilder mpl = new StringBuilder();
-			if(new File(directoryAddress+"automaton"+Integer.toString(i)+".txt").isFile()){
+			if(new File(directoryAddress+"automaton"+ i +".txt").isFile()){
 				M = new Automaton(directoryAddress+"automaton"+i+".txt");
 			}
-			if(new File(directoryAddress+"error"+Integer.toString(i)+".txt").isFile()){
+			if(new File(directoryAddress+"error"+ i +".txt").isFile()){
 				BufferedReader errorReader = new BufferedReader(new InputStreamReader(new FileInputStream(directoryAddress+"error" + Integer.toString(i)+".txt"), "utf-8"));
 				String temp;
 				boolean flag = false;
@@ -1055,7 +1053,7 @@ public class IntegrationTest {
 				errorReader.close();
 			}
 
-			if(new File(directoryAddress+"mpl"+Integer.toString(i)+".mpl").isFile()){
+			if(new File(directoryAddress+"mpl"+ i +".mpl").isFile()){
 				BufferedReader mplReader = new BufferedReader(new InputStreamReader(new FileInputStream(directoryAddress+"mpl" + Integer.toString(i)+".mpl"), "utf-8"));
 				String temp;
 				boolean flag = false;
@@ -1069,7 +1067,7 @@ public class IntegrationTest {
 				mplReader.close();
 			}
 
-			if(new File(directoryAddress+"details"+Integer.toString(i)+".txt").isFile()){
+			if(new File(directoryAddress+"details"+ i +".txt").isFile()){
 				BufferedReader detailsReader = new BufferedReader(new InputStreamReader(new FileInputStream(directoryAddress+"details" + Integer.toString(i)+".txt"), "utf-8"));
 				String temp;
 				boolean flag = false;
@@ -1107,20 +1105,20 @@ public class IntegrationTest {
 		for(int i = 0 ; i < testCases.size();i++){
 			TestCase t = testCases.get(i);
 			if(t.result != null){
-				AutomatonWriter.write(t.result, directory+"automaton" +Integer.toString(i)+ ".txt");
+				AutomatonWriter.write(t.result, directory+"automaton" + i + ".txt");
 			}
 			if(t.error != null && t.error.length() > 0){
-				PrintWriter errorWriter = new PrintWriter(directory+"error"+Integer.toString(i)+".txt", "UTF-8");
+				PrintWriter errorWriter = new PrintWriter(directory+"error"+ i +".txt", "UTF-8");
 				errorWriter.println(t.error);
 				errorWriter.close();
 			}
 			if(t.mpl != null && t.mpl.length() > 0){
-				PrintWriter mplWriter = new PrintWriter(directory+"mpl"+Integer.toString(i)+".mpl", "UTF-8");
+				PrintWriter mplWriter = new PrintWriter(directory+"mpl"+ i +".mpl", "UTF-8");
 				mplWriter.println(t.mpl);
 				mplWriter.close();
 			}
 			if(t.details != null && t.details.length() > 0){
-				PrintWriter detailsWriter = new PrintWriter(directory+"details"+Integer.toString(i)+".txt", "utf-8");
+				PrintWriter detailsWriter = new PrintWriter(directory+"details"+ i +".txt", "utf-8");
 				detailsWriter.println(t.details);
 				detailsWriter.close();
 			}

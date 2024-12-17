@@ -36,4 +36,17 @@ public class ExceptionHelper {
     public static RuntimeException unbalancedParen(int index) {
         return new RuntimeException("unbalanced parenthesis: char at " + index);
     }
+
+    public static RuntimeException invalidCommand() {
+        return new RuntimeException("Invalid command.");
+    }
+    public static RuntimeException invalidCommand(String command) {
+        return new RuntimeException("Invalid command: " + command);
+    }
+    public static RuntimeException invalidCommandUse(String command) {
+        return new RuntimeException("Invalid use of the " + command +" command.");
+    }
+    public static RuntimeException noSuchCommand() {
+        return new RuntimeException("No such command exists.");
+    }
 }
