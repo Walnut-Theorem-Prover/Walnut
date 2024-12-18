@@ -1,3 +1,20 @@
+/*	 Copyright 2016 Hamoon Mousavi, 2025 John Nicol
+ *
+ * 	 This file is part of Walnut.
+ *
+ *   Walnut is free software: you can redistribute it and/or modify
+ *   it under the terms of the GNU General Public License as published by
+ *   the Free Software Foundation, either version 3 of the License, or
+ *   (at your option) any later version.
+ *
+ *   Walnut is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU General Public License for more details.
+ *
+ *   You should have received a copy of the GNU General Public License
+ *   along with Walnut.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package Automata;
 
 import Main.ExceptionHelper;
@@ -97,7 +114,8 @@ public class AutomatonLogicalOps {
         List<Integer> allInputsOfN = new ArrayList<>();
         for (int i = 0; i < automaton.alphabetSize; i++) {
             for (int j = 0; j < M.alphabetSize; j++) {
-                List<Integer> inputForN = joinTwoInputsForCrossProduct(Automaton.decode(automaton, i), Automaton.decode(M, j), sameInputsInMAndThis);
+                List<Integer> inputForN = joinTwoInputsForCrossProduct(
+                    Automaton.decode(automaton.A, i), Automaton.decode(M.A, j), sameInputsInMAndThis);
                 if (inputForN == null)
                     allInputsOfN.add(-1);
                 else
@@ -531,7 +549,7 @@ public class AutomatonLogicalOps {
         for (int q = 0; q < otherClone.Q; q++) {
             Int2ObjectRBTreeMap<IntList> newMap = new Int2ObjectRBTreeMap<>();
             for (int x : otherClone.d.get(q).keySet()) {
-                newMap.put(automaton.encode(Automaton.decode(otherClone, x)), otherClone.d.get(q).get(x));
+                newMap.put(automaton.encode(Automaton.decode(otherClone.A, x)), otherClone.d.get(q).get(x));
             }
             newOtherD.add(newMap);
         }
@@ -863,7 +881,7 @@ public class AutomatonLogicalOps {
         IntList dest = new IntArrayList();
         dest.add(1);
         for (int i = 0; i < automaton.alphabetSize; i++) {
-            List<Integer> list = Automaton.decode(automaton, i);
+            List<Integer> list = Automaton.decode(automaton.A, i);
             if (list.get(n) != 0) {
                 M.d.get(0).put(i, new IntArrayList(dest));
             }
@@ -967,7 +985,7 @@ public class AutomatonLogicalOps {
             newEncoder.add(newEncoder.get(i) * newAlphabet.get(i).size());
         List<Integer> map = new ArrayList<>();
         for (int n = 0; n < automaton.alphabetSize; n++)
-            map.add(automaton.mapToReducedEncodedInput(n, I, newEncoder, newAlphabet));
+            map.add(automaton.mapToReducedEncodedInput(n, I, newEncoder, automaton.A, newAlphabet));
         List<Int2ObjectRBTreeMap<IntList>> new_d = new ArrayList<>();
         for (int q = 0; q < automaton.Q; q++) {
             Int2ObjectRBTreeMap<IntList> currentStatesTransition = new Int2ObjectRBTreeMap<>();
@@ -1121,7 +1139,7 @@ public class AutomatonLogicalOps {
             listOfInputsToQuantify.add(automaton.label.indexOf(l));
         List<List<Integer>> allInputs = new ArrayList<>();
         for (int i = 0; i < automaton.alphabetSize; i++)
-            allInputs.add(Automaton.decode(automaton, i));
+            allInputs.add(Automaton.decode(automaton.A, i));
         //now we remove those indices in listOfInputsToQuantify from A,T,label, and allInputs
         UtilityMethods.removeIndices(automaton.A, listOfInputsToQuantify);
         automaton.encoder = null;

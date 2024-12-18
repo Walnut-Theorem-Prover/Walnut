@@ -1,4 +1,4 @@
-/*   Copyright 2019 Aseem Baranwal
+/*   Copyright 2019 Aseem Baranwal, 2025 John Nicol
  *
  *   This file is part of Walnut.
  *
@@ -62,16 +62,8 @@ public class Ostrowski {
     // The pre-period of the continued fraction.
     ArrayList<Integer> preperiod;
 
-    public ArrayList<Integer> getpre_period() {
-        return preperiod;
-    }
-
     // The pre-period of the continued fraction.
     ArrayList<Integer> period;
-
-    public ArrayList<Integer> get_period() {
-        return period;
-    }
 
     // The continued fraction expansion of alpha. This is simply a concatenation of
     // preperiod and period.
@@ -193,21 +185,7 @@ public class Ostrowski {
         repr.minimize(null, false, "", null);
         repr.canonize();
 
-        boolean zeroStateNeeded =
-                repr.d.stream().anyMatch(
-                        tm -> tm.int2ObjectEntrySet().stream().anyMatch(
-                                es -> es.getValue().getInt(0) == 0));
-        if (!zeroStateNeeded) {
-            repr.d.remove(0);
-            repr.O.removeInt(0);
-            --repr.Q;
-            repr.d.forEach(tm -> {
-                tm.forEach((k, v) -> {
-                    int dest = v.getInt(0) - 1;
-                    v.set(0, dest);
-                });
-            });
-        }
+        handleZeroState(repr);
 
         String repr_file_name =
                 UtilityMethods.get_address_for_custom_bases() + "msd_" + this.name + ".txt";
@@ -256,23 +234,7 @@ public class Ostrowski {
         // because the Automaton class does not support an epsilon transition for NFAs.
         adder.canonize();
 
-        boolean zeroStateNeeded =
-                adder.d.stream().anyMatch(
-                        tm -> tm.int2ObjectEntrySet().stream().anyMatch(
-                                es -> es.getValue().getInt(0) == 0));
-
-        if (!zeroStateNeeded) {
-            adder.d.remove(0);
-            adder.O.removeInt(0);
-            --adder.Q;
-            adder.d.forEach(tm -> {
-                tm.forEach((k, v) -> {
-                    int dest = v.getInt(0) - 1;
-                    // System.out.println(k + " -> " + v);
-                    v.set(0, dest);
-                });
-            });
-        }
+        handleZeroState(adder);
 
         // Write the Automaton to file.
         String adder_file_name =
@@ -284,6 +246,25 @@ public class Ostrowski {
 
         AutomatonWriter.write(adder, adder_file_name);
         System.out.println("Ostrowski adder automaton created and written to file " + adder_file_name);
+    }
+
+    private void handleZeroState(Automaton adder) {
+        boolean zeroStateNeeded =
+            adder.d.stream().anyMatch(
+                tm -> tm.int2ObjectEntrySet().stream().anyMatch(
+                    es -> es.getValue().getInt(0) == 0));
+
+        if (!zeroStateNeeded) {
+            adder.d.remove(0);
+            adder.O.removeInt(0);
+            --adder.Q;
+            adder.d.forEach(tm -> {
+                tm.forEach((k, v) -> {
+                    int dest = v.getInt(0) - 1;
+                    v.set(0, dest);
+                });
+            });
+        }
     }
 
     public String toString() {
@@ -412,54 +393,38 @@ public class Ostrowski {
                 }
 
                 if (seen_index > 1) {
-                    NodeState node = new NodeState(st, start_index, seen_index - 1);
-                    this.state_transitions.putIfAbsent(cur_node_idx, new Int2ObjectRBTreeMap<>());
-                    a = alphaI(seen_index - 1);
-                    if (index_of_node.containsKey(node)) {
-                        // This node already exists, don't create a new NodeState.
-                        addTransitions(
-                                this.state_transitions.get(cur_node_idx),
-                                a * r + s,
-                                index_of_node.get(node));
-                    } else {
-                        // Need to create a new NodeState.
-                        index_of_node.put(node, this.total_nodes);
-                        node_of_index.put(this.total_nodes, node);
-                        queue.add(this.total_nodes);
-                        addTransitions(
-                                this.state_transitions.get(cur_node_idx),
-                                a * r + s,
-                                this.total_nodes);
-                        ++this.total_nodes;
-                    }
+                    addTransitionsAndNode(new NodeState(st, start_index, seen_index - 1),
+                        cur_node_idx, alphaI(seen_index - 1), r, s, queue);
                 }
 
                 if (seen_index == this.period_index) {
                     // There is another possibility.
                     // Next index could also be sz_alpha - 1.
-                    NodeState node = new NodeState(st, start_index, sz_alpha - 1);
-
-                    // Create the map if does not exist.
-                    this.state_transitions.putIfAbsent(cur_node_idx, new Int2ObjectRBTreeMap<>());
-
-                    a = alphaI(sz_alpha - 1);
-                    if (index_of_node.containsKey(node)) {
-                        addTransitions(
-                                this.state_transitions.get(cur_node_idx),
-                                a * r + s,
-                                index_of_node.get(node));
-                    } else {
-                        index_of_node.put(node, this.total_nodes);
-                        node_of_index.put(this.total_nodes, node);
-                        queue.add(this.total_nodes);
-                        addTransitions(
-                                this.state_transitions.get(cur_node_idx),
-                                a * r + s,
-                                this.total_nodes);
-                        ++this.total_nodes;
-                    }
+                    addTransitionsAndNode(new NodeState(st, start_index, sz_alpha - 1),
+                        cur_node_idx, alphaI(sz_alpha - 1), r, s, queue);
                 }
             }
+        }
+    }
+
+    private void addTransitionsAndNode(NodeState node, int cur_node_idx, int a, int r, int s, Queue<Integer> queue) {
+        this.state_transitions.putIfAbsent(cur_node_idx, new Int2ObjectRBTreeMap<>());
+        if (index_of_node.containsKey(node)) {
+            // This node already exists, don't create a new NodeState.
+            addTransitions(
+                    this.state_transitions.get(cur_node_idx),
+                    a * r + s,
+                    index_of_node.get(node));
+        } else {
+            // Need to create a new NodeState.
+            index_of_node.put(node, this.total_nodes);
+            node_of_index.put(this.total_nodes, node);
+            queue.add(this.total_nodes);
+            addTransitions(
+                    this.state_transitions.get(cur_node_idx),
+                    a * r + s,
+                    this.total_nodes);
+            ++this.total_nodes;
         }
     }
 
@@ -526,55 +491,12 @@ public class Ostrowski {
                 this.state_transitions.putIfAbsent(cur_node_idx, new Int2ObjectRBTreeMap<>());
 
                 // Will go to state 0 for all transitions < a.
-                NodeState node = new NodeState(0, start_index, seen_index - 1);
-                for (int inp = 0; inp < a; ++inp) {
-                    if (index_of_node.containsKey(node)) {
-                        this.state_transitions
-                                .get(cur_node_idx)
-                                .putIfAbsent(inp, new IntArrayList());
-                        this.state_transitions
-                                .get(cur_node_idx)
-                                .get(inp)
-                                .add((int) index_of_node.get(node));
-                    } else {
-                        index_of_node.put(node, this.total_nodes);
-                        node_of_index.put(this.total_nodes, node);
-                        queue.add(this.total_nodes);
-                        this.state_transitions
-                                .get(cur_node_idx)
-                                .putIfAbsent(inp, new IntArrayList());
-                        this.state_transitions
-                                .get(cur_node_idx)
-                                .get(inp)
-                                .add(this.total_nodes);
-                        ++this.total_nodes;
-                    }
-                }
+                pointToNode(a, new NodeState(0, start_index, seen_index - 1), cur_node_idx, queue);
 
                 // Go to state 1 from this state 0 for transition = a (only if seen_index > 2).
                 if (state == 0 && seen_index > 2) {
-                    node = new NodeState(1, start_index, seen_index - 1);
-                    if (index_of_node.containsKey(node)) {
-                        this.state_transitions
-                                .get(cur_node_idx)
-                                .putIfAbsent(a, new IntArrayList());
-                        this.state_transitions
-                                .get(cur_node_idx)
-                                .get(a)
-                                .add((int) index_of_node.get(node));
-                    } else {
-                        index_of_node.put(node, this.total_nodes);
-                        node_of_index.put(this.total_nodes, node);
-                        queue.add(this.total_nodes);
-                        this.state_transitions
-                                .get(cur_node_idx)
-                                .putIfAbsent(a, new IntArrayList());
-                        this.state_transitions
-                                .get(cur_node_idx)
-                                .get(a)
-                                .add(this.total_nodes);
-                        ++this.total_nodes;
-                    }
+                    pointSymbolToNode(
+                        new NodeState(1, start_index, seen_index - 1), cur_node_idx, queue, a);
                 }
             }
 
@@ -590,56 +512,44 @@ public class Ostrowski {
                 // Create the map if does not exist.
                 this.state_transitions.putIfAbsent(cur_node_idx, new Int2ObjectRBTreeMap<>());
                 NodeState node = new NodeState(0, start_index, sz_alpha - 1);
-                for (int inp = 0; inp < a; ++inp) {
-                    if (index_of_node.containsKey(node)) {
-                        this.state_transitions
-                                .get(cur_node_idx)
-                                .putIfAbsent(inp, new IntArrayList());
-                        this.state_transitions
-                                .get(cur_node_idx)
-                                .get(inp)
-                                .add((int) index_of_node.get(node));
-                    } else {
-                        index_of_node.put(node, this.total_nodes);
-                        node_of_index.put(this.total_nodes, node);
-                        queue.add(this.total_nodes);
-                        this.state_transitions
-                                .get(cur_node_idx)
-                                .putIfAbsent(inp, new IntArrayList());
-                        this.state_transitions
-                                .get(cur_node_idx)
-                                .get(inp)
-                                .add(this.total_nodes);
-                        ++this.total_nodes;
-                    }
-                }
+                pointToNode(a, node, cur_node_idx, queue);
 
                 // Go to state 1 from this state 0 for transition = a.
                 if (state == 0) {
-                    node = new NodeState(1, start_index, sz_alpha - 1);
-                    if (index_of_node.containsKey(node)) {
-                        this.state_transitions
-                                .get(cur_node_idx)
-                                .putIfAbsent(a, new IntArrayList());
-                        this.state_transitions
-                                .get(cur_node_idx)
-                                .get(a)
-                                .add((int) index_of_node.get(node));
-                    } else {
-                        index_of_node.put(node, this.total_nodes);
-                        node_of_index.put(this.total_nodes, node);
-                        queue.add(this.total_nodes);
-                        this.state_transitions
-                                .get(cur_node_idx)
-                                .putIfAbsent(a, new IntArrayList());
-                        this.state_transitions
-                                .get(cur_node_idx)
-                                .get(a)
-                                .add(this.total_nodes);
-                        ++this.total_nodes;
-                    }
+                    pointSymbolToNode(
+                        new NodeState(1, start_index, sz_alpha - 1), cur_node_idx, queue, a);
                 }
             }
+        }
+    }
+
+    private void pointToNode(int a, NodeState node, int cur_node_idx, Queue<Integer> queue) {
+        for (int inp = 0; inp < a; ++inp) {
+            pointSymbolToNode(node, cur_node_idx, queue, inp);
+        }
+    }
+
+    private void pointSymbolToNode(NodeState node, int cur_node_idx, Queue<Integer> queue, int inp) {
+        if (index_of_node.containsKey(node)) {
+            this.state_transitions
+                    .get(cur_node_idx)
+                    .putIfAbsent(inp, new IntArrayList());
+            this.state_transitions
+                    .get(cur_node_idx)
+                    .get(inp)
+                    .add((int) index_of_node.get(node));
+        } else {
+            index_of_node.put(node, this.total_nodes);
+            node_of_index.put(this.total_nodes, node);
+            queue.add(this.total_nodes);
+            this.state_transitions
+                    .get(cur_node_idx)
+                    .putIfAbsent(inp, new IntArrayList());
+            this.state_transitions
+                    .get(cur_node_idx)
+                    .get(inp)
+                    .add(this.total_nodes);
+            ++this.total_nodes;
         }
     }
 
@@ -667,7 +577,6 @@ public class Ostrowski {
     private boolean isFinal(int node_index) {
         NodeState node = node_of_index.get(node_index);
         return (
-                // (node.getState() + node.getStartIndex() + node.getSeenIndex() == 0) ||
                 ((node.getState() == 0 || node.getState() == 2 || node.getState() == 6) &&
                         node.getSeenIndex() == 1));
     }

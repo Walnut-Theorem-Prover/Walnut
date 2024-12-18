@@ -18,21 +18,17 @@
 
 package Automata;
 
-import Main.UtilityMethods;
 import it.unimi.dsi.fastutil.ints.Int2ObjectRBTreeMap;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Collections;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.TreeMap;
@@ -74,7 +70,7 @@ public class Morphism {
 
     // Reads the entirety of a file and passes this into the more general constructor
     public Morphism(String address) throws IOException {
-        this("", new String(Files.readAllBytes(Paths.get(address)), StandardCharsets.UTF_8));
+        this("", Files.readString(Paths.get(address)));
     }
 
     public void write(String address) throws IOException {

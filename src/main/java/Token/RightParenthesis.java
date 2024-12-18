@@ -1,4 +1,4 @@
-/*	 Copyright 2016 Hamoon Mousavi
+/*	 Copyright 2016 Hamoon Mousavi, 2025 John Nicol
  *
  * 	 This file is part of Walnut.
  *
@@ -18,6 +18,7 @@
 
 package Token;
 
+import Main.ExceptionHelper;
 import Main.Expression;
 
 import java.util.List;
@@ -42,6 +43,6 @@ public class RightParenthesis extends Operator {
                 return;
             }
         }
-        throw new RuntimeException("unbalanced parenthesis: at char " + getPositionInPredicate());
+        throw ExceptionHelper.unbalancedParen(getPositionInPredicate());
     }
 }

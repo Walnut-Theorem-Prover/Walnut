@@ -1079,7 +1079,7 @@ public class Prover {
     public static void ostCommand(String s) {
         Matcher m = PATTERN_FOR_ost_COMMAND.matcher(s);
         if (!m.find()) {
-            throw new RuntimeException("Invalid use of the ost command.");
+            throw ExceptionHelper.invalidCommandUse("ost");
         }
 
         Ostrowski ostr = new Ostrowski(

@@ -206,10 +206,8 @@ public class ParseMethods {
                 String imagePiece = m2.group();
                 if (imagePiece.charAt(0) == '[') {
                     imagePiece = imagePiece.substring(1, imagePiece.length() - 1);
-                    image.add(Integer.parseInt(imagePiece));
-                } else {
-                    image.add(Integer.parseInt(imagePiece));
                 }
+                image.add(Integer.parseInt(imagePiece));
             }
             mapping.put(Integer.parseInt(input), image);
         }

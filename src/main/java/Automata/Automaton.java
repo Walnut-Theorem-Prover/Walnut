@@ -569,24 +569,7 @@ public class Automaton {
             Automaton N = new Automaton(UtilityMethods.get_address_for_automata_library() + automataName + ".txt");
 
             // ensure that N has the same number system as first.
-            boolean differingNS = false;
-            if (N.NS.size() != first.NS.size()) {
-                differingNS = true;
-            } else {
-                for (int j = 0; j < N.NS.size(); j++) {
-                    if (
-                            (N.NS.get(j) == null && first.NS.get(j) != null) ||
-                                    (N.NS.get(j) != null && first.NS.get(j) == null) ||
-                                    (N.NS.get(j) != null && first.NS.get(j) != null &&
-                                            !N.NS.get(j).getName().equals(first.NS.get(j).getName())) ||
-                                    !N.A.equals(first.A)
-                    ) {
-                        differingNS = true;
-                        break;
-                    }
-                }
-            }
-            if (differingNS) {
+            if (isNSDiffering(N, first.NS, N.A, first)) {
                 throw new RuntimeException("Automata to be unioned must have the same number system(s).");
             }
 
@@ -612,6 +595,22 @@ public class Automaton {
             }
         }
         return first;
+    }
+
+    static boolean isNSDiffering(Automaton N, List<NumberSystem> first, List<List<Integer>> N1, Automaton first1) {
+        if (N.NS.size() != first.size()) {
+            return true;
+        }
+        for (int j = 0; j < N.NS.size(); j++) {
+            NumberSystem Nj = N.NS.get(j);
+            NumberSystem firstJ = first.get(j);
+            if ((Nj == null && firstJ != null) || (Nj != null && firstJ == null) ||
+                (Nj != null && firstJ != null &&
+                    !N.NS.get(j).getName().equals(firstJ.getName())) || !N1.equals(first1.A)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public Automaton combine(List<String> automataNames, IntList outputs, boolean print, String prefix, StringBuilder log) {
@@ -787,24 +786,7 @@ public class Automaton {
         }
 
         // ensure that N has the same number system as first.
-        boolean differingNS = false;
-        if (other.NS.size() != NS.size()) {
-            differingNS = true;
-        } else {
-            for (int j = 0; j < other.NS.size(); j++) {
-                if (
-                        (other.NS.get(j) == null && NS.get(j) != null) ||
-                                (other.NS.get(j) != null && NS.get(j) == null) ||
-                                (other.NS.get(j) != null && NS.get(j) != null &&
-                                        !other.NS.get(j).getName().equals(NS.get(j).getName())) ||
-                                !A.equals(other.A)
-                ) {
-                    differingNS = true;
-                    break;
-                }
-            }
-        }
-        if (differingNS) {
+        if (isNSDiffering(other, NS, A, other)) {
             throw new RuntimeException("Automata to be concatenated must have the same number system(s).");
         }
 
@@ -902,7 +884,7 @@ public class Automaton {
         for (int q = 0; q < M.Q; q++) {
             Int2ObjectRBTreeMap<IntList> newMap = new Int2ObjectRBTreeMap<>();
             for (int x : d.get(q).keySet()) {
-                List<Integer> decoded = decode(this, x);
+                List<Integer> decoded = decode(A, x);
 
                 boolean inNewAlphabet = true;
 
@@ -966,7 +948,7 @@ public class Automaton {
         for (int x : d.get(state).keySet()) {
             for (Integer y : d.get(state).get(x)) {
                 // this adds brackets even when inputs have arity 1 - this is fine, since we just want a usable infinite regex
-                String cycle = infiniteHelper(y, result + decode(this, x));
+                String cycle = infiniteHelper(y, result + decode(A, x));
                 if (cycle != "") {
                     return cycle;
                 }
@@ -1183,11 +1165,11 @@ public class Automaton {
             current = prev.get(current);
         }
         Collections.reverse(path);
-        String result = "";
+        StringBuilder result = new StringBuilder();
         for (Integer node : path) {
-            result += decode(this, node).toString();
+            result.append(decode(A, node));
         }
-        return result;
+        return result.toString();
     }
 
     // helper function for inf, find an input string that leads from the specified state to an accepting state
@@ -1232,11 +1214,11 @@ public class Automaton {
             current = prev.get(current);
         }
         Collections.reverse(path);
-        String result = "";
+        StringBuilder result = new StringBuilder();
         for (Integer node : path) {
-            result += decode(this, node).toString();
+            result.append(decode(A, node));
         }
-        return result;
+        return result.toString();
     }
 
     public void findAccepted(Integer searchLength, Integer maxNeeded) {
@@ -1260,11 +1242,11 @@ public class Automaton {
         }
         for (int x : d.get(state).keySet()) {
             for (Integer y : d.get(state).get(x)) {
-                String input = decode(this, x).toString();
+                String input = decode(A, x).toString();
 
                 // we remove brackets if we have a single arity input that is between 0 and 9 (and hence unambiguous)
                 if (A.size() == 1) {
-                    if (decode(this, x).get(0) >= 0 && decode(this, x).get(0) <= 9) {
+                    if (decode(A, x).get(0) >= 0 && decode(A, x).get(0) <= 9) {
                         input = input.substring(1, input.length() - 1);
                     }
                 }
@@ -1311,7 +1293,6 @@ public class Automaton {
                 Automaton N = NS.get(i).getAllRepresentations();
                 if (N != null && NS.get(i).should_we_use_allRepresentations()) {
                     N.bind(label.get(i));
-
                     K = AutomatonLogicalOps.crossProduct(this, N, "if_other", print, prefix, log);
                 }
             }
@@ -1692,26 +1673,12 @@ public class Automaton {
         labelSorted = true;
         if (TRUE_FALSE_AUTOMATON) return;
         if (label == null || label.size() != A.size()) return;
-        //first we check if label is already sorted.
-        boolean sorted = true;
-        for (int i = 0; i < label.size() - 1; i++) {
-            if (label.get(i).compareTo(label.get(i + 1)) > 0) {
-                sorted = false;
-                break;
-            }
-        }
-        if (sorted) return;
+        if (UtilityMethods.isSorted(this.label)) return;
         List<String> sorted_label = new ArrayList<>(label);
         Collections.sort(sorted_label);
-        /**
-         * For example if label_permutation[1]=[3], then input number 1 becomes input number 3 after sorting.
-         * For example if label = ["z","a","c"], and A = [[-1,2],[0,1],[1,2,3]],
-         * then label_permutation = [2,0,1] and permuted_A = [[0,1],[1,2,3],[-1,2]].
-         */
-        int[] label_permutation = new int[label.size()];
-        for (int i = 0; i < label.size(); i++) {
-            label_permutation[i] = sorted_label.indexOf(label.get(i));
-        }
+
+        int[] label_permutation = UtilityMethods.getLabelPermutation(label, sorted_label);
+
         /**
          * permuted_A is going to hold the alphabet of the sorted inputs.
          * For example if label = ["z","a","c"], and A = [[-1,2],[0,1],[1,2,3]],
@@ -1719,18 +1686,14 @@ public class Automaton {
          * The same logic is behind permuted_encoder.
          */
         List<List<Integer>> permuted_A = UtilityMethods.permute(A, label_permutation);
-        List<Integer> permuted_encoder = new ArrayList<>();
-        permuted_encoder.add(1);
-        for (int i = 0; i < A.size() - 1; i++) {
-            permuted_encoder.add(permuted_encoder.get(i) * permuted_A.get(i).size());
-        }
+        List<Integer> permuted_encoder = UtilityMethods.getPermutedEncoder(A, permuted_A);
         /**
          * For example encoded_input_permutation[2] = 5 means that encoded input 2 becomes
          * 5 after sorting.
          */
         int[] encoded_input_permutation = new int[alphabetSize];
         for (int i = 0; i < alphabetSize; i++) {
-            List<Integer> input = decode(this, i);
+            List<Integer> input = decode(A, i);
             List<Integer> permuted_input = UtilityMethods.permute(input, label_permutation);
             encoded_input_permutation[i] = encode(permuted_input, permuted_A, permuted_encoder);
         }
@@ -1759,18 +1722,19 @@ public class Automaton {
      * n = 4 then we return [0,3]
      * n = 5 then we return [1,3]
      *
-     * @param automaton
+     * @param A
      * @param n
      * @return
      */
-    static List<Integer> decode(Automaton automaton, int n) {
-        List<Integer> l = new ArrayList<>(automaton.A.size());
-        for (int i = 0; i < automaton.A.size(); i++) {
-            l.add(automaton.A.get(i).get(n % automaton.A.get(i).size()));
-            n = n / automaton.A.get(i).size();
+    static List<Integer> decode(List<List<Integer>> A, int n) {
+        List<Integer> l = new ArrayList<>(A.size());
+        for (int i = 0; i < A.size(); i++) {
+            l.add(A.get(i).get(n % A.get(i).size()));
+            n = n / A.get(i).size();
         }
         return l;
     }
+
 
     /**
      * Input to dk.brics.automaton.Automata is a char. Input to Automata.Automaton is List<Integer>.
@@ -2018,9 +1982,11 @@ public class Automaton {
         return dest;
     }
 
-    int mapToReducedEncodedInput(int n, List<Integer> I, List<Integer> newEncoder, List<List<Integer>> newAlphabet) {
+    static int mapToReducedEncodedInput(int n, List<Integer> I, List<Integer> newEncoder,
+                                 List<List<Integer>> oldAlphabet,
+                                 List<List<Integer>> newAlphabet) {
         if (I.size() <= 1) return n;
-        List<Integer> x = decode(this, n);
+        List<Integer> x = decode(oldAlphabet, n);
         for (int i = 1; i < I.size(); i++)
             if (x.get(I.get(i)) != x.get(I.get(0)))
                 return -1;

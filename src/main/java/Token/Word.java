@@ -1,4 +1,4 @@
-/*	 Copyright 2016 Hamoon Mousavi
+/*	 Copyright 2016 Hamoon Mousavi, 2025 John Nicol
  *
  * 	 This file is part of Walnut.
  *
@@ -22,10 +22,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
 
-import Automata.AutomatonLogicalOps;
 import Main.Expression;
 import Main.Expressions.*;
-import Main.UtilityMethods;
 import Automata.Automaton;
 
 public class Word extends Token {

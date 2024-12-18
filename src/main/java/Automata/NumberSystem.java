@@ -1,4 +1,4 @@
-/*	 Copyright 2016 Hamoon Mousavi
+/*	 Copyright 2016 Hamoon Mousavi, 2025 John Nicol
  *
  * 	 This file is part of Walnut.
  *
@@ -116,19 +116,6 @@ public class NumberSystem {
         return is_msd;
     }
 
-    // flips the number system from msd to lsd, and vice versa.
-    public void reverseMsd() {
-        int indexOfUnderscore = name.indexOf("_");
-        String msd_or_lsd = name.substring(0, indexOfUnderscore);
-        String suffix = name.substring(indexOfUnderscore);
-        String newName;
-        if (msd_or_lsd.equals("msd")) {
-            newName = "lsd" + suffix;
-        } else {
-            newName = "msd" + suffix;
-        }
-    }
-
     public String getName() {
         return name;
     }
@@ -157,18 +144,13 @@ public class NumberSystem {
          * For example lsd_2 is the complement of msd_2.
          */
         String complementName = (is_msd ? "lsd" : "msd") + "_" + base;
-        String addressForTheSetOfAllRepresentations =
-                UtilityMethods.get_address_for_custom_bases() + name + ".txt";
-        String complement_addressForTheSetOfAllRepresentations =
-                UtilityMethods.get_address_for_custom_bases() + complementName + ".txt";
-        String addressForAddition = UtilityMethods.
-                get_address_for_custom_bases() + name + "_addition.txt";
-        String complement_addressForAddition = UtilityMethods.
-                get_address_for_custom_bases() + complementName + "_addition.txt";
-        String addressForLessThan = UtilityMethods.
-                get_address_for_custom_bases() + name + "_less_than.txt";
-        String complement_addressForLessThan = UtilityMethods.
-                get_address_for_custom_bases() + complementName + "_less_than.txt";
+        String basePath = UtilityMethods.get_address_for_custom_bases();
+        String addressForTheSetOfAllRepresentations = basePath + name + ".txt";
+        String complement_addressForTheSetOfAllRepresentations = basePath + complementName + ".txt";
+        String addressForAddition = basePath + name + "_addition.txt";
+        String complement_addressForAddition = basePath + complementName + "_addition.txt";
+        String addressForLessThan = basePath + name + "_less_than.txt";
+        String complement_addressForLessThan = basePath + complementName + "_less_than.txt";
 
         //addition
         if (new File(addressForAddition).isFile()) {
@@ -686,6 +668,14 @@ public class NumberSystem {
         return name;
     }
 
+    private Automaton applyComparison(Automaton base, String a, String b, boolean reverse, boolean negate) {
+        Automaton result = base.clone();
+        if (reverse) result.bind(b, a);
+        else result.bind(a, b);
+        if (negate) AutomatonLogicalOps.not(result, false, null, null);
+        return result;
+    }
+
     /**
      * @param a
      * @param b
@@ -696,39 +686,15 @@ public class NumberSystem {
      * @throws Exception
      */
     public Automaton comparison(String a, String b, String comparisonOperator) {
-        Automaton M;
-        switch (comparisonOperator) {
-            case "<":
-                M = lessThan.clone();
-                M.bind(a, b);
-                break;
-            case ">":
-                M = lessThan.clone();
-                M.bind(b, a);
-                break;
-            case "=":
-                M = equality.clone();
-                M.bind(a, b);
-                break;
-            case "!=":
-                M = equality.clone();
-                M.bind(a, b);
-                AutomatonLogicalOps.not(M, false, null, null);
-                break;
-            case ">=":
-                M = lessThan.clone();
-                M.bind(a, b);
-                AutomatonLogicalOps.not(M, false, null, null);
-                break;
-            case "<=":
-                M = lessThan.clone();
-                M.bind(b, a);
-                AutomatonLogicalOps.not(M, false, null, null);
-                break;
-            default:
-                throw new RuntimeException("undefined comparison operator");
-        }
-        return M;
+      return switch (comparisonOperator) {
+            case "<" -> applyComparison(lessThan, a, b, false, false);
+            case ">" -> applyComparison(lessThan, a, b, true, false);
+            case "=" -> applyComparison(equality, a, b, false, false);
+            case "!=" -> applyComparison(equality, a, b, false, true);
+            case ">=" -> applyComparison(lessThan, a, b, false, true);
+            case "<=" -> applyComparison(lessThan, a, b, true, true);
+            default -> throw new RuntimeException("undefined comparison operator");
+        };
     }
 
     /**
@@ -990,7 +956,7 @@ public class NumberSystem {
             // b = ciel(n/2)
             Automaton N = get(n / 2 + (n % 2 == 0 ? 0 : 1));
             N.bind(b);
-            // Ea,Eb, a + b = c & a = floor(n/2) & b = ciel(n/2)
+            // Ea,Eb, a + b = c & a = floor(n/2) & b = ceil(n/2)
             P = arithmetic(a, b, c, "+");
             P = AutomatonLogicalOps.and(P, M, false, null, null);
             P = AutomatonLogicalOps.and(P, N, false, null, null);
@@ -1051,16 +1017,6 @@ public class NumberSystem {
                 AutomatonLogicalOps.quantify(P, b, c, is_msd, false, null, null);
 
             }
-
-            // //c = ceil(n/2)*a
-            // Automaton N = getMultiplication(n/2 + (n%2 == 0 ? 0:1));
-            // N.bind(a,c);
-
-            // // Eb,Ec, b + c = d & b = floor(n/2)*a & c = ciel(n/2)*a
-            // P = arithmetic(b, c, d, "+");
-            // P = P.and(M,false,null,null);
-            // P = P.and(N,false,null,null);
-            // P.quantify(b,c,is_msd,false,null,null);
 
             P.sortLabel();
         }
@@ -1124,11 +1080,7 @@ public class NumberSystem {
         List<Integer> alph = new ArrayList<>();
         alph.add(0);
         alph.add(1);
-        Automaton M = new Automaton("0*", alph, this);
-        if (is_msd)
-            M = new Automaton("0*1", alph, this);
-        else
-            M = new Automaton("10*", alph, this);
+        Automaton M = new Automaton(is_msd ? "0*1" : "10*", alph, this);
         M.A = new ArrayList<>();
         M.A.add(new ArrayList<>(addition.A.get(0)));
         M.alphabetSize = M.A.get(0).size();

@@ -1,4 +1,4 @@
-/*	 Copyright 2016 Hamoon Mousavi
+/*	 Copyright 2016 Hamoon Mousavi, 2025 John Nicol
  *
  * 	 This file is part of Walnut.
  *
@@ -17,8 +17,6 @@
  */
 
 package Main;
-
-import Token.Token;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -93,13 +91,11 @@ public class UtilityMethods {
 
 
     public static char min(char a, char b) {
-        if (a < b) return a;
-        return b;
+        return a < b ? a : b;
     }
 
     public static char max(char a, char b) {
-        if (a < b) return b;
-        return a;
+        return a < b ? b : a;
     }
 
     /**
@@ -259,28 +255,17 @@ public class UtilityMethods {
      * https://stackoverflow.com/a/72369344/
      */
     public static int commonRoot(int a, int b) {
-        int temp;
-
         if (a == 1 || b == 1) {
             return -1;
-        } else if (a == b) {
+        }
+        if (a == b) {
             return a;
         }
-
-        // swap if necessary to ensure that a < b
         if (a > b) {
-            temp = a;
-            a = b;
-            b = temp;
+            return commonRoot(b, a);
         }
-
-        if (b % a == 0) {
-            return commonRoot(a, b / a);
-        } else {
-            return -1;
-        }
+        return (b % a == 0) ? commonRoot(a, b/a) : -1;
     }
-
 
     /**
      * Many objects are stringified as: a_0 , a_1, a_2, ..., a_n
@@ -295,5 +280,36 @@ public class UtilityMethods {
             sb.append(objects.get(i));
         }
         return sb.toString();
+    }
+
+    public static boolean isSorted(List<String> label) {
+        for (int i = 0; i < label.size() - 1; i++) {
+            if (label.get(i).compareTo(label.get(i + 1)) > 0) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * For example if label_permutation[1]=[3], then input number 1 becomes input number 3 after sorting.
+     * For example if label = ["z","a","c"], and A = [[-1,2],[0,1],[1,2,3]],
+     * then label_permutation = [2,0,1] and permuted_A = [[0,1],[1,2,3],[-1,2]].
+     */
+    public static int[] getLabelPermutation(List<String> label, List<String> sorted_label) {
+        int[] label_permutation = new int[label.size()];
+        for (int i = 0; i < label.size(); i++) {
+            label_permutation[i] = sorted_label.indexOf(label.get(i));
+        }
+        return label_permutation;
+    }
+
+    public static List<Integer> getPermutedEncoder(List<List<Integer>> A, List<List<Integer>> permuted_A) {
+        List<Integer> permuted_encoder = new ArrayList<>();
+        permuted_encoder.add(1);
+        for (int i = 0; i < A.size() - 1; i++) {
+            permuted_encoder.add(permuted_encoder.get(i) * permuted_A.get(i).size());
+        }
+        return permuted_encoder;
     }
 }

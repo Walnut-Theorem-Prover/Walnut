@@ -1,3 +1,20 @@
+/*	 Copyright 2016 Hamoon Mousavi, 2025 John Nicol
+ *
+ * 	 This file is part of Walnut.
+ *
+ *   Walnut is free software: you can redistribute it and/or modify
+ *   it under the terms of the GNU General Public License as published by
+ *   the Free Software Foundation, either version 3 of the License, or
+ *   (at your option) any later version.
+ *
+ *   Walnut is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU General Public License for more details.
+ *
+ *   You should have received a copy of the GNU General Public License
+ *   along with Walnut.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package Automata;
 
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
@@ -10,7 +27,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 
-// Adapted from Hamoon Mousavi (in turn, adapted from Antti Valmari)
+// Adapted from Antti Valmari
 // "Fast brief practical DFA minimization." Information Processing Letters 112.6 (2012): 213-217
 public class ValmariDFA {
     ValmariPartition blocks;

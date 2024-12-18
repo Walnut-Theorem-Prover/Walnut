@@ -1,3 +1,20 @@
+/*	 Copyright 2016 Hamoon Mousavi, 2025 John Nicol
+ *
+ * 	 This file is part of Walnut.
+ *
+ *   Walnut is free software: you can redistribute it and/or modify
+ *   it under the terms of the GNU General Public License as published by
+ *   the Free Software Foundation, either version 3 of the License, or
+ *   (at your option) any later version.
+ *
+ *   Walnut is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU General Public License for more details.
+ *
+ *   You should have received a copy of the GNU General Public License
+ *   along with Walnut.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package Automata;
 
 import Main.UtilityMethods;
@@ -67,7 +84,7 @@ public class AutomatonWriter {
         s.append(" := Matrix([");
         Set<Integer> encoded_values = new HashSet<>();
         for (int x = 0; x != automaton.alphabetSize; ++x) {
-            List<Integer> decoding = Automaton.decode(automaton, x);
+            List<Integer> decoding = Automaton.decode(automaton.A, x);
             List<Integer> compareList = indices.stream().map(index -> decoding.get(index)).collect(Collectors.toList());
             if (compareList.equals(valueList)) {
                 encoded_values.add(x);
@@ -185,7 +202,7 @@ public class AutomatonWriter {
                 System.lineSeparator() + q + " " +
                         automaton.O.getInt(q) + System.lineSeparator());
         for (int n : automaton.d.get(q).keySet()) {
-            List<Integer> l = Automaton.decode(automaton, n);
+            List<Integer> l = Automaton.decode(automaton.A, n);
             for (int j = 0; j < l.size(); j++)
                 out.write(l.get(j) + " ");
             out.write("->");
@@ -245,7 +262,7 @@ public class AutomatonWriter {
                     for (int dest : automaton.d.get(q).get(x)) {
                         transitions.get(q).putIfAbsent(dest, new ArrayList<>());
                         transitions.get(q).get(dest).add(
-                                UtilityMethods.toTransitionLabel(Automaton.decode(automaton, x)));
+                                UtilityMethods.toTransitionLabel(Automaton.decode(automaton.A, x)));
                     }
                 }
             }

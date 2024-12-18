@@ -13,7 +13,7 @@ build system, and supports:
 
 To build Walnut, run `build.sh`.
 (Note additional comments in the file.)
-To run Walnut, run `run_walnut.sh.`
+To run Walnut, run `walnut.sh.`
 (Note additional comments in the file.)
 
 ## Generated files
