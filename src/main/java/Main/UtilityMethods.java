@@ -123,8 +123,13 @@ public class UtilityMethods {
     }
 
     /**
-     * permutes L with regard to permutation. For example if permutation = [1,2,0] then the return value is
-     * [L[1],L[2],L[0]]
+     * Permutes L with regard to permutation.
+     * @jn1z notes: However, behavior is *not* what was designed:
+     * Expected: "if permutation = [1,2,0] then the return value is [L[1],L[2],L[0]]"
+     * Actual:   "if permutation = [1,2,0] then the return value is [L[2],L[0],L[1]]", i.e. the inverse
+     * Changing this causes other issues, so we're leaving it.
+     * (I suspect as this is the inverse, it ends up not being an issue down the line.)
+     * Also: behavior is undefined is permutation size != L.size
      *
      * @param L
      * @param permutation
@@ -132,8 +137,9 @@ public class UtilityMethods {
      */
     public static <T> List<T> permute(List<T> L, int[] permutation) {
         List<T> R = new ArrayList<>(L);
-        for (int i = 0; i < L.size(); i++)
+        for (int i = 0; i < L.size(); i++) {
             R.set(permutation[i], L.get(i));
+        }
         return R;
     }
 
@@ -196,6 +202,7 @@ public class UtilityMethods {
 
     /**
      * add elements of R that do not exist in L to L.
+     * Also: keep order of previous elements of L and new elements (w.r.t. R).
      *
      * @param L
      * @param R

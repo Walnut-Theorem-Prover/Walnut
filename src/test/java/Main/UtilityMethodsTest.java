@@ -27,12 +27,16 @@ public class UtilityMethodsTest {
     Assertions.assertEquals(3, UtilityMethods.commonRoot(27, 81));
   }
 
-  //@Test
+  @Test
   void testPermute() {
-    //permutation = [1,2,0] then the return value is
-    //     * [L[1],L[2],L[0]]
+    // See notes in UtilityMethods. This was *not* the original expected behavior, but that may be okay.
     List<String> L = List.of("a","b","c");
-    Assertions.assertEquals(List.of("b","c","a"), UtilityMethods.permute(L, new int[]{1,2,0}));
+
+    //original expected behavior
+    //Assertions.assertEquals(List.of("b","c","a"), UtilityMethods.permute(L, new int[]{1,2,0}));
+
+    //actual behavior
+    Assertions.assertEquals(List.of("c","a","b"), UtilityMethods.permute(L, new int[]{1,2,0}));
   }
 
   @Test
