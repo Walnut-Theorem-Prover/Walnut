@@ -26,8 +26,8 @@ import java.util.Stack;
 import Automata.AutomatonLogicalOps;
 import Main.Expression;
 import Automata.Automaton;
-import Main.Type;
-import Main.UtilityMethods;
+import Main.Expressions.AutomatonExpression;
+import Main.Expressions.VariableExpression;
 
 public class LogicalOperator extends Operator {
     int number_of_quantified_variables;
@@ -65,27 +65,28 @@ public class LogicalOperator extends Operator {
         Expression b = S.pop();
         Expression a = S.pop();
 
-        if (a.is(Type.automaton) && b.is(Type.automaton)) {
+        if (a instanceof AutomatonExpression && b instanceof AutomatonExpression) {
             String preStep = prefix + "computing " + a + op + b;
             log.append(preStep + System.lineSeparator());
             if (print) {
                 System.out.println(preStep);
             }
+            String opString = "(" + a + op + b + ")";
             switch (op) {
                 case "&":
-                    S.push(new Expression("(" + a + op + b + ")", AutomatonLogicalOps.and(a.M, b.M, print, prefix + " ", log)));
+                    S.push(new AutomatonExpression(opString, AutomatonLogicalOps.and(a.M, b.M, print, prefix + " ", log)));
                     break;
                 case "|":
-                    S.push(new Expression("(" + a + op + b + ")", AutomatonLogicalOps.or(a.M, b.M, print, prefix + " ", log)));
+                    S.push(new AutomatonExpression(opString, AutomatonLogicalOps.or(a.M, b.M, print, prefix + " ", log)));
                     break;
                 case "^":
-                    S.push(new Expression("(" + a + op + b + ")", AutomatonLogicalOps.xor(a.M, b.M, print, prefix + " ", log)));
+                    S.push(new AutomatonExpression(opString, AutomatonLogicalOps.xor(a.M, b.M, print, prefix + " ", log)));
                     break;
                 case "=>":
-                    S.push(new Expression("(" + a + op + b + ")", AutomatonLogicalOps.imply(a.M, b.M, print, prefix + " ", log)));
+                    S.push(new AutomatonExpression(opString, AutomatonLogicalOps.imply(a.M, b.M, print, prefix + " ", log)));
                     break;
                 case "<=>":
-                    S.push(new Expression("(" + a + op + b + ")", AutomatonLogicalOps.iff(a.M, b.M, print, prefix + " ", log)));
+                    S.push(new AutomatonExpression(opString, AutomatonLogicalOps.iff(a.M, b.M, print, prefix + " ", log)));
                     break;
             }
             String postStep = prefix + "computed " + a + op + b;
@@ -95,13 +96,13 @@ public class LogicalOperator extends Operator {
             }
             return;
         }
-        throw new RuntimeException("operator " + op + " cannot be applied to operands " + a + " and " + b + " of types " + a.getType() + " and " + b.getType() + " respectively");
+        throw new RuntimeException("operator " + op + " cannot be applied to operands " + a + " and " + b + " of types " + a.getClass().getName() + " and " + b.getClass().getName() + " respectively");
 
     }
 
     private void actNegationOrReverse(Stack<Expression> S, boolean print, String prefix, StringBuilder log) {
         Expression a = S.pop();
-        if (a.is(Type.automaton)) {
+        if (a instanceof AutomatonExpression) {
             String preStep = prefix + "computing " + op + a;
             log.append(preStep + System.lineSeparator());
             if (print) {
@@ -111,7 +112,7 @@ public class LogicalOperator extends Operator {
                 AutomatonLogicalOps.reverse(a.M, print, prefix + " ", log, true);
             if (this.isNegation(op))
                 AutomatonLogicalOps.not(a.M, print, prefix + " ", log);
-            S.push(new Expression(op + a, a.M));
+            S.push(new AutomatonExpression(op + a, a.M));
             String postStep = prefix + "computed " + op + a;
             log.append(postStep + System.lineSeparator());
             if (print) {
@@ -119,12 +120,12 @@ public class LogicalOperator extends Operator {
             }
             return;
         }
-        throw new RuntimeException("operator " + op + " cannot be applied to the operand " + a + " of type " + a.getType());
+        throw new RuntimeException("operator " + op + " cannot be applied to the operand " + a + " of type " + a.getClass().getName());
     }
 
     private void actQuantifier(Stack<Expression> S, boolean print, String prefix, StringBuilder log) {
         String stringValue = "(" + op + " ";
-        Stack<Expression> temp = new Stack<Expression>();
+        Stack<Expression> temp = new Stack<>();
         List<Expression> operands = new ArrayList<>();
         Automaton M = null;
         for (int i = 0; i < getArity(); i++) {
@@ -138,20 +139,21 @@ public class LogicalOperator extends Operator {
         List<String> list_of_identifiers_to_quantify = new ArrayList<>();
         for (int i = 0; i < getArity(); i++) {
             operands.add(temp.pop());
+            Expression operand = operands.get(i);
             if (i < getArity() - 1) {
                 if (i == 0)
-                    stringValue += operands.get(i) + " ";
+                    stringValue += operand + " ";
                 else
-                    stringValue += ", " + operands.get(i) + " ";
-                if (!operands.get(i).is(Type.variable))
+                    stringValue += ", " + operand + " ";
+                if (!(operand instanceof VariableExpression))
                     throw new RuntimeException("operator " + op + " requires a list of " + number_of_quantified_variables + " variables");
 
-                list_of_identifiers_to_quantify.add(operands.get(i).identifier);
+                list_of_identifiers_to_quantify.add(operand.identifier);
             } else if (i == getArity() - 1) {
-                stringValue += operands.get(i);
-                if (!operands.get(i).is(Type.automaton))
-                    throw new RuntimeException("the last operand of " + op + " can only be of type " + Type.automaton);
-                M = operands.get(i).M;
+                stringValue += operand;
+                if (!(operand instanceof AutomatonExpression))
+                    throw new RuntimeException("the last operand of " + op + " can only be of type automaton");
+                M = operand.M;
                 if (op.equals("E")) {
                     AutomatonLogicalOps.quantify(M, new HashSet<>(list_of_identifiers_to_quantify), print, prefix + " ", log);
                 } else if (op.equals("A")) {
@@ -166,7 +168,7 @@ public class LogicalOperator extends Operator {
             }
         }
         stringValue += ")";
-        S.push(new Expression(stringValue, M));
+        S.push(new AutomatonExpression(stringValue, M));
         String postStep = prefix + "computed quantifier " + stringValue;
         log.append(postStep + System.lineSeparator());
         if (print) {

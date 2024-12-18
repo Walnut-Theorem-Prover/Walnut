@@ -392,7 +392,7 @@ public class Automaton {
                     boolean flag;
                     try {
                         flag = ParseMethods.parseAlphabetDeclaration(line, A, NS);
-                    } catch (Exception e) {
+                    } catch (RuntimeException e) {
                         in.close();
                         throw new RuntimeException(
                                 e.getMessage() + System.lineSeparator() +
@@ -1011,7 +1011,7 @@ public class Automaton {
                 } else {
                     try {
                         negativeNumberSystem = NS.get(i).negative_number_system();
-                    } catch (Exception e) {
+                    } catch (RuntimeException e) {
                         throw new RuntimeException("Negative number system for " + NS.get(i) + " must be defined");
                     }
                 }
@@ -1078,7 +1078,7 @@ public class Automaton {
                 } else {
                     try {
                         negativeNumberSystem = NS.get(i).negative_number_system();
-                    } catch (Exception e) {
+                    } catch (RuntimeException e) {
                         throw new RuntimeException("Negative number system for " + NS.get(i) + " must be defined");
                     }
                 }

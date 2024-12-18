@@ -25,8 +25,7 @@ import Automata.AutomatonLogicalOps;
 import Main.Expression;
 import Automata.Automaton;
 import Automata.NumberSystem;
-import Main.Type;
-import Main.UtilityMethods;
+import Main.Expressions.*;
 
 
 public class ArithmeticOperator extends Operator {
@@ -51,17 +50,17 @@ public class ArithmeticOperator extends Operator {
     public void act(Stack<Expression> S, boolean print, String prefix, StringBuilder log) {
         if (S.size() < getArity()) throw new RuntimeException("operator " + op + " requires " + getArity() + " operands");
         Expression b = S.pop();
-        if (!(b.is(Type.alphabetLetter) || b.is(Type.word) || b.is(Type.arithmetic) || b.is(Type.variable) || b.is(Type.numberLiteral)))
-            throw new RuntimeException("operator " + op + " cannot be applied to the operand " + b + " of type " + b.getType());
+        if (!(b instanceof AlphabetLetterExpression || b instanceof WordExpression || b instanceof ArithmeticExpression || b instanceof VariableExpression || b instanceof NumberLiteralExpression))
+            throw new RuntimeException("operator " + op + " cannot be applied to the operand " + b + " of type " + b.getClass().getName());
 
         if (op.equals("_")) {
-            if (b.is(Type.numberLiteral)) {
-                S.push(new Expression(Integer.toString(-b.constant), -b.constant, number_system));
+            if (b instanceof NumberLiteralExpression) {
+                S.push(new NumberLiteralExpression(Integer.toString(-b.constant), -b.constant, number_system));
                 return;
-            } else if (b.is(Type.alphabetLetter)) {
-                S.push(new Expression("@" + (-b.constant), -b.constant));
+            } else if (b instanceof AlphabetLetterExpression) {
+                S.push(new AlphabetLetterExpression("@" + (-b.constant), -b.constant));
                 return;
-            } else if (b.is(Type.word)) {
+            } else if (b instanceof WordExpression) {
                 b.W.applyOperator(0, "_", print, prefix, log);
                 S.push(b);
                 return;
@@ -74,12 +73,12 @@ public class ArithmeticOperator extends Operator {
             if (print) {
                 System.out.println(preStep);
             }
-            if (b.is(Type.arithmetic)) {
+            if (b instanceof ArithmeticExpression) {
                 // Eb, b + c = 0 & M(b,...)
                 M = AutomatonLogicalOps.and(M, b.M, print, prefix + " ", log);
                 AutomatonLogicalOps.quantify(M, b.identifier, print, prefix + " ", log);
             }
-            S.push(new Expression("(" + op + b + ")", M, c));
+            S.push(new ArithmeticExpression("(" + op + b + ")", M, c));
             String postStep = prefix + "computed " + op + b;
             log.append(postStep + System.lineSeparator());
             if (print) {
@@ -89,41 +88,42 @@ public class ArithmeticOperator extends Operator {
         }
 
         Expression a = S.pop();
-        if (!(a.is(Type.alphabetLetter) || a.is(Type.word) || a.is(Type.arithmetic) || a.is(Type.variable) || a.is(Type.numberLiteral)))
-            throw new RuntimeException("operator " + op + " cannot be applied to the operand " + a + " of type " + a.getType());
+        if (!(a instanceof AlphabetLetterExpression || a instanceof WordExpression || a instanceof ArithmeticExpression || a instanceof VariableExpression || a instanceof NumberLiteralExpression))
+            throw new RuntimeException("operator " + op + " cannot be applied to the operand " + a + " of type " + a.getClass().getName());
 
-        if (a.is(Type.word) && b.is(Type.word)) {
+        if (a instanceof WordExpression && b instanceof WordExpression) {
             a.W = AutomatonLogicalOps.applyOperator(a.W, b.W, op, print, prefix, log);
             a.M = AutomatonLogicalOps.and(a.M, b.M, print, prefix + " ", log);
-            a.list_of_identifiers_to_quantify.addAll(b.list_of_identifiers_to_quantify);
+            ((WordExpression)a).list_of_identifiers_to_quantify.addAll(((WordExpression)b).list_of_identifiers_to_quantify);
             S.push(a);
             return;
         }
-        if (a.is(Type.word) && (b.is(Type.alphabetLetter) || b.is(Type.numberLiteral))) {
+        if (a instanceof WordExpression && (b instanceof AlphabetLetterExpression || b instanceof NumberLiteralExpression)) {
             a.W.applyOperator(op, b.constant, print, prefix, log);
             S.push(a);
             return;
         }
-        if ((a.is(Type.alphabetLetter) || a.is(Type.numberLiteral)) && b.is(Type.word)) {
+        if ((a instanceof AlphabetLetterExpression || a instanceof NumberLiteralExpression) && b instanceof WordExpression) {
             b.W.applyOperator(a.constant, op, print, prefix, log);
             S.push(b);
             return;
         }
 
-        if ((a.is(Type.numberLiteral) || a.is(Type.alphabetLetter)) && (b.is(Type.numberLiteral) || b.is(Type.numberLiteral))) {
+        if (
+            (a instanceof NumberLiteralExpression || a instanceof AlphabetLetterExpression) && (b instanceof NumberLiteralExpression)) {
             switch (op) {
                 case "+":
-                    S.push(new Expression(Integer.toString(a.constant + b.constant), a.constant + b.constant, number_system));
+                    S.push(new NumberLiteralExpression(Integer.toString(a.constant + b.constant), a.constant + b.constant, number_system));
                     return;
                 case "*":
-                    S.push(new Expression(Integer.toString(a.constant * b.constant), a.constant * b.constant, number_system));
+                    S.push(new NumberLiteralExpression(Integer.toString(a.constant * b.constant), a.constant * b.constant, number_system));
                     return;
                 case "/":
                     int c = Math.floorDiv(a.constant, b.constant);
-                    S.push(new Expression(Integer.toString(c), c, number_system));
+                    S.push(new NumberLiteralExpression(Integer.toString(c), c, number_system));
                     return;
                 case "-":
-                    S.push(new Expression(Integer.toString(a.constant - b.constant), a.constant - b.constant, number_system));
+                    S.push(new NumberLiteralExpression(Integer.toString(a.constant - b.constant), a.constant - b.constant, number_system));
                     return;
             }
         }
@@ -134,21 +134,20 @@ public class ArithmeticOperator extends Operator {
         if (print) {
             System.out.println(preStep);
         }
-        if ((a.is(Type.word) && (b.is(Type.arithmetic) || b.is(Type.variable))) ||
-                ((a.is(Type.arithmetic) || a.is(Type.variable)) && b.is(Type.word))) {
+        if (a instanceof WordExpression || (a instanceof ArithmeticExpression || a instanceof VariableExpression) && b instanceof WordExpression) {
             /* We rewrite T[a] * 5 = z as
              * (T[a] = @0 => 0 * 5 = z) & (T[a] = @1 => 1 * 5 = z)
              * With more statements of the form (T[a] = @i => i * 5 = z) for each output i.
              */
-            Expression word;
+            WordExpression word;
             Expression arithmetic;
             boolean reverse;
-            if (a.is(Type.word)) {
-                word = a;
+            if (a instanceof WordExpression) {
+                word = (WordExpression) a;
                 arithmetic = b;
                 reverse = false;
             } else {
-                word = b;
+                word = (WordExpression) b;
                 arithmetic = a;
                 reverse = true;
             }
@@ -171,20 +170,20 @@ public class ArithmeticOperator extends Operator {
             }
             M = AutomatonLogicalOps.and(M, word.M, print, prefix + " ", log);
             AutomatonLogicalOps.quantify(M, new HashSet<>(word.list_of_identifiers_to_quantify), print, prefix + " ", log);
-            if (arithmetic.is(Type.arithmetic)) {
+            if (arithmetic instanceof ArithmeticExpression) {
                 M = AutomatonLogicalOps.and(M, arithmetic.M, print, prefix + " ", log);
                 AutomatonLogicalOps.quantify(M, arithmetic.identifier, print, prefix + " ", log);
             }
         } else {
-            if (a.is(Type.numberLiteral)) {
+            if (a instanceof NumberLiteralExpression) {
                 if (a.constant == 0 && op.equals("*")) {
-                    S.push(new Expression("0", 0, number_system));
+                    S.push(new NumberLiteralExpression("0", 0, number_system));
                     return;
                 } else
                     M = number_system.arithmetic(a.constant, b.identifier, c, op);
-            } else if (b.is(Type.numberLiteral)) {
+            } else if (b instanceof NumberLiteralExpression) {
                 if (b.constant == 0 && op.equals("*")) {
-                    S.push(new Expression("0", 0, number_system));
+                    S.push(new NumberLiteralExpression("0", 0, number_system));
                     return;
                 }
                 M = number_system.arithmetic(a.identifier, b.constant, c, op);
@@ -192,16 +191,16 @@ public class ArithmeticOperator extends Operator {
                 M = number_system.arithmetic(a.identifier, b.identifier, c, op);
             }
 
-            if (a.is(Type.arithmetic)) {
+            if (a instanceof ArithmeticExpression) {
                 M = AutomatonLogicalOps.and(M, a.M, print, prefix + " ", log);
                 AutomatonLogicalOps.quantify(M, a.identifier, print, prefix + " ", log);
             }
-            if (b.is(Type.arithmetic)) {
+            if (b instanceof ArithmeticExpression) {
                 M = AutomatonLogicalOps.and(M, b.M, print, prefix + " ", log);
                 AutomatonLogicalOps.quantify(M, b.identifier, print, prefix + " ", log);
             }
         }
-        S.push(new Expression("(" + a + op + b + ")", M, c));
+        S.push(new ArithmeticExpression("(" + a + op + b + ")", M, c));
         String postStep = prefix + "computed " + a + op + b;
         log.append(postStep + System.lineSeparator());
         if (print) {

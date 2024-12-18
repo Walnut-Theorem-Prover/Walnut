@@ -18,8 +18,6 @@
 
 package Main;
 
-import java.util.List;
-
 import Automata.Automaton;
 import Automata.NumberSystem;
 
@@ -61,67 +59,20 @@ public class Expression {
     /**
      * The string that represent the expression
      */
-    String expressionInString;
+    protected String expressionInString;
     public Automaton M;
     public String identifier;
     public int constant;
     public NumberSystem base;
     public Automaton W;
-    public List<String> list_of_identifiers_to_quantify;
-    /**
-     * Different types: automaton,word,arithmetic,alphabetLetter,variable,numberLiteral
-     */
-    public Type T;
 
-    public Expression(String identifier) {
-        this.identifier = identifier;
-        this.expressionInString = identifier;
-        T = Type.variable;
-    }
-
-    public Expression(String expressionInString, int value) {
-        this.expressionInString = expressionInString;
-        this.constant = value;
-        T = Type.alphabetLetter;
-    }
-
-    public Expression(String expressionInString, int value, NumberSystem base) {
-        this.expressionInString = expressionInString;
-        this.constant = value;
-        this.base = base;
-        T = Type.numberLiteral;
-    }
-
-    public Expression(String expressionInString, Automaton M) {
-        this.expressionInString = expressionInString;
-        this.M = M;
-        T = Type.automaton;
-    }
-
-    public Expression(String expressionInString, Automaton M, String identifier) {
-        this.expressionInString = expressionInString;
-        this.M = M;
-        this.identifier = identifier;
-        T = Type.arithmetic;
-    }
-
-    public Expression(String expressionInString, Automaton W, Automaton M, List<String> quantify) {
-        this.expressionInString = expressionInString;
-        this.W = W;
-        this.M = M;
-        list_of_identifiers_to_quantify = quantify;
-        T = Type.word;
-    }
+    public Expression() {}
 
     public String toString() {
         return expressionInString;
     }
 
-    public boolean is(Type T) {
-        return this.T == T;
-    }
-
-    public Type getType() {
-        return T;
+    public boolean act(String begin) {
+        throw new RuntimeException(begin + " cannot be of type " + this.getClass().getName());
     }
 }

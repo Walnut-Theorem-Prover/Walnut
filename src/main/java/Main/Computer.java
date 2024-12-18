@@ -18,16 +18,15 @@
 
 package Main;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Stack;
 
 import Automata.Automaton;
 import Automata.AutomatonWriter;
+import Main.Expressions.AutomatonExpression;
 import Token.Token;
 
 
@@ -56,15 +55,6 @@ public class Computer {
         return result.M;
     }
 
-    public void writeMatrices(String address, List<String> free_variables) {
-        try {
-            mpl = AutomatonWriter.write_matrices(result.M, address, free_variables);
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new RuntimeException(e.getMessage());
-        }
-    }
-
     public void writeLog(String address) throws IOException {
         PrintWriter out = new PrintWriter(address, StandardCharsets.UTF_8);
         out.write(log.toString());
@@ -90,7 +80,7 @@ public class Computer {
     }
 
     private void compute() {
-        Stack<Expression> expression_Stack = new Stack<Expression>();
+        Stack<Expression> expressions = new Stack<>();
         List<Token> postOrder = predicate_object.get_postOrder();
         String prefix = "";
         long timeBeginning = System.currentTimeMillis();
@@ -98,13 +88,13 @@ public class Computer {
 
         for (Token t : postOrder) {
             try {
-
                 long timeBefore = System.currentTimeMillis();
-                t.act(expression_Stack, printDetails, prefix, log_details);
+                t.act(expressions, printDetails, prefix, log_details);
                 long timeAfter = System.currentTimeMillis();
-                if (t.isOperator() && expression_Stack.peek().is(Type.automaton)) {
-                    step = prefix + expression_Stack.peek() + ":" +
-                            expression_Stack.peek().M.Q + " states - " + (timeAfter - timeBefore) + "ms";
+                Expression nextExpression = expressions.peek();
+                if (t.isOperator() && nextExpression instanceof AutomatonExpression) {
+                    step = prefix + nextExpression + ":" +
+                        nextExpression.M.Q + " states - " + (timeAfter - timeBefore) + "ms";
                     log.append(step + System.lineSeparator());
                     log_details.append(step + System.lineSeparator());
                     if (printSteps || printDetails) {
@@ -113,7 +103,7 @@ public class Computer {
 
                     prefix += " ";
                 }
-            } catch (Exception e) {
+            } catch (RuntimeException e) {
                 e.printStackTrace();
                 String message = e.getMessage();
                 message += System.lineSeparator() + "\t: char at " + t.getPositionInPredicate();
@@ -129,14 +119,14 @@ public class Computer {
             System.out.println(step);
         }
 
-        if (expression_Stack.size() > 1) {
+        if (expressions.size() > 1) {
             String message =
                     "Cannot evaluate the following into a single automaton:" +
                             System.lineSeparator();
             Stack<Expression> tmp = new Stack<>();
 
-            while (!expression_Stack.isEmpty()) {
-                tmp.push(expression_Stack.pop());
+            while (!expressions.isEmpty()) {
+                tmp.push(expressions.pop());
             }
 
             while (!tmp.isEmpty()) {
@@ -145,12 +135,12 @@ public class Computer {
 
             message += "Probably some operators are missing.";
             throw new RuntimeException(message);
-        } else if (expression_Stack.isEmpty()) {
+        } else if (expressions.isEmpty()) {
             throw new RuntimeException("Evaluation ended in no result.");
-        } else if (expression_Stack.size() == 1) {
-            result = expression_Stack.pop();
-            if (!result.is(Type.automaton)) {
-                throw new RuntimeException("The final result of the evaluation is not of type " + Type.automaton);
+        } else {
+            result = expressions.pop();
+            if (!(result instanceof AutomatonExpression)) {
+                throw new RuntimeException("The final result of the evaluation is not of type automaton");
             }
         }
     }

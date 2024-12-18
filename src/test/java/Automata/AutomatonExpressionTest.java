@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test;
 import java.util.ArrayList;
 import java.util.List;
 
-class AutomatonTest {
+class AutomatonExpressionTest {
     @Test
     void testBaseAutomatonConstructor() {
         Automaton a = new Automaton();
@@ -18,7 +18,7 @@ class AutomatonTest {
             //Assertions.assertTrue(a.equals(a.clone()));
 
         }
-        catch (Exception ex) {
+        catch (RuntimeException ex) {
             // Hack because everything s
             Assertions.fail(ex);
         }
@@ -42,7 +42,7 @@ class AutomatonTest {
             Assertions.assertFalse(a.equals(b.clone()));
 
         }
-        catch (Exception ex) {
+        catch (RuntimeException ex) {
             // Hack because everything s
             Assertions.fail(ex);
         }
@@ -84,7 +84,7 @@ class AutomatonTest {
 
 
         }
-        catch (Exception ex) {
+        catch (RuntimeException ex) {
             // Hack because everything s
             Assertions.fail(ex);
         }
@@ -95,7 +95,7 @@ class AutomatonTest {
         Automaton a, b;
         try {
             a = new Automaton("src/test/resources/LUCAS.txt");
-        } catch (Exception ex) {
+        } catch (RuntimeException ex) {
             // Hack because everything s
             Assertions.fail(ex);
         }

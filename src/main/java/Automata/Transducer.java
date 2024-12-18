@@ -109,7 +109,7 @@ public class Transducer extends Automaton {
                 boolean flag;
                 try {
                     flag = ParseMethods.parseAlphabetDeclaration(line, A, NS);
-                } catch (Exception e) {
+                } catch (RuntimeException e) {
                     in.close();
                     throw new RuntimeException(
                             e.getMessage() + System.lineSeparator() +
@@ -570,7 +570,7 @@ public class Transducer extends Automaton {
 
 
             return N;
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             e.printStackTrace();
             throw new RuntimeException("Error transducing automaton");
         }

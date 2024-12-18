@@ -21,6 +21,7 @@ package Token;
 import java.util.Stack;
 
 import Main.Expression;
+import Main.Expressions.AlphabetLetterExpression;
 
 
 public class AlphabetLetter extends Token {
@@ -37,6 +38,6 @@ public class AlphabetLetter extends Token {
     }
 
     public void act(Stack<Expression> S, boolean print, String prefix, StringBuilder log) {
-        S.push(new Expression("@" + value, value));
+        S.push(new AlphabetLetterExpression("@" + value, value));
     }
 }

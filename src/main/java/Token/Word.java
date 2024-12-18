@@ -24,6 +24,7 @@ import java.util.Stack;
 
 import Automata.AutomatonLogicalOps;
 import Main.Expression;
+import Main.Expressions.*;
 import Main.UtilityMethods;
 import Automata.Automaton;
 
@@ -60,55 +61,18 @@ public class Word extends Token {
         List<String> quantify = new ArrayList<>();
         Automaton M = new Automaton(true);
         for (int i = 0; i < getArity(); i++) {
-            Expression currentIndex = temp.pop();
-            stringValue += "[" + currentIndex + "]";
-            /**
-             * type checking
-             if(W.NS.get(i) == null && (currentIndex.is(Type.arithmetic) || currentIndex.is(Type.numberLiteral)))
-             throw new RuntimeException("index "+ (i+1) +" of word " + name + " cannot be of type arithmetic");	*/
-
-            switch (currentIndex.T) {
-                case variable:
-                    if (!identifiers.contains(currentIndex.identifier)) {
-                        identifiers.add(currentIndex.identifier);
-                    } else {
-                        String new_identifier = currentIndex.identifier + getUniqueString();
-                        Automaton eq = W.NS.get(i).equality.clone();
-                        eq.bind(currentIndex.identifier, new_identifier);
-                        M = AutomatonLogicalOps.and(M, eq, print, prefix + " ", log);
-                        quantify.add(new_identifier);
-                        identifiers.add(new_identifier);
-                    }
-                    break;
-                case arithmetic:
-                    identifiers.add(currentIndex.identifier);
-                    M = AutomatonLogicalOps.and(M, currentIndex.M, print, prefix + " ", log);
-                    quantify.add(currentIndex.identifier);
-                    break;
-                case automaton:
-                    if (currentIndex.M.getArity() != 1) {
-                        throw new RuntimeException("index " + (i + 1) + " of word " + name + " cannot be an automaton with != 1 inputs");
-                    }
-                    if (!currentIndex.M.isBound()) {
-                        throw new RuntimeException("index " + (i + 1) + " of word " + name + " cannot be an automaton with unlabeled input");
-                    }
-                    M = AutomatonLogicalOps.and(M, currentIndex.M, print, prefix + " ", log);
-                    identifiers.add(currentIndex.M.getLabel().get(0));
-                    break;
-                case numberLiteral:
-                    Automaton constant = currentIndex.base.get(currentIndex.constant);
-                    String id = getUniqueString();
-                    constant.bind(id);
-                    identifiers.add(id);
-                    quantify.add(id);
-                    M = AutomatonLogicalOps.and(M, constant, print, prefix + " ", log);
-                    break;
-                default:
-                    throw new RuntimeException("index " + (i + 1) + " of word " + name + " cannot be of type " + currentIndex.getType());
+            Expression expression = temp.pop();
+            stringValue += "[" + expression + "]";
+            switch (expression) {
+                case VariableExpression ve -> M = ve.act(print, prefix, log, this, W.NS.get(i), identifiers, M, quantify);
+                case ArithmeticExpression ae -> M = ae.act(print, prefix, log, identifiers, M, quantify);
+                case NumberLiteralExpression ne -> M = ne.act(print, prefix, log, this, identifiers, quantify, M);
+                case AutomatonExpression ae -> M = ae.act(print, prefix, name, log, i, M, identifiers);
+                case null, default -> expression.act("argument " + (i + 1) + " of function " + name);
             }
         }
         W.bind(identifiers);
-        S.push(new Expression(stringValue, W, M, quantify));
+        S.push(new WordExpression(stringValue, W, M, quantify));
         String postStep = prefix + "computed " + stringValue;
         log.append(postStep + System.lineSeparator());
         if (print) {

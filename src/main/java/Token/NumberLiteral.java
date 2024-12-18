@@ -22,6 +22,7 @@ import java.util.Stack;
 
 import Automata.NumberSystem;
 import Main.Expression;
+import Main.Expressions.NumberLiteralExpression;
 
 
 public class NumberLiteral extends Token {
@@ -40,6 +41,6 @@ public class NumberLiteral extends Token {
     }
 
     public void act(Stack<Expression> S, boolean print, String prefix, StringBuilder log) {
-        S.push(new Expression(Integer.toString(value), value, base));
+        S.push(new NumberLiteralExpression(Integer.toString(value), value, base));
     }
 }

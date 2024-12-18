@@ -29,10 +29,10 @@ public abstract class Token {
     static char uniqueChar = 1000;
 
     /**
-     * @return a string. It is gauranteed that the string does not have ascii characters, and that no two calls
+     * @return a string. It is guaranteed that the string does not have ascii characters, and that no two calls
      * return the same value.
      */
-    protected String getUniqueString() {
+    public String getUniqueString() {
         uniqueChar++;
         return Character.toString(uniqueChar);
     }
@@ -41,7 +41,7 @@ public abstract class Token {
         postOrder.add(this);
     }
 
-    public abstract void act(Stack<Expression> S, boolean print, String prefix, StringBuilder log) throws Exception;
+    public abstract void act(Stack<Expression> S, boolean print, String prefix, StringBuilder log);
 
     public boolean isOperator() {
         return false;

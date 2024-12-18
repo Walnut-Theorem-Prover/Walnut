@@ -1379,7 +1379,7 @@ public class AutomatonLogicalOps {
                 log.append(msg + System.lineSeparator());
                 System.out.println(msg);
             }
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             e.printStackTrace();
             throw new RuntimeException("Error reversing word automaton");
         }
@@ -1474,7 +1474,7 @@ public class AutomatonLogicalOps {
                 currentlyReversed = !currentlyReversed;
             }
 
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             e.printStackTrace();
             throw new RuntimeException("Error converting the number system of an automaton");
         }
@@ -1571,7 +1571,7 @@ public class AutomatonLogicalOps {
                 System.out.println(msg);
             }
 
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             e.printStackTrace();
             throw new RuntimeException("Error converting the number system msd_k of an automaton to msd_k^j");
         }
@@ -1731,7 +1731,7 @@ public class AutomatonLogicalOps {
                 System.out.println(msg);
             }
 
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             e.printStackTrace();
             throw new RuntimeException("Error converting the number system msd_k^j of an automaton to msd_k");
         }

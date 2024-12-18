@@ -15,7 +15,6 @@ import java.util.List;
 import Token.Token;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DynamicTest;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestFactory;
 
 public class PredicateTest {
@@ -136,7 +135,7 @@ public class PredicateTest {
 			out.write(macro);
 			out.close();
 		}
-		catch (Exception o){		
+		catch (IOException o){
 		}
 	}
 	private static void delete_macro(String name){
@@ -168,7 +167,7 @@ public class PredicateTest {
 		Predicate p = null;
 		try {
 			p = new Predicate(pred);
-		}catch (Exception e) {
+		}catch (RuntimeException e) {
 			Assertions.fail(e);
 		}
 			String s = post_to_string(p.postOrder);

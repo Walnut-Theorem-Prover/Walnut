@@ -114,7 +114,7 @@ public class ParseMethods {
                 if (!H.containsKey(ns)) {
                     try {
                         H.put(ns, new NumberSystem(ns));
-                    } catch (Exception e) {
+                    } catch (RuntimeException e) {
                         // TODO Auto-generated catch block
                         throw new RuntimeException(
                                 e.getMessage() + System.lineSeparator() +

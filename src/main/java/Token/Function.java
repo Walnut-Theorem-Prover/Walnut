@@ -25,6 +25,10 @@ import java.util.Stack;
 
 import Automata.AutomatonLogicalOps;
 import Main.Expression;
+import Main.Expressions.ArithmeticExpression;
+import Main.Expressions.AutomatonExpression;
+import Main.Expressions.NumberLiteralExpression;
+import Main.Expressions.VariableExpression;
 import Main.UtilityMethods;
 import Automata.Automaton;
 import Automata.NumberSystem;
@@ -65,60 +69,26 @@ public class Function extends Token {
         Automaton M = new Automaton(true);
         List<String> identifiers = new ArrayList<>();
         List<String> quantify = new ArrayList<>();
-        List<Expression> args = new ArrayList<>(getArity());
+        List<Expression> expressions = new ArrayList<>(getArity());
         for (int i = 0; i < getArity(); i++) {
-            args.add(temp.pop());
+            expressions.add(temp.pop());
         }
-        stringValue += UtilityMethods.genericListString(args, ",") + "))";
+        stringValue += UtilityMethods.genericListString(expressions, ",") + "))";
         for (int i = 0; i < getArity(); i++) {
-            Expression currentArg = args.get(i);
-
-            switch (currentArg.T) {
-                case variable:
-                    if (!identifiers.contains(currentArg.identifier)) {
-                        identifiers.add(currentArg.identifier);
-                    } else {
-                        String new_identifier = currentArg.identifier + getUniqueString();
-                        Automaton eq = this.ns.equality.clone();
-                        eq.bind(currentArg.identifier, new_identifier);
-                        M = AutomatonLogicalOps.and(M, eq, print, prefix + " ", log);
-                        quantify.add(new_identifier);
-                        identifiers.add(new_identifier);
-                    }
-                    break;
-                case arithmetic:
-                    identifiers.add(currentArg.identifier);
-                    M = AutomatonLogicalOps.and(M, currentArg.M, print, prefix + " ", log);
-                    quantify.add(currentArg.identifier);
-                    break;
-                case numberLiteral:
-                    Automaton constant = currentArg.base.get(currentArg.constant);
-                    String id = getUniqueString();
-                    constant.bind(id);
-                    identifiers.add(id);
-                    quantify.add(id);
-                    M = AutomatonLogicalOps.and(M, constant, print, prefix + " ", log);
-                    break;
-                case automaton:
-                    if (currentArg.M.getArity() != 1) {
-                        throw new RuntimeException("argument " + (i + 1) + " of function " + name + " cannot be an automaton with != 1 inputs");
-                    }
-                    if (!currentArg.M.isBound()) {
-                        throw new RuntimeException("argument " + (i + 1) + " of function " + name + " cannot be an automaton with unlabeled input");
-                    }
-                    M = AutomatonLogicalOps.and(M, currentArg.M, print, prefix + " ", log);
-                    identifiers.add(currentArg.M.getLabel().get(0));
-                    break;
-                default:
-                    throw new RuntimeException("argument " + (i + 1) + " of function " + name + " cannot be of type " + currentArg.getType());
+            Expression expression = expressions.get(i);
+            switch (expression) {
+                case VariableExpression ve -> M = ve.act(print, prefix, log, this, this.ns, identifiers, M, quantify);
+                case ArithmeticExpression ae -> M = ae.act(print, prefix, log, identifiers, M, quantify);
+                case NumberLiteralExpression ne -> M = ne.act(print, prefix, log, this, identifiers, quantify, M);
+                case AutomatonExpression ae -> M = ae.act(print, prefix, name, log, i, M, identifiers);
+                case null, default -> expression.act("argument " + (i + 1) + " of function " + name);
             }
-
         }
         A.bind(identifiers);
         A = AutomatonLogicalOps.and(A, M, print, prefix + " ", log);
         AutomatonLogicalOps.quantify(A, new HashSet<>(quantify), print, prefix + " ", log);
 
-        S.push(new Expression(stringValue, A));
+        S.push(new AutomatonExpression(stringValue, A));
         String postStep = prefix + "computed " + stringValue;
         log.append(postStep + System.lineSeparator());
         if (print) {

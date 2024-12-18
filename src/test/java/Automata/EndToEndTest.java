@@ -15,7 +15,7 @@ public class EndToEndTest {
             Prover.run(args);
             /*a = new Automaton("src/test/resources/input2.txt");
             a.draw("src/test/tempOutput.gv", "original", true);*/
-        } catch (Exception ex) {
+        } catch (RuntimeException ex) {
             // Hack because everything s
             Assertions.fail(ex);
         }

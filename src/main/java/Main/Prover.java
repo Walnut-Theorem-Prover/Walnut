@@ -331,7 +331,7 @@ public class Prover {
                         if (!dispatch(s)) {
                             return false;
                         }
-                    } catch (Exception e) {
+                    } catch (RuntimeException e) {
                         System.out.flush();
                         System.err.println(e.getMessage() + System.lineSeparator() + "\t: " + s);
                         System.err.flush();
@@ -557,8 +557,8 @@ public class Prover {
         c.drawAutomaton(UtilityMethods.get_address_for_result() + m.group(ED_NAME) + ".gv");
 
         if (!free_variables.isEmpty()) {
-            c.writeMatrices(
-                    UtilityMethods.get_address_for_result() + m.group(ED_NAME) + ".mpl", free_variables);
+            c.mpl = AutomatonWriter.write_matrices(c.getTheFinalResult(),
+                UtilityMethods.get_address_for_result() + m.group(ED_NAME) + ".mpl", free_variables);
         }
 
         c.writeLog(UtilityMethods.get_address_for_result() + m.group(ED_NAME) + "_log.txt");
@@ -594,7 +594,7 @@ public class Prover {
                                             UtilityMethods.get_address_for_macro_library() + m.group(M_NAME) + ".txt"), StandardCharsets.UTF_8));
             out.write(m.group(M_DEFINITION));
             out.close();
-        } catch (Exception o) {
+        } catch (IOException o) {
             System.out.println("Could not write the macro " + m.group(M_NAME));
         }
         return null;
@@ -616,7 +616,7 @@ public class Prover {
                     Predicate.number_system_Hash.put(base, new NumberSystem(base));
                 ns = Predicate.number_system_Hash.get(base);
                 numSys.add(Predicate.number_system_Hash.get(base));
-            } catch (Exception e) {
+            } catch (RuntimeException e) {
                 throw new RuntimeException("number system " + base + " does not exist: char at " + m.start(R_NUMBER_SYSTEM) + System.lineSeparator() + "\t:" + e.getMessage());
             }
             alphabets.add(ns.getAlphabet());
@@ -634,7 +634,7 @@ public class Prover {
                         Predicate.number_system_Hash.put(base, new NumberSystem(base));
                     ns = Predicate.number_system_Hash.get(base);
                     numSys.add(Predicate.number_system_Hash.get(base));
-                } catch (Exception e) {
+                } catch (RuntimeException e) {
                     throw new RuntimeException("number system " + base + " does not exist: char at " + m.start(R_NUMBER_SYSTEM) + System.lineSeparator() + "\t:" + e.getMessage());
                 }
                 alphabets.add(ns.getAlphabet());
@@ -1114,7 +1114,7 @@ public class Prover {
             AutomatonWriter.write(C, UtilityMethods.get_address_for_result() + m.group(GROUP_TRANSDUCE_NEW_NAME) + ".txt");
             AutomatonWriter.write(C, UtilityMethods.get_address_for_words_library() + m.group(GROUP_TRANSDUCE_NEW_NAME) + ".txt");
             return new TestCase(s, C, "", "", "");
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             e.printStackTrace();
             throw new RuntimeException("Error transducing automaton");
         }
@@ -1153,7 +1153,7 @@ public class Prover {
             AutomatonWriter.write(M, UtilityMethods.get_address_for_result() + m.group(GROUP_REVERSE_NEW_NAME) + ".txt");
             AutomatonWriter.write(M, library + m.group(GROUP_REVERSE_NEW_NAME) + ".txt");
             return new TestCase(s, M, "", "", "");
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             e.printStackTrace();
             throw new RuntimeException("Error reversing automaton.");
         }
@@ -1181,7 +1181,7 @@ public class Prover {
             AutomatonWriter.write(M, UtilityMethods.get_address_for_result() + m.group(GROUP_MINIMIZE_NEW_NAME) + ".txt");
             AutomatonWriter.write(M, UtilityMethods.get_address_for_words_library() + m.group(GROUP_MINIMIZE_NEW_NAME) + ".txt");
             return new TestCase(s, M, "", "", "");
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             e.printStackTrace();
             throw new RuntimeException("Error minimizing word automaton.");
         }
@@ -1223,7 +1223,7 @@ public class Prover {
             }
             AutomatonWriter.write(M, outLibrary + m.group(GROUP_CONVERT_NEW_NAME) + ".txt");
             return new TestCase(s, M, "", "", "");
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             e.printStackTrace();
             throw new RuntimeException("Error converting automaton.");
         }
@@ -1249,7 +1249,7 @@ public class Prover {
             AutomatonWriter.write(M, UtilityMethods.get_address_for_result() + m.group(GROUP_FIXLEADZERO_NEW_NAME) + ".txt");
             AutomatonWriter.write(M, UtilityMethods.get_address_for_automata_library() + m.group(GROUP_FIXLEADZERO_NEW_NAME) + ".txt");
             return new TestCase(s, M, "", "", "");
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             e.printStackTrace();
             throw new RuntimeException("Error fixing leading zeroes for automaton.");
         }
@@ -1275,7 +1275,7 @@ public class Prover {
             AutomatonWriter.write(M, UtilityMethods.get_address_for_result() + m.group(GROUP_FIXTRAILZERO_NEW_NAME) + ".txt");
             AutomatonWriter.write(M, UtilityMethods.get_address_for_automata_library() + m.group(GROUP_FIXTRAILZERO_NEW_NAME) + ".txt");
             return new TestCase(s, M, "", "", "");
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             e.printStackTrace();
             throw new RuntimeException("Error fixing trailing zeroes for automaton.");
         }
@@ -1325,7 +1325,7 @@ public class Prover {
                             Predicate.number_system_Hash.put(base, new NumberSystem(base));
                         ns = Predicate.number_system_Hash.get(base);
                         numSys.add(Predicate.number_system_Hash.get(base));
-                    } catch (Exception e) {
+                    } catch (RuntimeException e) {
                         throw new RuntimeException("number system " + base + " does not exist: char at " + m.start(R_NUMBER_SYSTEM) + System.lineSeparator() + "\t:" + e.getMessage());
                     }
                     alphabets.add(ns.getAlphabet());
@@ -1349,7 +1349,7 @@ public class Prover {
             AutomatonWriter.write(M, library + m.group(GROUP_alphabet_NEW_NAME) + ".txt");
 
             return new TestCase(s, M, "", "", "");
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             e.printStackTrace();
             throw new RuntimeException("Error using the alphabet command.");
         }
@@ -1391,7 +1391,7 @@ public class Prover {
 
             return new TestCase(s, C, "", "", "");
 
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             e.printStackTrace();
             throw new RuntimeException("Error using the union command.");
         }
@@ -1434,7 +1434,7 @@ public class Prover {
 
             return new TestCase(s, C, "", "", "");
 
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             e.printStackTrace();
             throw new RuntimeException("Error using the intersect command.");
         }
@@ -1462,7 +1462,7 @@ public class Prover {
             AutomatonWriter.write(C, UtilityMethods.get_address_for_automata_library() + m.group(GROUP_STAR_NEW_NAME) + ".txt");
             return new TestCase(s, C, "", "", "");
 
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             e.printStackTrace();
             throw new RuntimeException("Error using the star command.");
         }
@@ -1504,7 +1504,7 @@ public class Prover {
 
             return new TestCase(s, C, "", "", "");
 
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             e.printStackTrace();
             throw new RuntimeException("Error using the concat command.");
         }
@@ -1535,7 +1535,7 @@ public class Prover {
             AutomatonWriter.write(C, UtilityMethods.get_address_for_automata_library() + m.group(GROUP_rightquo_NEW_NAME) + ".txt");
             return new TestCase(s, C, "", "", "");
 
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             e.printStackTrace();
             throw new RuntimeException("Error using the rightquo command");
         }
@@ -1565,7 +1565,7 @@ public class Prover {
             AutomatonWriter.write(C, UtilityMethods.get_address_for_automata_library() + m.group(GROUP_leftquo_NEW_NAME) + ".txt");
             return new TestCase(s, C, "", "", "");
 
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             e.printStackTrace();
             throw new RuntimeException("Error using the leftquo command");
         }
@@ -1588,7 +1588,7 @@ public class Prover {
 
             return new TestCase(s, M, "", "", "");
 
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             e.printStackTrace();
             throw new RuntimeException("Error using the draw command");
         }
@@ -1628,7 +1628,7 @@ public class Prover {
                     }
                 }
             }
-        } catch (Exception e) {
+        } catch (IOException e) {
             e.printStackTrace();
             throw new RuntimeException("Error using the help command");
         }
