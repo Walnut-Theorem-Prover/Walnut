@@ -129,8 +129,15 @@ public class Morphism {
         return promotion;
     }
 
-    // Determines whether the morphism is uniform, meaning whether or not the image of every input symbol in the alphabet
-    // has the same length.
+    /**
+     * Determines whether the morphism is uniform.
+     * A morphism is uniform if the image of every input symbol in the alphabet
+     * has the same length. For example:
+     * - If mapping = {a -> "01", b -> "10", c -> "11"}, the morphism is uniform because all outputs have a length of 2.
+     * - If mapping = {a -> "01", b -> "10", c -> "1"}, the morphism is not uniform because the output for 'c' has a different length.
+     *
+     * @return true if the morphism is uniform; false otherwise.
+     */
     public boolean isUniform() {
         boolean firstElement = true;
         int imageLength = 0;
