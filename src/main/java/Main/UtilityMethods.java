@@ -21,7 +21,6 @@ package Main;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Pattern;
 
 /**
  * This class contains a number of useful static methods.
@@ -29,10 +28,6 @@ import java.util.regex.Pattern;
  * @author Hamoon
  */
 public class UtilityMethods {
-    static Pattern PATTERN_NUMBER = Pattern.compile("^\\d+$");
-    static Pattern PATTERN_NEG_NUMBER = Pattern.compile("^neg_\\d+$");
-    static Pattern PATTERN_INT_SPLIT = Pattern.compile("\\s+");
-
     static String dir = "";
     static String ADDRESS_FOR_COMMAND_FILES = "Command Files/";
     static String ADDRESS_FOR_MACRO_LIBRARY = "Macro Library/";
@@ -110,7 +105,7 @@ public class UtilityMethods {
      * @return
      */
     public static boolean isNumber(String s) {
-        return PATTERN_NUMBER.matcher(s).matches();
+        return s.matches("^\\d+$");
     }
 
     /**
@@ -121,7 +116,7 @@ public class UtilityMethods {
      * @return
      */
     public static int parseNegNumber(String s) {
-        if (!PATTERN_NEG_NUMBER.matcher(s).matches()) {
+        if (!s.matches("^neg_\\d+$")) {
             return 0;
         }
         return parseInt(s.substring(4));
@@ -248,7 +243,7 @@ public class UtilityMethods {
      * @return
      */
     public static int parseInt(String s) {
-        String[] part = PATTERN_INT_SPLIT.split(s);
+        String[] part = s.split("\\s+");
         StringBuilder b = new StringBuilder();
         for (String x : part) {
             b.append(x);

@@ -28,28 +28,24 @@ import Automata.Automaton;
 import Automata.AutomatonWriter;
 import Main.Expressions.AutomatonExpression;
 import Token.Token;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 
 public class Computer {
-    private static final Logger LOGGER = LogManager.getLogger(Computer.class);
-
-    private final Predicate predicate;
-    private final String predicateStr;
-    private Expression result;
-    final StringBuilder log;
-    final StringBuilder log_details;
+    Predicate predicate_object;
+    String predicate_string;
+    Expression result;
+    StringBuilder log;
+    StringBuilder log_details;
     String mpl;
-    private final boolean printSteps;
-    private final boolean printDetails;
+    boolean printSteps;
+    boolean printDetails;
 
     public Computer(String predicate, boolean printSteps, boolean printDetails) {
         this.log = new StringBuilder();
         this.log_details = new StringBuilder();
         mpl = "";
-        this.predicateStr = predicate;
-        this.predicate = new Predicate(predicate);
+        this.predicate_string = predicate;
+        predicate_object = new Predicate(predicate);
         this.printSteps = printSteps;
         this.printDetails = printDetails;
         compute();
@@ -72,7 +68,7 @@ public class Computer {
     }
 
     public void drawAutomaton(String address) {
-        AutomatonWriter.draw(result.M, address, predicateStr, false);
+        AutomatonWriter.draw(result.M, address, predicate_string, false);
     }
 
     public void write(String address) {
@@ -85,7 +81,7 @@ public class Computer {
 
     private void compute() {
         Stack<Expression> expressions = new Stack<>();
-        List<Token> postOrder = predicate.getPostOrder();
+        List<Token> postOrder = predicate_object.get_postOrder();
         String prefix = "";
         long timeBeginning = System.currentTimeMillis();
         String step;
@@ -102,13 +98,13 @@ public class Computer {
                     log.append(step + System.lineSeparator());
                     log_details.append(step + System.lineSeparator());
                     if (printSteps || printDetails) {
-                        LOGGER.info(step);
+                        System.out.println(step);
                     }
 
                     prefix += " ";
                 }
             } catch (RuntimeException e) {
-                LOGGER.catching(e);
+                e.printStackTrace();
                 String message = e.getMessage();
                 message += System.lineSeparator() + "\t: char at " + t.getPositionInPredicate();
                 throw new RuntimeException(message);
@@ -120,7 +116,7 @@ public class Computer {
         log.append(step);
         log_details.append(step);
         if (printSteps || printDetails) {
-            LOGGER.info(step);
+            System.out.println(step);
         }
 
         if (expressions.size() > 1) {

@@ -28,12 +28,8 @@ import Main.Expression;
 import Automata.Automaton;
 import Main.Expressions.AutomatonExpression;
 import Main.Expressions.VariableExpression;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 public class LogicalOperator extends Operator {
-    private static final Logger LOGGER = LogManager.getLogger(LogicalOperator.class);
-
     int number_of_quantified_variables;
 
     public LogicalOperator(int position, String op) {
@@ -73,7 +69,7 @@ public class LogicalOperator extends Operator {
             String preStep = prefix + "computing " + a + op + b;
             log.append(preStep + System.lineSeparator());
             if (print) {
-                LOGGER.info(preStep);
+                System.out.println(preStep);
             }
             String opString = "(" + a + op + b + ")";
             switch (op) {
@@ -96,7 +92,7 @@ public class LogicalOperator extends Operator {
             String postStep = prefix + "computed " + a + op + b;
             log.append(postStep + System.lineSeparator());
             if (print) {
-                LOGGER.info(postStep);
+                System.out.println(postStep);
             }
             return;
         }
@@ -110,7 +106,7 @@ public class LogicalOperator extends Operator {
             String preStep = prefix + "computing " + op + a;
             log.append(preStep + System.lineSeparator());
             if (print) {
-                LOGGER.info(preStep);
+                System.out.println(preStep);
             }
             if (op.equals("`"))
                 AutomatonLogicalOps.reverse(a.M, print, prefix + " ", log, true);
@@ -120,7 +116,7 @@ public class LogicalOperator extends Operator {
             String postStep = prefix + "computed " + op + a;
             log.append(postStep + System.lineSeparator());
             if (print) {
-                LOGGER.info(postStep);
+                System.out.println(postStep);
             }
             return;
         }
@@ -138,7 +134,7 @@ public class LogicalOperator extends Operator {
         String preStep = prefix + "computing quantifier " + op;
         log.append(preStep + System.lineSeparator());
         if (print) {
-            LOGGER.info(preStep);
+            System.out.println(preStep);
         }
         List<String> list_of_identifiers_to_quantify = new ArrayList<>();
         for (int i = 0; i < getArity(); i++) {
@@ -176,7 +172,7 @@ public class LogicalOperator extends Operator {
         String postStep = prefix + "computed quantifier " + stringValue;
         log.append(postStep + System.lineSeparator());
         if (print) {
-            LOGGER.info(postStep);
+            System.out.println(postStep);
         }
     }
 }

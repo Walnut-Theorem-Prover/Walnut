@@ -26,13 +26,9 @@ import Main.Expression;
 import Automata.Automaton;
 import Automata.NumberSystem;
 import Main.Expressions.*;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 
 public class ArithmeticOperator extends Operator {
-    private static final Logger LOGGER = LogManager.getLogger(ArithmeticOperator.class);
-
     NumberSystem number_system;
 
     public ArithmeticOperator(int position, String op, NumberSystem number_system) {
@@ -75,7 +71,7 @@ public class ArithmeticOperator extends Operator {
             String preStep = prefix + "computing " + op + b;
             log.append(preStep + System.lineSeparator());
             if (print) {
-                LOGGER.info(preStep);
+                System.out.println(preStep);
             }
             if (b instanceof ArithmeticExpression) {
                 // Eb, b + c = 0 & M(b,...)
@@ -86,7 +82,7 @@ public class ArithmeticOperator extends Operator {
             String postStep = prefix + "computed " + op + b;
             log.append(postStep + System.lineSeparator());
             if (print) {
-                LOGGER.info(postStep);
+                System.out.println(postStep);
             }
             return;
         }
@@ -136,7 +132,7 @@ public class ArithmeticOperator extends Operator {
         String preStep = prefix + "Computing " + a + op + b;
         log.append(preStep + System.lineSeparator());
         if (print) {
-            LOGGER.info(preStep);
+            System.out.println(preStep);
         }
         if (a instanceof WordExpression || (a instanceof ArithmeticExpression || a instanceof VariableExpression) && b instanceof WordExpression) {
             /* We rewrite T[a] * 5 = z as
@@ -208,7 +204,7 @@ public class ArithmeticOperator extends Operator {
         String postStep = prefix + "computed " + a + op + b;
         log.append(postStep + System.lineSeparator());
         if (print) {
-            LOGGER.info(postStep);
+            System.out.println(postStep);
         }
     }
 }

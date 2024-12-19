@@ -25,6 +25,7 @@ import java.io.InputStreamReader;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.TreeMap;
 import java.util.HashMap;
@@ -40,10 +41,6 @@ import Main.UtilityMethods;
 import it.unimi.dsi.fastutil.ints.Int2ObjectRBTreeMap;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
-import static Automata.ParseMethods.PATTERN_WHITESPACE;
 
 /**
  * The class Transducer represents a deterministic finite-state transducer with all states final that is 1-uniform.
@@ -55,7 +52,6 @@ import static Automata.ParseMethods.PATTERN_WHITESPACE;
  * @author Anatoly
  */
 public class Transducer extends Automaton {
-    private static final Logger LOGGER = LogManager.getLogger(Transducer.class);
 
 
     /**
@@ -91,19 +87,21 @@ public class Transducer extends Automaton {
      */
     public Transducer(String address) {
         this();
+        final String REGEXP_FOR_WHITESPACE = "^\\s*$";
 
         // lineNumber will be used in error messages
         int lineNumber = 0;
 
         alphabetSize = 1;
 
-        try (BufferedReader in = new BufferedReader(
-            new InputStreamReader(new FileInputStream(address), StandardCharsets.UTF_8))) {
+        try {
+            BufferedReader in = new BufferedReader(
+                    new InputStreamReader(new FileInputStream(address), StandardCharsets.UTF_8));
             String line;
             while ((line = in.readLine()) != null) {
                 lineNumber++;
 
-                if (PATTERN_WHITESPACE.matcher(line).matches()) {
+                if (line.matches(REGEXP_FOR_WHITESPACE)) {
                     // Ignore blank lines.
                     continue;
                 }
@@ -162,7 +160,7 @@ public class Transducer extends Automaton {
             Q = 0;
             while((line = in.readLine())!= null) {
                 lineNumber++;
-                if (PATTERN_WHITESPACE.matcher(line).matches()) {
+                if(line.matches(REGEXP_FOR_WHITESPACE)) {
                     continue;
                 }
 
@@ -213,7 +211,7 @@ public class Transducer extends Automaton {
                 }
                 else{
                     in.close();
-                    throw ExceptionHelper.undefinedStatement(lineNumber, address);
+                    throw new RuntimeException("Undefined statement: line "+ lineNumber + " of file " + address);
                 }
             }
             in.close();
@@ -231,7 +229,7 @@ public class Transducer extends Automaton {
             }
 
         } catch (IOException e) {
-            LOGGER.catching(e);
+            e.printStackTrace();
             throw new RuntimeException("File does not exist: " + address);
         }
     }
@@ -285,7 +283,7 @@ public class Transducer extends Automaton {
             if(print){
                 String msg = prefix + "transducing: " + M.Q + " state automaton - " + Q + " state transducer";
                 log.append(msg + System.lineSeparator());
-                LOGGER.info(msg);
+                System.out.println(msg);
             }
 
             /**
@@ -567,13 +565,13 @@ public class Transducer extends Automaton {
             if(print){
                 String msg = prefix + "transduced: " + N.Q + " states - "+(timeAfter-timeBefore)+"ms";
                 log.append(msg + System.lineSeparator());
-                LOGGER.info(msg);
+                System.out.println(msg);
             }
 
 
             return N;
         } catch (RuntimeException e) {
-            LOGGER.catching(e);
+            e.printStackTrace();
             throw new RuntimeException("Error transducing automaton");
         }
 
@@ -613,7 +611,7 @@ public class Transducer extends Automaton {
             if(print){
                 String msg = prefix + "Automaton number system is lsd, reversing";
                 log.append(msg + System.lineSeparator());
-                LOGGER.info(msg);
+                System.out.println(msg);
             }
             toLsd = true;
             AutomatonLogicalOps.reverseWithOutput(M, true, print, prefix+" ", log);

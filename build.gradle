@@ -51,12 +51,6 @@ jacocoTestReport {
 }
 
 dependencies {
-    implementation platform('org.apache.logging.log4j:log4j-bom:2.24.3')
-   // implementation 'org.apache.logging.log4j:log4j-api:${log4j-api.version}'
-   // implementation 'org.apache.logging.log4j:log4j-core:${log4j-core.version}'
-    implementation 'org.apache.logging.log4j:log4j-api'
-    implementation 'org.apache.logging.log4j:log4j-core'
-
     implementation 'it.unimi.dsi:fastutil:8.5.12'
     implementation 'dk.brics:automaton:1.12-4'
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.10.2'

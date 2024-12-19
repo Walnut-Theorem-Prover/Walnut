@@ -7,6 +7,8 @@ import org.junit.jupiter.api.Test;
 public class EndToEndTest {
     @Test
     void testSimpleFiles() {
+        Automaton a, b;
+        Prover p;
         String[] args = new String[1];
         args[0] = "src/test/resources/input2.txt";
         try {

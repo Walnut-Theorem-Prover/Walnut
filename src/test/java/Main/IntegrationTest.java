@@ -1063,7 +1063,7 @@ public class IntegrationTest {
 		for(int i = 0; i < L.size();i++){
 			String command = L.get(i);
 			System.out.println(command);
-			TestCase test_case;
+			TestCase test_case = null;
 			try{
 				test_case = Prover.dispatchForIntegrationTest(command);
 			}

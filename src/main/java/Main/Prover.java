@@ -1,4 +1,4 @@
-/*	 Copyright 2016 Hamoon Mousavi, 2025 John Nicol
+/*	 Copyright 2016 Hamoon Mousavi
  *
  * 	 This file is part of Walnut.
  *
@@ -31,6 +31,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 import java.util.LinkedList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -39,8 +40,6 @@ import Automata.*;
 import Automata.Numeration.Ostrowski;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 /**
  * This class contains the main method. It is responsible to get a command from user
@@ -49,163 +48,176 @@ import org.apache.logging.log4j.Logger;
  * @author Hamoon
  */
 public class Prover {
-    private static final Logger LOGGER = LogManager.getLogger(Prover.class);
-
-    static Pattern PATTERN_FOR_THE_LIST_OF_COMMANDS = Pattern.compile(
-        "(eval|def|macro|reg|load|ost|exit|quit|cls|clear|combine|morphism|promote|image|inf|split|rsplit|join|test|transduce|reverse|minimize|convert|fixleadzero|fixtrailzero|alphabet|union|intersect|star|concat|rightquo|leftquo|draw|help)");
-    static Pattern PATTERN_FOR_EMPTY_COMMAND = Pattern.compile("^\\s*(;|::|:)\\s*$");
+    static String REGEXP_FOR_THE_LIST_OF_COMMANDS = "(eval|def|macro|reg|load|ost|exit|quit|cls|clear|combine|morphism|promote|image|inf|split|rsplit|join|test|transduce|reverse|minimize|convert|fixleadzero|fixtrailzero|alphabet|union|intersect|star|concat|rightquo|leftquo|draw|help)";
+    static String REGEXP_FOR_EMPTY_COMMAND = "^\\s*(;|::|:)\\s*$";
     /**
      * the high-level scheme of a command is a name followed by some arguments and ending in either ; : or ::
      */
     static String REGEXP_FOR_COMMAND = "^\\s*(\\w+)(\\s+.*)?(;|::|:)\\s*$";
     static Pattern PATTERN_FOR_COMMAND = Pattern.compile(REGEXP_FOR_COMMAND);
 
-    static Pattern PATTERN_FOR_EXIT_COMMAND = Pattern.compile("^\\s*(exit|quit)\\s*(;|::|:)$");
+    static String REGEXP_FOR_exit_COMMAND = "^\\s*(exit|quit)\\s*(;|::|:)$";
 
+    static String REGEXP_FOR_load_COMMAND = "^\\s*load\\s+(\\w+\\.txt)\\s*(;|::|:)\\s*$";
     /**
      * group for filename in REGEXP_FOR_load_COMMAND
      */
     static int L_FILENAME = 1;
-    static Pattern PATTERN_FOR_LOAD_COMMAND = Pattern.compile("^\\s*load\\s+(\\w+\\.txt)\\s*(;|::|:)\\s*$");
+    static Pattern PATTERN_FOR_load_COMMAND = Pattern.compile(REGEXP_FOR_load_COMMAND);
 
+    static String REGEXP_FOR_eval_def_COMMANDS = "^\\s*(eval|def)\\s+([a-zA-Z]\\w*)((\\s+([a-zA-Z]\\w*))*)\\s+\"(.*)\"\\s*(;|::|:)\\s*$";
     /**
      * important groups in REGEXP_FOR_eval_def_COMMANDS
      */
     static int ED_TYPE = 1, ED_NAME = 2, ED_FREE_VARIABLES = 3, ED_PREDICATE = 6, ED_ENDING = 7;
-    static Pattern PATTERN_FOR_eval_def_COMMANDS = Pattern.compile("^\\s*(eval|def)\\s+([a-zA-Z]\\w*)((\\s+([a-zA-Z]\\w*))*)\\s+\"(.*)\"\\s*(;|::|:)\\s*$");
-    static Pattern PATTERN_FOR_A_FREE_VARIABLE_IN_eval_def_COMMANDS = Pattern.compile("[a-zA-Z]\\w*");
+    static Pattern PATTERN_FOR_eval_def_COMMANDS = Pattern.compile(REGEXP_FOR_eval_def_COMMANDS);
+    static String REXEXP_FOR_A_FREE_VARIABLE_IN_eval_def_COMMANDS = "[a-zA-Z]\\w*";
+    static Pattern PATTERN_FOR_A_FREE_VARIABLE_IN_eval_def_COMMANDS = Pattern.compile(REXEXP_FOR_A_FREE_VARIABLE_IN_eval_def_COMMANDS);
 
+    static String REGEXP_FOR_macro_COMMAND = "^\\s*macro\\s+([a-zA-Z]\\w*)\\s+\"(.*)\"\\s*(;|::|:)\\s*$";
     static int M_NAME = 1, M_DEFINITION = 2;
-    static Pattern PATTERN_FOR_macro_COMMAND = Pattern.compile("^\\s*macro\\s+([a-zA-Z]\\w*)\\s+\"(.*)\"\\s*(;|::|:)\\s*$");
+    static Pattern PATTERN_FOR_macro_COMMAND = Pattern.compile(REGEXP_FOR_macro_COMMAND);
+
+    static String REGEXP_FOR_reg_COMMAND = "^\\s*(reg)\\s+([a-zA-Z]\\w*)\\s+((((((msd|lsd)_(\\d+|\\w+))|((msd|lsd)(\\d+|\\w+))|(msd|lsd)|(\\d+|\\w+))|(\\{(\\s*(\\+|\\-)?\\s*\\d+)(\\s*,\\s*(\\+|\\-)?\\s*\\d+)*\\s*\\}))\\s+)+)\"(.*)\"\\s*(;|::|:)\\s*$";
 
     /**
      * important groups in REGEXP_FOR_reg_COMMAND
      */
     static int R_NAME = 2, R_LIST_OF_ALPHABETS = 3, R_REGEXP = 20;
-    static Pattern PATTERN_FOR_reg_COMMAND = Pattern.compile(
-        "^\\s*(reg)\\s+([a-zA-Z]\\w*)\\s+((((((msd|lsd)_(\\d+|\\w+))|((msd|lsd)(\\d+|\\w+))|(msd|lsd)|(\\d+|\\w+))|(\\{(\\s*(\\+|\\-)?\\s*\\d+)(\\s*,\\s*(\\+|\\-)?\\s*\\d+)*\\s*\\}))\\s+)+)\"(.*)\"\\s*(;|::|:)\\s*$");
-    static Pattern PATTERN_FOR_A_SINGLE_ELEMENT_OF_A_SET = Pattern.compile("(\\+|\\-)?\\s*\\d+");
-    static Pattern PATTERN_FOR_AN_ALPHABET =
-        Pattern.compile("((((msd|lsd)_(\\d+|\\w+))|((msd|lsd)(\\d+|\\w+))|(msd|lsd)|(\\d+|\\w+))|(\\{(\\s*(\\+|\\-)?\\s*\\d+)(\\s*,\\s*(\\+|\\-)?\\s*\\d+)*\\s*\\}))\\s+");
+    static Pattern PATTERN_FOR_reg_COMMAND = Pattern.compile(REGEXP_FOR_reg_COMMAND);
+    static String REGEXP_FOR_A_SINGLE_ELEMENT_OF_A_SET = "(\\+|\\-)?\\s*\\d+";
+    static Pattern PATTERN_FOR_A_SINGLE_ELEMENT_OF_A_SET = Pattern.compile(REGEXP_FOR_A_SINGLE_ELEMENT_OF_A_SET);
+    static String REGEXP_FOR_AN_ALPHABET = "((((msd|lsd)_(\\d+|\\w+))|((msd|lsd)(\\d+|\\w+))|(msd|lsd)|(\\d+|\\w+))|(\\{(\\s*(\\+|\\-)?\\s*\\d+)(\\s*,\\s*(\\+|\\-)?\\s*\\d+)*\\s*\\}))\\s+";
+    static Pattern PATTERN_FOR_AN_ALPHABET = Pattern.compile(REGEXP_FOR_AN_ALPHABET);
     static int R_NUMBER_SYSTEM = 2, R_SET = 11;
 
-    static Pattern PATTERN_FOR_AN_ALPHABET_VECTOR =
-        Pattern.compile("(\\[(\\s*(\\+|\\-)?\\s*\\d+)(\\s*,\\s*(\\+|\\-)?\\s*\\d+)*\\s*\\])|(\\d)");
+    static String REGEXP_FOR_AN_ALPHABET_VECTOR = "(\\[(\\s*(\\+|\\-)?\\s*\\d+)(\\s*,\\s*(\\+|\\-)?\\s*\\d+)*\\s*\\])|(\\d)";
+    static Pattern PATTERN_FOR_AN_ALPHABET_VECTOR = Pattern.compile(REGEXP_FOR_AN_ALPHABET_VECTOR);
 
-    static Pattern PATTERN_FOR_ost_COMMAND =
-        Pattern.compile("^\\s*ost\\s+([a-zA-Z]\\w*)\\s*\\[\\s*((\\d+\\s*)*)\\]\\s*\\[\\s*((\\d+\\s*)*)\\]\\s*(;|:|::)\\s*$");
+    static Pattern PATTERN_FOR_A_SINGLE_NOT_SPACED_WORD = Pattern.compile("\\w+");
+
+    static String REGEXP_FOR_ost_COMMAND = "^\\s*ost\\s+([a-zA-Z]\\w*)\\s*\\[\\s*((\\d+\\s*)*)\\]\\s*\\[\\s*((\\d+\\s*)*)\\]\\s*(;|:|::)\\s*$";
+    static Pattern PATTERN_FOR_ost_COMMAND = Pattern.compile(REGEXP_FOR_ost_COMMAND);
     static int GROUP_OST_NAME = 1;
     static int GROUP_OST_PREPERIOD = 2;
     static int GROUP_OST_PERIOD = 4;
     static int GROUP_OST_END = 6;
 
-    static Pattern PATTERN_FOR_combine_COMMAND = Pattern.compile("^\\s*combine\\s+([a-zA-Z]\\w*)((\\s+([a-zA-Z]\\w*(=-?\\d+)?))*)\\s*(;|::|:)\\s*$");
+    static String REGEXP_FOR_combine_COMMAND = "^\\s*combine\\s+([a-zA-Z]\\w*)((\\s+([a-zA-Z]\\w*(=-?\\d+)?))*)\\s*(;|::|:)\\s*$";
+    static Pattern PATTERN_FOR_combine_COMMAND = Pattern.compile(REGEXP_FOR_combine_COMMAND);
     static int GROUP_COMBINE_NAME = 1, GROUP_COMBINE_AUTOMATA = 2, GROUP_COMBINE_END = 6;
-    static Pattern PATTERN_FOR_AN_AUTOMATON_IN_combine_COMMAND = Pattern.compile("([a-zA-Z]\\w*)((=-?\\d+)?)");
+    static String REGEXP_FOR_AN_AUTOMATON_IN_combine_COMMAND = "([a-zA-Z]\\w*)((=-?\\d+)?)";
+    static Pattern PATTERN_FOR_AN_AUTOMATON_IN_combine_COMMAND = Pattern.compile(REGEXP_FOR_AN_AUTOMATON_IN_combine_COMMAND);
 
-    static Pattern PATTERN_FOR_morphism_COMMAND = Pattern.compile(
-        "^\\s*morphism\\s+([a-zA-Z]\\w*)\\s+\"(\\d+\\s*\\-\\>\\s*(.)*(,\\d+\\s*\\-\\>\\s*(.)*)*)\"\\s*(;|::|:)\\s*$");
+    static String REGEXP_FOR_morphism_COMMAND = "^\\s*morphism\\s+([a-zA-Z]\\w*)\\s+\"(\\d+\\s*\\-\\>\\s*(.)*(,\\d+\\s*\\-\\>\\s*(.)*)*)\"\\s*(;|::|:)\\s*$";
+    static Pattern PATTERN_FOR_morphism_COMMAND = Pattern.compile(REGEXP_FOR_morphism_COMMAND);
     static int GROUP_MORPHISM_NAME = 1, GROUP_MORPHISM_DEFINITION;
 
-    static Pattern PATTERN_FOR_promote_COMMAND =
-        Pattern.compile("^\\s*promote\\s+([a-zA-Z]\\w*)\\s+([a-zA-Z]\\w*)\\s*(;|::|:)\\s*$");
+    static String REGEXP_FOR_promote_COMMAND = "^\\s*promote\\s+([a-zA-Z]\\w*)\\s+([a-zA-Z]\\w*)\\s*(;|::|:)\\s*$";
+    static Pattern PATTERN_FOR_promote_COMMAND = Pattern.compile(REGEXP_FOR_promote_COMMAND);
     static int GROUP_PROMOTE_NAME = 1, GROUP_PROMOTE_MORPHISM = 2;
 
-    static Pattern PATTERN_FOR_image_COMMAND =
-        Pattern.compile("^\\s*image\\s+([a-zA-Z]\\w*)\\s+([a-zA-Z]\\w*)\\s+([a-zA-Z]\\w*)\\s*(;|::|:)\\s*$");
+    static String REGEXP_FOR_image_COMMAND = "^\\s*image\\s+([a-zA-Z]\\w*)\\s+([a-zA-Z]\\w*)\\s+([a-zA-Z]\\w*)\\s*(;|::|:)\\s*$";
+    static Pattern PATTERN_FOR_image_COMMAND = Pattern.compile(REGEXP_FOR_image_COMMAND);
     static int GROUP_IMAGE_NEW_NAME = 1, GROUP_IMAGE_MORPHISM = 2, GROUP_IMAGE_OLD_NAME = 3;
 
-    static Pattern PATTERN_FOR_inf_COMMAND = Pattern.compile("^\\s*inf\\s+([a-zA-Z]\\w*)\\s*(;|::|:)\\s*$");
+    static String REGEXP_FOR_inf_COMMAND = "^\\s*inf\\s+([a-zA-Z]\\w*)\\s*(;|::|:)\\s*$";
+    static Pattern PATTERN_FOR_inf_COMMAND = Pattern.compile(REGEXP_FOR_inf_COMMAND);
     static int GROUP_INF_NAME = 1;
 
-    static Pattern PATTERN_FOR_split_COMMAND =
-        Pattern.compile("^\\s*split\\s+([a-zA-Z]\\w*)\\s+([a-zA-Z]\\w*)((\\s*\\[\\s*[+-]?\\s*])+)\\s*(;|::|:)\\s*$");
+    static String REGEXP_FOR_split_COMMAND = "^\\s*split\\s+([a-zA-Z]\\w*)\\s+([a-zA-Z]\\w*)((\\s*\\[\\s*[+-]?\\s*])+)\\s*(;|::|:)\\s*$";
+    static Pattern PATTERN_FOR_split_COMMAND = Pattern.compile(REGEXP_FOR_split_COMMAND);
     static int GROUP_SPLIT_NAME = 1, GROUP_SPLIT_AUTOMATA = 2, GROUP_SPLIT_INPUT = 3, GROUP_SPLIT_END = 5;
-    static Pattern PATTERN_FOR_INPUT_IN_split_COMMAND = Pattern.compile("\\[\\s*([+-]?)\\s*]");
+    static String REGEXP_FOR_INPUT_IN_split_COMMAND = "\\[\\s*([+-]?)\\s*]";
+    static Pattern PATTERN_FOR_INPUT_IN_split_COMMAND = Pattern.compile(REGEXP_FOR_INPUT_IN_split_COMMAND);
 
-    static Pattern PATTERN_FOR_rsplit_COMMAND = Pattern.compile(
-        "^\\s*rsplit\\s+([a-zA-Z]\\w*)((\\s*\\[\\s*[+-]?\\s*])+)\\s+([a-zA-Z]\\w*)\\s*(;|::|:)\\s*$");
+    static String REGEXP_FOR_rsplit_COMMAND = "^\\s*rsplit\\s+([a-zA-Z]\\w*)((\\s*\\[\\s*[+-]?\\s*])+)\\s+([a-zA-Z]\\w*)\\s*(;|::|:)\\s*$";
+    static Pattern PATTERN_FOR_rsplit_COMMAND = Pattern.compile(REGEXP_FOR_rsplit_COMMAND);
     static int GROUP_RSPLIT_NAME = 1, GROUP_RSPLIT_AUTOMATA = 4, GROUP_RSPLIT_INPUT = 2, GROUP_RSPLIT_END = 5;
-    static Pattern PATTERN_FOR_INPUT_IN_rsplit_COMMAND = Pattern.compile("\\[\\s*([+-]?)\\s*]");
+    static String REGEXP_FOR_INPUT_IN_rsplit_COMMAND = "\\[\\s*([+-]?)\\s*]";
+    static Pattern PATTERN_FOR_INPUT_IN_rsplit_COMMAND = Pattern.compile(REGEXP_FOR_INPUT_IN_rsplit_COMMAND);
 
-    static Pattern PATTERN_FOR_join_COMMAND = Pattern.compile(
-        "^\\s*join\\s+([a-zA-Z]\\w*)((\\s+([a-zA-Z]\\w*)((\\s*\\[\\s*[a-zA-Z&&[^AE]]\\w*\\s*])+))*)\\s*(;|::|:)\\s*");
+    static String REGEXP_FOR_join_COMMAND = "^\\s*join\\s+([a-zA-Z]\\w*)((\\s+([a-zA-Z]\\w*)((\\s*\\[\\s*[a-zA-Z&&[^AE]]\\w*\\s*])+))*)\\s*(;|::|:)\\s*";
+    static Pattern PATTERN_FOR_join_COMMAND = Pattern.compile(REGEXP_FOR_join_COMMAND);
     static int GROUP_JOIN_NAME = 1, GROUP_JOIN_AUTOMATA = 2, GROUP_JOIN_END = 7;
-    static Pattern PATTERN_FOR_AN_AUTOMATON_IN_join_COMMAND = Pattern.compile(
-        "([a-zA-Z]\\w*)((\\s*\\[\\s*[a-zA-Z&&[^AE]]\\w*\\s*])+)");
+    static String REGEXP_FOR_AN_AUTOMATON_IN_join_COMMAND = "([a-zA-Z]\\w*)((\\s*\\[\\s*[a-zA-Z&&[^AE]]\\w*\\s*])+)";
+    static Pattern PATTERN_FOR_AN_AUTOMATON_IN_join_COMMAND = Pattern.compile(REGEXP_FOR_AN_AUTOMATON_IN_join_COMMAND);
     static int GROUP_JOIN_AUTOMATON_NAME = 1, GROUP_JOIN_AUTOMATON_INPUT = 2;
-    static Pattern PATTERN_FOR_AN_AUTOMATON_INPUT_IN_join_COMMAND = Pattern.compile(
-        "\\[\\s*([a-zA-Z&&[^AE]]\\w*)\\s*]");
+    static String REGEXP_FOR_AN_AUTOMATON_INPUT_IN_join_COMMAND = "\\[\\s*([a-zA-Z&&[^AE]]\\w*)\\s*]";
+    static Pattern PATTERN_FOR_AN_AUTOMATON_INPUT_IN_join_COMMAND = Pattern.compile(REGEXP_FOR_AN_AUTOMATON_INPUT_IN_join_COMMAND);
 
-    static Pattern PATTERN_FOR_test_COMMAND = Pattern.compile(
-        "^\\s*test\\s+([a-zA-Z]\\w*)\\s*(\\d+)\\s*(;|::|:)\\s*$");
+    static String REGEXP_FOR_test_COMMAND = "^\\s*test\\s+([a-zA-Z]\\w*)\\s*(\\d+)\\s*(;|::|:)\\s*$";
+    static Pattern PATTERN_FOR_test_COMMAND = Pattern.compile(REGEXP_FOR_test_COMMAND);
     static int GROUP_TEST_NAME = 1, GROUP_TEST_NUM = 2;
 
-    static Pattern PATTERN_FOR_transduce_COMMAND = Pattern.compile(
-        "^\\s*transduce\\s+([a-zA-Z]\\w*)\\s+([a-zA-Z]\\w*)\\s+(\\$|\\s*)([a-zA-Z]\\w*)\\s*(;|::|:)\\s*$");
+    static String REGEXP_FOR_transduce_COMMAND = "^\\s*transduce\\s+([a-zA-Z]\\w*)\\s+([a-zA-Z]\\w*)\\s+(\\$|\\s*)([a-zA-Z]\\w*)\\s*(;|::|:)\\s*$";
+    static Pattern PATTERN_FOR_transduce_COMMAND = Pattern.compile(REGEXP_FOR_transduce_COMMAND);
     static int GROUP_TRANSDUCE_NEW_NAME = 1, GROUP_TRANSDUCE_TRANSDUCER = 2,
             GROUP_TRANSDUCE_DOLLAR_SIGN = 3, GROUP_TRANSDUCE_OLD_NAME = 4, GROUP_TRANSDUCE_END = 5;
 
-    static Pattern PATTERN_FOR_reverse_COMMAND = Pattern.compile(
-        "^\\s*reverse\\s+([a-zA-Z]\\w*)\\s+(\\$|\\s*)([a-zA-Z]\\w*)\\s*(;|::|:)\\s*$");
+    static String REGEXP_FOR_reverse_COMMAND = "^\\s*reverse\\s+([a-zA-Z]\\w*)\\s+(\\$|\\s*)([a-zA-Z]\\w*)\\s*(;|::|:)\\s*$";
+    static Pattern PATTERN_FOR_reverse_COMMAND = Pattern.compile(REGEXP_FOR_reverse_COMMAND);
     static int GROUP_REVERSE_NEW_NAME = 1, GROUP_REVERSE_DOLLAR_SIGN = 2, GROUP_REVERSE_OLD_NAME = 3, GROUP_REVERSE_END = 4;
 
-    static Pattern PATTERN_FOR_minimize_COMMAND = Pattern.compile(
-        "^\\s*minimize\\s+([a-zA-Z]\\w*)\\s+([a-zA-Z]\\w*)\\s*(;|::|:)\\s*$");
+    static String REGEXP_FOR_minimize_COMMAND = "^\\s*minimize\\s+([a-zA-Z]\\w*)\\s+([a-zA-Z]\\w*)\\s*(;|::|:)\\s*$";
+    static Pattern PATTERN_FOR_minimize_COMMAND = Pattern.compile(REGEXP_FOR_minimize_COMMAND);
     static int GROUP_MINIMIZE_NEW_NAME = 1, GROUP_MINIMIZE_OLD_NAME = 2, GROUP_MINIMIZE_END = 3;
 
-    static Pattern PATTERN_FOR_convert_COMMAND = Pattern.compile(
-        "^\\s*convert\\s+(\\$|\\s*)([a-zA-Z]\\w*)\\s+((msd|lsd)_(\\d+))\\s+(\\$|\\s*)([a-zA-Z]\\w*)\\s*(;|::|:)\\s*$");
+    static String REGEXP_FOR_convert_COMMAND = "^\\s*convert\\s+(\\$|\\s*)([a-zA-Z]\\w*)\\s+((msd|lsd)_(\\d+))\\s+(\\$|\\s*)([a-zA-Z]\\w*)\\s*(;|::|:)\\s*$";
+    static Pattern PATTERN_FOR_convert_COMMAND = Pattern.compile(REGEXP_FOR_convert_COMMAND);
     static int GROUP_CONVERT_NEW_NAME = 2, GROUP_CONVERT_OLD_NAME = 7, GROUP_CONVERT_END = 8,
             GROUP_CONVERT_NEW_DOLLAR_SIGN = 1, GROUP_CONVERT_OLD_DOLLAR_SIGN = 6,
             GROUP_CONVERT_NUMBER_SYSTEM = 3, GROUP_CONVERT_MSD_OR_LSD = 4,
             GROUP_CONVERT_BASE = 5;
 
-    static Pattern PATTERN_FOR_fixleadzero_COMMAND = Pattern.compile(
-        "^\\s*fixleadzero\\s+([a-zA-Z]\\w*)\\s+(\\$|\\s*)([a-zA-Z]\\w*)\\s*(;|::|:)\\s*$");
+    static String REGEXP_FOR_fixleadzero_COMMAND = "^\\s*fixleadzero\\s+([a-zA-Z]\\w*)\\s+(\\$|\\s*)([a-zA-Z]\\w*)\\s*(;|::|:)\\s*$";
+    static Pattern PATTERN_FOR_fixleadzero_COMMAND = Pattern.compile(REGEXP_FOR_fixleadzero_COMMAND);
     static int GROUP_FIXLEADZERO_NEW_NAME = 1, GROUP_FIXLEADZERO_DOLLAR_SIGN = 2, GROUP_FIXLEADZERO_OLD_NAME = 3, GROUP_FIXLEADZERO_END = 4;
 
-    static Pattern PATTERN_FOR_fixtrailzero_COMMAND = Pattern.compile(
-        "^\\s*fixtrailzero\\s+([a-zA-Z]\\w*)\\s+(\\$|\\s*)([a-zA-Z]\\w*)\\s*(;|::|:)\\s*$");
+    static String REGEXP_FOR_fixtrailzero_COMMAND = "^\\s*fixtrailzero\\s+([a-zA-Z]\\w*)\\s+(\\$|\\s*)([a-zA-Z]\\w*)\\s*(;|::|:)\\s*$";
+    static Pattern PATTERN_FOR_fixtrailzero_COMMAND = Pattern.compile(REGEXP_FOR_fixtrailzero_COMMAND);
     static int GROUP_FIXTRAILZERO_NEW_NAME = 1, GROUP_FIXTRAILZERO_DOLLAR_SIGN = 2, GROUP_FIXTRAILZERO_OLD_NAME = 3, GROUP_FIXTRAILZERO_END = 4;
 
-    static Pattern PATTERN_FOR_alphabet_COMMAND = Pattern.compile(
-        "^\\s*(alphabet)\\s+([a-zA-Z]\\w*)\\s+((((((msd|lsd)_(\\d+|\\w+))|((msd|lsd)(\\d+|\\w+))|(msd|lsd)|(\\d+|\\w+))|(\\{(\\s*(\\+|\\-)?\\s*\\d+)(\\s*,\\s*(\\+|\\-)?\\s*\\d+)*\\s*\\}))\\s+)+)(\\$|\\s*)([a-zA-Z]\\w*)\\s*(;|::|:)\\s*$");
+    static String REGEXP_FOR_alphabet_COMMAND = "^\\s*(alphabet)\\s+([a-zA-Z]\\w*)\\s+((((((msd|lsd)_(\\d+|\\w+))|((msd|lsd)(\\d+|\\w+))|(msd|lsd)|(\\d+|\\w+))|(\\{(\\s*(\\+|\\-)?\\s*\\d+)(\\s*,\\s*(\\+|\\-)?\\s*\\d+)*\\s*\\}))\\s+)+)(\\$|\\s*)([a-zA-Z]\\w*)\\s*(;|::|:)\\s*$";
+    static Pattern PATTERN_FOR_alphabet_COMMAND = Pattern.compile(REGEXP_FOR_alphabet_COMMAND);
     static int GROUP_alphabet_NEW_NAME = 2, GROUP_alphabet_LIST_OF_ALPHABETS = 3, GROUP_alphabet_DOLLAR_SIGN = 20, GROUP_alphabet_OLD_NAME = 21, GROUP_alphabet_END = 22;
 
-    static Pattern PATTERN_FOR_union_COMMAND = Pattern.compile(
-        "^\\s*union\\s+([a-zA-Z]\\w*)((\\s+([a-zA-Z]\\w*))*)\\s*(;|::|:)\\s*$");
+    static String REGEXP_FOR_union_COMMAND = "^\\s*union\\s+([a-zA-Z]\\w*)((\\s+([a-zA-Z]\\w*))*)\\s*(;|::|:)\\s*$";
+    static Pattern PATTERN_FOR_union_COMMAND = Pattern.compile(REGEXP_FOR_union_COMMAND);
     static int GROUP_UNION_NAME = 1, GROUP_UNION_AUTOMATA = 2, GROUP_UNION_END = 5;
-    static Pattern PATTERN_FOR_AN_AUTOMATON_IN_union_COMMAND = Pattern.compile("([a-zA-Z]\\w*)");
+    static String REGEXP_FOR_AN_AUTOMATON_IN_union_COMMAND = "([a-zA-Z]\\w*)";
+    static Pattern PATTERN_FOR_AN_AUTOMATON_IN_union_COMMAND = Pattern.compile(REGEXP_FOR_AN_AUTOMATON_IN_union_COMMAND);
 
-    static Pattern PATTERN_FOR_intersect_COMMAND = Pattern.compile(
-        "^\\s*intersect\\s+([a-zA-Z]\\w*)((\\s+([a-zA-Z]\\w*))*)\\s*(;|::|:)\\s*$");
+    static String REGEXP_FOR_intersect_COMMAND = "^\\s*intersect\\s+([a-zA-Z]\\w*)((\\s+([a-zA-Z]\\w*))*)\\s*(;|::|:)\\s*$";
+    static Pattern PATTERN_FOR_intersect_COMMAND = Pattern.compile(REGEXP_FOR_intersect_COMMAND);
     static int GROUP_INTERSECT_NAME = 1, GROUP_INTERSECT_AUTOMATA = 2, GROUP_INTERSECT_END = 5;
-    static Pattern PATTERN_FOR_AN_AUTOMATON_IN_intersect_COMMAND = Pattern.compile("([a-zA-Z]\\w*)");
+    static String REGEXP_FOR_AN_AUTOMATON_IN_intersect_COMMAND = "([a-zA-Z]\\w*)";
+    static Pattern PATTERN_FOR_AN_AUTOMATON_IN_intersect_COMMAND = Pattern.compile(REGEXP_FOR_AN_AUTOMATON_IN_intersect_COMMAND);
 
-    static Pattern PATTERN_FOR_star_COMMAND = Pattern.compile(
-        "^\\s*star\\s+([a-zA-Z]\\w*)\\s+([a-zA-Z]\\w*)\\s*(;|::|:)\\s*$");
+    static String REGEXP_FOR_star_COMMAND = "^\\s*star\\s+([a-zA-Z]\\w*)\\s+([a-zA-Z]\\w*)\\s*(;|::|:)\\s*$";
+    static Pattern PATTERN_FOR_star_COMMAND = Pattern.compile(REGEXP_FOR_star_COMMAND);
     static int GROUP_STAR_NEW_NAME = 1, GROUP_STAR_OLD_NAME = 2, GROUP_STAR_END = 3;
 
-    static Pattern PATTERN_FOR_concat_COMMAND = Pattern.compile(
-        "^\\s*concat\\s+([a-zA-Z]\\w*)((\\s+([a-zA-Z]\\w*))*)\\s*(;|::|:)\\s*$");
+    static String REGEXP_FOR_concat_COMMAND = "^\\s*concat\\s+([a-zA-Z]\\w*)((\\s+([a-zA-Z]\\w*))*)\\s*(;|::|:)\\s*$";
+    static Pattern PATTERN_FOR_concat_COMMAND = Pattern.compile(REGEXP_FOR_concat_COMMAND);
     static int GROUP_CONCAT_NAME = 1, GROUP_CONCAT_AUTOMATA = 2, GROUP_CONCAT_END = 5;
-    static Pattern PATTERN_FOR_AN_AUTOMATON_IN_concat_COMMAND = Pattern.compile("([a-zA-Z]\\w*)");
+    static String REGEXP_FOR_AN_AUTOMATON_IN_concat_COMMAND = "([a-zA-Z]\\w*)";
+    static Pattern PATTERN_FOR_AN_AUTOMATON_IN_concat_COMMAND = Pattern.compile(REGEXP_FOR_AN_AUTOMATON_IN_concat_COMMAND);
 
-    static Pattern PATTERN_FOR_rightquo_COMMAND = Pattern.compile(
-        "^\\s*rightquo\\s+([a-zA-Z]\\w*)\\s+([a-zA-Z]\\w*)\\s+([a-zA-Z]\\w*)\\s*(;|::|:)\\s*$");
+    static String REGEXP_FOR_rightquo_COMMAND = "^\\s*rightquo\\s+([a-zA-Z]\\w*)\\s+([a-zA-Z]\\w*)\\s+([a-zA-Z]\\w*)\\s*(;|::|:)\\s*$";
+    static Pattern PATTERN_FOR_rightquo_COMMAND = Pattern.compile(REGEXP_FOR_rightquo_COMMAND);
     static int GROUP_rightquo_NEW_NAME = 1, GROUP_rightquo_OLD_NAME1 = 2, GROUP_rightquo_OLD_NAME2 = 3, GROUP_rightquo_END = 4;
 
-    static Pattern PATTERN_FOR_leftquo_COMMAND = Pattern.compile(
-        "^\\s*leftquo\\s+([a-zA-Z]\\w*)\\s+([a-zA-Z]\\w*)\\s+([a-zA-Z]\\w*)\\s*(;|::|:)\\s*$");
+    static String REGEXP_FOR_leftquo_COMMAND = "^\\s*leftquo\\s+([a-zA-Z]\\w*)\\s+([a-zA-Z]\\w*)\\s+([a-zA-Z]\\w*)\\s*(;|::|:)\\s*$";
+    static Pattern PATTERN_FOR_leftquo_COMMAND = Pattern.compile(REGEXP_FOR_leftquo_COMMAND);
     static int GROUP_leftquo_NEW_NAME = 1, GROUP_leftquo_OLD_NAME1 = 2, GROUP_leftquo_OLD_NAME2 = 3, GROUP_leftquo_END = 4;
 
-    static Pattern PATTERN_FOR_draw_COMMAND = Pattern.compile(
-        "^\\s*draw\\s+(\\$|\\s*)([a-zA-Z]\\w*)\\s*(;|::|:)\\s*$");
+    static String REGEXP_FOR_draw_COMMAND = "^\\s*draw\\s+(\\$|\\s*)([a-zA-Z]\\w*)\\s*(;|::|:)\\s*$";
+    static Pattern PATTERN_FOR_draw_COMMAND = Pattern.compile(REGEXP_FOR_draw_COMMAND);
     static int GROUP_draw_DOLLAR_SIGN = 1, GROUP_draw_NAME = 2, GROUP_draw_END = 3;
 
-    static Pattern PATTERN_FOR_help_COMMAND = Pattern.compile(
-        "^\\s*help(\\s*|\\s+(\\w*))\\s*(;|::|:)\\s*$");
+    static String REGEXP_FOR_help_COMMAND = "^\\s*help(\\s*|\\s+(\\w*))\\s*(;|::|:)\\s*$";
+    static Pattern PATTERN_FOR_help_COMMAND = Pattern.compile(REGEXP_FOR_help_COMMAND);
     static int GROUP_help_NAME = 2, GROUP_help_END = 3;
 
     /**
@@ -241,26 +253,35 @@ public class Prover {
     }
 
     public static void run(String[] args) {
+        BufferedReader in = null;
         if (args.length >= 1) {
-            // Reading commands from the file with address args[0]
-            try (BufferedReader in = new BufferedReader(
-                new InputStreamReader(
-                    new FileInputStream(
-                        UtilityMethods.get_address_for_command_files() + args[0]),
-                    StandardCharsets.UTF_8))) {
-
-                if (!readBuffer(in, false)) {
-                    return;
-                }
+            //reading commands from the file with address args[0]
+            try {
+                in = new BufferedReader(
+                        new InputStreamReader(
+                                new FileInputStream(
+                                        UtilityMethods.get_address_for_command_files() + args[0]),
+                            StandardCharsets.UTF_8));
+                if (!readBuffer(in, false)) return;
             } catch (IOException e) {
                 System.out.flush();
                 System.err.println(e.getMessage());
+            } finally {
+                try {
+                    if (in != null) {
+                        in.close();
+                    }
+                } catch (IOException ex) {
+                    System.out.flush();
+                    System.err.println(ex.getMessage());
+                }
             }
         }
 
         // Now we parse commands from the console.
-        LOGGER.info("Welcome to Walnut! Type \"help;\" to see all available commands.");
-        readBuffer(new BufferedReader(new InputStreamReader(System.in)), true);
+        System.out.println("Welcome to Walnut! Type \"help;\" to see all available commands.");
+        in = new BufferedReader(new InputStreamReader(System.in));
+        readBuffer(in, true);
     }
 
     /**
@@ -271,8 +292,8 @@ public class Prover {
      * @return
      */
     public static boolean readBuffer(BufferedReader in, boolean console) {
-        StringBuilder buffer = new StringBuilder();
         try {
+            StringBuilder buffer = new StringBuilder();
             while (true) {
                 if (console) {
                     System.out.print(UtilityMethods.PROMPT);
@@ -283,14 +304,29 @@ public class Prover {
                     return true;
                 }
 
-                int index = determineIndex(s);
+                int index1 = s.indexOf(';');
+                int index2 = s.indexOf(':');
+                int index;
+                if (index1 != -1 && index2 != -1) {
+                    index = (index1 < index2) ? index1 : index2;
+                } else if (index1 != -1) {
+                    index = index1;
+                } else {
+                    index = index2;
+                }
+
+                if ((s.length() - 1) > index && s.charAt(index + 1) == ':') {
+                    index++;
+                }
+
                 if (index != -1) {
                     s = s.substring(0, index + 1);
                     buffer.append(s);
                     s = buffer.toString();
                     if (!console) {
-                        LOGGER.info(s);
+                        System.out.println(s);
                     }
+
                     try {
                         if (!dispatch(s)) {
                             return false;
@@ -300,6 +336,7 @@ public class Prover {
                         System.err.println(e.getMessage() + System.lineSeparator() + "\t: " + s);
                         System.err.flush();
                     }
+
                     buffer = new StringBuilder();
                 } else {
                     buffer.append(s);
@@ -314,52 +351,10 @@ public class Prover {
         return true;
     }
 
-    /**
-     * Determines the index of the first delimiter (';' or ':') in the given string.
-     * If both delimiters are present, the smaller index is returned. If only one
-     * delimiter is present, its index is returned. If no delimiters are found, -1 is returned.
-     * Additionally, if the character following the found index is a colon (':'),
-     * the index is incremented to include it.
-     *
-     * @param s the input string to search.
-     * @return the index of the first delimiter or -1 if no delimiters are found.
-     *         If the character following the found index is a colon, the index
-     *         is incremented by one.
-     */
-    private static int determineIndex(String s) {
-        int index1 = s.indexOf(';');
-        int index2 = s.indexOf(':');
-        int index;
-        if (index1 != -1 && index2 != -1) {
-            index = (index1 < index2) ? index1 : index2;
-        } else if (index1 != -1) {
-            index = index1;
-        } else {
-            index = index2;
-        }
-
-        if ((s.length() - 1) > index && s.charAt(index + 1) == ':') {
-            index++;
-        }
-        return index;
-    }
-
     public static boolean dispatch(String s) throws IOException {
-        Object result = dispatchCommand(s);
-        // In the context of dispatch, return true for non-null, false for null
-        return result != null;
-    }
-
-    public static TestCase dispatchForIntegrationTest(String s) throws IOException {
-        Object result = dispatchCommand(s);
-        // In the context of integration tests, return TestCase or null
-        return (TestCase) result;
-    }
-
-    private static Object dispatchCommand(String s) throws IOException {
-        if (PATTERN_FOR_EMPTY_COMMAND.matcher(s).matches()) {
-            // If the command is just ; or :, do nothing
-            return null;
+        if (s.matches(REGEXP_FOR_EMPTY_COMMAND)) {
+            // If the command is just ; or : do nothing.
+            return true;
         }
 
         Matcher matcher_for_command = PATTERN_FOR_COMMAND.matcher(s);
@@ -368,20 +363,77 @@ public class Prover {
         }
 
         String commandName = matcher_for_command.group(1);
-        if (!PATTERN_FOR_THE_LIST_OF_COMMANDS.matcher(commandName).matches()) {
+        if (!commandName.matches(REGEXP_FOR_THE_LIST_OF_COMMANDS)) {
             throw ExceptionHelper.noSuchCommand();
         }
 
         switch (commandName) {
             case "exit", "quit" -> {
-                if (PATTERN_FOR_EXIT_COMMAND.matcher(s).matches()) {
-                    return null; // exit/quit leads to null in both cases
+                if (s.matches(REGEXP_FOR_exit_COMMAND)) {
+                    return false;
                 }
                 throw ExceptionHelper.invalidCommand();
             }
-            case "load" -> loadCommand(s);
+            case "load" -> {
+                if (!loadCommand(s)) return false;
+            }
+            case "eval", "def" -> eval_def_commands(s);
+            case "macro" -> macroCommand(s);
+            case "reg" -> regCommand(s);
+            case "ost" -> ostCommand(s);
+            case "cls", "clear" -> clearScreen();
+            case "combine" -> combineCommand(s);
+            case "morphism" -> morphismCommand(s);
+            case "promote" -> promoteCommand(s);
+            case "image" -> imageCommand(s);
+            case "inf" -> infCommand(s);
+            case "split" -> splitCommand(s);
+            case "rsplit" -> rsplitCommand(s);
+            case "join" -> joinCommand(s);
+            case "test" -> testCommand(s);
+            case "transduce" -> transduceCommand(s);
+            case "reverse" -> reverseCommand(s);
+            case "minimize" -> minimizeCommand(s);
+            case "convert" -> convertCommand(s);
+            case "fixleadzero" -> fixLeadZeroCommand(s);
+            case "fixtrailzero" -> fixTrailZeroCommand(s);
+            case "alphabet" -> alphabetCommand(s);
+            case "union" -> unionCommand(s);
+            case "intersect" -> intersectCommand(s);
+            case "star" -> starCommand(s);
+            case "concat" -> concatCommand(s);
+            case "rightquo" -> rightquoCommand(s);
+            case "leftquo" -> leftquoCommand(s);
+            case "draw" -> drawCommand(s);
+            case "help" -> helpCommand(s);
+            default -> throw ExceptionHelper.invalidCommand(commandName);
+        }
+        return true;
+    }
+
+    public static TestCase dispatchForIntegrationTest(String s) throws IOException {
+        if (s.matches(REGEXP_FOR_EMPTY_COMMAND)) {//if the command is just ; or : do nothing
+            return null;
+        }
+
+        Matcher matcher_for_command = PATTERN_FOR_COMMAND.matcher(s);
+        if (!matcher_for_command.find()) throw ExceptionHelper.invalidCommand();
+
+        String commandName = matcher_for_command.group(1);
+        if (!commandName.matches(REGEXP_FOR_THE_LIST_OF_COMMANDS)) {
+            throw ExceptionHelper.noSuchCommand();
+        }
+
+        switch (commandName) {
+            case "exit", "quit" -> {
+                if (s.matches(REGEXP_FOR_exit_COMMAND)) return null;
+                throw ExceptionHelper.invalidCommand();
+            }
+            case "load" -> {
+                if (!loadCommand(s)) return null;
+            }
             case "eval", "def" -> {
-                return eval_def_commands(s); // Returns a TestCase or an object specific to eval/def
+                return eval_def_commands(s);
             }
             case "macro" -> {
                 return macroCommand(s);
@@ -389,23 +441,14 @@ public class Prover {
             case "reg" -> {
                 return regCommand(s);
             }
-            case "ost" -> ostCommand(s);
-            case "cls", "clear" -> {
-                clearScreen(); // Clears the screen; no return value
-                return new Object(); // Non-null to indicate success
-            }
             case "combine" -> {
                 return combineCommand(s);
             }
-            case "morphism" -> morphismCommand(s);
             case "promote" -> {
                 return promoteCommand(s);
             }
             case "image" -> {
                 return imageCommand(s);
-            }
-            case "inf" -> {
-                return infCommand(s);
             }
             case "split" -> {
                 return splitCommand(s);
@@ -416,7 +459,6 @@ public class Prover {
             case "join" -> {
                 return joinCommand(s);
             }
-            case "test" -> testCommand(s);
             case "transduce" -> {
                 return transduceCommand(s);
             }
@@ -462,9 +504,8 @@ public class Prover {
             case "help" -> helpCommand(s);
             default -> throw ExceptionHelper.invalidCommand(commandName);
         }
-        return new Object(); // Default success indicator
+        return null;
     }
-
 
     /**
      * load x.p; loads commands from the file x.p. The file can contain any command except for load x.p;
@@ -472,9 +513,10 @@ public class Prover {
      * Note that the file can contain load y.p; whenever y != x and y exist.
      *
      * @param s
+     * @return
      */
-    public static void loadCommand(String s) {
-        Matcher m = PATTERN_FOR_LOAD_COMMAND.matcher(s);
+    public static boolean loadCommand(String s) {
+        Matcher m = PATTERN_FOR_load_COMMAND.matcher(s);
         if (!m.find()) throw ExceptionHelper.invalidCommandUse("load");
         try {
             BufferedReader in = new BufferedReader(
@@ -483,12 +525,15 @@ public class Prover {
                                     UtilityMethods.get_address_for_command_files() +
                                             m.group(L_FILENAME)),
                         StandardCharsets.UTF_8));
-            readBuffer(in, false);
+            if (!readBuffer(in, false)) {
+                return false;
+            }
         } catch (IOException e) {
             System.out.flush();
             System.err.println(e.getMessage());
             System.err.flush();
         }
+        return true;
     }
 
     public static TestCase eval_def_commands(String s) throws IOException {
@@ -501,7 +546,7 @@ public class Prover {
 
         List<String> free_variables = new ArrayList<>();
         if (m.group(ED_FREE_VARIABLES) != null) {
-            determineMatricesToCompute(m.group(ED_FREE_VARIABLES), free_variables);
+            which_matrices_to_compute(m.group(ED_FREE_VARIABLES), free_variables);
         }
 
         boolean printSteps = m.group(ED_ENDING).equals(":");
@@ -529,9 +574,9 @@ public class Prover {
         M = c.getTheFinalResult();
         if (M.TRUE_FALSE_AUTOMATON) {
             if (M.TRUE_AUTOMATON) {
-                LOGGER.info("____\nTRUE");
+                System.out.println("____\nTRUE");
             } else {
-                LOGGER.info("_____\nFALSE");
+                System.out.println("_____\nFALSE");
             }
         }
 
@@ -541,14 +586,16 @@ public class Prover {
     public static TestCase macroCommand(String s) {
         Matcher m = PATTERN_FOR_macro_COMMAND.matcher(s);
         if (!m.find()) throw ExceptionHelper.invalidCommandUse("macro");
-        try (BufferedWriter out = new BufferedWriter(
-            new OutputStreamWriter(
-                new FileOutputStream(
-                    UtilityMethods.get_address_for_macro_library() + m.group(M_NAME) + ".txt"),
-                StandardCharsets.UTF_8))) {
+        try {
+            BufferedWriter out =
+                    new BufferedWriter(
+                            new OutputStreamWriter(
+                                    new FileOutputStream(
+                                            UtilityMethods.get_address_for_macro_library() + m.group(M_NAME) + ".txt"), StandardCharsets.UTF_8));
             out.write(m.group(M_DEFINITION));
+            out.close();
         } catch (IOException o) {
-          LOGGER.info("Could not write the macro {}", m.group(M_NAME), o);
+            System.out.println("Could not write the macro " + m.group(M_NAME));
         }
         return null;
     }
@@ -565,10 +612,10 @@ public class Prover {
         if (m.group(R_LIST_OF_ALPHABETS) == null) {
             String base = "msd_2";
             try {
-                if (!Predicate.numberSystemHash.containsKey(base))
-                    Predicate.numberSystemHash.put(base, new NumberSystem(base));
-                ns = Predicate.numberSystemHash.get(base);
-                numSys.add(Predicate.numberSystemHash.get(base));
+                if (!Predicate.number_system_Hash.containsKey(base))
+                    Predicate.number_system_Hash.put(base, new NumberSystem(base));
+                ns = Predicate.number_system_Hash.get(base);
+                numSys.add(Predicate.number_system_Hash.get(base));
             } catch (RuntimeException e) {
                 throw new RuntimeException("number system " + base + " does not exist: char at " + m.start(R_NUMBER_SYSTEM) + System.lineSeparator() + "\t:" + e.getMessage());
             }
@@ -583,16 +630,16 @@ public class Prover {
                 if (m1.group(9) != null) base = m1.group(9) + "_2";
                 if (m1.group(10) != null) base = "msd_" + m1.group(10);
                 try {
-                    if (!Predicate.numberSystemHash.containsKey(base))
-                        Predicate.numberSystemHash.put(base, new NumberSystem(base));
-                    ns = Predicate.numberSystemHash.get(base);
-                    numSys.add(Predicate.numberSystemHash.get(base));
+                    if (!Predicate.number_system_Hash.containsKey(base))
+                        Predicate.number_system_Hash.put(base, new NumberSystem(base));
+                    ns = Predicate.number_system_Hash.get(base);
+                    numSys.add(Predicate.number_system_Hash.get(base));
                 } catch (RuntimeException e) {
                     throw new RuntimeException("number system " + base + " does not exist: char at " + m.start(R_NUMBER_SYSTEM) + System.lineSeparator() + "\t:" + e.getMessage());
                 }
                 alphabets.add(ns.getAlphabet());
             } else if (m1.group(R_SET) != null) {
-                alphabet = determineAlphabet(m1.group(R_SET));
+                alphabet = what_is_the_alphabet(m1.group(R_SET));
                 alphabets.add(alphabet);
                 numSys.add(null);
             }
@@ -792,10 +839,10 @@ public class Prover {
         M = removeLeadTrailZeroes(M, m.group(GROUP_INF_NAME));
         String infReg = M.infinite();
         if (infReg == "") {
-            LOGGER.info("Automaton " + m.group(GROUP_INF_NAME) + " accepts finitely many values.");
+            System.out.println("Automaton " + m.group(GROUP_INF_NAME) + " accepts finitely many values.");
             return false;
         } else {
-            LOGGER.info(infReg);
+            System.out.println(infReg);
             return true;
         }
     }
@@ -1022,10 +1069,10 @@ public class Prover {
             }
         }
         if (accepted.size() < needed) {
-            LOGGER.info(m.group(GROUP_TEST_NAME) + " only accepts " + accepted.size() + " inputs, which are as follows: ");
+            System.out.println(m.group(GROUP_TEST_NAME) + " only accepts " + accepted.size() + " inputs, which are as follows: ");
         }
         for (String input : accepted) {
-            LOGGER.info(input);
+            System.out.println(input);
         }
     }
 
@@ -1035,10 +1082,12 @@ public class Prover {
             throw ExceptionHelper.invalidCommandUse("ost");
         }
 
-        String name = m.group(GROUP_OST_NAME);
-        Ostrowski ostr = new Ostrowski(name, m.group(GROUP_OST_PREPERIOD), m.group(GROUP_OST_PERIOD));
-        Ostrowski.writeRepresentation(name, ostr.createRepresentationAutomaton());
-        Ostrowski.writeAdder(name, ostr.createAdderAutomaton());
+        Ostrowski ostr = new Ostrowski(
+                m.group(GROUP_OST_NAME),
+                m.group(GROUP_OST_PREPERIOD),
+                m.group(GROUP_OST_PERIOD));
+        ostr.createRepresentationAutomaton();
+        ostr.createAdderAutomaton();
     }
 
     public static TestCase transduceCommand(String s) {
@@ -1066,7 +1115,7 @@ public class Prover {
             AutomatonWriter.write(C, UtilityMethods.get_address_for_words_library() + m.group(GROUP_TRANSDUCE_NEW_NAME) + ".txt");
             return new TestCase(s, C, "", "", "");
         } catch (RuntimeException e) {
-            LOGGER.catching(e);
+            e.printStackTrace();
             throw new RuntimeException("Error transducing automaton");
         }
     }
@@ -1105,7 +1154,7 @@ public class Prover {
             AutomatonWriter.write(M, library + m.group(GROUP_REVERSE_NEW_NAME) + ".txt");
             return new TestCase(s, M, "", "", "");
         } catch (RuntimeException e) {
-            LOGGER.catching(e);
+            e.printStackTrace();
             throw new RuntimeException("Error reversing automaton.");
         }
     }
@@ -1133,7 +1182,7 @@ public class Prover {
             AutomatonWriter.write(M, UtilityMethods.get_address_for_words_library() + m.group(GROUP_MINIMIZE_NEW_NAME) + ".txt");
             return new TestCase(s, M, "", "", "");
         } catch (RuntimeException e) {
-            LOGGER.catching(e);
+            e.printStackTrace();
             throw new RuntimeException("Error minimizing word automaton.");
         }
     }
@@ -1175,7 +1224,7 @@ public class Prover {
             AutomatonWriter.write(M, outLibrary + m.group(GROUP_CONVERT_NEW_NAME) + ".txt");
             return new TestCase(s, M, "", "", "");
         } catch (RuntimeException e) {
-            LOGGER.catching(e);
+            e.printStackTrace();
             throw new RuntimeException("Error converting automaton.");
         }
     }
@@ -1201,7 +1250,7 @@ public class Prover {
             AutomatonWriter.write(M, UtilityMethods.get_address_for_automata_library() + m.group(GROUP_FIXLEADZERO_NEW_NAME) + ".txt");
             return new TestCase(s, M, "", "", "");
         } catch (RuntimeException e) {
-            LOGGER.catching(e);
+            e.printStackTrace();
             throw new RuntimeException("Error fixing leading zeroes for automaton.");
         }
     }
@@ -1227,7 +1276,7 @@ public class Prover {
             AutomatonWriter.write(M, UtilityMethods.get_address_for_automata_library() + m.group(GROUP_FIXTRAILZERO_NEW_NAME) + ".txt");
             return new TestCase(s, M, "", "", "");
         } catch (RuntimeException e) {
-            LOGGER.catching(e);
+            e.printStackTrace();
             throw new RuntimeException("Error fixing trailing zeroes for automaton.");
         }
     }
@@ -1272,16 +1321,16 @@ public class Prover {
                     if (m1.group(9) != null) base = m1.group(9) + "_2";
                     if (m1.group(10) != null) base = "msd_" + m1.group(10);
                     try {
-                        if (!Predicate.numberSystemHash.containsKey(base))
-                            Predicate.numberSystemHash.put(base, new NumberSystem(base));
-                        ns = Predicate.numberSystemHash.get(base);
-                        numSys.add(Predicate.numberSystemHash.get(base));
+                        if (!Predicate.number_system_Hash.containsKey(base))
+                            Predicate.number_system_Hash.put(base, new NumberSystem(base));
+                        ns = Predicate.number_system_Hash.get(base);
+                        numSys.add(Predicate.number_system_Hash.get(base));
                     } catch (RuntimeException e) {
                         throw new RuntimeException("number system " + base + " does not exist: char at " + m.start(R_NUMBER_SYSTEM) + System.lineSeparator() + "\t:" + e.getMessage());
                     }
                     alphabets.add(ns.getAlphabet());
                 } else if (m1.group(R_SET) != null) {
-                    alphabet = determineAlphabet(m1.group(R_SET));
+                    alphabet = what_is_the_alphabet(m1.group(R_SET));
                     alphabets.add(alphabet);
                     numSys.add(null);
                 } else {
@@ -1301,7 +1350,7 @@ public class Prover {
 
             return new TestCase(s, M, "", "", "");
         } catch (RuntimeException e) {
-            LOGGER.catching(e);
+            e.printStackTrace();
             throw new RuntimeException("Error using the alphabet command.");
         }
     }
@@ -1343,7 +1392,7 @@ public class Prover {
             return new TestCase(s, C, "", "", "");
 
         } catch (RuntimeException e) {
-            LOGGER.catching(e);
+            e.printStackTrace();
             throw new RuntimeException("Error using the union command.");
         }
     }
@@ -1386,7 +1435,7 @@ public class Prover {
             return new TestCase(s, C, "", "", "");
 
         } catch (RuntimeException e) {
-            LOGGER.catching(e);
+            e.printStackTrace();
             throw new RuntimeException("Error using the intersect command.");
         }
     }
@@ -1414,7 +1463,7 @@ public class Prover {
             return new TestCase(s, C, "", "", "");
 
         } catch (RuntimeException e) {
-            LOGGER.catching(e);
+            e.printStackTrace();
             throw new RuntimeException("Error using the star command.");
         }
     }
@@ -1431,6 +1480,7 @@ public class Prover {
 
             String prefix = "";
             StringBuilder log = new StringBuilder();
+
 
             List<String> automataNames = new ArrayList<>();
 
@@ -1455,7 +1505,7 @@ public class Prover {
             return new TestCase(s, C, "", "", "");
 
         } catch (RuntimeException e) {
-            LOGGER.catching(e);
+            e.printStackTrace();
             throw new RuntimeException("Error using the concat command.");
         }
     }
@@ -1486,7 +1536,7 @@ public class Prover {
             return new TestCase(s, C, "", "", "");
 
         } catch (RuntimeException e) {
-            LOGGER.catching(e);
+            e.printStackTrace();
             throw new RuntimeException("Error using the rightquo command");
         }
     }
@@ -1516,7 +1566,7 @@ public class Prover {
             return new TestCase(s, C, "", "", "");
 
         } catch (RuntimeException e) {
-            LOGGER.catching(e);
+            e.printStackTrace();
             throw new RuntimeException("Error using the leftquo command");
         }
     }
@@ -1539,7 +1589,7 @@ public class Prover {
             return new TestCase(s, M, "", "", "");
 
         } catch (RuntimeException e) {
-            LOGGER.catching(e);
+            e.printStackTrace();
             throw new RuntimeException("Error using the draw command");
         }
     }
@@ -1560,26 +1610,26 @@ public class Prover {
             if (commandName == null) {
                 // default help message
 
-                LOGGER.info("Walnut provides documentation for the following commands.\nType \"help <command>;\" to view documentation for a specific command.");
+                System.out.println("Walnut provides documentation for the following commands.\nType \"help <command>;\" to view documentation for a specific command.");
                 for (String pathname : pathnames) {
-                    LOGGER.info(" - " + pathname.substring(0, pathname.length() - 4));
+                    System.out.println(" - " + pathname.substring(0, pathname.length() - 4));
                 }
             } else {
                 // help with a specific command.
                 int index = pathnames.indexOf(commandName + ".txt");
                 if (index == -1) {
-                    LOGGER.info("There is no documentation for \"" + commandName + "\". Type \"help;\" to list all commands.");
+                    System.out.println("There is no documentation for \"" + commandName + "\". Type \"help;\" to list all commands.");
                 } else {
                     try (BufferedReader br = new BufferedReader(new FileReader(UtilityMethods.get_address_for_help_commands() + commandName + ".txt"))) {
                         String line;
                         while ((line = br.readLine()) != null) {
-                            LOGGER.info(line);
+                            System.out.println(line);
                         }
                     }
                 }
             }
         } catch (IOException e) {
-            LOGGER.catching(e);
+            e.printStackTrace();
             throw new RuntimeException("Error using the help command");
         }
     }
@@ -1590,7 +1640,7 @@ public class Prover {
         System.out.flush();
     }
 
-    private static void determineMatricesToCompute(String s, List<String> L) {
+    private static void which_matrices_to_compute(String s, List<String> L) {
         Matcher m1 = PATTERN_FOR_A_FREE_VARIABLE_IN_eval_def_COMMANDS.matcher(s);
         while (m1.find()) {
             String t = m1.group();
@@ -1598,7 +1648,7 @@ public class Prover {
         }
     }
 
-    private static List<Integer> determineAlphabet(String s) {
+    private static List<Integer> what_is_the_alphabet(String s) {
         List<Integer> L = new ArrayList<>();
         s = s.substring(1, s.length() - 1); //truncation { and } from beginning and end
         Matcher m = PATTERN_FOR_A_SINGLE_ELEMENT_OF_A_SET.matcher(s);
