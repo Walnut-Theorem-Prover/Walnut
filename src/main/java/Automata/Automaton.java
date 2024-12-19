@@ -24,6 +24,10 @@ import dk.brics.automaton.Transition;
 import it.unimi.dsi.fastutil.ints.*;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import static Automata.ParseMethods.PATTERN_WHITESPACE;
 
 /**
  * This class can represent different types of automaton: deterministic/non-deterministic and/or automata with output/automata without output.<bf>
@@ -65,6 +69,8 @@ import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
  * @author Hamoon
  */
 public class Automaton {
+    private static final Logger LOGGER = LogManager.getLogger(Automaton.class);
+
     /**
      * When TRUE_FALSE_AUTOMATON = false, it means that this automaton is
      * an actual automaton and not one of the special automata: true or false
@@ -312,7 +318,7 @@ public class Automaton {
         }
         long timeAfter = System.currentTimeMillis();
         String msg = "computed ~:" + Q + " states - " + (timeAfter - timeBefore) + "ms";
-        System.out.println(msg);
+        LOGGER.info(msg);
     }
 
     public Automaton(
@@ -355,7 +361,7 @@ public class Automaton {
         d = new_d;
         long timeAfter = System.currentTimeMillis();
         String msg = "computed ~:" + Q + " states - " + (timeAfter - timeBefore) + "ms";
-        System.out.println(msg);
+        LOGGER.info(msg);
     }
 
     /**
@@ -366,61 +372,56 @@ public class Automaton {
      */
     public Automaton(String address) {
         this();
-        final String REGEXP_FOR_WHITESPACE = "^\\s*$";
 
         //lineNumber will be used in error messages
         int lineNumber = 0;
         alphabetSize = 1;
 
-        try {
-            BufferedReader in = new BufferedReader(
-                    new InputStreamReader(new FileInputStream(address), StandardCharsets.UTF_8));
+        try (BufferedReader in = new BufferedReader(
+                    new InputStreamReader(new FileInputStream(address), StandardCharsets.UTF_8))) {
             String line;
             boolean[] singleton = new boolean[1];
             while ((line = in.readLine()) != null) {
                 lineNumber++;
-                if (line.matches(REGEXP_FOR_WHITESPACE)) {
+                if (PATTERN_WHITESPACE.matcher(line).matches()) {
                     // Ignore blank lines.
                     continue;
-                } else if (ParseMethods.parseTrueFalse(line, singleton)) {
+                }
+                if (ParseMethods.parseTrueFalse(line, singleton)) {
                     // It is a true/false automaton.
                     TRUE_FALSE_AUTOMATON = true;
                     TRUE_AUTOMATON = singleton[0];
-                    in.close();
                     return;
-                } else {
-                    boolean flag;
-                    try {
-                        flag = ParseMethods.parseAlphabetDeclaration(line, A, NS);
-                    } catch (RuntimeException e) {
-                        in.close();
-                        throw new RuntimeException(
-                                e.getMessage() + System.lineSeparator() +
-                                        "\t:line " + lineNumber + " of file " + address);
-                    }
+                }
+                boolean flag;
+                try {
+                    flag = ParseMethods.parseAlphabetDeclaration(line, A, NS);
+                } catch (RuntimeException e) {
+                    in.close();
+                    throw new RuntimeException(
+                        e.getMessage() + System.lineSeparator() +
+                            "\t:line " + lineNumber + " of file " + address);
+                }
 
-                    if (flag) {
-                        for (int i = 0; i < A.size(); i++) {
-                            if (NS.get(i) != null &&
-                                    (!A.get(i).contains(0) || !A.get(i).contains(1))) {
-                                in.close();
-                                throw new RuntimeException(
-                                        "The " + (i + 1) + "th input of type arithmetic " +
-                                                "of the automaton declared in file " + address +
-                                                " requires 0 and 1 in its input alphabet: line " +
-                                                lineNumber);
-                            }
-                            UtilityMethods.removeDuplicates(A.get(i));
-                            alphabetSize *= A.get(i).size();
+                if (flag) {
+                    for (int i = 0; i < A.size(); i++) {
+                        if (NS.get(i) != null &&
+                            (!A.get(i).contains(0) || !A.get(i).contains(1))) {
+                            in.close();
+                            throw new RuntimeException(
+                                "The " + (i + 1) + "th input of type arithmetic " +
+                                    "of the automaton declared in file " + address +
+                                    " requires 0 and 1 in its input alphabet: line " +
+                                    lineNumber);
                         }
-
-                        break;
-                    } else {
-                        in.close();
-                        throw new RuntimeException(
-                                "Undefined statement: line " +
-                                        lineNumber + " of file " + address);
+                        UtilityMethods.removeDuplicates(A.get(i));
+                        alphabetSize *= A.get(i).size();
                     }
+
+                    break;
+                } else {
+                    in.close();
+                    throw ExceptionHelper.undefinedStatement(lineNumber, address);
                 }
             }
 
@@ -441,7 +442,7 @@ public class Automaton {
             Q = 0;
             while ((line = in.readLine()) != null) {
                 lineNumber++;
-                if (line.matches(REGEXP_FOR_WHITESPACE)) {
+                if (PATTERN_WHITESPACE.matcher(line).matches()) {
                     continue;
                 }
 
@@ -480,7 +481,7 @@ public class Automaton {
                     dest = new IntArrayList();
                 } else {
                     in.close();
-                    throw new RuntimeException("Undefined statement: line " + lineNumber + " of file " + address);
+                    throw ExceptionHelper.undefinedStatement(lineNumber, address);
                 }
             }
             in.close();
@@ -496,7 +497,7 @@ public class Automaton {
                 d.add(state_transition.get(q));
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            LOGGER.catching(e);
             throw new RuntimeException("File does not exist: " + address);
         }
     }
@@ -586,12 +587,11 @@ public class Automaton {
                 throw new RuntimeException("Internal union/intersect error");
             }
 
-
             long timeAfter = System.currentTimeMillis();
             if (print) {
                 String msg = prefix + "computed =>:" + first.Q + " states - " + (timeAfter - timeBefore) + "ms";
                 log.append(msg + System.lineSeparator());
-                System.out.println(msg);
+                LOGGER.info(msg);
             }
         }
         return first;
@@ -698,7 +698,7 @@ public class Automaton {
             // do this whether or not you print!
             String msg = prefix + "WARN: The alphabet of the resulting automaton was changed. Use the alphabet command to change as desired.";
             log.append(msg + System.lineSeparator());
-            System.out.println(msg);
+            LOGGER.info(msg);
         }
 
     }
@@ -708,7 +708,7 @@ public class Automaton {
         if (print) {
             String msg = prefix + "star: " + Q + " state automaton";
             log.append(msg + System.lineSeparator());
-            System.out.println(msg);
+            LOGGER.info(msg);
         }
 
         // this will be the returned automaton.
@@ -751,7 +751,7 @@ public class Automaton {
         if (print) {
             String msg = prefix + "star complete: " + N.Q + " states - " + (timeAfter - timeBefore) + "ms";
             log.append(msg + System.lineSeparator());
-            System.out.println(msg);
+            LOGGER.info(msg);
         }
 
         return N;
@@ -771,7 +771,7 @@ public class Automaton {
             if (print) {
                 String msg = prefix + "concatenated =>:" + first.Q + " states - " + (timeAfter - timeBefore) + "ms";
                 log.append(msg + System.lineSeparator());
-                System.out.println(msg);
+                LOGGER.info(msg);
             }
         }
         return first;
@@ -782,7 +782,7 @@ public class Automaton {
         if (print) {
             String msg = prefix + "concat: " + Q + " state automaton with " + other.Q + " state automaton";
             log.append(msg + System.lineSeparator());
-            System.out.println(msg);
+            LOGGER.info(msg);
         }
 
         // ensure that N has the same number system as first.
@@ -835,7 +835,7 @@ public class Automaton {
         if (print) {
             String msg = prefix + "concat complete: " + N.Q + " states - " + (timeAfter - timeBefore) + "ms";
             log.append(msg + System.lineSeparator());
-            System.out.println(msg);
+            LOGGER.info(msg);
         }
 
         return N;
@@ -866,7 +866,7 @@ public class Automaton {
 
             String msg = prefix + "setting alphabet to " + nsNames;
             log.append(msg + System.lineSeparator());
-            System.out.println(msg);
+            LOGGER.info(msg);
         }
 
 
@@ -916,7 +916,7 @@ public class Automaton {
         if (print) {
             String msg = prefix + "set alphabet complete:" + (timeAfter - timeBefore) + "ms";
             log.append(msg + System.lineSeparator());
-            System.out.println(msg);
+            LOGGER.info(msg);
         }
     }
 
@@ -1107,7 +1107,7 @@ public class Automaton {
             if (print) {
                 String msg = prefix + "computing =>:" + first.Q + " states - " + next.Q + " states";
                 log.append(msg + System.lineSeparator());
-                System.out.println(msg);
+                LOGGER.info(msg);
             }
 
             // crossProduct requires both automata to be totalized, otherwise it has no idea which cartesian states to transition to
@@ -1120,7 +1120,7 @@ public class Automaton {
             if (print) {
                 String msg = prefix + "computed =>:" + first.Q + " states - " + (timeAfter - timeBefore) + "ms";
                 log.append(msg + System.lineSeparator());
-                System.out.println(msg);
+                LOGGER.info(msg);
             }
         }
         return first;
@@ -1343,7 +1343,7 @@ public class Automaton {
         if (print) {
             String msg = prefix + "Adding distinguished dead state: " + Q + " states";
             log.append(msg + System.lineSeparator());
-            System.out.println(msg);
+            LOGGER.info(msg);
         }
         //we first check if the automaton is totalized
         boolean totalized = true;
@@ -1386,7 +1386,7 @@ public class Automaton {
                 msg = prefix + "Added distinguished dead state with output of " + (min - 1) + ": " + Q + " states - " + (timeAfter - timeBefore) + "ms";
             }
             log.append(msg + System.lineSeparator());
-            System.out.println(msg);
+            LOGGER.info(msg);
         }
         return !totalized;
     }
@@ -1406,7 +1406,7 @@ public class Automaton {
         if (print) {
             String msg = prefix + "applying operator (" + operator + "):" + Q + " states";
             log.append(msg + System.lineSeparator());
-            System.out.println(msg);
+            LOGGER.info(msg);
         }
         for (int p = 0; p < Q; p++) {
             switch (operator) {
@@ -1433,7 +1433,7 @@ public class Automaton {
         if (print) {
             String msg = prefix + "applied operator (" + operator + "):" + Q + " states - " + (timeAfter - timeBefore) + "ms";
             log.append(msg + System.lineSeparator());
-            System.out.println(msg);
+            LOGGER.info(msg);
         }
     }
 
@@ -1452,7 +1452,7 @@ public class Automaton {
         if (print) {
             String msg = prefix + "applying operator (" + operator + "):" + Q + " states";
             log.append(msg + System.lineSeparator());
-            System.out.println(msg);
+            LOGGER.info(msg);
         }
         for (int p = 0; p < Q; p++) {
             switch (operator) {
@@ -1479,7 +1479,7 @@ public class Automaton {
         if (print) {
             String msg = prefix + "applied operator (" + operator + "):" + Q + " states - " + (timeAfter - timeBefore) + "ms";
             log.append(msg + System.lineSeparator());
-            System.out.println(msg);
+            LOGGER.info(msg);
         }
     }
 
@@ -1492,7 +1492,7 @@ public class Automaton {
         long timeBefore = System.currentTimeMillis();
         if (print) {
             String msg = prefix + "Minimizing: " + Q + " states.";
-            System.out.println("----- " + msg);
+            LOGGER.info("----- " + msg);
             log.append(msg + System.lineSeparator());
         }
 
@@ -1501,7 +1501,7 @@ public class Automaton {
         long timeAfter = System.currentTimeMillis();
         if (print) {
             String msg = prefix + "Minimized:" + Q + " states - " + (timeAfter - timeBefore) + "ms.";
-            System.out.println("----- " + msg);
+            LOGGER.info("----- " + msg);
             log.append(msg + System.lineSeparator());
         }
     }
@@ -1891,7 +1891,7 @@ public class Automaton {
         if (print) {
             String msg = prefix + "Determinizing: " + Q + " states";
             log.append(msg + System.lineSeparator());
-            System.out.println(msg);
+            LOGGER.info(msg);
         }
 
         int number_of_states = 0, current_state = 0;
@@ -1913,7 +1913,7 @@ public class Automaton {
                             + (number_of_states - statesSoFar) + " states left in queue - "
                             + number_of_states + " reachable states - " + (timeAfter - timeBefore) + "ms";
                     log.append(msg + System.lineSeparator());
-                    System.out.println(msg);
+                    LOGGER.info(msg);
                 }
             }
 
@@ -1950,7 +1950,7 @@ public class Automaton {
         if (print) {
             String msg = prefix + "Determinized: " + Q + " states - " + (timeAfter - timeBefore) + "ms";
             log.append(msg + System.lineSeparator());
-            System.out.println(msg);
+            LOGGER.info(msg);
         }
         return new_d;
     }

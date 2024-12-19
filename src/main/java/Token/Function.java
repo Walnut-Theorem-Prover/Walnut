@@ -32,9 +32,13 @@ import Main.Expressions.VariableExpression;
 import Main.UtilityMethods;
 import Automata.Automaton;
 import Automata.NumberSystem;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 
 public class Function extends Token {
+    private static final Logger LOGGER = LogManager.getLogger(Function.class);
+
     Automaton A;
     String name;
     NumberSystem ns;
@@ -64,7 +68,7 @@ public class Function extends Token {
         String preStep = prefix + "computing " + stringValue + "...)";
         log.append(preStep + System.lineSeparator());
         if (print) {
-            System.out.println(preStep);
+            LOGGER.info(preStep);
         }
         Automaton M = new Automaton(true);
         List<String> identifiers = new ArrayList<>();
@@ -92,7 +96,7 @@ public class Function extends Token {
         String postStep = prefix + "computed " + stringValue;
         log.append(postStep + System.lineSeparator());
         if (print) {
-            System.out.println(postStep);
+            LOGGER.info(postStep);
         }
     }
 }

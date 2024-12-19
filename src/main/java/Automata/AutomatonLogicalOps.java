@@ -20,10 +20,14 @@ package Automata;
 import Main.ExceptionHelper;
 import Main.UtilityMethods;
 import it.unimi.dsi.fastutil.ints.*;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.*;
 
 public class AutomatonLogicalOps {
+    private static final Logger LOGGER = LogManager.getLogger(AutomatonLogicalOps.class);
+
     /**
      * This method is used in and, or, not, and many others.
      * This automaton and M should have TRUE_FALSE_AUTOMATON = false.
@@ -32,7 +36,7 @@ public class AutomatonLogicalOps {
      * are {0=(0,0),1=(0,1),2=(1,0),3=(1,1),4=(2,0),5=(2,1)} and N.q0 = 2. The transitions of state (a,b) is then
      * based on the transitions of a and b in this and M.
      * To continue with this example suppose that label = ["i","j"] and
-     * M.label = ["p","q","j"]. Then N.label = ["i","j","p","q"], and inputs to N are four tuples.
+     * M.label = ["p","q","j"]. The n N.label = ["i","j","p","q"], and inputs to N are four tuples.
      * Now suppose in this we go from 0 to 1 by reading (i=1,j=2)
      * and in M we go from 1 to 0 by reading (p=-1,q=-2,j=2).
      * Then in N we go from (0,1) to (1,0) by reading (i=1,j=2,p=-1,q=-2).
@@ -69,7 +73,7 @@ public class AutomatonLogicalOps {
         if (print) {
             String msg = prefix + "Computing cross product:" + automaton.Q + " states - " + M.Q + " states";
             log.append(msg + System.lineSeparator());
-            System.out.println(msg);
+            LOGGER.info(msg);
         }
 
         /**
@@ -138,7 +142,7 @@ public class AutomatonLogicalOps {
                             + (statesList.size() - statesSoFar) + " states left in queue - "
                             + statesList.size() + " reachable states - " + (timeAfter - timeBefore) + "ms";
                     log.append(msg + System.lineSeparator());
-                    System.out.println(msg);
+                    LOGGER.info(msg);
                 }
             }
 
@@ -234,7 +238,7 @@ public class AutomatonLogicalOps {
         if (print) {
             String msg = prefix + "computed cross product:" + N.Q + " states - " + (timeAfter - timeBefore) + "ms";
             log.append(msg + System.lineSeparator());
-            System.out.println(msg);
+            LOGGER.info(msg);
         }
         return N;
     }
@@ -272,7 +276,7 @@ public class AutomatonLogicalOps {
         if (print) {
             String msg = prefix + "computing &:" + automaton.Q + " states - " + M.Q + " states";
             log.append(msg + System.lineSeparator());
-            System.out.println(msg);
+            LOGGER.info(msg);
         }
 
         Automaton N = crossProduct(automaton, M, "&", print, prefix, log);
@@ -282,7 +286,7 @@ public class AutomatonLogicalOps {
         if (print) {
             String msg = prefix + "computed &:" + N.Q + " states - " + (timeAfter - timeBefore) + "ms";
             log.append(msg + System.lineSeparator());
-            System.out.println(msg);
+            LOGGER.info(msg);
         }
 
         return N;
@@ -307,7 +311,7 @@ public class AutomatonLogicalOps {
         if (print) {
             String msg = prefix + "computing |:" + automaton.Q + " states - " + M.Q + " states";
             log.append(msg + System.lineSeparator());
-            System.out.println(msg);
+            LOGGER.info(msg);
         }
 
         totalize(automaton, print, prefix + " ", log);
@@ -321,7 +325,7 @@ public class AutomatonLogicalOps {
         if (print) {
             String msg = prefix + "computed |:" + N.Q + " states - " + (timeAfter - timeBefore) + "ms";
             log.append(msg + System.lineSeparator());
-            System.out.println(msg);
+            LOGGER.info(msg);
         }
 
         return N;
@@ -359,7 +363,7 @@ public class AutomatonLogicalOps {
         if (print) {
             String msg = prefix + "computing ^:" + automaton.Q + " states - " + M.Q + " states";
             log.append(msg + System.lineSeparator());
-            System.out.println(msg);
+            LOGGER.info(msg);
         }
 
         totalize(automaton, print, prefix + " ", log);
@@ -372,7 +376,7 @@ public class AutomatonLogicalOps {
         if (print) {
             String msg = prefix + "computed ^:" + N.Q + " states - " + (timeAfter - timeBefore) + "ms";
             log.append(msg + System.lineSeparator());
-            System.out.println(msg);
+            LOGGER.info(msg);
         }
         return N;
     }
@@ -398,7 +402,7 @@ public class AutomatonLogicalOps {
         if (print) {
             String msg = prefix + "computing =>:" + automaton.Q + " states - " + M.Q + " states";
             log.append(msg + System.lineSeparator());
-            System.out.println(msg);
+            LOGGER.info(msg);
         }
 
         totalize(automaton, print, prefix + " ", log);
@@ -411,7 +415,7 @@ public class AutomatonLogicalOps {
         if (print) {
             String msg = prefix + "computed =>:" + N.Q + " states - " + (timeAfter - timeBefore) + "ms";
             log.append(msg + System.lineSeparator());
-            System.out.println(msg);
+            LOGGER.info(msg);
         }
 
         return N;
@@ -446,7 +450,7 @@ public class AutomatonLogicalOps {
         if (print) {
             String msg = prefix + "computing <=>:" + automaton.Q + " states - " + M.Q + " states";
             log.append(msg + System.lineSeparator());
-            System.out.println(msg);
+            LOGGER.info(msg);
         }
 
         totalize(automaton, print, prefix + " ", log);
@@ -459,7 +463,7 @@ public class AutomatonLogicalOps {
         if (print) {
             String msg = prefix + "computed <=>:" + N.Q + " states - " + (timeAfter - timeBefore) + "ms";
             log.append(msg + System.lineSeparator());
-            System.out.println(msg);
+            LOGGER.info(msg);
         }
 
         return N;
@@ -479,7 +483,7 @@ public class AutomatonLogicalOps {
         if (print) {
             String msg = prefix + "computing ~:" + automaton.Q + " states";
             log.append(msg + System.lineSeparator());
-            System.out.println(msg);
+            LOGGER.info(msg);
         }
 
         totalize(automaton, print, prefix + " ", log);
@@ -493,7 +497,7 @@ public class AutomatonLogicalOps {
         if (print) {
             String msg = prefix + "computed ~:" + automaton.Q + " states - " + (timeAfter - timeBefore) + "ms";
             log.append(msg + System.lineSeparator());
-            System.out.println(msg);
+            LOGGER.info(msg);
         }
     }
 
@@ -515,7 +519,7 @@ public class AutomatonLogicalOps {
         if (print) {
             String msg = prefix + "right quotient: " + automaton.Q + " state automaton with " + other.Q + " state automaton";
             log.append(msg + System.lineSeparator());
-            System.out.println(msg);
+            LOGGER.info(msg);
         }
 
         if (!skipSubsetCheck) {
@@ -591,7 +595,7 @@ public class AutomatonLogicalOps {
         if (print) {
             String msg = prefix + "right quotient complete: " + M.Q + " states - " + (timeAfter - timeBefore) + "ms";
             log.append(msg + System.lineSeparator());
-            System.out.println(msg);
+            LOGGER.info(msg);
         }
 
         return M;
@@ -602,7 +606,7 @@ public class AutomatonLogicalOps {
         if (print) {
             String msg = prefix + "left quotient: " + automaton.Q + " state automaton with " + other.Q + " state automaton";
             log.append(msg + System.lineSeparator());
-            System.out.println(msg);
+            LOGGER.info(msg);
         }
 
         // check whether the alphabet of self is a subset of the alphabet of other. If not, throw an error.
@@ -641,7 +645,7 @@ public class AutomatonLogicalOps {
         if (print) {
             String msg = prefix + "left quotient complete: " + M.Q + " states - " + (timeAfter - timeBefore) + "ms";
             log.append(msg + System.lineSeparator());
-            System.out.println(msg);
+            LOGGER.info(msg);
         }
 
         return M;
@@ -657,7 +661,7 @@ public class AutomatonLogicalOps {
         if (print) {
             String msg = prefix + "totalizing:" + automaton.Q + " states";
             log.append(msg + System.lineSeparator());
-            System.out.println(msg);
+            LOGGER.info(msg);
         }
         //we first check if the automaton is totalized
         boolean totalized = true;
@@ -686,7 +690,7 @@ public class AutomatonLogicalOps {
         if (print) {
             String msg = prefix + "totalized:" + automaton.Q + " states - " + (timeAfter - timeBefore) + "ms";
             log.append(msg + System.lineSeparator());
-            System.out.println(msg);
+            LOGGER.info(msg);
         }
     }
 
@@ -746,7 +750,7 @@ public class AutomatonLogicalOps {
         if (print) {
             String msg = prefix + "fixing leading zeros:" + automaton.Q + " states";
             log.append(msg + System.lineSeparator());
-            System.out.println(msg);
+            LOGGER.info(msg);
         }
         automaton.canonized = false;
         int zero = determineZero(automaton);
@@ -764,7 +768,7 @@ public class AutomatonLogicalOps {
         if (print) {
             String msg = prefix + "fixed leading zeros:" + automaton.Q + " states - " + (timeAfter - timeBefore) + "ms";
             log.append(msg + System.lineSeparator());
-            System.out.println(msg);
+            LOGGER.info(msg);
         }
     }
 
@@ -779,7 +783,7 @@ public class AutomatonLogicalOps {
         if (print) {
             String msg = prefix + "fixing trailing zeros:" + automaton.Q + " states";
             log.append(msg + System.lineSeparator());
-            System.out.println(msg);
+            LOGGER.info(msg);
         }
         automaton.canonized = false;
         Set<Integer> newFinalStates = statesReachableToFinalStatesByZeros(automaton);
@@ -793,7 +797,7 @@ public class AutomatonLogicalOps {
         if (print) {
             String msg = prefix + "fixed trailing zeros:" + automaton.Q + " states - " + (timeAfter - timeBefore) + "ms";
             log.append(msg + System.lineSeparator());
-            System.out.println(msg);
+            LOGGER.info(msg);
         }
     }
 
@@ -821,7 +825,7 @@ public class AutomatonLogicalOps {
         if (print) {
             String msg = prefix + "removing leading zeroes for:" + automaton.Q + " states";
             log.append(msg + System.lineSeparator());
-            System.out.println(msg);
+            LOGGER.info(msg);
         }
 
         List<Integer> listOfInputs = new ArrayList<>();//extract the list of indices of inputs from the list of labels
@@ -839,7 +843,7 @@ public class AutomatonLogicalOps {
         if (print) {
             String msg = prefix + "quantified:" + automaton.Q + " states - " + (timeAfter - timeBefore) + "ms";
             log.append(msg + System.lineSeparator());
-            System.out.println(msg);
+            LOGGER.info(msg);
         }
         return M;
     }
@@ -1027,7 +1031,7 @@ public class AutomatonLogicalOps {
         if (print) {
             String msg = prefix + "applying operator (" + operator + "):" + automaton.Q + " states - " + W.Q + " states";
             log.append(msg + System.lineSeparator());
-            System.out.println(msg);
+            LOGGER.info(msg);
         }
         Automaton M = crossProduct(automaton, W, operator, print, prefix + " ", log);
         M.minimizeWithOutput(print, prefix + " ", log);
@@ -1035,7 +1039,7 @@ public class AutomatonLogicalOps {
         if (print) {
             String msg = prefix + "applied operator (" + operator + "):" + automaton.Q + " states - " + (timeAfter - timeBefore) + "ms";
             log.append(msg + System.lineSeparator());
-            System.out.println(msg);
+            LOGGER.info(msg);
         }
         return M;
     }
@@ -1120,7 +1124,7 @@ public class AutomatonLogicalOps {
         if (print) {
             String msg = prefix + "quantifying:" + automaton.Q + " states";
             log.append(msg + System.lineSeparator());
-            System.out.println(msg);
+            LOGGER.info(msg);
         }
 
         /**
@@ -1172,7 +1176,7 @@ public class AutomatonLogicalOps {
         if (print) {
             String msg = prefix + "quantified:" + automaton.Q + " states - " + (timeAfter - timeBefore) + "ms";
             log.append(msg + System.lineSeparator());
-            System.out.println(msg);
+            LOGGER.info(msg);
         }
     }
 
@@ -1194,7 +1198,7 @@ public class AutomatonLogicalOps {
         if (print) {
             String msg = prefix + "Reversing:" + automaton.Q + " states";
             log.append(msg + System.lineSeparator());
-            System.out.println(msg);
+            LOGGER.info(msg);
         }
 
         // We change the direction of transitions first.
@@ -1238,7 +1242,7 @@ public class AutomatonLogicalOps {
         if (print) {
             String msg = prefix + "reversed:" + automaton.Q + " states - " + (timeAfter - timeBefore) + "ms";
             log.append(msg + System.lineSeparator());
-            System.out.println(msg);
+            LOGGER.info(msg);
         }
     }
 
@@ -1278,7 +1282,7 @@ public class AutomatonLogicalOps {
             if (print) {
                 String msg = prefix + "reversing: " + automaton.Q + " states";
                 log.append(msg + System.lineSeparator());
-                System.out.println(msg);
+                LOGGER.info(msg);
             }
 
             boolean addedDeadState = automaton.addDistinguishedDeadState(print, prefix, log);
@@ -1329,7 +1333,7 @@ public class AutomatonLogicalOps {
                 newD.add(new Int2ObjectRBTreeMap<>());
 
                 // assume that the
-                // System.out.println("alphabet: " + d.get(q0) + ", " + d + ", " + alphabetSize);
+                // LOGGER.info("alphabet: " + d.get(q0) + ", " + d + ", " + alphabetSize);
                 if (automaton.d.get(automaton.q0).keySet().size() != automaton.alphabetSize) {
                     throw new RuntimeException("Automaton should be deterministic!");
                 }
@@ -1395,18 +1399,16 @@ public class AutomatonLogicalOps {
             if (print) {
                 String msg = prefix + "reversed: " + automaton.Q + " states - " + (timeAfter - timeBefore) + "ms";
                 log.append(msg + System.lineSeparator());
-                System.out.println(msg);
+                LOGGER.info(msg);
             }
         } catch (RuntimeException e) {
-            e.printStackTrace();
+            LOGGER.catching(e);
             throw new RuntimeException("Error reversing word automaton");
         }
     }
 
     /**
      * Convert the number system of a word automaton from [msd/lsd]_k^i to [msd/lsd]_k^j.
-     *
-     * @throws Exception
      */
     public static void convertNS(Automaton automaton, boolean toMsd, int toBase, boolean print,
                                  String prefix, StringBuilder log) {
@@ -1493,7 +1495,7 @@ public class AutomatonLogicalOps {
             }
 
         } catch (RuntimeException e) {
-            e.printStackTrace();
+            LOGGER.catching(e);
             throw new RuntimeException("Error converting the number system of an automaton");
         }
     }
@@ -1518,7 +1520,7 @@ public class AutomatonLogicalOps {
             if (print) {
                 String msg = prefix + "Converting: msd_" + base + " to msd_" + (int) Math.pow(base, exponent) + ", " + automaton.Q + " states";
                 log.append(msg + System.lineSeparator());
-                System.out.println(msg);
+                LOGGER.info(msg);
             }
 
             List<Int2ObjectRBTreeMap<IntList>> newD = new ArrayList<>();
@@ -1586,11 +1588,11 @@ public class AutomatonLogicalOps {
                 long timeAfter = System.currentTimeMillis();
                 String msg = prefix + "Converted: msd_" + base + " to msd_" + (int) (Math.pow(base, exponent)) + ", " + automaton.Q + " states - " + (timeAfter - timeBefore) + "ms";
                 log.append(msg + System.lineSeparator());
-                System.out.println(msg);
+                LOGGER.info(msg);
             }
 
         } catch (RuntimeException e) {
-            e.printStackTrace();
+            LOGGER.catching(e);
             throw new RuntimeException("Error converting the number system msd_k of an automaton to msd_k^j");
         }
 
@@ -1616,7 +1618,7 @@ public class AutomatonLogicalOps {
             if (print) {
                 String msg = prefix + "Converting: lsd_" + base + " to lsd_" + (int) Math.pow(root, exponent) + ", " + automaton.Q + " states";
                 log.append(msg + System.lineSeparator());
-                System.out.println(msg);
+                LOGGER.info(msg);
             }
 
             if (base != Math.pow(root, exponent)) {
@@ -1746,11 +1748,11 @@ public class AutomatonLogicalOps {
                 long timeAfter = System.currentTimeMillis();
                 String msg = prefix + prefix + "Converted: lsd_" + base + " to lsd_" + (int) (Math.pow(root, exponent)) + ", " + automaton.Q + " states - " + (timeAfter - timeBefore) + "ms";
                 log.append(msg + System.lineSeparator());
-                System.out.println(msg);
+                LOGGER.info(msg);
             }
 
         } catch (RuntimeException e) {
-            e.printStackTrace();
+            LOGGER.catching(e);
             throw new RuntimeException("Error converting the number system msd_k^j of an automaton to msd_k");
         }
 
@@ -1776,7 +1778,7 @@ public class AutomatonLogicalOps {
             if (print) {
                 String msg = prefix + "computing =>:" + first.Q + " states - " + next.Q + " states";
                 log.append(msg + System.lineSeparator());
-                System.out.println(msg);
+                LOGGER.info(msg);
             }
 
             // crossProduct requires labelling so we make an arbitrary labelling and use it for both: this is valid since
@@ -1795,7 +1797,7 @@ public class AutomatonLogicalOps {
             if (print) {
                 String msg = prefix + "computed =>:" + first.Q + " states - " + (timeAfter - timeBefore) + "ms";
                 log.append(msg + System.lineSeparator());
-                System.out.println(msg);
+                LOGGER.info(msg);
             }
         }
 
@@ -1824,7 +1826,7 @@ public class AutomatonLogicalOps {
         if (print) {
             String msg = prefix + "comparing (" + operator + "):" + automaton.Q + " states - " + W.Q + " states";
             log.append(msg + System.lineSeparator());
-            System.out.println(msg);
+            LOGGER.info(msg);
         }
         Automaton M = crossProduct(automaton, W, operator, print, prefix + " ", log);
         M.minimize(null, print, prefix + " ", log);
@@ -1832,7 +1834,7 @@ public class AutomatonLogicalOps {
         if (print) {
             String msg = prefix + "compared (" + operator + "):" + automaton.Q + " states - " + (timeAfter - timeBefore) + "ms";
             log.append(msg + System.lineSeparator());
-            System.out.println(msg);
+            LOGGER.info(msg);
         }
         return M;
     }
@@ -1854,7 +1856,7 @@ public class AutomatonLogicalOps {
         if (print) {
             String msg = prefix + "comparing (" + operator + ") against " + o + ":" + automaton.Q + " states";
             log.append(msg + System.lineSeparator());
-            System.out.println(msg);
+            LOGGER.info(msg);
         }
         for (int p = 0; p < automaton.Q; p++) {
             switch (operator) {
@@ -1883,7 +1885,7 @@ public class AutomatonLogicalOps {
         if (print) {
             String msg = prefix + "compared (" + operator + ") against " + o + ":" + automaton.Q + " states - " + (timeAfter - timeBefore) + "ms";
             log.append(msg + System.lineSeparator());
-            System.out.println(msg);
+            LOGGER.info(msg);
         }
     }
 

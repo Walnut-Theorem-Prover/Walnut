@@ -15,9 +15,21 @@ import java.util.List;
 import Token.Token;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DynamicTest;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestFactory;
 
 public class PredicateTest {
+	@Test
+	void basicTest() {
+		Predicate p = new Predicate("blah");
+		Assertions.assertEquals(1, p.getPostOrder().size());
+		Assertions.assertEquals("blah", p.toString());
+
+		p = new Predicate("?msd_3 (a=1 )");
+		Assertions.assertEquals(3, p.getPostOrder().size());
+		Assertions.assertEquals("a:1:=_msd_3", p.toString());
+	}
+
 	static class PredTest {
 		public PredTest(int i, String macro_, String pred_, String expected_predicate_, String expected_){
 			this.macro = macro_;

@@ -23,12 +23,16 @@ import Main.Expression;
 import Automata.Automaton;
 import Automata.NumberSystem;
 import Main.Expressions.*;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.HashSet;
 import java.util.Stack;
 
 
 public class RelationalOperator extends Operator {
+    private static final Logger LOGGER = LogManager.getLogger(RelationalOperator.class);
+
     NumberSystem number_system;
 
     public RelationalOperator(int position, String type, NumberSystem number_system) {
@@ -56,7 +60,7 @@ public class RelationalOperator extends Operator {
         String preStep = prefix + "computing " + a + op + b;
         log.append(preStep + System.lineSeparator());
         if (print) {
-            System.out.println(preStep);
+            LOGGER.info(preStep);
         }
         if ((a instanceof WordExpression && (b instanceof ArithmeticExpression || b instanceof VariableExpression)) ||
                 ((a instanceof ArithmeticExpression || a instanceof VariableExpression) && b instanceof WordExpression)) {
@@ -149,7 +153,7 @@ public class RelationalOperator extends Operator {
         String postStep = prefix + "computed " + a + op + b;
         log.append(postStep + System.lineSeparator());
         if (print) {
-            System.out.println(postStep);
+            LOGGER.info(postStep);
         }
     }
 

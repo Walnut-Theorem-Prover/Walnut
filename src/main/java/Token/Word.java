@@ -25,8 +25,12 @@ import java.util.Stack;
 import Main.Expression;
 import Main.Expressions.*;
 import Automata.Automaton;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class Word extends Token {
+    private static final Logger LOGGER = LogManager.getLogger(Word.class);
+
     Automaton W;
     String name;
 
@@ -53,7 +57,7 @@ public class Word extends Token {
         String preStep = prefix + "computing " + stringValue + "[...]";
         log.append(preStep + System.lineSeparator());
         if (print) {
-            System.out.println(preStep);
+            LOGGER.info(preStep);
         }
         List<String> identifiers = new ArrayList<>();
         List<String> quantify = new ArrayList<>();
@@ -74,7 +78,7 @@ public class Word extends Token {
         String postStep = prefix + "computed " + stringValue;
         log.append(postStep + System.lineSeparator());
         if (print) {
-            System.out.println(postStep);
+            LOGGER.info(postStep);
         }
     }
 }

@@ -59,4 +59,8 @@ public class ExceptionHelper {
     public static RuntimeException undefinedToken(int position) {
         return new RuntimeException("Undefined token: char at " + position);
     }
+
+    public static RuntimeException undefinedStatement(int line, String address) {
+        return new RuntimeException("Undefined statement: line "+ line + " of file " + address);
+    }
 }

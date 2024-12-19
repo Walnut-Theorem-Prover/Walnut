@@ -69,6 +69,9 @@ public class ParseMethods {
     static String REGEXP_FOR_TRANSDUCER_TRANSITION = "^\\s*((((\\+|\\-)?\\s*\\d+\\s*)|(\\s*\\*\\s*))+)\\s*\\->\\s*((\\d+\\s*)+)\\s*\\/\\s*((\\+|\\-)?\\s*\\d+)\\s*$";
     static Pattern PATTERN_FOR_TRANSDUCER_TRANSITION = Pattern.compile(REGEXP_FOR_TRANSDUCER_TRANSITION);
 
+    public static Pattern PATTERN_WHITESPACE = Pattern.compile("^\\s*$");
+
+
     public static boolean parseTrueFalse(String s, boolean[] singleton) {
         Matcher m = PATTERN_FOR_TRUE_FALSE.matcher(s);
         if (m.find()) {

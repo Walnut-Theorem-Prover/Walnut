@@ -20,6 +20,8 @@ package Automata;
 import Main.UtilityMethods;
 import it.unimi.dsi.fastutil.ints.Int2ObjectRBTreeMap;
 import it.unimi.dsi.fastutil.ints.IntList;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -30,6 +32,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class AutomatonWriter {
+    private static final Logger LOGGER = LogManager.getLogger(AutomatonWriter.class);
+
     /**
      * Writes down matrices for this automaton to a .mpl file given by the address.
      *
@@ -73,7 +77,7 @@ public class AutomatonWriter {
             out.write(res);
             out.close();
         } catch (IOException e) {
-            e.printStackTrace();
+            LOGGER.catching(e);
         }
       return res;
     }
@@ -162,21 +166,25 @@ public class AutomatonWriter {
     public static void write(Automaton automaton, String address) {
         try {
             PrintWriter out = new PrintWriter(address, StandardCharsets.UTF_8);
-            if (automaton.TRUE_FALSE_AUTOMATON) {
-                if (automaton.TRUE_AUTOMATON)
-                    out.write("true");
-                else
-                    out.write("false");
-            } else {
-                automaton.canonize();
-                writeAlphabet(automaton, out);
-                for (int q = 0; q < automaton.Q; q++) {
-                    writeState(automaton, out, q);
-                }
-            }
+            writeToStream(automaton, out);
             out.close();
         } catch (IOException e) {
-            e.printStackTrace();
+            LOGGER.catching(e);
+        }
+    }
+
+    public static void writeToStream(Automaton automaton, PrintWriter out) {
+        if (automaton.TRUE_FALSE_AUTOMATON) {
+            if (automaton.TRUE_AUTOMATON)
+                out.write("true");
+            else
+                out.write("false");
+        } else {
+            automaton.canonize();
+            writeAlphabet(automaton, out);
+            for (int q = 0; q < automaton.Q; q++) {
+                writeState(automaton, out, q);
+            }
         }
     }
 
@@ -281,7 +289,7 @@ public class AutomatonWriter {
             out.write(gv.toString());
             out.close();
         } catch (IOException e) {
-            e.printStackTrace();
+            LOGGER.catching(e);
         }
     }
     

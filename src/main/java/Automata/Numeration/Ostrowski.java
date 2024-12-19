@@ -27,12 +27,15 @@ import java.util.Queue;
 import java.util.TreeMap;
 
 import Automata.Automaton;
+import Automata.AutomatonLogicalOps;
 import Automata.AutomatonWriter;
 import Automata.ParseMethods;
 import Main.UtilityMethods;
 import it.unimi.dsi.fastutil.ints.Int2ObjectRBTreeMap;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * The class OstrowskiNumeration includes functionality to produce an adder automaton based on only the<
@@ -46,6 +49,8 @@ import it.unimi.dsi.fastutil.ints.IntList;
  * mentioned in the command.
  */
 public class Ostrowski {
+    private static final Logger LOGGER = LogManager.getLogger(Ostrowski.class);
+
     // The number of states in the 4-input adder is 7.
     static final int NUM_STATES = 7;
 
@@ -146,7 +151,7 @@ public class Ostrowski {
         this.total_nodes = 0;
     }
 
-    public void createRepresentationAutomaton() {
+    public Automaton createRepresentationAutomaton() {
         resetAutomaton();
         repr = new Automaton();
 
@@ -186,18 +191,21 @@ public class Ostrowski {
         repr.canonize();
 
         handleZeroState(repr);
-
-        String repr_file_name =
-                UtilityMethods.get_address_for_custom_bases() + "msd_" + this.name + ".txt";
-        File f = new File(repr_file_name);
-        if (f.exists() && !f.isDirectory()) {
-            throw new RuntimeException("Error: number system " + this.name + " already exists.");
-        }
-        AutomatonWriter.write(repr, repr_file_name);
-        System.out.println("Ostrowski representation automaton created and written to file " + repr_file_name);
+        return repr;
     }
 
-    public void createAdderAutomaton() {
+    public static void writeRepresentation(String name, Automaton repr) {
+        String repr_file_name =
+                UtilityMethods.get_address_for_custom_bases() + "msd_" + name + ".txt";
+        File f = new File(repr_file_name);
+        if (f.exists() && !f.isDirectory()) {
+            throw new RuntimeException("Error: number system " + name + " already exists.");
+        }
+        AutomatonWriter.write(repr, repr_file_name);
+        LOGGER.info("Ostrowski representation automaton created and written to file " + repr_file_name);
+    }
+
+    public Automaton createAdderAutomaton() {
         resetAutomaton();
         adder = new Automaton();
 
@@ -235,20 +243,21 @@ public class Ostrowski {
         adder.canonize();
 
         handleZeroState(adder);
-
-        // Write the Automaton to file.
-        String adder_file_name =
-                UtilityMethods.get_address_for_custom_bases() + "msd_" + this.name + "_addition.txt";
-        File f = new File(adder_file_name);
-        if (f.exists() && !f.isDirectory()) {
-            System.out.println("Warning: number system " + this.name + "was previously defined and is being overwritten.");
-        }
-
-        AutomatonWriter.write(adder, adder_file_name);
-        System.out.println("Ostrowski adder automaton created and written to file " + adder_file_name);
+        return adder;
     }
 
-    private void handleZeroState(Automaton adder) {
+    public static void writeAdder(String name, Automaton adder) {
+        String adder_file_name =
+                UtilityMethods.get_address_for_custom_bases() + "msd_" + name + "_addition.txt";
+        File f = new File(adder_file_name);
+        if (f.exists() && !f.isDirectory()) {
+            LOGGER.info("Warning: number system " + name + "was previously defined and is being overwritten.");
+        }
+        AutomatonWriter.write(adder, adder_file_name);
+        LOGGER.info("Ostrowski adder automaton created and written to file " + adder_file_name);
+    }
+
+    private static void handleZeroState(Automaton adder) {
         boolean zeroStateNeeded =
             adder.d.stream().anyMatch(
                 tm -> tm.int2ObjectEntrySet().stream().anyMatch(
@@ -268,14 +277,11 @@ public class Ostrowski {
     }
 
     public String toString() {
-        return
-                "name: " + this.name +
-                        ", alpha: " + this.alpha +
-                        ", period index: " + this.period_index;
+        return "name: " + this.name + ", alpha: " + this.alpha + ", period index: " + this.period_index;
     }
 
     private void assertValues(List<Integer> list) {
-        if (list == null || list.isEmpty()) {
+        if (list.isEmpty()) {
             throw new RuntimeException("The period cannot be empty.");
         }
         for (int d : list) {
@@ -582,8 +588,8 @@ public class Ostrowski {
     }
 
     private void resetAutomaton() {
-        this.index_of_node = new TreeMap<>();
-        this.node_of_index = new TreeMap<>();
+        this.index_of_node.clear();
+        this.node_of_index.clear();
         this.state_transitions = new TreeMap<>();
         this.total_nodes = 0;
     }
