@@ -1,4 +1,4 @@
-/*	 Copyright 2016 Hamoon Mousavi
+/*	 Copyright 2016 Hamoon Mousavi, 2025 John Nicol
  *
  * 	 This file is part of Walnut.
  *
@@ -45,12 +45,14 @@ import Token.Token;
 import Token.Variable;
 import Token.Word;
 
+import static Automata.ParseMethods.PATTERN_WHITESPACE;
+
 public class Predicate {
     String predicate;
     List<Token> postOrder;
-    Stack<Operator> operator_Stack;
-    int real_starting_position;
-    String default_number_system;
+    Stack<Operator> operatorStack;
+    int realStartingPosition;
+    String defaultNumberSystem;
     Matcher MATCHER_FOR_LOGICAL_OPERATORS;
     Matcher MATCHER_FOR_LIST_OF_QUANTIFIED_VARIABLES;
     Matcher MATCHER_FOR_RELATIONAL_OPERATORS;
@@ -67,54 +69,37 @@ public class Predicate {
     Matcher MATCHER_FOR_RIGHT_PARENTHESIS;
     Matcher MATCHER_FOR_WHITESPACE;
 
-    static HashMap<String, NumberSystem> number_system_Hash = new HashMap<>();
+    static HashMap<String, NumberSystem> numberSystemHash = new HashMap<>();
 
     public static HashMap<String, NumberSystem> get_number_system_Hash() {
-        return number_system_Hash;
+        return numberSystemHash;
     }
 
-    static String REGEXP_FOR_LOGICAL_OPERATORS = "\\G\\s*(?<!\\.)(`|\\^|\\&|\\~|\\||=>|<=>|E|A|I|\\u02DC|\\u0303)";
-    static String REGEXP_FOR_LIST_OF_QUANTIFIED_VARIABLES = "\\G\\s*((\\s*([a-zA-Z&&[^AEI]]\\w*)\\s*)(\\s*,\\s*([a-zA-Z&&[^AEI]]\\w*)\\s*)*)";
-    static String REGEXP_FOR_RELATIONAL_OPERATORS = "\\G\\s*(>=|<=|<|>|=|!=)";
-    static String REGEXP_FOR_ARITHMETIC_OPERATORS = "\\G\\s*(_|/|\\*|\\+|\\-)";
-    static String REGEXP_FOR_NUMBER_SYSTEM = "\\G\\s*\\?(((msd|lsd)_(\\d+|\\w+))|((msd|lsd)(\\d+|\\w+))|(msd|lsd)|(\\d+|\\w+))";
-    static String REGEXP_FOR_WORD = "\\G\\s*([a-zA-Z&&[^AEI]]\\w*)\\s*\\[";
-
     // allow automata names that start with A, E, I, for stuff like .AUTOMATON[..] or .EVEN[..], etc.
-    static String REGEXP_FOR_WORD_WITH_DELIMITER = "\\G\\s*\\.([a-zA-Z]\\w*)\\s*\\[";
-    static String REGEXP_FOR_FUNCTION = "\\G\\s*\\$([a-zA-Z&&[^AEI]]\\w*)\\s*\\(";
-    static String REGEXP_FOR_MACRO = "\\G(\\s*)\\#([a-zA-Z&&[^AEI]]\\w*)\\s*\\(";
-    static String REGEXP_FOR_VARIABLE = "\\G\\s*([a-zA-Z&&[^AEI]]\\w*)";
-    static String REGEXP_FOR_NUMBER_LITERAL = "\\G\\s*(\\d+)";
-    static String REGEXP_FOR_ALPHABET_LETTER = "\\G\\s*@(\\s*(\\+|\\-)?\\s*\\d+)";
-    static String REGEXP_FOR_LEFT_PARENTHESIS = "\\G\\s*\\(";
-    static String REGEXP_FOR_RIGHT_PARENTHESIS = "\\G\\s*\\)";
-    static String REGEXP_FOR_WHITESPACE = "\\G\\s+";
-    static Pattern PATTERN_FOR_LOGICAL_OPERATORS = Pattern.compile(REGEXP_FOR_LOGICAL_OPERATORS);
-    static Pattern PATTERN_FOR_LIST_OF_QUANTIFIED_VARIABLES = Pattern.compile(REGEXP_FOR_LIST_OF_QUANTIFIED_VARIABLES);
-    static Pattern PATTERN_FOR_RELATIONAL_OPERATORS = Pattern.compile(REGEXP_FOR_RELATIONAL_OPERATORS);
-    static Pattern PATTERN_FOR_ARITHMETIC_OPERATORS = Pattern.compile(REGEXP_FOR_ARITHMETIC_OPERATORS);
-    static Pattern PATTERN_FOR_NUMBER_SYSTEM = Pattern.compile(REGEXP_FOR_NUMBER_SYSTEM);
-    static Pattern PATTERN_FOR_WORD = Pattern.compile(REGEXP_FOR_WORD);
-    static Pattern PATTERN_FOR_WORD_WITH_DELIMITER = Pattern.compile(REGEXP_FOR_WORD_WITH_DELIMITER);
-    static Pattern PATTERN_FOR_FUNCTION = Pattern.compile(REGEXP_FOR_FUNCTION);
-    static Pattern PATTERN_FOR_MACRO = Pattern.compile(REGEXP_FOR_MACRO);
-    static Pattern PATTERN_FOR_VARIABLE = Pattern.compile(REGEXP_FOR_VARIABLE);
-    static Pattern PATTERN_FOR_NUMBER_LITERAL = Pattern.compile(REGEXP_FOR_NUMBER_LITERAL);
-    static Pattern PATTERN_FOR_ALPHABET_LETTER = Pattern.compile(REGEXP_FOR_ALPHABET_LETTER);
-    static Pattern PATTERN_FOR_LEFT_PARENTHESIS = Pattern.compile(REGEXP_FOR_LEFT_PARENTHESIS);
-    static Pattern PATTERN_FOR_RIGHT_PARENTHESIS = Pattern.compile(REGEXP_FOR_RIGHT_PARENTHESIS);
-    static Pattern PATTERN_FOR_WHITESPACE = Pattern.compile(REGEXP_FOR_WHITESPACE);
+    static Pattern PATTERN_FOR_LOGICAL_OPERATORS =
+        Pattern.compile("\\G\\s*(?<!\\.)(`|\\^|\\&|\\~|\\||=>|<=>|E|A|I|\\u02DC|\\u0303)");
+    static Pattern PATTERN_FOR_LIST_OF_QUANTIFIED_VARIABLES =
+        Pattern.compile("\\G\\s*((\\s*([a-zA-Z&&[^AEI]]\\w*)\\s*)(\\s*,\\s*([a-zA-Z&&[^AEI]]\\w*)\\s*)*)");
+    static Pattern PATTERN_FOR_RELATIONAL_OPERATORS = Pattern.compile("\\G\\s*(>=|<=|<|>|=|!=)");
+    static Pattern PATTERN_FOR_ARITHMETIC_OPERATORS = Pattern.compile("\\G\\s*(_|/|\\*|\\+|\\-)");
+    static Pattern PATTERN_FOR_NUMBER_SYSTEM =
+        Pattern.compile("\\G\\s*\\?(((msd|lsd)_(\\d+|\\w+))|((msd|lsd)(\\d+|\\w+))|(msd|lsd)|(\\d+|\\w+))");
+    static Pattern PATTERN_FOR_WORD = Pattern.compile("\\G\\s*([a-zA-Z&&[^AEI]]\\w*)\\s*\\[");
+    static Pattern PATTERN_FOR_WORD_WITH_DELIMITER = Pattern.compile("\\G\\s*\\.([a-zA-Z]\\w*)\\s*\\[");
+    static Pattern PATTERN_FOR_FUNCTION = Pattern.compile("\\G\\s*\\$([a-zA-Z&&[^AEI]]\\w*)\\s*\\(");
+    static Pattern PATTERN_FOR_MACRO = Pattern.compile("\\G(\\s*)\\#([a-zA-Z&&[^AEI]]\\w*)\\s*\\(");
+    static Pattern PATTERN_FOR_VARIABLE = Pattern.compile("\\G\\s*([a-zA-Z&&[^AEI]]\\w*)");
+    static Pattern PATTERN_FOR_NUMBER_LITERAL = Pattern.compile("\\G\\s*(\\d+)");
+    static Pattern PATTERN_FOR_ALPHABET_LETTER = Pattern.compile("\\G\\s*@(\\s*(\\+|\\-)?\\s*\\d+)");
+    static Pattern PATTERN_FOR_LEFT_PARENTHESIS = Pattern.compile("\\G\\s*\\(");
+    static Pattern PATTERN_FOR_RIGHT_PARENTHESIS = Pattern.compile("\\G\\s*\\)");
+    static Pattern PATTERN_FOR_WHITESPACE = Pattern.compile("\\G\\s+");
 
     public Predicate(String predicate) {
         this("msd_2", predicate, 0);
     }
 
-    public Predicate(String predicate, int startingPosition) {
-        this("msd_2", predicate, startingPosition);
-    }
-
-    private void initialize_matchers() {
+    private void initializeMatchers() {
         MATCHER_FOR_LOGICAL_OPERATORS = PATTERN_FOR_LOGICAL_OPERATORS.matcher(predicate);
         MATCHER_FOR_LIST_OF_QUANTIFIED_VARIABLES = PATTERN_FOR_LIST_OF_QUANTIFIED_VARIABLES.matcher(predicate);
         MATCHER_FOR_RELATIONAL_OPERATORS = PATTERN_FOR_RELATIONAL_OPERATORS.matcher(predicate);
@@ -133,23 +118,23 @@ public class Predicate {
     }
 
     public Predicate(
-            String default_number_system,
+            String defaultNumberSystem,
             String predicate,
-            int real_starting_position) {
-        operator_Stack = new Stack<>();
+            int realStartingPosition) {
+        operatorStack = new Stack<>();
         postOrder = new ArrayList<>();
-        this.real_starting_position = real_starting_position;
+        this.realStartingPosition = realStartingPosition;
         this.predicate = predicate;
-        this.default_number_system = default_number_system;
-        if (predicate.matches("^\\s*$")) return;
-        initialize_matchers();
-        tokenize_and_compute_post_order();
+        this.defaultNumberSystem = defaultNumberSystem;
+        if (PATTERN_WHITESPACE.matcher(predicate).matches()) return;
+        initializeMatchers();
+        tokenizeAndComputePostOrder();
     }
 
-    private void tokenize_and_compute_post_order() {
-        Stack<String> number_system_Stack = new Stack<>();
-        number_system_Stack.push(default_number_system);
-        String current_number_system = default_number_system;
+    private void tokenizeAndComputePostOrder() {
+        Stack<String> numberSystems = new Stack<>();
+        numberSystems.push(defaultNumberSystem);
+        String currentNumberSystem = defaultNumberSystem;
         int index = 0;
         Token t;
         Operator op;
@@ -163,92 +148,92 @@ public class Predicate {
                         throw new RuntimeException(
                                 "Operator " + matcher.group(1) +
                                         " requires a list of variables: char at " +
-                                        (real_starting_position + index));
+                                        (realStartingPosition + index));
                     }
 
-                    index = handle_quantifier();
+                    index = handleQuantifier();
                 } else {
                     op = new LogicalOperator(
-                            real_starting_position + matcher.start(1), matcher.group(1));
-                    op.put(postOrder, operator_Stack);
+                            realStartingPosition + matcher.start(1), matcher.group(1));
+                    op.put(postOrder, operatorStack);
                     index = matcher.end();
                 }
             } else if (MATCHER_FOR_RELATIONAL_OPERATORS.find(index)) {
                 lastTokenWasOperator = true;
                 Matcher matcher = MATCHER_FOR_RELATIONAL_OPERATORS;
-                if (!number_system_Hash.containsKey(current_number_system)) {
-                    number_system_Hash.put(current_number_system, new NumberSystem(current_number_system));
+                if (!numberSystemHash.containsKey(currentNumberSystem)) {
+                    numberSystemHash.put(currentNumberSystem, new NumberSystem(currentNumberSystem));
                 }
-                op = new RelationalOperator(real_starting_position + matcher.start(1), matcher.group(1), number_system_Hash.get(current_number_system));
-                op.put(postOrder, operator_Stack);
+                op = new RelationalOperator(realStartingPosition + matcher.start(1), matcher.group(1), numberSystemHash.get(currentNumberSystem));
+                op.put(postOrder, operatorStack);
                 index = matcher.end();
             } else if (MATCHER_FOR_ARITHMETIC_OPERATORS.find(index)) {
                 lastTokenWasOperator = true;
                 Matcher matcher = MATCHER_FOR_ARITHMETIC_OPERATORS;
-                if (!number_system_Hash.containsKey(current_number_system))
-                    number_system_Hash.put(current_number_system, new NumberSystem(current_number_system));
-                op = new ArithmeticOperator(real_starting_position + matcher.start(1), matcher.group(1), number_system_Hash.get(current_number_system));
-                op.put(postOrder, operator_Stack);
+                if (!numberSystemHash.containsKey(currentNumberSystem))
+                    numberSystemHash.put(currentNumberSystem, new NumberSystem(currentNumberSystem));
+                op = new ArithmeticOperator(realStartingPosition + matcher.start(1), matcher.group(1), numberSystemHash.get(currentNumberSystem));
+                op.put(postOrder, operatorStack);
                 index = matcher.end();
             } else if (MATCHER_FOR_WORD.find(index)) {
-                if (!lastTokenWasOperator) throw ExceptionHelper.operatorMissing(real_starting_position + index);
+                if (!lastTokenWasOperator) throw ExceptionHelper.operatorMissing(realStartingPosition + index);
                 lastTokenWasOperator = false;
-                index = put_word(current_number_system, false);
+                index = putWord(currentNumberSystem, false);
             } else if (MATCHER_FOR_WORD_WITH_DELIMITER.find(index)) {
-                if (!lastTokenWasOperator) throw ExceptionHelper.operatorMissing(real_starting_position + index);
+                if (!lastTokenWasOperator) throw ExceptionHelper.operatorMissing(realStartingPosition + index);
                 lastTokenWasOperator = false;
-                index = put_word(current_number_system, true);
+                index = putWord(currentNumberSystem, true);
             } else if (MATCHER_FOR_FUNCTION.find(index)) {
-                if (!lastTokenWasOperator) throw ExceptionHelper.operatorMissing(real_starting_position + index);
+                if (!lastTokenWasOperator) throw ExceptionHelper.operatorMissing(realStartingPosition + index);
                 lastTokenWasOperator = false;
-                index = put_function(current_number_system);
+                index = putFunction(currentNumberSystem);
             } else if (MATCHER_FOR_MACRO.find(index)) {
-                if (!lastTokenWasOperator) throw ExceptionHelper.operatorMissing(real_starting_position + index);
-                index = put_macro();
+                if (!lastTokenWasOperator) throw ExceptionHelper.operatorMissing(realStartingPosition + index);
+                index = putMacro();
             } else if (MATCHER_FOR_VARIABLE.find(index)) {
-                if (!lastTokenWasOperator) throw ExceptionHelper.operatorMissing(real_starting_position + index);
+                if (!lastTokenWasOperator) throw ExceptionHelper.operatorMissing(realStartingPosition + index);
                 lastTokenWasOperator = false;
-                t = new Variable(real_starting_position + MATCHER_FOR_VARIABLE.start(1), MATCHER_FOR_VARIABLE.group(1));
+                t = new Variable(realStartingPosition + MATCHER_FOR_VARIABLE.start(1), MATCHER_FOR_VARIABLE.group(1));
                 t.put(postOrder);
                 index = MATCHER_FOR_VARIABLE.end();
             } else if (MATCHER_FOR_NUMBER_LITERAL.find(index)) {
-                if (!lastTokenWasOperator) throw ExceptionHelper.operatorMissing(real_starting_position + index);
+                if (!lastTokenWasOperator) throw ExceptionHelper.operatorMissing(realStartingPosition + index);
                 lastTokenWasOperator = false;
-                if (!number_system_Hash.containsKey(current_number_system))
-                    number_system_Hash.put(current_number_system, new NumberSystem(current_number_system));
-                t = new NumberLiteral(real_starting_position + MATCHER_FOR_NUMBER_LITERAL.start(1), UtilityMethods.parseInt(MATCHER_FOR_NUMBER_LITERAL.group(1)), number_system_Hash.get(current_number_system));
+                if (!numberSystemHash.containsKey(currentNumberSystem))
+                    numberSystemHash.put(currentNumberSystem, new NumberSystem(currentNumberSystem));
+                t = new NumberLiteral(realStartingPosition + MATCHER_FOR_NUMBER_LITERAL.start(1), UtilityMethods.parseInt(MATCHER_FOR_NUMBER_LITERAL.group(1)), numberSystemHash.get(currentNumberSystem));
                 t.put(postOrder);
                 index = MATCHER_FOR_NUMBER_LITERAL.end();
             } else if (MATCHER_FOR_ALPHABET_LETTER.find(index)) {
                 if (!lastTokenWasOperator) throw ExceptionHelper.operatorMissing(index);
                 lastTokenWasOperator = false;
-                t = new AlphabetLetter(real_starting_position + MATCHER_FOR_ALPHABET_LETTER.start(1), UtilityMethods.parseInt(MATCHER_FOR_ALPHABET_LETTER.group(1)));
+                t = new AlphabetLetter(realStartingPosition + MATCHER_FOR_ALPHABET_LETTER.start(1), UtilityMethods.parseInt(MATCHER_FOR_ALPHABET_LETTER.group(1)));
                 t.put(postOrder);
                 index = MATCHER_FOR_ALPHABET_LETTER.end();
             } else if (MATCHER_FOR_NUMBER_SYSTEM.find(index)) {
-                String tmp = derive_number_system();
-                number_system_Stack.push(tmp);
-                current_number_system = tmp;
+                String tmp = deriveNumberSystem();
+                numberSystems.push(tmp);
+                currentNumberSystem = tmp;
                 index = MATCHER_FOR_NUMBER_SYSTEM.end();
             } else if (MATCHER_FOR_LEFT_PARENTHESIS.find(index)) {
-                op = new LeftParenthesis(real_starting_position + index);
-                op.put(postOrder, operator_Stack);
-                number_system_Stack.push("(");
+                op = new LeftParenthesis(realStartingPosition + index);
+                op.put(postOrder, operatorStack);
+                numberSystems.push("(");
                 index = MATCHER_FOR_LEFT_PARENTHESIS.end();
             } else if (MATCHER_FOR_RIGHT_PARENTHESIS.find(index)) {
-                op = new RightParenthesis(real_starting_position + index);
-                op.put(postOrder, operator_Stack);
-                current_number_system = find_current_number_system_in_stack(number_system_Stack);
+                op = new RightParenthesis(realStartingPosition + index);
+                op.put(postOrder, operatorStack);
+                currentNumberSystem = findCurrentNumberSystem(numberSystems);
                 index = MATCHER_FOR_RIGHT_PARENTHESIS.end();
             } else if (MATCHER_FOR_WHITESPACE.find(index)) {
                 index = MATCHER_FOR_WHITESPACE.end();
             } else {
-                throw ExceptionHelper.undefinedToken(real_starting_position + index);
+                throw ExceptionHelper.undefinedToken(realStartingPosition + index);
             }
         }
 
-        while (!operator_Stack.isEmpty()) {
-            op = operator_Stack.pop();
+        while (!operatorStack.isEmpty()) {
+            op = operatorStack.pop();
             if (op.isLeftParenthesis()) {
                 throw ExceptionHelper.unbalancedParen(op.getPositionInPredicate());
             } else {
@@ -257,39 +242,39 @@ public class Predicate {
         }
     }
 
-    private String find_current_number_system_in_stack(Stack<String> number_system_Stack) {
-        String current_number_system = default_number_system;
-        while (!number_system_Stack.isEmpty()) {
-            if (number_system_Stack.pop().equals("(")) {
+    private String findCurrentNumberSystem(Stack<String> numberSystems) {
+        String currentNumberSystem = defaultNumberSystem;
+        while (!numberSystems.isEmpty()) {
+            if (numberSystems.pop().equals("(")) {
                 Stack<String> tmp = new Stack<>();
-                while (!number_system_Stack.isEmpty()) {
-                    tmp.push(number_system_Stack.pop());
+                while (!numberSystems.isEmpty()) {
+                    tmp.push(numberSystems.pop());
                     if (!tmp.peek().equals("(")) {
-                        current_number_system = tmp.peek();
+                        currentNumberSystem = tmp.peek();
                         break;
                     }
                 }
                 while (!tmp.isEmpty()) {
-                    number_system_Stack.push(tmp.pop());
+                    numberSystems.push(tmp.pop());
                 }
                 break;
             }
         }
-        return current_number_system;
+        return currentNumberSystem;
     }
 
-    private int handle_quantifier() {
-        String[] list_of_vars = MATCHER_FOR_LIST_OF_QUANTIFIED_VARIABLES.group(1).split("(\\s|,)+");
-        Operator op = new LogicalOperator(MATCHER_FOR_LOGICAL_OPERATORS.start(), MATCHER_FOR_LOGICAL_OPERATORS.group(1), list_of_vars.length);
-        op.put(postOrder, operator_Stack);
-        for (String var : list_of_vars) {
+    private int handleQuantifier() {
+        String[] listOfVars = MATCHER_FOR_LIST_OF_QUANTIFIED_VARIABLES.group(1).split("(\\s|,)+");
+        Operator op = new LogicalOperator(MATCHER_FOR_LOGICAL_OPERATORS.start(), MATCHER_FOR_LOGICAL_OPERATORS.group(1), listOfVars.length);
+        op.put(postOrder, operatorStack);
+        for (String var : listOfVars) {
             Token t = new Variable(MATCHER_FOR_LIST_OF_QUANTIFIED_VARIABLES.start(), var);
             t.put(postOrder);
         }
         return MATCHER_FOR_LIST_OF_QUANTIFIED_VARIABLES.end();
     }
 
-    private String derive_number_system() {
+    private String deriveNumberSystem() {
         if (MATCHER_FOR_NUMBER_SYSTEM.group(2) != null) return MATCHER_FOR_NUMBER_SYSTEM.group(2);
         if (MATCHER_FOR_NUMBER_SYSTEM.group(5) != null) return "msd_" + MATCHER_FOR_NUMBER_SYSTEM.group(5);
         if (MATCHER_FOR_NUMBER_SYSTEM.group(8) != null) return MATCHER_FOR_NUMBER_SYSTEM.group(8) + "_2";
@@ -297,9 +282,9 @@ public class Predicate {
         return "msd_2";
     }
 
-    private int put_word(String default_number_system, boolean with_delimiter) {
+    private int putWord(String defaultNumberSystem, boolean withDelimiter) {
         Matcher matcher = MATCHER_FOR_WORD;
-        if (with_delimiter) {
+        if (withDelimiter) {
             matcher = MATCHER_FOR_WORD_WITH_DELIMITER;
         }
 
@@ -307,10 +292,10 @@ public class Predicate {
         Pattern p_leftBracket = Pattern.compile(r_leftBracket);
         Matcher m_leftBracket = p_leftBracket.matcher(predicate);
 
-        Automaton A = new Automaton(UtilityMethods.get_address_for_words_library() + matcher.group(1) + ".txt");
+        Automaton A = new Automaton(Session.getReadAddressForWordsLibrary() + matcher.group(1) + ".txt");
 
-        Stack<Character> bracket_Stack = new Stack<>();
-        bracket_Stack.push('[');
+        Stack<Character> bracketStack = new Stack<>();
+        bracketStack.push('[');
         int i = matcher.end();
         List<Predicate> indices = new ArrayList<>();
         StringBuilder buf = new StringBuilder();
@@ -318,14 +303,14 @@ public class Predicate {
         while (i < predicate.length()) {
             char ch = predicate.charAt(i);
             if (ch == ']') {
-                if (bracket_Stack.isEmpty())
-                    throw new RuntimeException("unbalanced bracket: chat at " + (real_starting_position + i));
-                bracket_Stack.pop();
-                if (bracket_Stack.isEmpty()) {
-                    indices.add(new Predicate(default_number_system, buf.toString(), real_starting_position + startingPosition));
+                if (bracketStack.isEmpty())
+                    throw new RuntimeException("unbalanced bracket: chat at " + (realStartingPosition + i));
+                bracketStack.pop();
+                if (bracketStack.isEmpty()) {
+                    indices.add(new Predicate(defaultNumberSystem, buf.toString(), realStartingPosition + startingPosition));
                     buf = new StringBuilder();
                     if (m_leftBracket.find(i + 1)) {
-                        bracket_Stack.push('[');
+                        bracketStack.push('[');
                         i = m_leftBracket.end();
                         startingPosition = i;
                         continue;
@@ -336,27 +321,27 @@ public class Predicate {
                     buf.append(']');
             } else {
                 buf.append(ch);
-                if (ch == '[') bracket_Stack.push('[');
+                if (ch == '[') bracketStack.push('[');
             }
             i++;
         }
         for (Predicate p : indices) {
-            List<Token> tmp = p.get_postOrder();
+            List<Token> tmp = p.getPostOrder();
             if (tmp.isEmpty())
                 throw new RuntimeException("index " + (indices.indexOf(p) + 1) + " of the word " + matcher.group(1) + " cannot be empty: char at " + matcher.start(1));
             postOrder.addAll(tmp);
         }
-        Word w = new Word(real_starting_position + matcher.start(1), matcher.group(1), A, indices.size());
+        Word w = new Word(realStartingPosition + matcher.start(1), matcher.group(1), A, indices.size());
         w.put(postOrder);
         return i + 1;
     }
 
-    private int put_function(String default_number_system) {
+    private int putFunction(String defaultNumberSystem) {
         Matcher matcher = MATCHER_FOR_FUNCTION;
-        Automaton A = new Automaton(UtilityMethods.get_address_for_automata_library() + matcher.group(1) + ".txt");
+        Automaton A = new Automaton(Session.getReadAddressForAutomataLibrary() + matcher.group(1) + ".txt");
 
-        Stack<Character> parenthesis_Stack = new Stack<>();
-        parenthesis_Stack.push('(');
+        Stack<Character> parenthesisStack = new Stack<>();
+        parenthesisStack.push('(');
         int i = matcher.end();
         List<Predicate> arguments = new ArrayList<>();
         StringBuilder buf = new StringBuilder();
@@ -364,104 +349,103 @@ public class Predicate {
         while (i < predicate.length()) {
             char ch = predicate.charAt(i);
             if (ch == '#' || ch == '$') {
-                throw ExceptionHelper.internalMacro(real_starting_position + i);
+                throw ExceptionHelper.internalMacro(realStartingPosition + i);
             }
             if (ch == ')') {
-                if (parenthesis_Stack.isEmpty())
-                    throw ExceptionHelper.unbalancedParen(real_starting_position + i);
-                parenthesis_Stack.pop();
-                if (parenthesis_Stack.isEmpty()) {
-                    arguments.add(new Predicate(default_number_system, buf.toString(), real_starting_position + startingPosition));
+                if (parenthesisStack.isEmpty())
+                    throw ExceptionHelper.unbalancedParen(realStartingPosition + i);
+                parenthesisStack.pop();
+                if (parenthesisStack.isEmpty()) {
+                    arguments.add(new Predicate(defaultNumberSystem, buf.toString(), realStartingPosition + startingPosition));
                     break;
                 }
                 buf.append(')');
             } else if (ch == ',') {
-                if (parenthesis_Stack.size() != 1)
-                    throw ExceptionHelper.unbalancedParen(real_starting_position + i);
-                arguments.add(new Predicate(default_number_system, buf.toString(), real_starting_position + startingPosition));
+                if (parenthesisStack.size() != 1)
+                    throw ExceptionHelper.unbalancedParen(realStartingPosition + i);
+                arguments.add(new Predicate(defaultNumberSystem, buf.toString(), realStartingPosition + startingPosition));
                 buf = new StringBuilder();
                 startingPosition = i + 1;
             } else {
                 buf.append(ch);
                 if (ch == '(') {
-                    parenthesis_Stack.push('(');
+                    parenthesisStack.push('(');
                 }
             }
             i++;
         }
-        if (arguments.size() == 1 && arguments.get(0).get_postOrder().isEmpty()) {
+        if (arguments.size() == 1 && arguments.get(0).getPostOrder().isEmpty()) {
             arguments.remove(0);
         }
         for (Predicate p : arguments) {
-            List<Token> tmp = p.get_postOrder();
+            List<Token> tmp = p.getPostOrder();
             if (tmp.isEmpty() && arguments.size() > 1)
                 throw new RuntimeException("argument " + (arguments.indexOf(p) + 1) + " of the function " + matcher.group(1) + " cannot be empty: char at " + matcher.start(1));
             postOrder.addAll(tmp);
         }
-        Function f = new Function(default_number_system, real_starting_position + matcher.start(1), matcher.group(1), A, arguments.size());
+        Function f = new Function(defaultNumberSystem, realStartingPosition + matcher.start(1), matcher.group(1), A, arguments.size());
         f.put(postOrder);
         return i + 1;
     }
 
-    private int put_macro() {
+    private int putMacro() {
         Matcher matcher = MATCHER_FOR_MACRO;
 
-        String macro = "";
-        try {
-            BufferedReader in =
-                    new BufferedReader(
-                            new InputStreamReader(
-                                    new FileInputStream(
-                                            UtilityMethods.get_address_for_macro_library() + matcher.group(2) + ".txt"), StandardCharsets.UTF_8));
+        StringBuilder macro = new StringBuilder();
+        try (BufferedReader in = new BufferedReader(
+            new InputStreamReader(
+                new FileInputStream(
+                    Session.getReadAddressForMacroLibrary() + matcher.group(2) + ".txt"),
+                StandardCharsets.UTF_8))) {
             String line;
             while ((line = in.readLine()) != null) {
-                macro += line;
+                macro.append(line);
             }
         } catch (IOException e) {
             e.printStackTrace();
-            throw new RuntimeException("macro does not exist: " + matcher.group(2));
+            throw new RuntimeException("Macro does not exist: " + matcher.group(2), e);
         }
-        Stack<Character> parenthesis_Stack = new Stack<>();
-        parenthesis_Stack.push('(');
+        Stack<Character> parenthesisStack = new Stack<>();
+        parenthesisStack.push('(');
         int i = matcher.end();
         List<String> arguments = new ArrayList<>();
         StringBuilder buf = new StringBuilder();
         while (i < predicate.length()) {
             char ch = predicate.charAt(i);
             if (ch == '#' || ch == '$') {
-                throw ExceptionHelper.internalMacro(real_starting_position + i);
+                throw ExceptionHelper.internalMacro(realStartingPosition + i);
             }
             if (ch == ')') {
-                if (parenthesis_Stack.isEmpty())
-                    throw ExceptionHelper.unbalancedParen(real_starting_position + i);
-                parenthesis_Stack.pop();
-                if (parenthesis_Stack.isEmpty()) {
+                if (parenthesisStack.isEmpty())
+                    throw ExceptionHelper.unbalancedParen(realStartingPosition + i);
+                parenthesisStack.pop();
+                if (parenthesisStack.isEmpty()) {
                     arguments.add(buf.toString());
                     break;
                 }
                 buf.append(')');
             } else if (ch == ',') {
-                if (parenthesis_Stack.size() != 1)
-                    throw ExceptionHelper.unbalancedParen(real_starting_position + i);
+                if (parenthesisStack.size() != 1)
+                    throw ExceptionHelper.unbalancedParen(realStartingPosition + i);
                 arguments.add(buf.toString());
                 buf = new StringBuilder();
             } else {
                 buf.append(ch);
                 if (ch == '(') {
-                    parenthesis_Stack.push('(');
+                    parenthesisStack.push('(');
                 }
             }
             i++;
         }
-        for (int arg_num = arguments.size() - 1; arg_num >= 0; arg_num--) {
-            macro = macro.replaceAll("%" + arg_num, arguments.get(arg_num));
+        for (int arg = arguments.size() - 1; arg >= 0; arg--) {
+            macro = new StringBuilder(macro.toString().replaceAll("%" + arg, arguments.get(arg)));
         }
         predicate = predicate.substring(0, matcher.start()) + matcher.group(1) + macro + predicate.substring(i + 1);
-        initialize_matchers();
+        initializeMatchers();
         return matcher.start();
     }
 
-    public List<Token> get_postOrder() {
+    public List<Token> getPostOrder() {
         return postOrder;
     }
 

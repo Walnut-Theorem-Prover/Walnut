@@ -24,64 +24,49 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Stack;
 
-import Automata.Automaton;
-import Automata.AutomatonWriter;
 import Main.Expressions.AutomatonExpression;
 import Token.Token;
 
 
 public class Computer {
-    Predicate predicate_object;
-    String predicate_string;
+    private final Predicate predicateObject;
+    String predicateString;
     Expression result;
-    StringBuilder log;
-    StringBuilder log_details;
+    private final StringBuilder log;
+    final StringBuilder logDetails;
     String mpl;
-    boolean printSteps;
-    boolean printDetails;
+    private final boolean printSteps;
+    private final boolean printDetails;
 
     public Computer(String predicate, boolean printSteps, boolean printDetails) {
         this.log = new StringBuilder();
-        this.log_details = new StringBuilder();
+        this.logDetails = new StringBuilder();
         mpl = "";
-        this.predicate_string = predicate;
-        predicate_object = new Predicate(predicate);
+        this.predicateString = predicate;
+        predicateObject = new Predicate(predicate);
         this.printSteps = printSteps;
         this.printDetails = printDetails;
         compute();
-    }
-
-    public Automaton getTheFinalResult() {
-        return result.M;
-    }
-
-    public void writeLog(String address) throws IOException {
-        PrintWriter out = new PrintWriter(address, StandardCharsets.UTF_8);
-        out.write(log.toString());
-        out.close();
-    }
-
-    public void writeDetailedLog(String address) throws IOException {
-        PrintWriter out = new PrintWriter(address, StandardCharsets.UTF_8);
-        out.write(log_details.toString());
-        out.close();
-    }
-
-    public void drawAutomaton(String address) {
-        AutomatonWriter.draw(result.M, address, predicate_string, false);
-    }
-
-    public void write(String address) {
-        AutomatonWriter.write(result.M, address);
     }
 
     public String toString() {
         return result.toString();
     }
 
+    void writeLogs(String resultName, Computer c, boolean printDetails) throws IOException {
+        PrintWriter out = new PrintWriter(resultName + "_log.txt", StandardCharsets.UTF_8);
+        out.write(c.log.toString());
+        out.close();
+        if (printDetails) {
+            out = new PrintWriter(resultName + "_detailed_log.txt", StandardCharsets.UTF_8);
+            out.write(c.logDetails.toString());
+            out.close();
+        }
+    }
+
     private void compute() {
         Stack<Expression> expressions = new Stack<>();
-        List<Token> postOrder = predicate_object.get_postOrder();
+        List<Token> postOrder = predicateObject.getPostOrder();
         String prefix = "";
         long timeBeginning = System.currentTimeMillis();
         String step;
@@ -89,14 +74,14 @@ public class Computer {
         for (Token t : postOrder) {
             try {
                 long timeBefore = System.currentTimeMillis();
-                t.act(expressions, printDetails, prefix, log_details);
+                t.act(expressions, printDetails, prefix, logDetails);
                 long timeAfter = System.currentTimeMillis();
                 Expression nextExpression = expressions.peek();
                 if (t.isOperator() && nextExpression instanceof AutomatonExpression) {
                     step = prefix + nextExpression + ":" +
                         nextExpression.M.Q + " states - " + (timeAfter - timeBefore) + "ms";
                     log.append(step + System.lineSeparator());
-                    log_details.append(step + System.lineSeparator());
+                    logDetails.append(step + System.lineSeparator());
                     if (printSteps || printDetails) {
                         System.out.println(step);
                     }
@@ -114,7 +99,7 @@ public class Computer {
         long timeEnd = System.currentTimeMillis();
         step = "Total computation time: " + (timeEnd - timeBeginning) + "ms.";
         log.append(step);
-        log_details.append(step);
+        logDetails.append(step);
         if (printSteps || printDetails) {
             System.out.println(step);
         }

@@ -21,6 +21,7 @@ package Main;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 /**
  * This class contains a number of useful static methods.
@@ -28,67 +29,11 @@ import java.util.List;
  * @author Hamoon
  */
 public class UtilityMethods {
-    static String dir = "";
-    static String ADDRESS_FOR_COMMAND_FILES = "Command Files/";
-    static String ADDRESS_FOR_MACRO_LIBRARY = "Macro Library/";
-    static String ADDRESS_FOR_AUTOMATA_LIBRARY = "Automata Library/";
-    static String ADDRESS_FOR_WORDS_LIBRARY = "Word Automata Library/";
-    static String ADDRESS_FOR_MORPHISM_LIBRARY = "Morphism Library/";
-    static String ADDRESS_FOR_TRANSDUCER_LIBRARY = "Transducer Library/";
-    static String ADDRESS_FOR_RESULT = "Result/";
-    static String ADDRESS_FOR_CUSTOM_BASES = "Custom Bases/";
-    static String ADDRESS_FOR_HELP_COMMANDS = "Help Documentation/Commands/";
-    static String ADDRESS_FOR_INTEGRATION_TEST_RESULTS = "Test Results/Integration Tests/";
     static String ADDRESS_FOR_UNIT_TEST_INTEGRATION_TEST_RESULTS = "src/test/resources/integrationTests/";
 
-    static String PROMPT = "\n[Walnut]$ ";
-
-    public static void setPaths() {
-        String path = System.getProperty("user.dir");
-        if (path.endsWith("bin"))
-            dir = "../";
-    }
-
-    public static String get_address_for_command_files() {
-        return dir + ADDRESS_FOR_COMMAND_FILES;
-    }
-
-    public static String get_address_for_automata_library() {
-        return dir + ADDRESS_FOR_AUTOMATA_LIBRARY;
-    }
-
-    public static String get_address_for_macro_library() {
-        return dir + ADDRESS_FOR_MACRO_LIBRARY;
-    }
-
-    public static String get_address_for_result() {
-        return dir + ADDRESS_FOR_RESULT;
-    }
-
-    public static String get_address_for_custom_bases() {
-        return dir + ADDRESS_FOR_CUSTOM_BASES;
-    }
-
-    public static String get_address_for_words_library() {
-        return dir + ADDRESS_FOR_WORDS_LIBRARY;
-    }
-
-    public static String get_address_for_morphism_library() {
-        return dir + ADDRESS_FOR_MORPHISM_LIBRARY;
-    }
-
-    public static String get_address_for_transducer_library() {
-        return dir + ADDRESS_FOR_TRANSDUCER_LIBRARY;
-    }
-
-    public static String get_address_for_integration_test_results() {
-        return dir + ADDRESS_FOR_INTEGRATION_TEST_RESULTS;
-    }
-
-    public static String get_address_for_help_commands() {
-        return dir + ADDRESS_FOR_HELP_COMMANDS;
-    }
-
+    private static final Pattern WHITESPACE_SPLIT = Pattern.compile("\\s+");
+    private static final Pattern PATTERN_NUMBER = Pattern.compile("^\\d+$");
+    private static final Pattern PATTERN_NEG_NUMBER = Pattern.compile("^neg_\\d+$");
 
     public static char min(char a, char b) {
         return a < b ? a : b;
@@ -105,7 +50,7 @@ public class UtilityMethods {
      * @return
      */
     public static boolean isNumber(String s) {
-        return s.matches("^\\d+$");
+        return PATTERN_NUMBER.matcher(s).matches();
     }
 
     /**
@@ -116,7 +61,7 @@ public class UtilityMethods {
      * @return
      */
     public static int parseNegNumber(String s) {
-        if (!s.matches("^neg_\\d+$")) {
+        if (!PATTERN_NEG_NUMBER.matcher(s).matches()) {
             return 0;
         }
         return parseInt(s.substring(4));
@@ -243,7 +188,7 @@ public class UtilityMethods {
      * @return
      */
     public static int parseInt(String s) {
-        String[] part = s.split("\\s+");
+        String[] part = WHITESPACE_SPLIT.split(s);
         StringBuilder b = new StringBuilder();
         for (String x : part) {
             b.append(x);

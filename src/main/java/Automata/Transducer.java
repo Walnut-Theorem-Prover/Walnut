@@ -42,6 +42,8 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectRBTreeMap;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 
+import static Automata.ParseMethods.PATTERN_WHITESPACE;
+
 /**
  * The class Transducer represents a deterministic finite-state transducer with all states final that is 1-uniform.
  * <p>
@@ -87,7 +89,6 @@ public class Transducer extends Automaton {
      */
     public Transducer(String address) {
         this();
-        final String REGEXP_FOR_WHITESPACE = "^\\s*$";
 
         // lineNumber will be used in error messages
         int lineNumber = 0;
@@ -101,7 +102,7 @@ public class Transducer extends Automaton {
             while ((line = in.readLine()) != null) {
                 lineNumber++;
 
-                if (line.matches(REGEXP_FOR_WHITESPACE)) {
+                if (PATTERN_WHITESPACE.matcher(line).matches()) {
                     // Ignore blank lines.
                     continue;
                 }
@@ -160,7 +161,7 @@ public class Transducer extends Automaton {
             Q = 0;
             while((line = in.readLine())!= null) {
                 lineNumber++;
-                if(line.matches(REGEXP_FOR_WHITESPACE)) {
+                if (PATTERN_WHITESPACE.matcher(line).matches()) {
                     continue;
                 }
 
@@ -239,28 +240,7 @@ public class Transducer extends Automaton {
      */
     public Transducer clone() {
         Transducer T = new Transducer();
-        T.Q = Q;
-        T.q0 = q0;
-        T.alphabetSize = alphabetSize;
-        T.canonized = canonized;
-        T.labelSorted = labelSorted;
-        for(int i = 0 ; i < A.size();i++){
-            T.A.add(new ArrayList<>(A.get(i)));
-            T.NS.add(NS.get(i));
-            if(encoder != null && !encoder.isEmpty()){
-                if(T.encoder == null) T.encoder = new ArrayList<>();
-                T.encoder.add(encoder.get(i));
-            }
-            if(label != null && label.size() == A.size())
-                T.label.add(label.get(i));
-        }
-        for(int q = 0; q < Q; q++){
-            T.O.add(O.getInt(q));
-            T.d.add(new Int2ObjectRBTreeMap<>());
-            for(int x:d.get(q).keySet()){
-                T.d.get(q).put(x, new IntArrayList(d.get(q).get(x)));
-            }
-        }
+        super.cloneFields(T);
         for (int i = 0; i < sigma.size(); i++) {
             T.sigma.add(new TreeMap<>(sigma.get(i)));
         }

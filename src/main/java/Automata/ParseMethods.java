@@ -41,33 +41,30 @@ public class ParseMethods {
     static int TRANSDUCER_TRANSITION_DESTINATION = 6;
     static int TRANSDUCER_TRANSITION_OUTPUT = 8; // character output by the transition, not the state.
 
-    static String REGEXP_FOR_TRUE_FALSE = "^\\s*(true|false)\\s*$";
-    static Pattern PATTERN_FOR_TRUE_FALSE = Pattern.compile(REGEXP_FOR_TRUE_FALSE);
+    static Pattern PATTERN_FOR_TRUE_FALSE = Pattern.compile("^\\s*(true|false)\\s*$");
 
-    static String NEXT_ALPHABET_TOKEN = "\\G\\s*((((msd|lsd)_(\\d+|\\w+))|((msd|lsd)(\\d+|\\w+))|(msd|lsd)|(\\d+|\\w+))|(\\{\\s*((\\+|\\-)?\\s*\\d+\\s*(\\s*,\\s*(\\+|\\-)?\\s*\\d+)*)\\s*\\}))\\s*";
-    static Pattern PATTERN_NEXT_ALPHABET_TOKEN = Pattern.compile(NEXT_ALPHABET_TOKEN);
+    static Pattern PATTERN_NEXT_ALPHABET_TOKEN = Pattern.compile(
+        "\\G\\s*((((msd|lsd)_(\\d+|\\w+))|((msd|lsd)(\\d+|\\w+))|(msd|lsd)|(\\d+|\\w+))|(\\{\\s*((\\+|\\-)?\\s*\\d+\\s*(\\s*,\\s*(\\+|\\-)?\\s*\\d+)*)\\s*\\}))\\s*");
 
-    static String ELEMENT = "\\G\\s*,?\\s*(((\\+|\\-)?\\s*\\d+)|\\*)";
-    static Pattern PATTERN_ELEMENT = Pattern.compile(ELEMENT);
+    static Pattern PATTERN_ELEMENT = Pattern.compile("\\G\\s*,?\\s*(((\\+|\\-)?\\s*\\d+)|\\*)");
 
-    static String REGEXP_FOR_STATE_DECLARATION = "^\\s*(\\d+)\\s+((\\+|\\-)?\\s*\\d+)\\s*$";
-    static Pattern PATTERN_FOR_STATE_DECLARATION = Pattern.compile(REGEXP_FOR_STATE_DECLARATION);
+    static Pattern PATTERN_FOR_STATE_DECLARATION = Pattern.compile("^\\s*(\\d+)\\s+((\\+|\\-)?\\s*\\d+)\\s*$");
 
+    static Pattern PATTERN_FOR_TRANSITION =
+        Pattern.compile("^\\s*((((\\+|\\-)?\\s*\\d+\\s*)|(\\s*\\*\\s*))+)\\s*\\->\\s*((\\d+\\s*)+)\\s*$");
 
-    static String REGEXP_FOR_TRANSITION = "^\\s*((((\\+|\\-)?\\s*\\d+\\s*)|(\\s*\\*\\s*))+)\\s*\\->\\s*((\\d+\\s*)+)\\s*$";
-    static Pattern PATTERN_FOR_TRANSITION = Pattern.compile(REGEXP_FOR_TRANSITION);
+    static Pattern PATTERN_FOR_MAPPING_IN_morphism_COMMAND =
+        Pattern.compile("(\\d+)\\s*\\-\\>\\s*((\\[(\\+|\\-)?\\s*\\d+\\]|\\d)*)");
+    static Pattern PATTERN_FOR_MAPPING_IMAGE_IN_morphism_COMMAND =
+        Pattern.compile("\\[(\\+|\\-)?\\s*\\d+\\]|\\d");
 
-    static String REGEXP_FOR_MAPPING_IN_morphism_COMMAND = "(\\d+)\\s*\\-\\>\\s*((\\[(\\+|\\-)?\\s*\\d+\\]|\\d)*)";
-    static Pattern PATTERN_FOR_MAPPING_IN_morphism_COMMAND = Pattern.compile(REGEXP_FOR_MAPPING_IN_morphism_COMMAND);
-    static String REGEXP_FOR_MAPPING_IMAGE_IN_morphism_COMMAND = "\\[(\\+|\\-)?\\s*\\d+\\]|\\d";
-    static Pattern PATTERN_FOR_MAPPING_IMAGE_IN_morphism_COMMAND = Pattern.compile(REGEXP_FOR_MAPPING_IMAGE_IN_morphism_COMMAND);
+    static Pattern PATTERN_FOR_TRANSDUCER_STATE_DECLARATION = Pattern.compile("^\\s*(\\d+)\\s*$");
 
-    static String REGEXP_FOR_TRANSDUCER_STATE_DECLARATION = "^\\s*(\\d+)\\s*$";
-    static Pattern PATTERN_FOR_TRANSDUCER_STATE_DECLARATION = Pattern.compile(REGEXP_FOR_TRANSDUCER_STATE_DECLARATION);
+    static Pattern PATTERN_FOR_TRANSDUCER_TRANSITION =
+        Pattern.compile("^\\s*((((\\+|\\-)?\\s*\\d+\\s*)|(\\s*\\*\\s*))+)\\s*\\->\\s*((\\d+\\s*)+)\\s*\\/\\s*((\\+|\\-)?\\s*\\d+)\\s*$");
 
+    public static Pattern PATTERN_WHITESPACE = Pattern.compile("^\\s*$");
 
-    static String REGEXP_FOR_TRANSDUCER_TRANSITION = "^\\s*((((\\+|\\-)?\\s*\\d+\\s*)|(\\s*\\*\\s*))+)\\s*\\->\\s*((\\d+\\s*)+)\\s*\\/\\s*((\\+|\\-)?\\s*\\d+)\\s*$";
-    static Pattern PATTERN_FOR_TRANSDUCER_TRANSITION = Pattern.compile(REGEXP_FOR_TRANSDUCER_TRANSITION);
 
     public static boolean parseTrueFalse(String s, boolean[] singleton) {
         Matcher m = PATTERN_FOR_TRUE_FALSE.matcher(s);

@@ -2,6 +2,7 @@
 package Automata;
 
 import Main.ExceptionHelper;
+import Main.Session;
 import Main.UtilityMethods;
 
 import java.io.BufferedReader;
@@ -24,6 +25,8 @@ import dk.brics.automaton.Transition;
 import it.unimi.dsi.fastutil.ints.*;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
+
+import static Automata.ParseMethods.PATTERN_WHITESPACE;
 
 /**
  * This class can represent different types of automaton: deterministic/non-deterministic and/or automata with output/automata without output.<bf>
@@ -178,22 +181,6 @@ public class Automaton {
 
     // for use in the combine command, allows crossProduct to determine what to set outputs to
     public IntList combineOutputs;
-
-    // for use in inf command, keeps track of which states we have visited
-    public IntSet visited;
-
-    // for use in inf command, records where we started our depth first search to find a cycle
-    public int started;
-
-    // for use in test command, to gather a list of all accepted values of a specified length in lexicographic order
-    public List<String> accepted;
-
-    // for use in test command, tells us what length of solutions we are currently searching for in this subautomaton
-    public int searchLength;
-
-    // for use in test command, tells us the number of accepted strings remaining to be added to the main list, so we can end early if
-    // we find that many
-    public int maxNeeded;
 
     /* Minimization algorithm */
     void minimize_valmari(List<Int2IntMap> newMemD, boolean print, String prefix, StringBuilder log) {
@@ -366,7 +353,6 @@ public class Automaton {
      */
     public Automaton(String address) {
         this();
-        final String REGEXP_FOR_WHITESPACE = "^\\s*$";
 
         //lineNumber will be used in error messages
         int lineNumber = 0;
@@ -374,53 +360,54 @@ public class Automaton {
 
         try {
             BufferedReader in = new BufferedReader(
-                    new InputStreamReader(new FileInputStream(address), StandardCharsets.UTF_8));
+                new InputStreamReader(new FileInputStream(address), StandardCharsets.UTF_8));
             String line;
             boolean[] singleton = new boolean[1];
             while ((line = in.readLine()) != null) {
                 lineNumber++;
-                if (line.matches(REGEXP_FOR_WHITESPACE)) {
+                if (PATTERN_WHITESPACE.matcher(line).matches()) {
                     // Ignore blank lines.
                     continue;
-                } else if (ParseMethods.parseTrueFalse(line, singleton)) {
+                }
+                if (ParseMethods.parseTrueFalse(line, singleton)) {
                     // It is a true/false automaton.
                     TRUE_FALSE_AUTOMATON = true;
                     TRUE_AUTOMATON = singleton[0];
                     in.close();
                     return;
-                } else {
-                    boolean flag;
-                    try {
-                        flag = ParseMethods.parseAlphabetDeclaration(line, A, NS);
-                    } catch (RuntimeException e) {
-                        in.close();
-                        throw new RuntimeException(
-                                e.getMessage() + System.lineSeparator() +
-                                        "\t:line " + lineNumber + " of file " + address);
-                    }
+                }
 
-                    if (flag) {
-                        for (int i = 0; i < A.size(); i++) {
-                            if (NS.get(i) != null &&
-                                    (!A.get(i).contains(0) || !A.get(i).contains(1))) {
-                                in.close();
-                                throw new RuntimeException(
-                                        "The " + (i + 1) + "th input of type arithmetic " +
-                                                "of the automaton declared in file " + address +
-                                                " requires 0 and 1 in its input alphabet: line " +
-                                                lineNumber);
-                            }
-                            UtilityMethods.removeDuplicates(A.get(i));
-                            alphabetSize *= A.get(i).size();
+                boolean flag;
+                try {
+                    flag = ParseMethods.parseAlphabetDeclaration(line, A, NS);
+                } catch (RuntimeException e) {
+                    in.close();
+                    throw new RuntimeException(
+                        e.getMessage() + System.lineSeparator() +
+                            "\t:line " + lineNumber + " of file " + address);
+                }
+
+                if (flag) {
+                    for (int i = 0; i < A.size(); i++) {
+                        if (NS.get(i) != null &&
+                            (!A.get(i).contains(0) || !A.get(i).contains(1))) {
+                            in.close();
+                            throw new RuntimeException(
+                                "The " + (i + 1) + "th input of type arithmetic " +
+                                    "of the automaton declared in file " + address +
+                                    " requires 0 and 1 in its input alphabet: line " +
+                                    lineNumber);
                         }
-
-                        break;
-                    } else {
-                        in.close();
-                        throw new RuntimeException(
-                                "Undefined statement: line " +
-                                        lineNumber + " of file " + address);
+                        UtilityMethods.removeDuplicates(A.get(i));
+                        alphabetSize *= A.get(i).size();
                     }
+
+                    break;
+                } else {
+                    in.close();
+                    throw new RuntimeException(
+                        "Undefined statement: line " +
+                            lineNumber + " of file " + address);
                 }
             }
 
@@ -441,7 +428,7 @@ public class Automaton {
             Q = 0;
             while ((line = in.readLine()) != null) {
                 lineNumber++;
-                if (line.matches(REGEXP_FOR_WHITESPACE)) {
+                if (PATTERN_WHITESPACE.matcher(line).matches()) {
                     continue;
                 }
 
@@ -507,12 +494,13 @@ public class Automaton {
      * @return a deep copy of this automaton
      */
     public Automaton clone() {
-        Automaton M;
         if (TRUE_FALSE_AUTOMATON) {
-            M = new Automaton(TRUE_AUTOMATON);
-            return M;
+            return new Automaton(TRUE_AUTOMATON);
         }
-        M = new Automaton();
+        return cloneFields(new Automaton());
+    }
+
+    Automaton cloneFields(Automaton M) {
         M.Q = Q;
         M.q0 = q0;
         M.alphabetSize = alphabetSize;
@@ -566,14 +554,14 @@ public class Automaton {
 
         for (String automataName : automataNames) {
             long timeBefore = System.currentTimeMillis();
-            Automaton N = new Automaton(UtilityMethods.get_address_for_automata_library() + automataName + ".txt");
+            Automaton N = readAutomatonFromFile(automataName);
 
             // ensure that N has the same number system as first.
             if (isNSDiffering(N, first.NS, N.A, first)) {
                 throw new RuntimeException("Automata to be unioned must have the same number system(s).");
             }
 
-            // crossProduct requires labelling so we make an arbitrary labelling and use it for both: this is valid since
+            // crossProduct requires labelling; make an arbitrary labelling and use it for both: this is valid since
             // input alphabets and arities are assumed to be identical for the combine method
             first.randomLabel();
             N.label = first.label;
@@ -597,6 +585,10 @@ public class Automaton {
         return first;
     }
 
+    private static Automaton readAutomatonFromFile(String automataName) {
+      return new Automaton(Session.getReadAddressForAutomataLibrary() + automataName + ".txt");
+    }
+
     static boolean isNSDiffering(Automaton N, List<NumberSystem> first, List<List<Integer>> N1, Automaton first1) {
         if (N.NS.size() != first.size()) {
             return true;
@@ -617,7 +609,7 @@ public class Automaton {
         Queue<Automaton> subautomata = new LinkedList<>();
 
         for (String name : automataNames) {
-            Automaton M = new Automaton(UtilityMethods.get_address_for_automata_library() + name + ".txt");
+            Automaton M = readAutomatonFromFile(name);
             subautomata.add(M);
         }
         return AutomatonLogicalOps.combine(this, subautomata, outputs, print, prefix, log);
@@ -763,7 +755,7 @@ public class Automaton {
 
         for (String automataName : automataNames) {
             long timeBefore = System.currentTimeMillis();
-            Automaton N = new Automaton(UtilityMethods.get_address_for_automata_library() + automataName + ".txt");
+            Automaton N = readAutomatonFromFile(automataName);
 
             first = first.concat(N, print, prefix, log);
 
@@ -924,10 +916,16 @@ public class Automaton {
     // is given. This is true iff there exists a cycle in a minimized version of the automaton, which previously had leading or
     // trailing zeroes removed according to whether it was msd or lsd
     public String infinite() {
+        // tracks which states we have visited
+        IntSet visited;
+
+        // records where we started our depth first search to find a cycle
+        int started;
+
         for (int i = 0; i < Q; i++) {
             visited = new IntOpenHashSet();
             started = i;
-            String cycle = infiniteHelper(i, "");
+            String cycle = infiniteHelper(visited, started, i, "");
             // once a cycle is detected, we compute a prefix leading to state i and a suffix from state i to an accepting state
             if (cycle != "") {
                 return constructPrefix(i) + "(" + cycle + ")*" + constructSuffix(i);
@@ -937,7 +935,7 @@ public class Automaton {
     }
 
     // helper function for our DFS to facilitate recursion
-    private String infiniteHelper(int state, String result) {
+    private String infiniteHelper(IntSet visited, int started, int state, String result) {
         if (visited.contains(state)) {
             if (state == started) {
                 return result;
@@ -948,7 +946,7 @@ public class Automaton {
         for (int x : d.get(state).keySet()) {
             for (Integer y : d.get(state).get(x)) {
                 // this adds brackets even when inputs have arity 1 - this is fine, since we just want a usable infinite regex
-                String cycle = infiniteHelper(y, result + decode(A, x));
+                String cycle = infiniteHelper(visited, started, y, result + decode(A, x));
                 if (cycle != "") {
                     return cycle;
                 }
@@ -968,9 +966,19 @@ public class Automaton {
      * x' and y' are in the corresponding base -2 representations of x and -y.
      * @throws Exception
      */
-    public Automaton split(List<String> inputs, boolean print, String prefix, StringBuilder log) {
+    /**
+     * Generalized method to handle split and reverse split operations on the automaton.
+     *
+     * @param inputs A list of "+", "-" or "". Indicating how our input will be interpreted in the output automata.
+     * @param reverse Whether to perform the reverse split operation.
+     * @param print Whether to print debug information.
+     * @param prefix A prefix for debug messages.
+     * @param log A log to store debug information.
+     * @return The modified automaton after the split/reverse split operation.
+     */
+    public Automaton processSplit(List<String> inputs, boolean reverse, boolean print, String prefix, StringBuilder log) {
         if (alphabetSize == 0) {
-            throw new RuntimeException("Cannot split automaton with no inputs.");
+            throw new RuntimeException("Cannot process split automaton with no inputs.");
         }
         if (inputs.size() != A.size()) {
             throw new RuntimeException("Split automaton has incorrect number of inputs.");
@@ -978,11 +986,13 @@ public class Automaton {
 
         Automaton M = clone();
         Set<String> quantifiers = new HashSet<>();
-        // We label M [b0,b1,...,b(A.size()-1)]
-        if (M.label == null || !M.label.isEmpty()) M.label = new ArrayList<>();
+        // Label M with [b0, b1, ..., b(A.size() - 1)]
+        if (M.label == null) M.label = new ArrayList<>();
+        else if (!M.label.isEmpty()) M.label = new ArrayList<>();
         for (int i = 0; i < A.size(); i++) {
             M.label.add("b" + i);
         }
+
         for (int i = 0; i < inputs.size(); i++) {
             if (!inputs.get(i).equals("")) {
                 if (NS.get(i) == null)
@@ -1004,14 +1014,19 @@ public class Automaton {
 
                 Automaton baseChange = negativeNumberSystem.baseChange.clone();
                 String a = "a" + i, b = "b" + i, c = "c" + i;
+
                 if (inputs.get(i).equals("+")) {
-                    baseChange.bind(a, b);
+                    baseChange.bind(reverse ? b : a, reverse ? a : b); // Use ternary for binding logic
                     M = AutomatonLogicalOps.and(M, baseChange, print, prefix, log);
                     quantifiers.add(b);
                 } else { // inputs.get(i).equals("-")
-                    baseChange.bind(a, c);
+                    baseChange.bind(reverse ? b : a, c); // Use ternary for binding logic
                     M = AutomatonLogicalOps.and(M, baseChange, print, prefix, log);
-                    M = AutomatonLogicalOps.and(M, negativeNumberSystem.arithmetic(b, c, 0, "+"), print, prefix, log);
+                    M = AutomatonLogicalOps.and(
+                        M,
+                        negativeNumberSystem.arithmetic(reverse ? a : b, c, 0, "+"), // Use ternary for arithmetic logic
+                        print, prefix, log
+                    );
                     quantifiers.add(b);
                     quantifiers.add(c);
                 }
@@ -1024,70 +1039,17 @@ public class Automaton {
     }
 
     /**
-     * @param inputs A list of "+", "-" or "". Indicating how our input will be interpreted in the output automata.
-     *               Inputs must correspond to inputs of the current automaton
-     *               which can be compared to some corresponding negative base.
-     * @return The automaton which replaces inputs in positive base with an input in corresponding comparable negative base.
-     * For sake of example, suppose the input is [+,-,] and M is the current automata with inputs in base 2.
-     * On inputs (x,y,z), where x,y are inputs in base -2, the automaton gives as output M(x',y',z) where
-     * x' and y' are in the corresponding base 2 representations of x and -y. If x or -y has no corresponding
-     * base 2 representation, then the automaton outputs 0.
-     * @throws Exception
+     * Performs the split operation on the automaton.
+     */
+    public Automaton split(List<String> inputs, boolean print, String prefix, StringBuilder log) {
+        return processSplit(inputs, false, print, prefix, log);
+    }
+
+    /**
+     * Performs the reverse split operation on the automaton.
      */
     public Automaton reverseSplit(List<String> inputs, boolean print, String prefix, StringBuilder log) {
-        if (alphabetSize == 0) {
-            throw new RuntimeException("Cannot reverse split automaton with no inputs.");
-        }
-        if (inputs.size() != A.size()) {
-            throw new RuntimeException("Split automaton has incorrect number of inputs.");
-        }
-
-        Automaton M = clone();
-        Set<String> quantifiers = new HashSet<>();
-        // We label M [b0,b1,...,b(A.size()-1)]
-        if (M.label == null) M.label = new ArrayList<>();
-        else if (!M.label.isEmpty()) M.label = new ArrayList<>();
-        for (int i = 0; i < A.size(); i++) {
-            M.label.add("b" + i);
-        }
-        for (int i = 0; i < inputs.size(); i++) {
-            if (!inputs.get(i).equals("")) {
-                if (NS.get(i) == null)
-                    throw new RuntimeException("Number system for input " + i + " must be defined.");
-                NumberSystem negativeNumberSystem;
-                if (NS.get(i).is_neg) {
-                    negativeNumberSystem = NS.get(i);
-                } else {
-                    try {
-                        negativeNumberSystem = NS.get(i).negative_number_system();
-                    } catch (RuntimeException e) {
-                        throw new RuntimeException("Negative number system for " + NS.get(i) + " must be defined");
-                    }
-                }
-                negativeNumberSystem.setBaseChange();
-                if (negativeNumberSystem.baseChange == null) {
-                    throw new RuntimeException("Number systems " + NS.get(i) + " and " + negativeNumberSystem + " cannot be compared.");
-                }
-
-                Automaton baseChange = negativeNumberSystem.baseChange.clone();
-                String a = "a" + i, b = "b" + i, c = "c" + i;
-                if (inputs.get(i).equals("+")) {
-                    baseChange.bind(b, a);
-                    M = AutomatonLogicalOps.and(M, baseChange, print, prefix, log);
-                    quantifiers.add(b);
-                } else { // inputs.get(i).equals("-")
-                    baseChange.bind(b, c);
-                    M = AutomatonLogicalOps.and(M, baseChange, print, prefix, log);
-                    M = AutomatonLogicalOps.and(M, negativeNumberSystem.arithmetic(a, c, 0, "+"), print, prefix, log);
-                    quantifiers.add(b);
-                    quantifiers.add(c);
-                }
-            }
-        }
-        AutomatonLogicalOps.quantify(M, quantifiers, print, prefix, log);
-        M.sortLabel();
-        M.randomLabel();
-        return M;
+        return processSplit(inputs, true, print, prefix, log);
     }
 
 
@@ -1221,14 +1183,14 @@ public class Automaton {
         return result.toString();
     }
 
-    public void findAccepted(Integer searchLength, Integer maxNeeded) {
-        this.accepted = new ArrayList<>();
-        this.searchLength = searchLength;
-        this.maxNeeded = maxNeeded;
-        findAcceptedHelper(0, "", q0);
+    public List<String> findAccepted(Integer searchLength, Integer maxNeeded) {
+        List<String> accepted = new ArrayList<>();
+        findAcceptedHelper(accepted, maxNeeded, searchLength, 0, "", q0);
+        return accepted;
     }
 
-    private boolean findAcceptedHelper(Integer curLength, String path, Integer state) {
+    private boolean findAcceptedHelper(
+        List<String> accepted, int maxNeeded, int searchLength, Integer curLength, String path, Integer state) {
         if (curLength == searchLength) {
             // if we reach an accepting state of desired length, we add the string we've formed to our subautomata list
             if (O.getInt(state) != 0) {
@@ -1242,16 +1204,18 @@ public class Automaton {
         }
         for (int x : d.get(state).keySet()) {
             for (Integer y : d.get(state).get(x)) {
-                String input = decode(A, x).toString();
+                List<Integer> decodeAx = decode(A,x);
+                String input = decodeAx.toString();
 
                 // we remove brackets if we have a single arity input that is between 0 and 9 (and hence unambiguous)
                 if (A.size() == 1) {
-                    if (decode(A, x).get(0) >= 0 && decode(A, x).get(0) <= 9) {
+                    if (decodeAx.get(0) >= 0 && decodeAx.get(0) <= 9) {
                         input = input.substring(1, input.length() - 1);
                     }
                 }
                 // if we've already found as much as we need, then there's no need to search further; we propagate the signal
-                if (findAcceptedHelper(curLength + 1, path + input, y)) {
+                if (findAcceptedHelper(
+                    accepted, maxNeeded, searchLength,curLength + 1, path + input, y)) {
                     return true;
                 }
             }

@@ -21,10 +21,8 @@ import Main.UtilityMethods;
 import it.unimi.dsi.fastutil.ints.Int2ObjectRBTreeMap;
 import it.unimi.dsi.fastutil.ints.IntList;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -36,14 +34,14 @@ public class AutomatonWriter {
      * @param automaton
      * @param address
      */
-    public static String write_matrices(Automaton automaton, String address, List<String> free_variables) {
+    public static String writeMatrices(Automaton automaton, String address, List<String> free_variables) {
         if (automaton.TRUE_FALSE_AUTOMATON) {
             throw new RuntimeException("incidence matrices cannot be calculated, because the automaton does not have a free variable.");
         }
         automaton.canonize();
         StringBuilder s = new StringBuilder();
         s.append("with(ArrayTools):" + System.lineSeparator());
-        write_initial_state_vector(automaton, s);
+        writeInitialStateVector(automaton, s);
         s.append(System.lineSeparator() + "# In what follows, the M_i_x, for a free variable i and a value x, denotes" + System.lineSeparator());
         s.append("# an incidence matrix of the underlying graph of (the automaton of)" + System.lineSeparator());
         s.append("# the predicate in the query." + System.lineSeparator());
@@ -58,9 +56,9 @@ public class AutomatonWriter {
         List<List<Integer>> indexValueLists = indices.stream().map(index -> automaton.A.get(index)).collect(Collectors.toList());
         List<List<Integer>> valueLists = AutomatonLogicalOps.cartesianProduct(indexValueLists);
         for (List<Integer> valueList : valueLists) {
-            write_matrix_for_a_variable_list_value_pair(automaton, free_variables, valueList, indices, s);
+            writeMatrixForAVariableListValuePair(automaton, free_variables, valueList, indices, s);
         }
-        write_final_states_vector(automaton, s);
+        writeFinalStatesVector(automaton, s);
         s.append(System.lineSeparator() + "for i from 1 to Size(v)[2] do v := v.M_");
         s.append(String.join("_", free_variables) + "_");
         s.append(String.join("_", Collections.nCopies(free_variables.size(), "0")));
@@ -78,7 +76,7 @@ public class AutomatonWriter {
       return res;
     }
 
-    private static void write_matrix_for_a_variable_list_value_pair(Automaton automaton, List<String> variables, List<Integer> valueList, List<Integer> indices, StringBuilder s) {
+    private static void writeMatrixForAVariableListValuePair(Automaton automaton, List<String> variables, List<Integer> valueList, List<Integer> indices, StringBuilder s) {
         s.append(System.lineSeparator() + "M_" + String.join("_", variables) + "_");
         s.append(valueList.stream().map(String::valueOf).collect(Collectors.joining("_")));
         s.append(" := Matrix([");
@@ -117,7 +115,7 @@ public class AutomatonWriter {
         s.append("]);" + System.lineSeparator());
     }
 
-    private static void write_initial_state_vector(Automaton automaton, StringBuilder s) {
+    private static void writeInitialStateVector(Automaton automaton, StringBuilder s) {
         s.append("# The row vector v denotes the indicator vector of the (singleton)" + System.lineSeparator());
         s.append("# set of initial states." + System.lineSeparator());
         s.append("v := Vector[row]([");
@@ -134,7 +132,7 @@ public class AutomatonWriter {
         s.append("]);" + System.lineSeparator());
     }
 
-    private static void write_final_states_vector(Automaton automaton, StringBuilder s) {
+    private static void writeFinalStatesVector(Automaton automaton, StringBuilder s) {
         s.append(System.lineSeparator() + "# The column vector w denotes the indicator vector of the" + System.lineSeparator());
         s.append("# set of final states." + System.lineSeparator());
         s.append("w := Vector[column]([");
@@ -162,21 +160,22 @@ public class AutomatonWriter {
     public static void write(Automaton automaton, String address) {
         try {
             PrintWriter out = new PrintWriter(address, StandardCharsets.UTF_8);
-            if (automaton.TRUE_FALSE_AUTOMATON) {
-                if (automaton.TRUE_AUTOMATON)
-                    out.write("true");
-                else
-                    out.write("false");
-            } else {
-                automaton.canonize();
-                writeAlphabet(automaton, out);
-                for (int q = 0; q < automaton.Q; q++) {
-                    writeState(automaton, out, q);
-                }
-            }
+            writeToStream(automaton, out);
             out.close();
         } catch (IOException e) {
             e.printStackTrace();
+        }
+    }
+
+    public static void writeToStream(Automaton automaton, PrintWriter out) {
+        if (automaton.TRUE_FALSE_AUTOMATON) {
+            out.write(automaton.TRUE_AUTOMATON ? "true" : "false");
+        } else {
+            automaton.canonize();
+            writeAlphabet(automaton, out);
+            for (int q = 0; q < automaton.Q; q++) {
+                writeState(automaton, out, q);
+            }
         }
     }
 

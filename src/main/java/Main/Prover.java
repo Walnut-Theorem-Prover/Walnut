@@ -18,20 +18,11 @@
 
 package Main;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.io.File;
-import java.io.FileReader;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Set;
 import java.util.LinkedList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -94,14 +85,12 @@ public class Prover {
     static String REGEXP_FOR_AN_ALPHABET_VECTOR = "(\\[(\\s*(\\+|\\-)?\\s*\\d+)(\\s*,\\s*(\\+|\\-)?\\s*\\d+)*\\s*\\])|(\\d)";
     static Pattern PATTERN_FOR_AN_ALPHABET_VECTOR = Pattern.compile(REGEXP_FOR_AN_ALPHABET_VECTOR);
 
-    static Pattern PATTERN_FOR_A_SINGLE_NOT_SPACED_WORD = Pattern.compile("\\w+");
 
     static String REGEXP_FOR_ost_COMMAND = "^\\s*ost\\s+([a-zA-Z]\\w*)\\s*\\[\\s*((\\d+\\s*)*)\\]\\s*\\[\\s*((\\d+\\s*)*)\\]\\s*(;|:|::)\\s*$";
     static Pattern PATTERN_FOR_ost_COMMAND = Pattern.compile(REGEXP_FOR_ost_COMMAND);
     static int GROUP_OST_NAME = 1;
     static int GROUP_OST_PREPERIOD = 2;
     static int GROUP_OST_PERIOD = 4;
-    static int GROUP_OST_END = 6;
 
     static String REGEXP_FOR_combine_COMMAND = "^\\s*combine\\s+([a-zA-Z]\\w*)((\\s+([a-zA-Z]\\w*(=-?\\d+)?))*)\\s*(;|::|:)\\s*$";
     static Pattern PATTERN_FOR_combine_COMMAND = Pattern.compile(REGEXP_FOR_combine_COMMAND);
@@ -167,16 +156,16 @@ public class Prover {
     static Pattern PATTERN_FOR_convert_COMMAND = Pattern.compile(REGEXP_FOR_convert_COMMAND);
     static int GROUP_CONVERT_NEW_NAME = 2, GROUP_CONVERT_OLD_NAME = 7, GROUP_CONVERT_END = 8,
             GROUP_CONVERT_NEW_DOLLAR_SIGN = 1, GROUP_CONVERT_OLD_DOLLAR_SIGN = 6,
-            GROUP_CONVERT_NUMBER_SYSTEM = 3, GROUP_CONVERT_MSD_OR_LSD = 4,
+            GROUP_CONVERT_MSD_OR_LSD = 4,
             GROUP_CONVERT_BASE = 5;
 
     static String REGEXP_FOR_fixleadzero_COMMAND = "^\\s*fixleadzero\\s+([a-zA-Z]\\w*)\\s+(\\$|\\s*)([a-zA-Z]\\w*)\\s*(;|::|:)\\s*$";
     static Pattern PATTERN_FOR_fixleadzero_COMMAND = Pattern.compile(REGEXP_FOR_fixleadzero_COMMAND);
-    static int GROUP_FIXLEADZERO_NEW_NAME = 1, GROUP_FIXLEADZERO_DOLLAR_SIGN = 2, GROUP_FIXLEADZERO_OLD_NAME = 3, GROUP_FIXLEADZERO_END = 4;
+    static int GROUP_FIXLEADZERO_NEW_NAME = 1, GROUP_FIXLEADZERO_OLD_NAME = 3, GROUP_FIXLEADZERO_END = 4;
 
     static String REGEXP_FOR_fixtrailzero_COMMAND = "^\\s*fixtrailzero\\s+([a-zA-Z]\\w*)\\s+(\\$|\\s*)([a-zA-Z]\\w*)\\s*(;|::|:)\\s*$";
     static Pattern PATTERN_FOR_fixtrailzero_COMMAND = Pattern.compile(REGEXP_FOR_fixtrailzero_COMMAND);
-    static int GROUP_FIXTRAILZERO_NEW_NAME = 1, GROUP_FIXTRAILZERO_DOLLAR_SIGN = 2, GROUP_FIXTRAILZERO_OLD_NAME = 3, GROUP_FIXTRAILZERO_END = 4;
+    static int GROUP_FIXTRAILZERO_NEW_NAME = 1, GROUP_FIXTRAILZERO_OLD_NAME = 3, GROUP_FIXTRAILZERO_END = 4;
 
     static String REGEXP_FOR_alphabet_COMMAND = "^\\s*(alphabet)\\s+([a-zA-Z]\\w*)\\s+((((((msd|lsd)_(\\d+|\\w+))|((msd|lsd)(\\d+|\\w+))|(msd|lsd)|(\\d+|\\w+))|(\\{(\\s*(\\+|\\-)?\\s*\\d+)(\\s*,\\s*(\\+|\\-)?\\s*\\d+)*\\s*\\}))\\s+)+)(\\$|\\s*)([a-zA-Z]\\w*)\\s*(;|::|:)\\s*$";
     static Pattern PATTERN_FOR_alphabet_COMMAND = Pattern.compile(REGEXP_FOR_alphabet_COMMAND);
@@ -214,24 +203,21 @@ public class Prover {
 
     static String REGEXP_FOR_draw_COMMAND = "^\\s*draw\\s+(\\$|\\s*)([a-zA-Z]\\w*)\\s*(;|::|:)\\s*$";
     static Pattern PATTERN_FOR_draw_COMMAND = Pattern.compile(REGEXP_FOR_draw_COMMAND);
-    static int GROUP_draw_DOLLAR_SIGN = 1, GROUP_draw_NAME = 2, GROUP_draw_END = 3;
+    static int GROUP_draw_DOLLAR_SIGN = 1, GROUP_draw_NAME = 2;
 
     static String REGEXP_FOR_help_COMMAND = "^\\s*help(\\s*|\\s+(\\w*))\\s*(;|::|:)\\s*$";
     static Pattern PATTERN_FOR_help_COMMAND = Pattern.compile(REGEXP_FOR_help_COMMAND);
-    static int GROUP_help_NAME = 2, GROUP_help_END = 3;
+    static int GROUP_help_NAME = 2;
 
     /**
      * if the command line argument is not empty, we treat args[0] as a filename.
      * if this is the case, we read from the file and load its commands before we submit control to user.
-     * if the the address is not a valid address or the file does not exist, we print an appropriate error message
+     * if the address is not a valid address or the file does not exist, we print an appropriate error message
      * and submit control to the user.
      * if the file contains the exit command we terminate the program.
-     *
-     * @param args
-     * @throws Exception
-     */
+     **/
     public static void main(String[] args) {
-        UtilityMethods.setPaths();
+        Session.setPaths();
 
         // to run test cases, run the following lines:
         // IntegrationTest IT = new IntegrationTest(true);
@@ -260,7 +246,7 @@ public class Prover {
                 in = new BufferedReader(
                         new InputStreamReader(
                                 new FileInputStream(
-                                        UtilityMethods.get_address_for_command_files() + args[0]),
+                                        Session.getReadAddressForCommandFiles() + args[0]),
                             StandardCharsets.UTF_8));
                 if (!readBuffer(in, false)) return;
             } catch (IOException e) {
@@ -279,7 +265,9 @@ public class Prover {
         }
 
         // Now we parse commands from the console.
-        System.out.println("Welcome to Walnut! Type \"help;\" to see all available commands.");
+        System.out.println("Welcome to Walnut v" + Session.WALNUT_VERSION +
+            "! Type \"help;\" to see all available commands.");
+        System.out.println("Starting Walnut session: " + Session.getName());
         in = new BufferedReader(new InputStreamReader(System.in));
         readBuffer(in, true);
     }
@@ -296,7 +284,7 @@ public class Prover {
             StringBuilder buffer = new StringBuilder();
             while (true) {
                 if (console) {
-                    System.out.print(UtilityMethods.PROMPT);
+                    System.out.print(Session.PROMPT);
                 }
 
                 String s = in.readLine();
@@ -304,20 +292,7 @@ public class Prover {
                     return true;
                 }
 
-                int index1 = s.indexOf(';');
-                int index2 = s.indexOf(':');
-                int index;
-                if (index1 != -1 && index2 != -1) {
-                    index = (index1 < index2) ? index1 : index2;
-                } else if (index1 != -1) {
-                    index = index1;
-                } else {
-                    index = index2;
-                }
-
-                if ((s.length() - 1) > index && s.charAt(index + 1) == ':') {
-                    index++;
-                }
+                int index = determineIndex(s);
 
                 if (index != -1) {
                     s = s.substring(0, index + 1);
@@ -349,6 +324,36 @@ public class Prover {
         }
 
         return true;
+    }
+
+    /**
+     * Determines the index of the first delimiter (';' or ':') in the given string.
+     * If both are present, the smaller index is returned. If only one is present, its index is returned.
+     * If no delimiters are found, -1 is returned.
+     * Additionally, if the character following the found index is a colon (':'),
+     * the index is incremented to include it.
+     *
+     * @param s the input string to search.
+     * @return the index of the first delimiter or -1 if no delimiters are found.
+     *         If the character following the found index is a colon, the index
+     *         is incremented by one.
+     */
+    private static int determineIndex(String s) {
+        int index1 = s.indexOf(';');
+        int index2 = s.indexOf(':');
+        int index;
+        if (index1 != -1 && index2 != -1) {
+            index = (index1 < index2) ? index1 : index2;
+        } else if (index1 != -1) {
+            index = index1;
+        } else {
+            index = index2;
+        }
+
+        if ((s.length() - 1) > index && s.charAt(index + 1) == ':') {
+            index++;
+        }
+        return index;
     }
 
     public static boolean dispatch(String s) throws IOException {
@@ -522,7 +527,7 @@ public class Prover {
             BufferedReader in = new BufferedReader(
                     new InputStreamReader(
                             new FileInputStream(
-                                    UtilityMethods.get_address_for_command_files() +
+                                    Session.getReadAddressForCommandFiles() +
                                             m.group(L_FILENAME)),
                         StandardCharsets.UTF_8));
             if (!readBuffer(in, false)) {
@@ -546,32 +551,31 @@ public class Prover {
 
         List<String> free_variables = new ArrayList<>();
         if (m.group(ED_FREE_VARIABLES) != null) {
-            which_matrices_to_compute(m.group(ED_FREE_VARIABLES), free_variables);
+            determineMatricesToCompute(m.group(ED_FREE_VARIABLES), free_variables);
         }
 
         boolean printSteps = m.group(ED_ENDING).equals(":");
         boolean printDetails = m.group(ED_ENDING).equals("::");
 
         Computer c = new Computer(m.group(ED_PREDICATE), printSteps, printDetails);
-        c.write(UtilityMethods.get_address_for_result() + m.group(ED_NAME) + ".txt");
-        c.drawAutomaton(UtilityMethods.get_address_for_result() + m.group(ED_NAME) + ".gv");
+        String resultName = Session.getAddressForResult() + m.group(ED_NAME);
+        AutomatonWriter.write(c.result.M, resultName + ".txt");
+        AutomatonWriter.draw(
+            c.result.M, resultName + ".gv", c.predicateString, false);
 
         if (!free_variables.isEmpty()) {
-            c.mpl = AutomatonWriter.write_matrices(c.getTheFinalResult(),
-                UtilityMethods.get_address_for_result() + m.group(ED_NAME) + ".mpl", free_variables);
+            c.mpl = AutomatonWriter.writeMatrices(c.result.M,
+                resultName + ".mpl", free_variables);
         }
 
-        c.writeLog(UtilityMethods.get_address_for_result() + m.group(ED_NAME) + "_log.txt");
-        if (printDetails) {
-            c.writeDetailedLog(
-                    UtilityMethods.get_address_for_result() + m.group(ED_NAME) + "_detailed_log.txt");
-        }
+        c.writeLogs(resultName, c, printDetails);
 
         if (m.group(ED_TYPE).equals("def")) {
-            c.write(UtilityMethods.get_address_for_automata_library() + m.group(ED_NAME) + ".txt");
+            AutomatonWriter.write(
+                c.result.M, Session.getWriteAddressForAutomataLibrary() + m.group(ED_NAME) + ".txt");
         }
 
-        M = c.getTheFinalResult();
+        M = c.result.M;
         if (M.TRUE_FALSE_AUTOMATON) {
             if (M.TRUE_AUTOMATON) {
                 System.out.println("____\nTRUE");
@@ -580,8 +584,10 @@ public class Prover {
             }
         }
 
-        return new TestCase(s, M, "", c.mpl, printDetails ? c.log_details.toString() : "");
+        return new TestCase(s, M, "", c.mpl, printDetails ? c.logDetails.toString() : "");
     }
+
+
 
     public static TestCase macroCommand(String s) {
         Matcher m = PATTERN_FOR_macro_COMMAND.matcher(s);
@@ -591,7 +597,7 @@ public class Prover {
                     new BufferedWriter(
                             new OutputStreamWriter(
                                     new FileOutputStream(
-                                            UtilityMethods.get_address_for_macro_library() + m.group(M_NAME) + ".txt"), StandardCharsets.UTF_8));
+                                            Session.getWriteAddressForMacroLibrary() + m.group(M_NAME) + ".txt"), StandardCharsets.UTF_8));
             out.write(m.group(M_DEFINITION));
             out.close();
         } catch (IOException o) {
@@ -612,10 +618,10 @@ public class Prover {
         if (m.group(R_LIST_OF_ALPHABETS) == null) {
             String base = "msd_2";
             try {
-                if (!Predicate.number_system_Hash.containsKey(base))
-                    Predicate.number_system_Hash.put(base, new NumberSystem(base));
-                ns = Predicate.number_system_Hash.get(base);
-                numSys.add(Predicate.number_system_Hash.get(base));
+                if (!Predicate.numberSystemHash.containsKey(base))
+                    Predicate.numberSystemHash.put(base, new NumberSystem(base));
+                ns = Predicate.numberSystemHash.get(base);
+                numSys.add(Predicate.numberSystemHash.get(base));
             } catch (RuntimeException e) {
                 throw new RuntimeException("number system " + base + " does not exist: char at " + m.start(R_NUMBER_SYSTEM) + System.lineSeparator() + "\t:" + e.getMessage());
             }
@@ -630,16 +636,16 @@ public class Prover {
                 if (m1.group(9) != null) base = m1.group(9) + "_2";
                 if (m1.group(10) != null) base = "msd_" + m1.group(10);
                 try {
-                    if (!Predicate.number_system_Hash.containsKey(base))
-                        Predicate.number_system_Hash.put(base, new NumberSystem(base));
-                    ns = Predicate.number_system_Hash.get(base);
-                    numSys.add(Predicate.number_system_Hash.get(base));
+                    if (!Predicate.numberSystemHash.containsKey(base))
+                        Predicate.numberSystemHash.put(base, new NumberSystem(base));
+                    ns = Predicate.numberSystemHash.get(base);
+                    numSys.add(Predicate.numberSystemHash.get(base));
                 } catch (RuntimeException e) {
                     throw new RuntimeException("number system " + base + " does not exist: char at " + m.start(R_NUMBER_SYSTEM) + System.lineSeparator() + "\t:" + e.getMessage());
                 }
                 alphabets.add(ns.getAlphabet());
             } else if (m1.group(R_SET) != null) {
-                alphabet = what_is_the_alphabet(m1.group(R_SET));
+                alphabet = determineAlphabet(m1.group(R_SET));
                 alphabets.add(alphabet);
                 numSys.add(null);
             }
@@ -686,7 +692,7 @@ public class Prover {
              * baseexp.replace(alphabetVectorCopy, replacementStr)
              * normally, then this will turn baseexp to "(|[-][-])"
              * instead of "(|[-2][-2])".
-             * Instead, we replace all occurences of "[-2]" with "%PLACEHOLDER%",
+             * Instead, we replace all occurrences of "[-2]" with "%PLACEHOLDER%",
              * then run baseexp.replace(alphabetVectorCopy, replacementStr),
              * and then replace "%PLACEHOLDER%" with "[-2]".
              */
@@ -712,9 +718,7 @@ public class Prover {
         R.alphabetSize = M.alphabetSize;
         R.NS = numSys;
 
-        AutomatonWriter.draw(R, UtilityMethods.get_address_for_result() + m.group(R_NAME) + ".gv", m.group(R_REGEXP), false);
-        AutomatonWriter.write(R, UtilityMethods.get_address_for_result() + m.group(R_NAME) + ".txt");
-        AutomatonWriter.write(R, UtilityMethods.get_address_for_automata_library() + m.group(R_NAME) + ".txt");
+        writeAutomata(m.group(R_REGEXP), R, Session.getWriteAddressForAutomataLibrary(), m.group(R_NAME), false);
 
         return new TestCase(s, R, "", "", "");
     }
@@ -754,17 +758,16 @@ public class Prover {
         if (automataNames.isEmpty()) {
             throw new RuntimeException("Combine requires at least one automaton as input.");
         }
-        Automaton first = new Automaton(UtilityMethods.get_address_for_automata_library() + automataNames.get(0) + ".txt");
+        Automaton first = new Automaton(Session.getReadAddressForAutomataLibrary() + automataNames.get(0) + ".txt");
         automataNames.remove(0);
 
         Automaton C = first.combine(automataNames, outputs, printSteps, prefix, log);
 
-        AutomatonWriter.draw(C, UtilityMethods.get_address_for_result() + m.group(GROUP_COMBINE_NAME) + ".gv", s, true);
-        AutomatonWriter.write(C, UtilityMethods.get_address_for_result() + m.group(GROUP_COMBINE_NAME) + ".txt");
-        AutomatonWriter.write(C, UtilityMethods.get_address_for_words_library() + m.group(GROUP_COMBINE_NAME) + ".txt");
+        writeAutomata(s, C, Session.getWriteAddressForWordsLibrary(), m.group(GROUP_COMBINE_NAME), true);
 
         return new TestCase(s, C, "", "", "");
     }
+
 
     public static void morphismCommand(String s) throws IOException {
         Matcher m = PATTERN_FOR_morphism_COMMAND.matcher(s);
@@ -778,8 +781,8 @@ public class Prover {
         System.out.print(M.mapping.keySet());
         System.out.print(" and range ");
         System.out.print(M.range);
-        M.write(UtilityMethods.get_address_for_result() + name + ".txt");
-        M.write(UtilityMethods.get_address_for_morphism_library() + name + ".txt");
+        M.write(Session.getAddressForResult() + name + ".txt");
+        M.write(Session.getWriteAddressForMorphismLibrary() + name + ".txt");
     }
 
     public static TestCase promoteCommand(String s) throws IOException {
@@ -787,11 +790,9 @@ public class Prover {
         if (!m.find()) {
             throw ExceptionHelper.invalidCommandUse("prmote");
         }
-        Morphism h = new Morphism(UtilityMethods.get_address_for_morphism_library() + m.group(GROUP_PROMOTE_MORPHISM) + ".txt");
+        Morphism h = new Morphism(Session.getReadAddressForMorphismLibrary() + m.group(GROUP_PROMOTE_MORPHISM) + ".txt");
         Automaton P = h.toWordAutomaton();
-        AutomatonWriter.draw(P, UtilityMethods.get_address_for_result() + m.group(GROUP_PROMOTE_NAME) + ".gv", s, true);
-        AutomatonWriter.write(P, UtilityMethods.get_address_for_result() + m.group(GROUP_PROMOTE_NAME) + ".txt");
-        AutomatonWriter.write(P, UtilityMethods.get_address_for_words_library() + m.group(GROUP_PROMOTE_NAME) + ".txt");
+        writeAutomata(s, P, Session.getWriteAddressForWordsLibrary(), m.group(GROUP_PROMOTE_NAME), true);
 
         return new TestCase(s, P, "", "", "");
     }
@@ -801,14 +802,14 @@ public class Prover {
         if (!m.find()) {
             throw ExceptionHelper.invalidCommandUse("image");
         }
-        Morphism h = new Morphism(UtilityMethods.get_address_for_morphism_library() + m.group(GROUP_IMAGE_MORPHISM) + ".txt");
+        Morphism h = new Morphism(Session.getReadAddressForMorphismLibrary() + m.group(GROUP_IMAGE_MORPHISM) + ".txt");
         if (!h.isUniform()) {
             throw new RuntimeException("A morphism applied to a word automaton must be uniform.");
         }
         String combineString = "combine " + m.group(GROUP_IMAGE_NEW_NAME);
 
         // We need to know the number system of our old automaton: the new one should match, as should intermediary expressions
-        Automaton M = new Automaton(UtilityMethods.get_address_for_words_library() + m.group(GROUP_IMAGE_OLD_NAME) + ".txt");
+        Automaton M = new Automaton(Session.getReadAddressForWordsLibrary() + m.group(GROUP_IMAGE_OLD_NAME) + ".txt");
         String numSysName = "";
         if (!M.NS.isEmpty()) {
             numSysName = M.NS.get(0).toString();
@@ -824,9 +825,8 @@ public class Prover {
         TestCase retrieval = combineCommand(combineString);
         Automaton I = retrieval.result.clone();
 
-        AutomatonWriter.draw(I, UtilityMethods.get_address_for_result() + m.group(GROUP_IMAGE_NEW_NAME) + ".gv", s, true);
-        AutomatonWriter.write(I, UtilityMethods.get_address_for_result() + m.group(GROUP_IMAGE_NEW_NAME) + ".txt");
-        AutomatonWriter.write(I, UtilityMethods.get_address_for_words_library() + m.group(GROUP_IMAGE_NEW_NAME) + ".txt");
+        writeAutomata(s, I, Session.getWriteAddressForWordsLibrary(), m.group(GROUP_IMAGE_NEW_NAME), true);
+
         return new TestCase(s, I, "", "", "");
     }
 
@@ -835,7 +835,7 @@ public class Prover {
         if (!m.find()) {
             throw ExceptionHelper.invalidCommandUse("inf");
         }
-        Automaton M = new Automaton(UtilityMethods.get_address_for_automata_library() + m.group(GROUP_INF_NAME) + ".txt");
+        Automaton M = new Automaton(Session.getReadAddressForAutomataLibrary() + m.group(GROUP_INF_NAME) + ".txt");
         M = removeLeadTrailZeroes(M, m.group(GROUP_INF_NAME));
         String infReg = M.infinite();
         if (infReg == "") {
@@ -846,16 +846,15 @@ public class Prover {
             return true;
         }
     }
+    public static TestCase processSplitCommand(
+        String s, boolean isReverse,
+        String automatonName, String name, String end, Matcher inputPattern) {
 
-    public static TestCase splitCommand(String s) {
-        Matcher m = PATTERN_FOR_split_COMMAND.matcher(s);
-        if (!m.find()) {
-            throw ExceptionHelper.invalidCommandUse("split");
-        }
-        String addressForWordAutomaton
-                = UtilityMethods.get_address_for_words_library() + m.group(GROUP_SPLIT_AUTOMATA) + ".txt";
-        String addressForAutomaton
-                = UtilityMethods.get_address_for_automata_library() + m.group(GROUP_SPLIT_AUTOMATA) + ".txt";
+        String addressForWordAutomaton =
+            Session.getReadAddressForWordsLibrary() + automatonName + ".txt";
+        String addressForAutomaton =
+            Session.getReadAddressForAutomataLibrary() + automatonName + ".txt";
+
         Automaton M;
         boolean isDFAO;
         if ((new File(addressForWordAutomaton)).exists()) {
@@ -865,42 +864,53 @@ public class Prover {
             M = new Automaton(addressForAutomaton);
             isDFAO = false;
         } else {
-            throw new RuntimeException("Automaton " + m.group(GROUP_SPLIT_AUTOMATA) + " does not exist.");
+            throw new RuntimeException("Automaton " + automatonName + " does not exist.");
         }
 
-        boolean printSteps = m.group(GROUP_SPLIT_END).equals(":");
+        boolean printSteps = end.equals(":");
         String prefix = "";
         StringBuilder log = new StringBuilder();
 
-        Matcher m1 = PATTERN_FOR_INPUT_IN_split_COMMAND.matcher(m.group(GROUP_SPLIT_INPUT));
         List<String> inputs = new ArrayList<>();
         boolean hasInput = false;
-        while (m1.find()) {
-            String t = m1.group(1);
+        while (inputPattern.find()) {
+            String t = inputPattern.group(1);
             hasInput = hasInput || t.equals("+") || t.equals("-");
             inputs.add(t);
         }
         if (!hasInput || inputs.isEmpty()) {
             throw new RuntimeException("Cannot split without inputs.");
         }
+
         IntList outputs = new IntArrayList(M.O);
         UtilityMethods.removeDuplicates(outputs);
         List<Automaton> subautomata = M.uncombine(outputs);
+
         for (int i = 0; i < subautomata.size(); i++) {
-            Automaton N = subautomata.get(i).split(inputs, printSteps, prefix, log);
+            Automaton N = isReverse
+                ? subautomata.get(i).reverseSplit(inputs, printSteps, prefix, log)
+                : subautomata.get(i).split(inputs, printSteps, prefix, log);
             subautomata.set(i, N);
         }
+
         Automaton N = subautomata.remove(0);
         N = AutomatonLogicalOps.combine(N, new LinkedList<>(subautomata), outputs, printSteps, prefix, log);
 
-        AutomatonWriter.draw(N, UtilityMethods.get_address_for_result() + m.group(GROUP_SPLIT_NAME) + ".gv", s, isDFAO);
-        AutomatonWriter.write(N, UtilityMethods.get_address_for_result() + m.group(GROUP_SPLIT_NAME) + ".txt");
-        if (isDFAO) {
-            AutomatonWriter.write(N, UtilityMethods.get_address_for_words_library() + m.group(GROUP_SPLIT_NAME) + ".txt");
-        } else {
-            AutomatonWriter.write(N, UtilityMethods.get_address_for_automata_library() + m.group(GROUP_SPLIT_NAME) + ".txt");
-        }
+        writeAutomata(s, N,
+            isDFAO ? Session.getWriteAddressForWordsLibrary() : Session.getWriteAddressForAutomataLibrary(),
+            name, isDFAO);
+
         return new TestCase(s, N, "", "", "");
+    }
+
+    public static TestCase splitCommand(String s) {
+        Matcher m = PATTERN_FOR_split_COMMAND.matcher(s);
+        if (!m.find()) {
+            throw ExceptionHelper.invalidCommandUse("split");
+        }
+        return processSplitCommand(s, false,
+            m.group(GROUP_SPLIT_AUTOMATA), m.group(GROUP_SPLIT_NAME), m.group(GROUP_SPLIT_END),
+            PATTERN_FOR_INPUT_IN_split_COMMAND.matcher(m.group(GROUP_SPLIT_INPUT)));
     }
 
     public static TestCase rsplitCommand(String s) {
@@ -908,55 +918,9 @@ public class Prover {
         if (!m.find()) {
             throw ExceptionHelper.invalidCommandUse("reverse split");
         }
-        String addressForWordAutomaton
-                = UtilityMethods.get_address_for_words_library() + m.group(GROUP_RSPLIT_AUTOMATA) + ".txt";
-        String addressForAutomaton
-                = UtilityMethods.get_address_for_automata_library() + m.group(GROUP_RSPLIT_AUTOMATA) + ".txt";
-        Automaton M;
-        boolean isDFAO;
-        if ((new File(addressForWordAutomaton)).exists()) {
-            M = new Automaton(addressForWordAutomaton);
-            isDFAO = true;
-        } else if ((new File(addressForAutomaton)).exists()) {
-            M = new Automaton(addressForAutomaton);
-            isDFAO = false;
-        } else {
-            throw new RuntimeException("Automaton " + m.group(GROUP_RSPLIT_AUTOMATA) + " does not exist.");
-        }
-
-        boolean printSteps = m.group(GROUP_RSPLIT_END).equals(":");
-        String prefix = "";
-        StringBuilder log = new StringBuilder();
-
-        Matcher m1 = PATTERN_FOR_INPUT_IN_rsplit_COMMAND.matcher(m.group(GROUP_RSPLIT_INPUT));
-        List<String> inputs = new ArrayList<>();
-        boolean hasInput = false;
-        while (m1.find()) {
-            String t = m1.group(1);
-            hasInput = hasInput || t.equals("+") || t.equals("-");
-            inputs.add(t);
-        }
-        if (!hasInput || inputs.isEmpty()) {
-            throw new RuntimeException("Cannot split without inputs.");
-        }
-        IntList outputs = new IntArrayList(M.O);
-        UtilityMethods.removeDuplicates(outputs);
-        List<Automaton> subautomata = M.uncombine(outputs);
-        for (int i = 0; i < subautomata.size(); i++) {
-            Automaton N = subautomata.get(i).reverseSplit(inputs, printSteps, prefix, log);
-            subautomata.set(i, N);
-        }
-        Automaton N = subautomata.remove(0);
-        N = AutomatonLogicalOps.combine(N, new LinkedList<>(subautomata), outputs, printSteps, prefix, log);
-
-        AutomatonWriter.draw(N, UtilityMethods.get_address_for_result() + m.group(GROUP_RSPLIT_NAME) + ".gv", s, isDFAO);
-        AutomatonWriter.write(N, UtilityMethods.get_address_for_result() + m.group(GROUP_RSPLIT_NAME) + ".txt");
-        if (isDFAO) {
-            AutomatonWriter.write(N, UtilityMethods.get_address_for_words_library() + m.group(GROUP_RSPLIT_NAME) + ".txt");
-        } else {
-            AutomatonWriter.write(N, UtilityMethods.get_address_for_automata_library() + m.group(GROUP_RSPLIT_NAME) + ".txt");
-        }
-        return new TestCase(s, N, "", "", "");
+        return processSplitCommand(s, true,
+            m.group(GROUP_RSPLIT_AUTOMATA), m.group(GROUP_RSPLIT_NAME), m.group(GROUP_RSPLIT_END),
+            PATTERN_FOR_INPUT_IN_split_COMMAND.matcher(m.group(GROUP_RSPLIT_INPUT)));
     }
 
     public static TestCase joinCommand(String s) {
@@ -975,9 +939,9 @@ public class Prover {
         while (m1.find()) {
             String automatonName = m1.group(GROUP_JOIN_AUTOMATON_NAME);
             String addressForWordAutomaton
-                    = UtilityMethods.get_address_for_words_library() + automatonName + ".txt";
+                    = Session.getReadAddressForWordsLibrary() + automatonName + ".txt";
             String addressForAutomaton
-                    = UtilityMethods.get_address_for_automata_library() + automatonName + ".txt";
+                    = Session.getReadAddressForAutomataLibrary() + automatonName + ".txt";
             Automaton M;
             if ((new File(addressForWordAutomaton)).exists()) {
                 M = new Automaton(addressForWordAutomaton);
@@ -1004,15 +968,13 @@ public class Prover {
         Automaton N = subautomata.remove(0);
         N = N.join(new LinkedList<>(subautomata), printSteps, prefix, log);
 
-        AutomatonWriter.draw(N, UtilityMethods.get_address_for_result() + m.group(GROUP_JOIN_NAME) + ".gv", s, isDFAO);
-        AutomatonWriter.write(N, UtilityMethods.get_address_for_result() + m.group(GROUP_JOIN_NAME) + ".txt");
-        if (isDFAO) {
-            AutomatonWriter.write(N, UtilityMethods.get_address_for_words_library() + m.group(GROUP_JOIN_NAME) + ".txt");
-        } else {
-            AutomatonWriter.write(N, UtilityMethods.get_address_for_automata_library() + m.group(GROUP_JOIN_NAME) + ".txt");
-        }
+        writeAutomata(s, N,
+            isDFAO ? Session.getWriteAddressForWordsLibrary() : Session.getWriteAddressForAutomataLibrary(),
+            m.group(GROUP_JOIN_NAME), isDFAO);
+
         return new TestCase(s, N, "", "", "");
     }
+
 
     public static void testCommand(String s) {
         Matcher m = PATTERN_FOR_test_COMMAND.matcher(s);
@@ -1024,7 +986,7 @@ public class Prover {
 
         // We find the first n inputs accepted by our automaton, lexicographically. If less than n inputs are accepted,
         // we output all that are.
-        Automaton M = new Automaton(UtilityMethods.get_address_for_automata_library() + m.group(GROUP_TEST_NAME) + ".txt");
+        Automaton M = new Automaton(Session.getReadAddressForAutomataLibrary() + m.group(GROUP_TEST_NAME) + ".txt");
 
         // we don't want to count multiple representations of the same value as distinct accepted values
         M = removeLeadTrailZeroes(M, m.group(GROUP_TEST_NAME));
@@ -1056,8 +1018,7 @@ public class Prover {
             // and-ing automata uses the cross product routine, which requires labeled automata
             R.label = M.label;
             Automaton N = AutomatonLogicalOps.and(M, R, false, null, null);
-            N.findAccepted(searchLength, needed - accepted.size());
-            accepted.addAll(N.accepted);
+            accepted.addAll(N.findAccepted(searchLength, needed - accepted.size()));
             if (accepted.size() >= needed) {
                 break;
             }
@@ -1082,12 +1043,10 @@ public class Prover {
             throw ExceptionHelper.invalidCommandUse("ost");
         }
 
-        Ostrowski ostr = new Ostrowski(
-                m.group(GROUP_OST_NAME),
-                m.group(GROUP_OST_PREPERIOD),
-                m.group(GROUP_OST_PERIOD));
-        ostr.createRepresentationAutomaton();
-        ostr.createAdderAutomaton();
+        String name = m.group(GROUP_OST_NAME);
+        Ostrowski ostr = new Ostrowski(name, m.group(GROUP_OST_PREPERIOD), m.group(GROUP_OST_PERIOD));
+        Ostrowski.writeRepresentation(name, ostr.createRepresentationAutomaton());
+        Ostrowski.writeAdder(name, ostr.createAdderAutomaton());
     }
 
     public static TestCase transduceCommand(String s) {
@@ -1102,17 +1061,15 @@ public class Prover {
             String prefix = "";
             StringBuilder log = new StringBuilder();
 
-            Transducer T = new Transducer(UtilityMethods.get_address_for_transducer_library() + m.group(GROUP_TRANSDUCE_TRANSDUCER) + ".txt");
-            String library = UtilityMethods.get_address_for_words_library();
+            Transducer T = new Transducer(Session.getTransducerFile(m.group(GROUP_TRANSDUCE_TRANSDUCER) + ".txt"));
+            String inLibrary = Session.getReadAddressForWordsLibrary();
             if (m.group(GROUP_TRANSDUCE_DOLLAR_SIGN).equals("$")) {
-                library = UtilityMethods.get_address_for_automata_library();
+                inLibrary = Session.getReadAddressForAutomataLibrary();
             }
-            Automaton M = new Automaton(library + m.group(GROUP_TRANSDUCE_OLD_NAME) + ".txt");
+            Automaton M = new Automaton(inLibrary + m.group(GROUP_TRANSDUCE_OLD_NAME) + ".txt");
 
             Automaton C = T.transduceNonDeterministic(M, printSteps || printDetails, prefix, log);
-            AutomatonWriter.draw(C, UtilityMethods.get_address_for_result() + m.group(GROUP_TRANSDUCE_NEW_NAME) + ".gv", s, true);
-            AutomatonWriter.write(C, UtilityMethods.get_address_for_result() + m.group(GROUP_TRANSDUCE_NEW_NAME) + ".txt");
-            AutomatonWriter.write(C, UtilityMethods.get_address_for_words_library() + m.group(GROUP_TRANSDUCE_NEW_NAME) + ".txt");
+            writeAutomata(s, C, Session.getWriteAddressForWordsLibrary(), m.group(GROUP_TRANSDUCE_NEW_NAME), true);
             return new TestCase(s, C, "", "", "");
         } catch (RuntimeException e) {
             e.printStackTrace();
@@ -1135,13 +1092,13 @@ public class Prover {
 
             boolean isDFAO = true;
 
-            String library = UtilityMethods.get_address_for_words_library();
+            String inLibrary = Session.getReadAddressForWordsLibrary();
             if (m.group(GROUP_REVERSE_DOLLAR_SIGN).equals("$")) {
-                library = UtilityMethods.get_address_for_automata_library();
+                inLibrary = Session.getReadAddressForAutomataLibrary();
                 isDFAO = false;
             }
 
-            Automaton M = new Automaton(library + m.group(GROUP_REVERSE_OLD_NAME) + ".txt");
+            Automaton M = new Automaton(inLibrary + m.group(GROUP_REVERSE_OLD_NAME) + ".txt");
 
             if (isDFAO) {
                 AutomatonLogicalOps.reverseWithOutput(M, true, printSteps || printDetails, prefix, log);
@@ -1149,16 +1106,18 @@ public class Prover {
                 AutomatonLogicalOps.reverse(M, printSteps || printDetails, prefix, log, true);
             }
 
-            AutomatonWriter.draw(M, UtilityMethods.get_address_for_result() + m.group(GROUP_REVERSE_NEW_NAME) + ".gv", s, true);
-            AutomatonWriter.write(M, UtilityMethods.get_address_for_result() + m.group(GROUP_REVERSE_NEW_NAME) + ".txt");
-            AutomatonWriter.write(M, library + m.group(GROUP_REVERSE_NEW_NAME) + ".txt");
+            String outLibrary = Session.getWriteAddressForWordsLibrary();
+            if (m.group(GROUP_REVERSE_DOLLAR_SIGN).equals("$")) {
+                outLibrary = Session.getWriteAddressForAutomataLibrary();
+            }
+
+            writeAutomata(s, M, outLibrary, m.group(GROUP_REVERSE_NEW_NAME), true);
             return new TestCase(s, M, "", "", "");
         } catch (RuntimeException e) {
             e.printStackTrace();
             throw new RuntimeException("Error reversing automaton.");
         }
     }
-
 
     public static TestCase minimizeCommand(String s) {
         try {
@@ -1172,14 +1131,12 @@ public class Prover {
             String prefix = "";
             StringBuilder log = new StringBuilder();
 
-            Automaton M = new Automaton(UtilityMethods.get_address_for_words_library() +
+            Automaton M = new Automaton(Session.getReadAddressForWordsLibrary() +
                     m.group(GROUP_MINIMIZE_OLD_NAME) + ".txt");
 
             M.minimizeSelfWithOutput(printSteps || printDetails, prefix, log);
 
-            AutomatonWriter.draw(M, UtilityMethods.get_address_for_result() + m.group(GROUP_MINIMIZE_NEW_NAME) + ".gv", s, true);
-            AutomatonWriter.write(M, UtilityMethods.get_address_for_result() + m.group(GROUP_MINIMIZE_NEW_NAME) + ".txt");
-            AutomatonWriter.write(M, UtilityMethods.get_address_for_words_library() + m.group(GROUP_MINIMIZE_NEW_NAME) + ".txt");
+            writeAutomata(s, M, Session.getWriteAddressForWordsLibrary(), m.group(GROUP_MINIMIZE_NEW_NAME), true);
             return new TestCase(s, M, "", "", "");
         } catch (RuntimeException e) {
             e.printStackTrace();
@@ -1204,24 +1161,23 @@ public class Prover {
             String prefix = "";
             StringBuilder log = new StringBuilder();
 
-            String library = UtilityMethods.get_address_for_words_library();
+            String inLibrary = Session.getReadAddressForWordsLibrary();
             if (m.group(GROUP_CONVERT_OLD_DOLLAR_SIGN).equals("$")) {
-                library = UtilityMethods.get_address_for_automata_library();
+                inLibrary = Session.getReadAddressForAutomataLibrary();
             }
-            Automaton M = new Automaton(library + m.group(GROUP_CONVERT_OLD_NAME) + ".txt");
+            Automaton M = new Automaton(inLibrary + m.group(GROUP_CONVERT_OLD_NAME) + ".txt");
 
             AutomatonLogicalOps.convertNS(M, m.group(GROUP_CONVERT_MSD_OR_LSD).equals("msd"),
                     Integer.parseInt(m.group(GROUP_CONVERT_BASE)), printSteps || printDetails,
                     prefix, log);
 
-            AutomatonWriter.draw(M, UtilityMethods.get_address_for_result() + m.group(GROUP_CONVERT_NEW_NAME) + ".gv", s, true);
-            AutomatonWriter.write(M, UtilityMethods.get_address_for_result() + m.group(GROUP_CONVERT_NEW_NAME) + ".txt");
-
-            String outLibrary = UtilityMethods.get_address_for_words_library();
+            String outLibrary = Session.getWriteAddressForWordsLibrary();
             if (m.group(GROUP_CONVERT_NEW_DOLLAR_SIGN).equals("$")) {
-                outLibrary = UtilityMethods.get_address_for_automata_library();
+                outLibrary = Session.getWriteAddressForAutomataLibrary();
             }
-            AutomatonWriter.write(M, outLibrary + m.group(GROUP_CONVERT_NEW_NAME) + ".txt");
+
+            writeAutomata(s, M, outLibrary, m.group(GROUP_CONVERT_NEW_NAME), true);
+
             return new TestCase(s, M, "", "", "");
         } catch (RuntimeException e) {
             e.printStackTrace();
@@ -1241,19 +1197,18 @@ public class Prover {
             String prefix = "";
             StringBuilder log = new StringBuilder();
 
-            Automaton M = new Automaton(UtilityMethods.get_address_for_automata_library() + m.group(GROUP_FIXLEADZERO_OLD_NAME) + ".txt");
+            Automaton M = new Automaton(Session.getReadAddressForAutomataLibrary() + m.group(GROUP_FIXLEADZERO_OLD_NAME) + ".txt");
 
             AutomatonLogicalOps.fixLeadingZerosProblem(M, printSteps || printDetails, prefix, log);
 
-            AutomatonWriter.draw(M, UtilityMethods.get_address_for_result() + m.group(GROUP_FIXLEADZERO_NEW_NAME) + ".gv", s, false);
-            AutomatonWriter.write(M, UtilityMethods.get_address_for_result() + m.group(GROUP_FIXLEADZERO_NEW_NAME) + ".txt");
-            AutomatonWriter.write(M, UtilityMethods.get_address_for_automata_library() + m.group(GROUP_FIXLEADZERO_NEW_NAME) + ".txt");
+            writeAutomata(s, M, Session.getWriteAddressForAutomataLibrary(), m.group(GROUP_FIXLEADZERO_NEW_NAME), false);
             return new TestCase(s, M, "", "", "");
         } catch (RuntimeException e) {
             e.printStackTrace();
             throw new RuntimeException("Error fixing leading zeroes for automaton.");
         }
     }
+
 
     public static TestCase fixTrailZeroCommand(String s) {
         try {
@@ -1267,13 +1222,12 @@ public class Prover {
             String prefix = "";
             StringBuilder log = new StringBuilder();
 
-            Automaton M = new Automaton(UtilityMethods.get_address_for_automata_library() + m.group(GROUP_FIXTRAILZERO_OLD_NAME) + ".txt");
+            Automaton M = new Automaton(Session.getReadAddressForAutomataLibrary() + m.group(GROUP_FIXTRAILZERO_OLD_NAME) + ".txt");
 
             AutomatonLogicalOps.fixTrailingZerosProblem(M, printSteps || printDetails, prefix, log);
 
-            AutomatonWriter.draw(M, UtilityMethods.get_address_for_result() + m.group(GROUP_FIXTRAILZERO_NEW_NAME) + ".gv", s, false);
-            AutomatonWriter.write(M, UtilityMethods.get_address_for_result() + m.group(GROUP_FIXTRAILZERO_NEW_NAME) + ".txt");
-            AutomatonWriter.write(M, UtilityMethods.get_address_for_automata_library() + m.group(GROUP_FIXTRAILZERO_NEW_NAME) + ".txt");
+            writeAutomata(s, M, Session.getWriteAddressForAutomataLibrary(), m.group(GROUP_FIXTRAILZERO_NEW_NAME), false);
+
             return new TestCase(s, M, "", "", "");
         } catch (RuntimeException e) {
             e.printStackTrace();
@@ -1304,9 +1258,9 @@ public class Prover {
 
             boolean isDFAO = true;
 
-            String library = UtilityMethods.get_address_for_words_library();
+            String inLibrary = Session.getReadAddressForWordsLibrary();
             if (m.group(GROUP_alphabet_DOLLAR_SIGN).equals("$")) {
-                library = UtilityMethods.get_address_for_automata_library();
+                inLibrary = Session.getReadAddressForAutomataLibrary();
                 isDFAO = false;
             }
 
@@ -1321,16 +1275,16 @@ public class Prover {
                     if (m1.group(9) != null) base = m1.group(9) + "_2";
                     if (m1.group(10) != null) base = "msd_" + m1.group(10);
                     try {
-                        if (!Predicate.number_system_Hash.containsKey(base))
-                            Predicate.number_system_Hash.put(base, new NumberSystem(base));
-                        ns = Predicate.number_system_Hash.get(base);
-                        numSys.add(Predicate.number_system_Hash.get(base));
+                        if (!Predicate.numberSystemHash.containsKey(base))
+                            Predicate.numberSystemHash.put(base, new NumberSystem(base));
+                        ns = Predicate.numberSystemHash.get(base);
+                        numSys.add(Predicate.numberSystemHash.get(base));
                     } catch (RuntimeException e) {
                         throw new RuntimeException("number system " + base + " does not exist: char at " + m.start(R_NUMBER_SYSTEM) + System.lineSeparator() + "\t:" + e.getMessage());
                     }
                     alphabets.add(ns.getAlphabet());
                 } else if (m1.group(R_SET) != null) {
-                    alphabet = what_is_the_alphabet(m1.group(R_SET));
+                    alphabet = determineAlphabet(m1.group(R_SET));
                     alphabets.add(alphabet);
                     numSys.add(null);
                 } else {
@@ -1339,14 +1293,16 @@ public class Prover {
                 counter += 1;
             }
 
-            Automaton M = new Automaton(library + m.group(GROUP_alphabet_OLD_NAME) + ".txt");
+            Automaton M = new Automaton(inLibrary + m.group(GROUP_alphabet_OLD_NAME) + ".txt");
 
             // here, call the function to set the number system.
             M.setAlphabet(isDFAO, numSys, alphabets, printDetails || printSteps, prefix, log);
 
-            AutomatonWriter.draw(M, UtilityMethods.get_address_for_result() + m.group(GROUP_alphabet_NEW_NAME) + ".gv", s, false);
-            AutomatonWriter.write(M, UtilityMethods.get_address_for_result() + m.group(GROUP_alphabet_NEW_NAME) + ".txt");
-            AutomatonWriter.write(M, library + m.group(GROUP_alphabet_NEW_NAME) + ".txt");
+            String outLibrary = Session.getWriteAddressForWordsLibrary();
+            if (m.group(GROUP_alphabet_DOLLAR_SIGN).equals("$")) {
+                outLibrary = Session.getWriteAddressForAutomataLibrary();
+            }
+            writeAutomata(s, M, outLibrary, m.group(GROUP_alphabet_NEW_NAME), false);
 
             return new TestCase(s, M, "", "", "");
         } catch (RuntimeException e) {
@@ -1354,6 +1310,7 @@ public class Prover {
             throw new RuntimeException("Error using the alphabet command.");
         }
     }
+
 
     public static TestCase unionCommand(String s) {
         try {
@@ -1379,15 +1336,13 @@ public class Prover {
             if (automataNames.isEmpty()) {
                 throw new RuntimeException("Union requires at least one automaton as input.");
             }
-            Automaton C = new Automaton(UtilityMethods.get_address_for_automata_library() + automataNames.get(0) + ".txt");
+            Automaton C = new Automaton(Session.getReadAddressForAutomataLibrary() + automataNames.get(0) + ".txt");
 
             automataNames.remove(0);
 
             C = C.unionOrIntersect(automataNames, "union", printDetails || printSteps, prefix, log);
 
-            AutomatonWriter.draw(C, UtilityMethods.get_address_for_result() + m.group(GROUP_UNION_NAME) + ".gv", s, true);
-            AutomatonWriter.write(C, UtilityMethods.get_address_for_result() + m.group(GROUP_UNION_NAME) + ".txt");
-            AutomatonWriter.write(C, UtilityMethods.get_address_for_automata_library() + m.group(GROUP_UNION_NAME) + ".txt");
+            writeAutomata(s, C, Session.getWriteAddressForAutomataLibrary(), m.group(GROUP_UNION_NAME), true);
 
             return new TestCase(s, C, "", "", "");
 
@@ -1422,15 +1377,13 @@ public class Prover {
             if (automataNames.isEmpty()) {
                 throw new RuntimeException("Intersect requires at least one automaton as input.");
             }
-            Automaton C = new Automaton(UtilityMethods.get_address_for_automata_library() + automataNames.get(0) + ".txt");
+            Automaton C = new Automaton(Session.getReadAddressForAutomataLibrary() + automataNames.get(0) + ".txt");
 
             automataNames.remove(0);
 
             C = C.unionOrIntersect(automataNames, "intersect", printDetails || printSteps, prefix, log);
 
-            AutomatonWriter.draw(C, UtilityMethods.get_address_for_result() + m.group(GROUP_INTERSECT_NAME) + ".gv", s, true);
-            AutomatonWriter.write(C, UtilityMethods.get_address_for_result() + m.group(GROUP_INTERSECT_NAME) + ".txt");
-            AutomatonWriter.write(C, UtilityMethods.get_address_for_automata_library() + m.group(GROUP_INTERSECT_NAME) + ".txt");
+            writeAutomata(s, C, Session.getWriteAddressForAutomataLibrary(), m.group(GROUP_INTERSECT_NAME), true);
 
             return new TestCase(s, C, "", "", "");
 
@@ -1439,6 +1392,7 @@ public class Prover {
             throw new RuntimeException("Error using the intersect command.");
         }
     }
+
 
     public static TestCase starCommand(String s) {
         try {
@@ -1453,13 +1407,11 @@ public class Prover {
             String prefix = "";
             StringBuilder log = new StringBuilder();
 
-            Automaton M = new Automaton(UtilityMethods.get_address_for_automata_library() + m.group(GROUP_STAR_OLD_NAME) + ".txt");
+            Automaton M = new Automaton(Session.getReadAddressForAutomataLibrary() + m.group(GROUP_STAR_OLD_NAME) + ".txt");
 
             Automaton C = M.star(printSteps || printDetails, prefix, log);
 
-            AutomatonWriter.draw(C, UtilityMethods.get_address_for_result() + m.group(GROUP_STAR_NEW_NAME) + ".gv", s, false);
-            AutomatonWriter.write(C, UtilityMethods.get_address_for_result() + m.group(GROUP_STAR_NEW_NAME) + ".txt");
-            AutomatonWriter.write(C, UtilityMethods.get_address_for_automata_library() + m.group(GROUP_STAR_NEW_NAME) + ".txt");
+            writeAutomata(s, C, Session.getWriteAddressForAutomataLibrary(), m.group(GROUP_STAR_NEW_NAME), false);
             return new TestCase(s, C, "", "", "");
 
         } catch (RuntimeException e) {
@@ -1492,15 +1444,13 @@ public class Prover {
             if (automataNames.size() < 2) {
                 throw new RuntimeException("Concatenation requires at least two automata as input.");
             }
-            Automaton C = new Automaton(UtilityMethods.get_address_for_automata_library() + automataNames.get(0) + ".txt");
+            Automaton C = new Automaton(Session.getReadAddressForAutomataLibrary() + automataNames.get(0) + ".txt");
 
             automataNames.remove(0);
 
             C = C.concat(automataNames, printDetails || printSteps, prefix, log);
 
-            AutomatonWriter.draw(C, UtilityMethods.get_address_for_result() + m.group(GROUP_CONCAT_NAME) + ".gv", s, true);
-            AutomatonWriter.write(C, UtilityMethods.get_address_for_result() + m.group(GROUP_CONCAT_NAME) + ".txt");
-            AutomatonWriter.write(C, UtilityMethods.get_address_for_automata_library() + m.group(GROUP_CONCAT_NAME) + ".txt");
+            writeAutomata(s, C, Session.getWriteAddressForAutomataLibrary(), m.group(GROUP_CONCAT_NAME), true);
 
             return new TestCase(s, C, "", "", "");
 
@@ -1525,14 +1475,12 @@ public class Prover {
             String prefix = "";
             StringBuilder log = new StringBuilder();
 
-            Automaton M1 = new Automaton(UtilityMethods.get_address_for_automata_library() + m.group(GROUP_rightquo_OLD_NAME1) + ".txt");
-            Automaton M2 = new Automaton(UtilityMethods.get_address_for_automata_library() + m.group(GROUP_rightquo_OLD_NAME2) + ".txt");
+            Automaton M1 = new Automaton(Session.getReadAddressForAutomataLibrary() + m.group(GROUP_rightquo_OLD_NAME1) + ".txt");
+            Automaton M2 = new Automaton(Session.getReadAddressForAutomataLibrary() + m.group(GROUP_rightquo_OLD_NAME2) + ".txt");
 
             Automaton C = AutomatonLogicalOps.rightQuotient(M1, M2, false, printSteps || printDetails, prefix, log);
 
-            AutomatonWriter.draw(C, UtilityMethods.get_address_for_result() + m.group(GROUP_rightquo_NEW_NAME) + ".gv", s, false);
-            AutomatonWriter.write(C, UtilityMethods.get_address_for_result() + m.group(GROUP_rightquo_NEW_NAME) + ".txt");
-            AutomatonWriter.write(C, UtilityMethods.get_address_for_automata_library() + m.group(GROUP_rightquo_NEW_NAME) + ".txt");
+            writeAutomata(s, C, Session.getWriteAddressForAutomataLibrary(), m.group(GROUP_rightquo_NEW_NAME), false);
             return new TestCase(s, C, "", "", "");
 
         } catch (RuntimeException e) {
@@ -1555,14 +1503,12 @@ public class Prover {
             String prefix = "";
             StringBuilder log = new StringBuilder();
 
-            Automaton M1 = new Automaton(UtilityMethods.get_address_for_automata_library() + m.group(GROUP_leftquo_OLD_NAME1) + ".txt");
-            Automaton M2 = new Automaton(UtilityMethods.get_address_for_automata_library() + m.group(GROUP_leftquo_OLD_NAME2) + ".txt");
+            Automaton M1 = new Automaton(Session.getReadAddressForAutomataLibrary() + m.group(GROUP_leftquo_OLD_NAME1) + ".txt");
+            Automaton M2 = new Automaton(Session.getReadAddressForAutomataLibrary() + m.group(GROUP_leftquo_OLD_NAME2) + ".txt");
 
             Automaton C = AutomatonLogicalOps.leftQuotient(M1, M2, printSteps || printDetails, prefix, log);
 
-            AutomatonWriter.draw(C, UtilityMethods.get_address_for_result() + m.group(GROUP_leftquo_NEW_NAME) + ".gv", s, false);
-            AutomatonWriter.write(C, UtilityMethods.get_address_for_result() + m.group(GROUP_leftquo_NEW_NAME) + ".txt");
-            AutomatonWriter.write(C, UtilityMethods.get_address_for_automata_library() + m.group(GROUP_leftquo_NEW_NAME) + ".txt");
+            writeAutomata(s, C, Session.getWriteAddressForAutomataLibrary(), m.group(GROUP_leftquo_NEW_NAME), false);
             return new TestCase(s, C, "", "", "");
 
         } catch (RuntimeException e) {
@@ -1579,12 +1525,12 @@ public class Prover {
                 throw ExceptionHelper.invalidCommandUse("draw");
             }
 
-            String library = UtilityMethods.get_address_for_words_library();
+            String inLibrary = Session.getReadAddressForWordsLibrary();
             if (m.group(GROUP_draw_DOLLAR_SIGN).equals("$")) {
-                library = UtilityMethods.get_address_for_automata_library();
+                inLibrary = Session.getReadAddressForAutomataLibrary();
             }
-            Automaton M = new Automaton(library + m.group(GROUP_draw_NAME) + ".txt");
-            AutomatonWriter.draw(M, UtilityMethods.get_address_for_result() + m.group(GROUP_draw_NAME) + ".gv", s, false);
+            Automaton M = new Automaton(inLibrary + m.group(GROUP_draw_NAME) + ".txt");
+            AutomatonWriter.draw(M, Session.getAddressForResult() + m.group(GROUP_draw_NAME) + ".gv", s, false);
 
             return new TestCase(s, M, "", "", "");
 
@@ -1602,7 +1548,8 @@ public class Prover {
                 throw ExceptionHelper.invalidCommandUse("help");
             }
 
-            File f = new File(UtilityMethods.get_address_for_help_commands());
+            String helpAddress = Session.getAddressForHelpCommands();
+            File f = new File(helpAddress);
 
             ArrayList<String> pathnames = new ArrayList<>(Arrays.asList(f.list()));
 
@@ -1620,7 +1567,7 @@ public class Prover {
                 if (index == -1) {
                     System.out.println("There is no documentation for \"" + commandName + "\". Type \"help;\" to list all commands.");
                 } else {
-                    try (BufferedReader br = new BufferedReader(new FileReader(UtilityMethods.get_address_for_help_commands() + commandName + ".txt"))) {
+                    try (BufferedReader br = new BufferedReader(new FileReader(helpAddress + commandName + ".txt"))) {
                         String line;
                         while ((line = br.readLine()) != null) {
                             System.out.println(line);
@@ -1640,7 +1587,7 @@ public class Prover {
         System.out.flush();
     }
 
-    private static void which_matrices_to_compute(String s, List<String> L) {
+    private static void determineMatricesToCompute(String s, List<String> L) {
         Matcher m1 = PATTERN_FOR_A_FREE_VARIABLE_IN_eval_def_COMMANDS.matcher(s);
         while (m1.find()) {
             String t = m1.group();
@@ -1648,7 +1595,7 @@ public class Prover {
         }
     }
 
-    private static List<Integer> what_is_the_alphabet(String s) {
+    private static List<Integer> determineAlphabet(String s) {
         List<Integer> L = new ArrayList<>();
         s = s.substring(1, s.length() - 1); //truncation { and } from beginning and end
         Matcher m = PATTERN_FOR_A_SINGLE_ELEMENT_OF_A_SET.matcher(s);
@@ -1661,10 +1608,16 @@ public class Prover {
     }
 
     private static Automaton removeLeadTrailZeroes(Automaton M, String name) {
-        // When dealing with enumerating values (eg. inf and test commands), we remove leading zeroes in the case of msd
+        // When dealing with enumerating values (e.g. inf and test commands), we remove leading zeroes in the case of msd
         // and trailing zeroes in the case of lsd. To do this, we construct a reg subcommand that generates the complement
         // of zero-prefixed strings for msd and zero suffixed strings for lsd, then intersect this with our original automaton.
         M.randomLabel();
         return AutomatonLogicalOps.removeLeadingZeroes(M, M.label, false, null, null);
+    }
+
+    private static void writeAutomata(String s, Automaton M, String outLibrary, String name, boolean isDFAO) {
+        AutomatonWriter.draw(M, Session.getAddressForResult() + name + ".gv", s, isDFAO);
+        AutomatonWriter.write(M, Session.getAddressForResult() + name + ".txt");
+        AutomatonWriter.write(M, outLibrary + name + ".txt");
     }
 }

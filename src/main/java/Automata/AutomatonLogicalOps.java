@@ -1779,7 +1779,7 @@ public class AutomatonLogicalOps {
                 System.out.println(msg);
             }
 
-            // crossProduct requires labelling so we make an arbitrary labelling and use it for both: this is valid since
+            // crossProduct requires labelling; make an arbitrary labelling and use it for both: this is valid since
             // input alphabets and arities are assumed to be identical for the combine method
             first.randomLabel();
             next.label = first.label;

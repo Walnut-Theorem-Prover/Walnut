@@ -15,9 +15,21 @@ import java.util.List;
 import Token.Token;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DynamicTest;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestFactory;
 
 public class PredicateTest {
+	@Test
+	void basicTest() {
+		Predicate p = new Predicate("blah");
+		Assertions.assertEquals(1, p.getPostOrder().size());
+		Assertions.assertEquals("blah", p.toString());
+
+		p = new Predicate("?msd_3 (a=1 )");
+		Assertions.assertEquals(3, p.getPostOrder().size());
+		Assertions.assertEquals("a:1:=_msd_3", p.toString());
+	}
+
 	static class PredTest {
 		public PredTest(int i, String macro_, String pred_, String expected_predicate_, String expected_){
 			this.macro = macro_;
@@ -131,7 +143,7 @@ public class PredicateTest {
 					new BufferedWriter(
 							new OutputStreamWriter(
 									new FileOutputStream(
-											UtilityMethods.get_address_for_macro_library()+name+".txt"), StandardCharsets.UTF_8));
+											Session.getWriteAddressForMacroLibrary()+name+".txt"), StandardCharsets.UTF_8));
 			out.write(macro);
 			out.close();
 		}
@@ -140,7 +152,7 @@ public class PredicateTest {
 	}
 	private static void delete_macro(String name){
 		try {
-		    Files.delete(Paths.get(UtilityMethods.get_address_for_macro_library()+name+".txt"));
+		    Files.delete(Paths.get(Session.getWriteAddressForMacroLibrary()+name+".txt"));
 		} catch (NoSuchFileException x) {
 		    System.err.format("%s: no such" + " file or directory%n");
 		} catch (DirectoryNotEmptyException x) {

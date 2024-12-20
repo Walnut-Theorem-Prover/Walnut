@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import Main.ExceptionHelper;
+import Main.Session;
 import Main.UtilityMethods;
 import it.unimi.dsi.fastutil.ints.Int2ObjectRBTreeMap;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
@@ -144,7 +145,7 @@ public class NumberSystem {
          * For example lsd_2 is the complement of msd_2.
          */
         String complementName = (is_msd ? "lsd" : "msd") + "_" + base;
-        String basePath = UtilityMethods.get_address_for_custom_bases();
+        String basePath = Session.getReadAddressForCustomBases();
         String addressForTheSetOfAllRepresentations = basePath + name + ".txt";
         String complement_addressForTheSetOfAllRepresentations = basePath + complementName + ".txt";
         String addressForAddition = basePath + name + "_addition.txt";
@@ -338,19 +339,16 @@ public class NumberSystem {
 
         String base = name.substring(name.indexOf("_") + 1);
         String addressForComparison, complement_addressForComparison;
+        String readAddressForCustomBases = Session.getReadAddressForCustomBases();
         if (is_neg) {
-            addressForComparison = UtilityMethods.
-                    get_address_for_custom_bases() + name + "_base_change.txt";
+            addressForComparison = readAddressForCustomBases + name + "_base_change.txt";
             String complementName = (is_msd ? "lsd" : "msd") + "_" + base;
-            complement_addressForComparison = UtilityMethods.
-                    get_address_for_custom_bases() + complementName + "_base_change.txt";
+            complement_addressForComparison = readAddressForCustomBases + complementName + "_base_change.txt";
         } else {
             String msd_or_lsd = name.substring(0, name.indexOf("_"));
-            addressForComparison = UtilityMethods.
-                    get_address_for_custom_bases() + msd_or_lsd + "_neg_" + base + "_base_change.txt";
+            addressForComparison = readAddressForCustomBases + msd_or_lsd + "_neg_" + base + "_base_change.txt";
             String complementName = (is_msd ? "lsd" : "msd") + "_neg_" + base;
-            complement_addressForComparison = UtilityMethods.
-                    get_address_for_custom_bases() + complementName + "_base_change.txt";
+            complement_addressForComparison = readAddressForCustomBases + complementName + "_base_change.txt";
         }
 
         if (new File(addressForComparison).isFile()) {

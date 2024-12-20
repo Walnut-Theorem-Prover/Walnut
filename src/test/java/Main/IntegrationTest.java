@@ -30,13 +30,13 @@ import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
 
 public class IntegrationTest {
-	String directoryAddress = UtilityMethods.get_address_for_integration_test_results();
+	String directoryAddress = Session.getAddressForIntegrationTestResults();
 	List<TestCase> testCases;//list of test cases
 	List<String> L;//list of commands
 	private void initialize(){
 		PrintWriter out = null;
 		try {
-			String wordsLibrary = UtilityMethods.get_address_for_words_library();
+			String wordsLibrary = Session.getWriteAddressForWordsLibrary();
 			File file = new File(wordsLibrary + "T2.txt");
 			file.getParentFile().mkdirs();
 			out = new PrintWriter(wordsLibrary + "T2.txt", StandardCharsets.UTF_8);
@@ -1063,7 +1063,7 @@ public class IntegrationTest {
 		for(int i = 0; i < L.size();i++){
 			String command = L.get(i);
 			System.out.println(command);
-			TestCase test_case = null;
+			TestCase test_case;
 			try{
 				test_case = Prover.dispatchForIntegrationTest(command);
 			}
