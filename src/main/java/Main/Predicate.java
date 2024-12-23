@@ -50,28 +50,28 @@ import static Automata.ParseMethods.PATTERN_WHITESPACE;
 public class Predicate {
     String predicate;
     List<Token> postOrder;
-    Stack<Operator> operatorStack;
-    int realStartingPosition;
-    String defaultNumberSystem;
-    Matcher MATCHER_FOR_LOGICAL_OPERATORS;
-    Matcher MATCHER_FOR_LIST_OF_QUANTIFIED_VARIABLES;
-    Matcher MATCHER_FOR_RELATIONAL_OPERATORS;
-    Matcher MATCHER_FOR_ARITHMETIC_OPERATORS;
-    Matcher MATCHER_FOR_NUMBER_SYSTEM;
-    Matcher MATCHER_FOR_WORD;
-    Matcher MATCHER_FOR_WORD_WITH_DELIMITER;
-    Matcher MATCHER_FOR_FUNCTION;
-    Matcher MATCHER_FOR_MACRO;
-    Matcher MATCHER_FOR_VARIABLE;
-    Matcher MATCHER_FOR_NUMBER_LITERAL;
-    Matcher MATCHER_FOR_ALPHABET_LETTER;
-    Matcher MATCHER_FOR_LEFT_PARENTHESIS;
-    Matcher MATCHER_FOR_RIGHT_PARENTHESIS;
-    Matcher MATCHER_FOR_WHITESPACE;
+    private final Stack<Operator> operatorStack;
+    private final int realStartingPosition;
+    private final String defaultNumberSystem;
+    private Matcher MATCHER_FOR_LOGICAL_OPERATORS;
+    private Matcher MATCHER_FOR_LIST_OF_QUANTIFIED_VARIABLES;
+    private Matcher MATCHER_FOR_RELATIONAL_OPERATORS;
+    private Matcher MATCHER_FOR_ARITHMETIC_OPERATORS;
+    private Matcher MATCHER_FOR_NUMBER_SYSTEM;
+    private Matcher MATCHER_FOR_WORD;
+    private  Matcher MATCHER_FOR_WORD_WITH_DELIMITER;
+    private Matcher MATCHER_FOR_FUNCTION;
+    private Matcher MATCHER_FOR_MACRO;
+    private Matcher MATCHER_FOR_VARIABLE;
+    private Matcher MATCHER_FOR_NUMBER_LITERAL;
+    private Matcher MATCHER_FOR_ALPHABET_LETTER;
+    private Matcher MATCHER_FOR_LEFT_PARENTHESIS;
+    private Matcher MATCHER_FOR_RIGHT_PARENTHESIS;
+    private Matcher MATCHER_FOR_WHITESPACE;
 
     static HashMap<String, NumberSystem> numberSystemHash = new HashMap<>();
 
-    public static HashMap<String, NumberSystem> get_number_system_Hash() {
+    public static HashMap<String, NumberSystem> getNumberSystemHash() {
         return numberSystemHash;
     }
 
@@ -94,6 +94,8 @@ public class Predicate {
     static Pattern PATTERN_FOR_LEFT_PARENTHESIS = Pattern.compile("\\G\\s*\\(");
     static Pattern PATTERN_FOR_RIGHT_PARENTHESIS = Pattern.compile("\\G\\s*\\)");
     static Pattern PATTERN_FOR_WHITESPACE = Pattern.compile("\\G\\s+");
+
+    private static final Pattern PATTERN_LEFT_BRACKET = Pattern.compile("\\G\\s*\\[");
 
     public Predicate(String predicate) {
         this("msd_2", predicate, 0);
@@ -288,11 +290,9 @@ public class Predicate {
             matcher = MATCHER_FOR_WORD_WITH_DELIMITER;
         }
 
-        String r_leftBracket = "\\G\\s*\\[";
-        Pattern p_leftBracket = Pattern.compile(r_leftBracket);
-        Matcher m_leftBracket = p_leftBracket.matcher(predicate);
+        Matcher m_leftBracket = PATTERN_LEFT_BRACKET.matcher(predicate);
 
-        Automaton A = new Automaton(Session.getReadAddressForWordsLibrary() + matcher.group(1) + ".txt");
+        Automaton A = new Automaton(Session.getReadFileForWordsLibrary(matcher.group(1) + ".txt"));
 
         Stack<Character> bracketStack = new Stack<>();
         bracketStack.push('[');
@@ -338,7 +338,7 @@ public class Predicate {
 
     private int putFunction(String defaultNumberSystem) {
         Matcher matcher = MATCHER_FOR_FUNCTION;
-        Automaton A = new Automaton(Session.getReadAddressForAutomataLibrary() + matcher.group(1) + ".txt");
+        Automaton A = new Automaton(Session.getReadFileForAutomataLibrary(matcher.group(1) + ".txt"));
 
         Stack<Character> parenthesisStack = new Stack<>();
         parenthesisStack.push('(');
@@ -395,7 +395,7 @@ public class Predicate {
         try (BufferedReader in = new BufferedReader(
             new InputStreamReader(
                 new FileInputStream(
-                    Session.getReadAddressForMacroLibrary() + matcher.group(2) + ".txt"),
+                    Session.getReadFileForMacroLibrary(matcher.group(2) + ".txt")),
                 StandardCharsets.UTF_8))) {
             String line;
             while ((line = in.readLine()) != null) {

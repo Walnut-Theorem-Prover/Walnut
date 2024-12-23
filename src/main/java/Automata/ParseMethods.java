@@ -107,7 +107,7 @@ public class ParseMethods {
                     ns = "msd_" + m.group(10);
                 }
 
-                HashMap<String, NumberSystem> H = Predicate.get_number_system_Hash();
+                HashMap<String, NumberSystem> H = Predicate.getNumberSystemHash();
                 if (!H.containsKey(ns)) {
                     try {
                         H.put(ns, new NumberSystem(ns));

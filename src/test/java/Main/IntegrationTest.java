@@ -835,15 +835,15 @@ public class IntegrationTest {
 		// test alphabet on word automata
 		// first, test it on output in {0, 1}
 		L.add("alphabet test617 msd_4 T;");
-		//L.add("alphabet test618 msd_2 test610;");
-		//L.add("alphabet test619 msd_fib test610;");
+		L.add("alphabet test618 msd_2 test614;");
+		L.add("alphabet test619 msd_fib test614;");
 
 		// combine with at least two automata
-		//L.add("reg test620 {0,1} {0,1} \"([0,0]|[0,1][1,1]*[1,0])*\";"); // reg shift {0,1} {0,1} "([0,0]|[0,1][1,1]*[1,0])*":
-		//L.add("def test621 \"?msd_fib (s=0 & n=0) | Ex $test620(n-1,x) & s=x+1\";"); // def phin "?msd_fib (s=0 & n=0) | Ex $shift(n-1,x) & s=x+1":
-		//L.add("def test622 \"?msd_fib Ex,y $test621(3*n,x) & $test621(n,y) & x=3*y+1\";"); // def phid3a "?msd_fib Ex,y $phin(3*n,x) & $phin(n,y) & x=3*y+1":
-		//L.add("def test623 \"?msd_fib Ex,y $test621(3*n,x) & $test621(n,y) & x=3*y+2\";"); // def phid3b "?msd_fib Ex,y $phin(3*n,x) & $phin(n,y) & x=3*y+2":
-		//L.add("combine test624 test622=1 test623=2;"); // combine FD3 phid3a=1 phid3b=2:
+		L.add("reg test620 {0,1} {0,1} \"([0,0]|[0,1][1,1]*[1,0])*\";"); // reg shift {0,1} {0,1} "([0,0]|[0,1][1,1]*[1,0])*":
+		L.add("def test621 \"?msd_fib (s=0 & n=0) | Ex $test620(n-1,x) & s=x+1\";"); // def phin "?msd_fib (s=0 & n=0) | Ex $shift(n-1,x) & s=x+1":
+		L.add("def test622 \"?msd_fib Ex,y $test621(3*n,x) & $test621(n,y) & x=3*y+1\";"); // def phid3a "?msd_fib Ex,y $phin(3*n,x) & $phin(n,y) & x=3*y+1":
+		L.add("def test623 \"?msd_fib Ex,y $test621(3*n,x) & $test621(n,y) & x=3*y+2\";"); // def phid3b "?msd_fib Ex,y $phin(3*n,x) & $phin(n,y) & x=3*y+2":
+		L.add("combine test624 test622=1 test623=2;"); // combine FD3 phid3a=1 phid3b=2:*/
 	}
 
 	public long runTestCases() throws IOException {
@@ -874,35 +874,35 @@ public class IntegrationTest {
 				after = System.currentTimeMillis();
 				total += (after-before);
 
-				if(!conformMPL(expected.mpl.trim(),actual.mpl.trim())){
+				if(!conformMPL(expected.getMpl().trim(), actual.getMpl().trim())){
 					failedTestsCount++;
 					mplFailedTestsCount++;
 					System.out.println("Test " + i + " failed! Actual and expected .mpl files do not conform.\n");
 					continue;
 				}
 
-				if(!conformDetails(expected.details.trim(),actual.details.trim())){
+				if(!conformDetails(expected.getDetails().trim(), actual.getDetails().trim())){
 					failedTestsCount++;
 					detailsFailedTestsCount++;
 					System.out.println("Test " + i + " failed! Actual and expected detailed logs do not conform.\n");
 					continue;
 				}
 
-				if((actual.result == null && expected.result != null) ||
-						(actual.result != null && expected.result == null) ||
-						!actual.result.equals(expected.result)){
+				if((actual.getResult() == null && expected.getResult() != null) ||
+						(actual.getResult() != null && expected.getResult() == null) ||
+						!actual.getResult().equals(expected.getResult())){
 					failedTestsCount++;
 					automataFailedTestsCount++;
 					System.out.println("Test " + i + " failed! Actual and expected automata do not conform.\n");
 				}
 			}
 			catch(Exception e){
-				if(!e.getMessage().equals(expected.error)){
+				if(!e.getMessage().equals(expected.getError())){
 					errorFailedTestsCount++;
 					failedTestsCount++;
 					System.out.flush();
 					System.out.println("Test " + i + " failed! Actual and expected error messages do not conform.\n");
-					System.out.println("Expected error: " + expected.error);
+					System.out.println("Expected error: " + expected.getError());
 					System.out.println("Actual error: " + e.getMessage());
 				}
 			}
@@ -937,15 +937,15 @@ public class IntegrationTest {
 		String command = L.get(i);
 		try{
 			TestCase actual = Prover.dispatchForIntegrationTest(command);
-			Assertions.assertTrue(conformMPL(expected.mpl.trim(),actual.mpl.trim()), "MPL does not conform");
-			Assertions.assertTrue(conformDetails(expected.details.trim(),actual.details.trim()), "Details do not conform. \n ----- EXPECTED DETAILS: \n\n" + expected.details.trim() + "\n ----- ACTUAL DETAILS: \n\n" + actual.details.trim());
-			Assertions.assertTrue(actual.result == null || expected.result != null);
-			Assertions.assertTrue(actual.result != null || expected.result == null);
+			Assertions.assertTrue(conformMPL(expected.getMpl().trim(), actual.getMpl().trim()), "MPL does not conform");
+			Assertions.assertTrue(conformDetails(expected.getDetails().trim(), actual.getDetails().trim()), "Details do not conform. \n ----- EXPECTED DETAILS: \n\n" + expected.getDetails().trim() + "\n ----- ACTUAL DETAILS: \n\n" + actual.getDetails().trim());
+			Assertions.assertTrue(actual.getResult() == null || expected.getResult() != null);
+			Assertions.assertTrue(actual.getResult() != null || expected.getResult() == null);
 			// We don't use assertEquals here, since equals has been overridden in the Automaton class
-			Assertions.assertTrue(actual.result.equals(expected.result), "Actual result: " + actual.result + " does not equal expected result: " + expected.result);
+			Assertions.assertTrue(actual.getResult().equals(expected.getResult()), "Actual result: " + actual.getResult() + " does not equal expected result: " + expected.getResult());
 		}
 		catch(Exception e){
-			Assertions.assertEquals(e.getMessage(), expected.error);
+			Assertions.assertEquals(expected.getError(), e.getMessage());
 		}
 	}
 
@@ -954,9 +954,6 @@ public class IntegrationTest {
 		if(expected_mpl == null && actual_mpl == null)return true;
 		if(expected_mpl == null) return false;
 		if(expected_mpl.isEmpty() && actual_mpl.isEmpty()) return true;
-		//if(expected_mpl.length() != actual_mpl.length()){
-		//	return false;
-		//}
     return expected_mpl.equals(actual_mpl);
   }
 
@@ -967,45 +964,11 @@ public class IntegrationTest {
 		expected_details = expected_details.replaceAll("\\d+ms", "");
 		actual_details = actual_details.replaceAll("\\d+ms", "");
 		return expected_details.equals(actual_details);
-		/*String regex = "(.*)\\s*";
-		String time = "(.*)(\\d+ms)$";
-		Pattern pattern = Pattern.compile(regex);
-		Matcher expected_matcher = pattern.matcher(expected_details);
-		Matcher actual_matcher = pattern.matcher(actual_details);
-		Pattern timePattern = Pattern.compile(time);
-		while(expected_matcher.find()){
-			System.out.println("expected:"+ expected_matcher.group(0)+")");
-			if(!actual_matcher.find()){
-				return false;
-			}
-			String expected = expected_matcher.group(0);
-			String actual = actual_matcher.group(0);
-			Matcher expected_time = timePattern.matcher(expected);
-			Matcher actual_time = timePattern.matcher(actual);
-			if(expected_time.find()){
-				expected = expected_time.group(0);
-			}
-			if(actual_time.find()){
-				actual = actual_time.group(0);
-			}
-
-			System.out.println("actual:"+ actual+")");
-
-			if(actual.compareTo(expected) != 0){
-				return false;
-			}
-		}
-		if(actual_matcher.find()){
-			return false;
-		}
-		return true;*/
 	}
 
 	void loadTestCases(String directoryAddress) throws IOException {
-		String command;
 		testCases = new ArrayList<>();
 		for(int i = 0 ; i < L.size();i++){
-			command = L.get(i);
 			Automaton M = null;
 			StringBuilder error = new StringBuilder();
 			StringBuilder details = new StringBuilder();
@@ -1018,10 +981,7 @@ public class IntegrationTest {
 				String temp;
 				boolean flag = false;
 				while((temp = errorReader.readLine())!= null){
-					if(flag)
-						error.append(System.lineSeparator() + temp);
-					else
-						error.append(temp);
+					error.append((flag ? System.lineSeparator() : "") + temp);
 					flag = true;
 				}
 				errorReader.close();
@@ -1055,7 +1015,7 @@ public class IntegrationTest {
 				detailsReader.close();
 			}
 
-			testCases.add(new TestCase(command,M,error.toString(),mpl.toString(),details.toString()));
+			testCases.add(new TestCase(M,error.toString(),mpl.toString(),details.toString()));
 		}
 	}
 	//@Test // uncomment this line if you want to regenerate test cases
@@ -1068,7 +1028,7 @@ public class IntegrationTest {
 				test_case = Prover.dispatchForIntegrationTest(command);
 			}
 			catch(Exception e){
-				test_case = new TestCase(command,null,e.getMessage(),"","");
+				test_case = new TestCase(null,e.getMessage(),"","");
 			}
 			testCases.add(test_case);
 		}
@@ -1078,22 +1038,22 @@ public class IntegrationTest {
 		new File(directory).mkdirs();
 		for(int i = 0 ; i < testCases.size();i++){
 			TestCase t = testCases.get(i);
-			if(t.result != null){
-				AutomatonWriter.write(t.result, directory+"automaton" + i + ".txt");
+			if(t.getResult() != null){
+				AutomatonWriter.write(t.getResult(), directory+"automaton" + i + ".txt");
 			}
-			if(t.error != null && !t.error.isEmpty()){
+			if(t.getError() != null && !t.getError().isEmpty()){
 				PrintWriter errorWriter = new PrintWriter(directory+"error"+ i +".txt", StandardCharsets.UTF_8);
-				errorWriter.println(t.error);
+				errorWriter.println(t.getError());
 				errorWriter.close();
 			}
-			if(t.mpl != null && !t.mpl.isEmpty()){
+			if(t.getMpl() != null && !t.getMpl().isEmpty()){
 				PrintWriter mplWriter = new PrintWriter(directory+"mpl"+ i +".mpl", StandardCharsets.UTF_8);
-				mplWriter.println(t.mpl);
+				mplWriter.println(t.getMpl());
 				mplWriter.close();
 			}
-			if(t.details != null && !t.details.isEmpty()){
+			if(t.getDetails() != null && !t.getDetails().isEmpty()){
 				PrintWriter detailsWriter = new PrintWriter(directory+"details"+ i +".txt", StandardCharsets.UTF_8);
-				detailsWriter.println(t.details);
+				detailsWriter.println(t.getDetails());
 				detailsWriter.close();
 			}
 		}

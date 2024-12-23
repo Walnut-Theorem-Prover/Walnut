@@ -19,10 +19,7 @@
 package Automata;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 import Main.ExceptionHelper;
 import Main.Session;
@@ -69,13 +66,13 @@ public class NumberSystem {
     /**
      * Examples: msd_2, lsd_3, lsd_fib, ...
      */
-    String name;
+    private final String name;
 
     /**
      * is_msd is used to determine which of first or last digit is the most significant digit. It'll be used when we
      * call Automaton.quantify method, and also in many other places.
      */
-    boolean is_msd;
+    private final boolean is_msd;
 
     /**
      * is_neg is used to determine whether the base is negative.
@@ -93,11 +90,11 @@ public class NumberSystem {
      * baseChange must be initialized manually. comparison_neg accepts inputs x,y if and only if x represents in the
      * positive base the same non-negative integer as y does in the negative base.
      */
-    public Automaton addition;
-    public Automaton lessThan;
+    private Automaton addition;
+    private Automaton lessThan;
     public Automaton equality;
     public Automaton baseChange;
-    public Automaton allRepresentations;
+    private Automaton allRepresentations;
 
     /**
      * Used to compute constant(n),multiplication(n),division(n) with dynamic programming.
@@ -107,11 +104,11 @@ public class NumberSystem {
      * multiplicationsDynamicTable(3) is the automaton that gets two inputs, and accepts if the second is 3 times the first. So the input is ordered!<br>
      * divisionsDynamicTable(5) is the automaton that gets two inputs, and accepts if the second is one-third of the first. So the input is ordered!<br>
      */
-    HashMap<Integer, Automaton> constantsDynamicTable;
-    HashMap<Integer, Automaton> multiplicationsDynamicTable;
-    HashMap<Integer, Automaton> divisionsDynamicTable;
+    private final Map<Integer, Automaton> constantsDynamicTable;
+    private final Map<Integer, Automaton> multiplicationsDynamicTable;
+    private final Map<Integer, Automaton> divisionsDynamicTable;
 
-    boolean flag_should_we_use_allRepresentations = true;
+    private boolean flag_should_we_use_allRepresentations = true;
 
     public boolean isMsd() {
         return is_msd;
@@ -126,7 +123,7 @@ public class NumberSystem {
     }
 
     public List<Integer> getAlphabet() {
-        return addition.A.get(0);
+        return addition.getA().get(0);
     }
 
     public Automaton getAllRepresentations() {
@@ -174,31 +171,31 @@ public class NumberSystem {
          * The addition automata must have 3 inputs.
          * All 3 inputs must be of type arithmetic.
          */
-        if (addition.A == null || addition.A.size() != 3) {
+        if (addition.getA() == null || addition.getA().size() != 3) {
             throw new RuntimeException(
                     "The addition automaton must have exactly 3 inputs: base " + name);
         }
 
-        if (!addition.A.get(0).contains(0)) {
+        if (!addition.getA().get(0).contains(0)) {
             throw new RuntimeException(
                     "The input alphabet of addition automaton must contain 0: base " + name);
         }
 
-        if (!addition.A.get(0).contains(1)) {
+        if (!addition.getA().get(0).contains(1)) {
             throw new RuntimeException(
                     "The input alphabet of addition automaton must contain 1: base " + name);
         }
 
-        for (int i = 1; i < addition.A.size(); i++) {
-            if (!UtilityMethods.areEqual(addition.A.get(i), addition.A.get(0))) {
+        for (int i = 1; i < addition.getA().size(); i++) {
+            if (!UtilityMethods.areEqual(addition.getA().get(i), addition.getA().get(0))) {
                 throw new RuntimeException(
                         "All 3 inputs of the addition automaton " +
                                 "must have the same alphabet: base " + name);
             }
         }
 
-        for (int i = 0; i < addition.A.size(); i++) {
-            addition.NS.set(i, this);
+        for (int i = 0; i < addition.getA().size(); i++) {
+            addition.getNS().set(i, this);
         }
 
         //lessThan
@@ -210,7 +207,7 @@ public class NumberSystem {
         } else if (UtilityMethods.parseNegNumber(base) > 1) {
             base_neg_n_less_than(UtilityMethods.parseNegNumber(base));
         } else {
-            lexicographicLessThan(addition.A.get(0));
+            lexicographicLessThan(addition.getA().get(0));
         }
 
         /**
@@ -218,22 +215,22 @@ public class NumberSystem {
          * All 2 inputs must be of type arithmetic.
          * Inputs must have the same alphabet as the addition automaton.
          */
-        if (lessThan.A == null || lessThan.A.size() != 2) {
+        if (lessThan.getA() == null || lessThan.getA().size() != 2) {
             throw new RuntimeException(
                     "The less_than automaton must have exactly 2 inputs: base " + name);
         }
 
-        for (int i = 0; i < lessThan.A.size(); i++) {
-            if (!UtilityMethods.areEqual(lessThan.A.get(i), addition.A.get(0))) {
+        for (int i = 0; i < lessThan.getA().size(); i++) {
+            if (!UtilityMethods.areEqual(lessThan.getA().get(i), addition.getA().get(0))) {
                 throw new RuntimeException(
                         "Inputs of the less_than automaton must have the same alphabet " +
                                 "as the alphabet of inputs of addition automaton: base " + name);
             }
 
-            lessThan.NS.set(i, this);
+            lessThan.getNS().set(i, this);
         }
 
-        setEquality(addition.A.get(0));
+        setEquality(addition.getA().get(0));
 
         //the set of all representations
         if (new File(addressForTheSetOfAllRepresentations).isFile()) {
@@ -246,8 +243,8 @@ public class NumberSystem {
         }
 
         if (flag_should_we_use_allRepresentations) {
-            for (int i = 0; i < allRepresentations.NS.size(); i++) {
-                allRepresentations.NS.set(i, this);
+            for (int i = 0; i < allRepresentations.getNS().size(); i++) {
+                allRepresentations.getNS().set(i, this);
             }
 
             applyAllRepresentations();
@@ -265,19 +262,17 @@ public class NumberSystem {
      */
     private void setEquality(List<Integer> alphabet) {
         equality = new Automaton();
-        equality.Q = 1;
-        equality.q0 = 0;
-        equality.O.add(1);
-        equality.NS.add(this);
-        equality.NS.add(this);
-        equality.A.add(new ArrayList<>(alphabet));
-        equality.A.add(new ArrayList<>(alphabet));
-        equality.alphabetSize = alphabet.size() * alphabet.size();
-        equality.d.add(new Int2ObjectRBTreeMap<>());
+        equality.setQ(1);
+        equality.setQ0(0);
+        equality.getO().add(1);
+        equality.getNS().add(this);
+        equality.getNS().add(this);
+        equality.getA().add(new ArrayList<>(alphabet));
+        equality.getA().add(new ArrayList<>(alphabet));
+        equality.setAlphabetSize(alphabet.size() * alphabet.size());
+        equality.getD().add(new Int2ObjectRBTreeMap<>());
         for (int i = 0; i < alphabet.size(); i++) {
-            IntList dest = new IntArrayList();
-            dest.add(0);
-            equality.d.get(0).put(i * alphabet.size() + i, dest);
+            addTransition(equality, 0, 0, i * alphabet.size() + i);
         }
     }
 
@@ -286,38 +281,31 @@ public class NumberSystem {
      * one is less than the second one. So the input is ordered!
      *
      * @param alphabet
-     * @throws Exception
      */
     private void lexicographicLessThan(List<Integer> alphabet) {
         alphabet = new ArrayList<>(alphabet);
         Collections.sort(alphabet);
         lessThan = new Automaton();
-        lessThan.Q = 2;
-        lessThan.q0 = 0;
-        lessThan.O.add(0);
-        lessThan.O.add(1);
-        lessThan.NS.add(this);
-        lessThan.NS.add(this);
-        lessThan.A.add(new ArrayList<>(alphabet));
-        lessThan.A.add(new ArrayList<>(alphabet));
-        lessThan.alphabetSize = alphabet.size() * alphabet.size();
-        lessThan.d.add(new Int2ObjectRBTreeMap<>());
-        lessThan.d.add(new Int2ObjectRBTreeMap<>());
+        lessThan.setQ(2);
+        lessThan.setQ0(0);
+        lessThan.getO().add(0);
+        lessThan.getO().add(1);
+        lessThan.getNS().add(this);
+        lessThan.getNS().add(this);
+        lessThan.getA().add(new ArrayList<>(alphabet));
+        lessThan.getA().add(new ArrayList<>(alphabet));
+        lessThan.setAlphabetSize(alphabet.size() * alphabet.size());
+        lessThan.getD().add(new Int2ObjectRBTreeMap<>());
+        lessThan.getD().add(new Int2ObjectRBTreeMap<>());
         for (int i = 0; i < alphabet.size(); i++) {
             for (int j = 0; j < alphabet.size(); j++) {
                 if (i == j) {
-                    IntList dest = new IntArrayList();
-                    dest.add(0);
-                    lessThan.d.get(0).put(j * alphabet.size() + i, dest);
+                    addTransition(lessThan, 0, 0, j * alphabet.size() + i);
                 }
                 if (i < j) {
-                    IntList dest = new IntArrayList();
-                    dest.add(1);
-                    lessThan.d.get(0).put(j * alphabet.size() + i, dest);
+                    addTransition(lessThan, 0, 1, j * alphabet.size() + i);
                 }
-                IntList dest = new IntArrayList();
-                dest.add(1);
-                lessThan.d.get(1).put(i * alphabet.size() + j, dest);
+                addTransition(lessThan, 1, 1, i * alphabet.size() + j);
             }
         }
         if (!is_msd) {
@@ -332,7 +320,6 @@ public class NumberSystem {
      * function to initialize as required. If no base_change file is found in the custom bases, we leave the baseChange
      * automaton unset.
      *
-     * @throws Exception
      */
     public void setBaseChange() {
         if (baseChange != null) return;
@@ -375,48 +362,39 @@ public class NumberSystem {
      * iff the third is the sum of the first two. So the input is ordered!
      *
      * @param n
-     * @throws Exception
      */
     private void base_n_addition(int n) {
         List<Integer> alphabet = new ArrayList<>();
         for (int i = 0; i < n; i++) alphabet.add(i);
         addition = new Automaton();
-        addition.Q = 2;
-        addition.q0 = 0;
-        addition.O.add(1);
-        addition.O.add(0);
-        addition.d.add(new Int2ObjectRBTreeMap<>());
-        addition.d.add(new Int2ObjectRBTreeMap<>());
-        addition.NS.add(this);
-        addition.NS.add(this);
-        addition.NS.add(this);
-        addition.A.add(new ArrayList<>(alphabet));
-        addition.A.add(new ArrayList<>(alphabet));
-        addition.A.add(alphabet);
-        addition.alphabetSize = alphabet.size() * alphabet.size() * alphabet.size();
+        addition.setQ(2);
+        addition.setQ0(0);
+        addition.getO().add(1);
+        addition.getO().add(0);
+        addition.getD().add(new Int2ObjectRBTreeMap<>());
+        addition.getD().add(new Int2ObjectRBTreeMap<>());
+        addition.getNS().add(this);
+        addition.getNS().add(this);
+        addition.getNS().add(this);
+        addition.getA().add(new ArrayList<>(alphabet));
+        addition.getA().add(new ArrayList<>(alphabet));
+        addition.getA().add(alphabet);
+        addition.setAlphabetSize(alphabet.size() * alphabet.size() * alphabet.size());
         int l = 0;
         for (int k = 0; k < n; k++) {
             for (int j = 0; j < n; j++) {
                 for (int i = 0; i < n; i++) {
                     if (i + j == k) {
-                        IntList dest = new IntArrayList();
-                        dest.add(0);
-                        addition.d.get(0).put(l, dest);
+                        addTransition(addition, 0, 0, l);
                     }
                     if (i + j + 1 == k) {
-                        IntList dest = new IntArrayList();
-                        dest.add(1);
-                        addition.d.get(0).put(l, dest);
+                        addTransition(addition, 0, 1, l);
                     }
                     if (i + j + 1 == k + n) {
-                        IntList dest = new IntArrayList();
-                        dest.add(1);
-                        addition.d.get(1).put(l, dest);
+                        addTransition(addition, 1, 1, l);
                     }
                     if (i + j == k + n) {
-                        IntList dest = new IntArrayList();
-                        dest.add(0);
-                        addition.d.get(1).put(l, dest);
+                        addTransition(addition, 1, 0, l);
                     }
                     l++;
                 }
@@ -433,65 +411,50 @@ public class NumberSystem {
      * iff the third is the sum of the first two. So the input is ordered!
      *
      * @param n
-     * @throws Exception
      */
     private void base_neg_n_addition(int n) {
         List<Integer> alphabet = new ArrayList<>();
         for (int i = 0; i < n; i++) alphabet.add(i);
         addition = new Automaton();
-        addition.Q = 3;
-        addition.q0 = 0;
-        addition.O.add(1);
-        addition.O.add(0);
-        addition.O.add(0);
-        addition.d.add(new Int2ObjectRBTreeMap<>());
-        addition.d.add(new Int2ObjectRBTreeMap<>());
-        addition.d.add(new Int2ObjectRBTreeMap<>());
-        addition.NS.add(this);
-        addition.NS.add(this);
-        addition.NS.add(this);
-        addition.A.add(new ArrayList<>(alphabet));
-        addition.A.add(new ArrayList<>(alphabet));
-        addition.A.add(alphabet);
-        addition.alphabetSize = alphabet.size() * alphabet.size() * alphabet.size();
+        addition.setQ(3);
+        addition.setQ0(0);
+        addition.getO().add(1);
+        addition.getO().add(0);
+        addition.getO().add(0);
+        addition.getD().add(new Int2ObjectRBTreeMap<>());
+        addition.getD().add(new Int2ObjectRBTreeMap<>());
+        addition.getD().add(new Int2ObjectRBTreeMap<>());
+        addition.getNS().add(this);
+        addition.getNS().add(this);
+        addition.getNS().add(this);
+        addition.getA().add(new ArrayList<>(alphabet));
+        addition.getA().add(new ArrayList<>(alphabet));
+        addition.getA().add(alphabet);
+        addition.setAlphabetSize(alphabet.size() * alphabet.size() * alphabet.size());
         int l = 0;
         for (int k = 0; k < n; k++) {
             for (int j = 0; j < n; j++) {
                 for (int i = 0; i < n; i++) {
                     if (i + j == k) {
-                        IntList dest = new IntArrayList();
-                        dest.add(0);
-                        addition.d.get(0).put(l, dest);
+                        addTransition(addition, 0, 0, l);
                     }
                     if (i + j + 1 == k) {
-                        IntList dest = new IntArrayList();
-                        dest.add(1);
-                        addition.d.get(0).put(l, dest);
+                        addTransition(addition, 0, 1, l);
                     }
                     if (i + j - 1 == k) {
-                        IntList dest = new IntArrayList();
-                        dest.add(2);
-                        addition.d.get(0).put(l, dest);
+                        addTransition(addition, 0, 2, l);
                     }
                     if (i + j == k + n) {
-                        IntList dest = new IntArrayList();
-                        dest.add(0);
-                        addition.d.get(2).put(l, dest);
+                        addTransition(addition, 2, 0, l);
                     }
                     if (i + j + 1 == k + n) {
-                        IntList dest = new IntArrayList();
-                        dest.add(1);
-                        addition.d.get(2).put(l, dest);
+                        addTransition(addition, 2, 1, l);
                     }
                     if (i + j - 1 == k + n) {
-                        IntList dest = new IntArrayList();
-                        dest.add(2);
-                        addition.d.get(2).put(l, dest);
+                        addTransition(addition, 2, 2, l);
                     }
                     if (i == 0 && j == 0 && k == n - 1) {
-                        IntList dest = new IntArrayList();
-                        dest.add(2);
-                        addition.d.get(1).put(l, dest);
+                        addTransition(addition, 1, 2, l);
                     }
                     l++;
                 }
@@ -503,54 +466,50 @@ public class NumberSystem {
         }
     }
 
+    private static void addTransition(Automaton automaton, int src, int dest, int inp) {
+        IntList destStates = new IntArrayList();
+        destStates.add(dest);
+        automaton.getD().get(src).put(inp, destStates);
+    }
+
     /**
      * Initializes lessThan to base negative n lessThan. less_than has two inputs, and it accepts
      * iff the first is less than the second. So the input is ordered!
      *
      * @param n
-     * @throws Exception
      */
     private void base_neg_n_less_than(int n) {
         List<Integer> alphabet = new ArrayList<>();
         for (int i = 0; i < n; i++) alphabet.add(i);
         lessThan = new Automaton();
-        lessThan.Q = 3;
-        lessThan.q0 = 0;
-        lessThan.O.add(0);
-        lessThan.O.add(1);
-        lessThan.O.add(0);
-        lessThan.d.add(new Int2ObjectRBTreeMap<>());
-        lessThan.d.add(new Int2ObjectRBTreeMap<>());
-        lessThan.d.add(new Int2ObjectRBTreeMap<>());
-        lessThan.NS.add(this);
-        lessThan.NS.add(this);
-        lessThan.A.add(new ArrayList<>(alphabet));
-        lessThan.A.add(alphabet);
-        lessThan.alphabetSize = alphabet.size() * alphabet.size();
+        lessThan.setQ(3);
+        lessThan.setQ0(0);
+        lessThan.getO().add(0);
+        lessThan.getO().add(1);
+        lessThan.getO().add(0);
+        lessThan.getD().add(new Int2ObjectRBTreeMap<>());
+        lessThan.getD().add(new Int2ObjectRBTreeMap<>());
+        lessThan.getD().add(new Int2ObjectRBTreeMap<>());
+        lessThan.getNS().add(this);
+        lessThan.getNS().add(this);
+        lessThan.getA().add(new ArrayList<>(alphabet));
+        lessThan.getA().add(alphabet);
+        lessThan.setAlphabetSize(alphabet.size() * alphabet.size());
         int l = 0;
+        int dest;
         for (int j = 0; j < n; j++) {
             for (int i = 0; i < n; i++) {
                 if (i == j) {
-                    IntList dest = new IntArrayList();
-                    dest.add(0);
-                    lessThan.d.get(0).put(l, dest);
+                    addTransition(lessThan, 0, 0, l);
                 }
                 if (i < j) {
-                    IntList dest = new IntArrayList();
-                    dest.add(1);
-                    lessThan.d.get(0).put(l, dest);
+                    addTransition(lessThan, 0, 1, l);
                 }
                 if (j < i) {
-                    IntList dest = new IntArrayList();
-                    dest.add(2);
-                    lessThan.d.get(0).put(l, dest);
+                    addTransition(lessThan, 0, 2, l);
                 }
-                IntList dest_2 = new IntArrayList();
-                dest_2.add(2);
-                lessThan.d.get(1).put(l, dest_2);
-                IntList dest_1 = new IntArrayList();
-                dest_1.add(1);
-                lessThan.d.get(2).put(l, dest_1);
+                addTransition(lessThan, 1, 2, l);
+                addTransition(lessThan, 2, 1, l);
                 l++;
             }
         }
@@ -566,64 +525,51 @@ public class NumberSystem {
      * the same integer).
      *
      * @param n
-     * @throws Exception
      */
     private void base_n_base_change(int n) {
         List<Integer> alphabet = new ArrayList<>();
         for (int i = 0; i < n; i++) alphabet.add(i);
         baseChange = new Automaton();
-        baseChange.Q = 4;
-        baseChange.q0 = 0;
-        baseChange.O.add(1);
-        baseChange.O.add(1);
-        baseChange.O.add(0);
-        baseChange.O.add(0);
-        baseChange.d.add(new Int2ObjectRBTreeMap<>());
-        baseChange.d.add(new Int2ObjectRBTreeMap<>());
-        baseChange.d.add(new Int2ObjectRBTreeMap<>());
-        baseChange.d.add(new Int2ObjectRBTreeMap<>());
+        baseChange.setQ(4);
+        baseChange.setQ0(0);
+        baseChange.getO().add(1);
+        baseChange.getO().add(1);
+        baseChange.getO().add(0);
+        baseChange.getO().add(0);
+        baseChange.getD().add(new Int2ObjectRBTreeMap<>());
+        baseChange.getD().add(new Int2ObjectRBTreeMap<>());
+        baseChange.getD().add(new Int2ObjectRBTreeMap<>());
+        baseChange.getD().add(new Int2ObjectRBTreeMap<>());
         if (is_msd) {
-            baseChange.NS.add(new NumberSystem("msd_" + n));
-            baseChange.NS.add(new NumberSystem("msd_neg_" + n));
+            baseChange.getNS().add(new NumberSystem("msd_" + n));
+            baseChange.getNS().add(new NumberSystem("msd_neg_" + n));
         } else {
-            baseChange.NS.add(new NumberSystem("lsd_" + n));
-            baseChange.NS.add(new NumberSystem("lsd_neg_" + n));
+            baseChange.getNS().add(new NumberSystem("lsd_" + n));
+            baseChange.getNS().add(new NumberSystem("lsd_neg_" + n));
         }
-        baseChange.A.add(new ArrayList<>(alphabet));
-        baseChange.A.add(alphabet);
-        baseChange.alphabetSize = alphabet.size() * alphabet.size();
+        baseChange.getA().add(new ArrayList<>(alphabet));
+        baseChange.getA().add(alphabet);
+        baseChange.setAlphabetSize(alphabet.size() * alphabet.size());
         int l = 0;
         for (int j = 0; j < n; j++) {
             for (int i = 0; i < n; i++) {
                 if (i == 0 && j == 0) {
-                    IntList dest = new IntArrayList();
-                    dest.add(0);
-                    baseChange.d.get(1).put(l, dest);
+                    addTransition(baseChange, 1, 0, l);
                 }
                 if (i == j) {
-                    IntList dest = new IntArrayList();
-                    dest.add(1);
-                    baseChange.d.get(0).put(l, dest);
+                    addTransition(baseChange, 0, 1, l);
                 }
                 if (i + 1 == j) {
-                    IntList dest = new IntArrayList();
-                    dest.add(1);
-                    baseChange.d.get(2).put(l, dest);
+                    addTransition(baseChange, 2, 1, l);
                 }
                 if (i + j == n) {
-                    IntList dest = new IntArrayList();
-                    dest.add(2);
-                    baseChange.d.get(1).put(l, dest);
+                    addTransition(baseChange, 1, 2, l);
                 }
                 if (i + j == n - 1) {
-                    IntList dest = new IntArrayList();
-                    dest.add(2);
-                    baseChange.d.get(3).put(l, dest);
+                    addTransition(baseChange, 3, 2, l);
                 }
                 if (i == n - 1 && j == 0) {
-                    IntList dest = new IntArrayList();
-                    dest.add(3);
-                    baseChange.d.get(2).put(l, dest);
+                    addTransition(baseChange, 2, 3, l);
                 }
                 l++;
             }
@@ -648,7 +594,6 @@ public class NumberSystem {
      * @return an automaton that accepts only n.
      * If n < 0 and the current number system does not contain negative numbers, then we always return
      * the false automata. So BE CAREFUL when calling on n < 0.
-     * @throws Exception
      */
     public Automaton get(int n) {
         return constant(n).clone();
@@ -681,7 +626,6 @@ public class NumberSystem {
      * @return an Automaton with two inputs, with labels a and b. It accepts iff a comparisonOperator b.
      * Note that the order of inputs, in the resulting automaton, is not guaranteed to be either (a,b) or (b,a).
      * So the input is not ordered!
-     * @throws Exception
      */
     public Automaton comparison(String a, String b, String comparisonOperator) {
       return switch (comparisonOperator) {
@@ -700,7 +644,6 @@ public class NumberSystem {
      * @param b                  a non negative integer
      * @param comparisonOperator can be any of "<",">","<=",">=","=","!="
      * @return an Automaton with single input, with label = [a]. It accepts iff a comparisonOperator b.
-     * @throws Exception
      */
     public Automaton comparison(String a, int b, String comparisonOperator) {
         if (!is_neg && b < 0) throw ExceptionHelper.negativeConstant(b);
@@ -732,7 +675,6 @@ public class NumberSystem {
      * @param b
      * @param comparisonOperator can be any of "<",">","<=",">=","=","!="
      * @return an Automaton with single input, with label = [b]. It accepts iff a comparisonOperator b.
-     * @throws Exception
      */
     public Automaton comparison(int a, String b, String comparisonOperator) {
         if (!is_neg && a < 0) throw ExceptionHelper.negativeConstant(a);
@@ -756,7 +698,6 @@ public class NumberSystem {
      * Note that the order of inputs, in the resulting
      * automaton, is not guaranteed to be in any fixed order like (a,b,c) or (c,b,a) ...
      * So the input is not ordered!
-     * @throws Exception
      */
     public Automaton arithmetic(
             String a,
@@ -790,7 +731,6 @@ public class NumberSystem {
      * Note that the order of inputs, in the resulting
      * automaton, is not guaranteed to be in any fixed order like [a,c] or [c,a].
      * So the input is not ordered!
-     * @throws Exception
      */
     public Automaton arithmetic(
             String a,
@@ -837,7 +777,6 @@ public class NumberSystem {
      * Note that the order of inputs, in the resulting
      * automaton, is not guaranteed to be in any fixed order like [b,c] or [c,b].
      * So the input is not ordered!
-     * @throws Exception
      */
     public Automaton arithmetic(
             int a,
@@ -884,7 +823,6 @@ public class NumberSystem {
      * Note that the order of inputs, in the resulting
      * automaton, is not guaranteed to be in any fixed order like [a,b] or [b,a].
      * So the input is not ordered!
-     * @throws Exception
      */
     public Automaton arithmetic(
             String a,
@@ -922,7 +860,6 @@ public class NumberSystem {
     /**
      * @param n
      * @return an Automaton with one input. It accepts when the input equals n.
-     * @throws Exception
      */
     private Automaton constant(int n) {
         if (!is_neg && n < 0) {
@@ -969,7 +906,6 @@ public class NumberSystem {
      *
      * @param n
      * @return
-     * @throws Exception
      */
     private Automaton multiplication(int n) {
         if (!is_neg && n < 0) throw ExceptionHelper.negativeConstant(n);
@@ -1027,7 +963,6 @@ public class NumberSystem {
      *
      * @param n
      * @return
-     * @throws Exception
      */
     // a / n = b <=> Er,q a = q + r & q = n*b & n < r <= 0 if n < 0
     private Automaton division(int n) {
@@ -1064,11 +999,11 @@ public class NumberSystem {
         alph.add(0);
         alph.add(1);
         Automaton M = new Automaton("0*", alph, this);
-        M.A = new ArrayList<>();
-        M.A.add(new ArrayList<>(addition.A.get(0)));
-        M.alphabetSize = M.A.get(0).size();
-        M.encoder = new ArrayList<>();
-        M.encoder.add(1);
+        M.setA(new ArrayList<>());
+        M.getA().add(new ArrayList<>(addition.getA().get(0)));
+        M.setAlphabetSize(M.getA().get(0).size());
+        M.setEncoder(new ArrayList<>());
+        M.getEncoder().add(1);
         M.canonize();
         constantsDynamicTable.put(0, M);
         return M;
@@ -1079,11 +1014,11 @@ public class NumberSystem {
         alph.add(0);
         alph.add(1);
         Automaton M = new Automaton(is_msd ? "0*1" : "10*", alph, this);
-        M.A = new ArrayList<>();
-        M.A.add(new ArrayList<>(addition.A.get(0)));
-        M.alphabetSize = M.A.get(0).size();
-        M.encoder = new ArrayList<>();
-        M.encoder.add(1);
+        M.setA(new ArrayList<>());
+        M.getA().add(new ArrayList<>(addition.getA().get(0)));
+        M.setAlphabetSize(M.getA().get(0).size());
+        M.setEncoder(new ArrayList<>());
+        M.getEncoder().add(1);
         M.canonize();
         constantsDynamicTable.put(1, M);
         return M;

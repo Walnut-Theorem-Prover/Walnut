@@ -62,7 +62,7 @@ public class Word extends Token {
             Expression expression = temp.pop();
             stringValue += "[" + expression + "]";
             switch (expression) {
-                case VariableExpression ve -> M = ve.act(print, prefix, log, this, W.NS.get(i), identifiers, M, quantify);
+                case VariableExpression ve -> M = ve.act(print, prefix, log, this, W.getNS().get(i), identifiers, M, quantify);
                 case ArithmeticExpression ae -> M = ae.act(print, prefix, log, identifiers, M, quantify);
                 case NumberLiteralExpression ne -> M = ne.act(print, prefix, log, this, identifiers, quantify, M);
                 case AutomatonExpression ae -> M = ae.act(print, prefix, name, log, i, M, identifiers);

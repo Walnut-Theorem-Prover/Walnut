@@ -1,6 +1,5 @@
 package Automata;
 
-import Main.UtilityMethods;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -18,7 +17,7 @@ class AutomatonTest {
     NumberSystem ns = new NumberSystem("msd_3");
     first.add(ns);
     Assertions.assertTrue(Automaton.isNSDiffering(A, first, N1, B));
-    A.NS.add(ns);
+    A.getNS().add(ns);
     Assertions.assertFalse(Automaton.isNSDiffering(A, first, N1, B));
     first.clear();
     first.add(new NumberSystem("msd_5"));

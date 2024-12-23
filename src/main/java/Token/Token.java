@@ -24,9 +24,9 @@ import java.util.Stack;
 import Main.Expression;
 
 public abstract class Token {
-    int arity;
-    int positionInPredicate;
-    static char uniqueChar = 1000;
+    private int arity;
+    private int positionInPredicate;
+    private static char uniqueChar = 1000;
 
     /**
      * @return a string. It is guaranteed that the string does not have ascii characters, and that no two calls

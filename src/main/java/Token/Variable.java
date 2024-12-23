@@ -25,7 +25,7 @@ import Main.Expressions.VariableExpression;
 
 
 public class Variable extends Token {
-    String name;
+    private final String name;
 
     public Variable(int position, String name) {
         setPositionInPredicate(position);

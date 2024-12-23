@@ -45,11 +45,8 @@ import java.util.TreeMap;
  * Here square brackets are used to specify a number not in the range 0-9
  */
 public class Morphism {
-    // The name of the morphism
-    public String name;
-
     // The uniform length of the image of a letter, when applicable
-    public Integer length;
+    private Integer length;
 
     // The mapping between each letter of the alphabet and its image under the morphism
     public TreeMap<Integer, List<Integer>> mapping;
@@ -60,8 +57,8 @@ public class Morphism {
     // The syntax for declaring a morphism in the command line is identical to that
     // of a saved morphism file, so we reuse this constructor
     public Morphism(String name, String mapString) {
-        this.name = name;
-        this.mapping = ParseMethods.parseMorphism(mapString);
+      // The name of the morphism
+      this.mapping = ParseMethods.parseMorphism(mapString);
         this.range = new HashSet<>();
         for (Integer key : mapping.keySet()) {
             range.addAll(mapping.get(key));
@@ -99,7 +96,7 @@ public class Morphism {
         }
         Automaton promotion = new Automaton();
         List<Integer> alphabet = IntStream.rangeClosed(0, maxImageLength - 1).boxed().collect(Collectors.toList());
-        promotion.A.add(alphabet);
+        promotion.getA().add(alphabet);
         int maxEntry = 0;
         for (int x : mapping.keySet()) {
             for (int y : mapping.get(x)) {
@@ -110,8 +107,8 @@ public class Morphism {
                 }
             }
         }
-        promotion.Q = maxEntry + 1;
-        promotion.O = IntArrayList.toList(IntStream.rangeClosed(0, promotion.Q - 1));
+        promotion.setQ(maxEntry + 1);
+        promotion.setO(IntArrayList.toList(IntStream.rangeClosed(0, promotion.getQ() - 1)));
         for (int x : mapping.keySet()) {
             Int2ObjectRBTreeMap<IntList> xmap = new Int2ObjectRBTreeMap<>();
             for (int i = 0; i < mapping.get(x).size(); i++) {
@@ -119,12 +116,12 @@ public class Morphism {
                 newList.add((int) mapping.get(x).get(i));
                 xmap.put(i, newList);
             }
-            promotion.d.add(xmap);
+            promotion.getD().add(xmap);
         }
         // this word automaton is purely symbolic in input and we want it in the exact order given
-        promotion.canonized = true;
+        promotion.setCanonized(true);
         // the base for the automata is the length of the longest image of any letter under the morphism
-        promotion.NS.add(new NumberSystem("msd_" + maxImageLength));
+        promotion.getNS().add(new NumberSystem("msd_" + maxImageLength));
 
         return promotion;
     }

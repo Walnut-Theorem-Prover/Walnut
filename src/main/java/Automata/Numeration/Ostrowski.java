@@ -144,39 +144,14 @@ public class Ostrowski {
     }
 
     public Automaton createRepresentationAutomaton() {
-        resetAutomaton();
-        repr = new Automaton();
-
-        // Declare the alphabet.
-        repr.alphabetSize = dMax + 1;
-        IntList list = new IntArrayList(dMax +1);
-        for (int i = 0; i <= dMax; i++) {
-            list.add(i);
-        }
-
-        // Only 1 input to the repr automaton.
-        repr.A.add(list);
-        repr.NS.add(null);
-        repr.d = new ArrayList<>();
-        repr.alphabetSize = dMax + 1;
-        repr.Q = 0;
+        repr = initAutomaton(1);
 
         performReprBfs();
-        repr.Q = this.totalNodes;
+        repr.setQ(this.totalNodes);
         for (int q = 0; q < this.totalNodes; ++q) {
-            if (indexToNode.containsKey(q)) {
-                NodeState node = indexToNode.get(q);
-                if (node.getState() == 0 && node.getSeenIndex() == 1) {
-                    repr.O.add(1);
-                } else {
-                    repr.O.add(0);
-                }
-            } else {
-                repr.O.add(0);
-            }
-
+            repr.getO().add(isReprFinal(q) ? 1 : 0);
             this.stateTransitions.putIfAbsent(q, new Int2ObjectRBTreeMap<>());
-            repr.d.add(this.stateTransitions.get(q));
+            repr.getD().add(this.stateTransitions.get(q));
         }
 
         repr.minimize(null, false, "", null);
@@ -184,6 +159,11 @@ public class Ostrowski {
 
         handleZeroState(repr);
         return repr;
+    }
+
+    private boolean isReprFinal(int q) {
+        NodeState node = indexToNode.get(q);
+        return node != null && node.getState() == 0 && node.getSeenIndex() == 1;
     }
 
     public static void writeRepresentation(String name, Automaton repr) {
@@ -198,33 +178,14 @@ public class Ostrowski {
     }
 
     public Automaton createAdderAutomaton() {
-        resetAutomaton();
-        adder = new Automaton();
-
-        // Declare the alphabet.
-        adder.alphabetSize = 1;
-        IntList list = new IntArrayList(dMax +1);
-        for (int i = 0; i <= dMax; i++) {
-            list.add(i);
-        }
-
-        // 3 inputs to the adder, all have the same alphabet and the null NumberSystem.
-        adder.A.add(list);
-        adder.A.add(list);
-        adder.A.add(list);
-        adder.NS.add(null);
-        adder.NS.add(null);
-        adder.NS.add(null);
-        adder.d = new ArrayList<>();
-        adder.alphabetSize = (dMax + 1) * (dMax + 1) * (dMax + 1);
-        adder.Q = 0;
+        adder = initAutomaton(3);
 
         performAdderBfs();
-        adder.Q = this.totalNodes;
+        adder.setQ(this.totalNodes);
         for (int q = 0; q < this.totalNodes; q++) {
-            adder.O.add(isAdderFinal(q) ? 1 : 0);
+            adder.getO().add(isAdderFinal(q) ? 1 : 0);
             this.stateTransitions.putIfAbsent(q, new Int2ObjectRBTreeMap<>());
-            adder.d.add(this.stateTransitions.get(q));
+            adder.getD().add(this.stateTransitions.get(q));
         }
 
         adder.minimize(null, false, "", null);
@@ -238,6 +199,7 @@ public class Ostrowski {
         return adder;
     }
 
+
     public static void writeAdder(String name, Automaton adder) {
         String adder_file_name =
                 Session.getWriteAddressForCustomBases() + "msd_" + name + "_addition.txt";
@@ -249,17 +211,41 @@ public class Ostrowski {
         System.out.println("Ostrowski adder automaton created and written to file " + adder_file_name);
     }
 
+    private Automaton initAutomaton(int inputs) {
+        resetAutomaton();
+        Automaton automaton = new Automaton();
+
+        // Declare the alphabet.
+        automaton.setAlphabetSize(1);
+        IntList list = new IntArrayList(dMax +1);
+        for (int i = 0; i <= dMax; i++) {
+            list.add(i);
+        }
+
+        // 3 inputs to the adder, all have the same alphabet and the null NumberSystem.
+        int alphabetSize = 1;
+        for(int i=0;i<inputs;i++) {
+            automaton.getA().add(list);
+            automaton.getNS().add(null);
+            alphabetSize *= (dMax + 1);
+        }
+        automaton.setD(new ArrayList<>());
+        automaton.setAlphabetSize(alphabetSize);
+        automaton.setQ(0);
+        return automaton;
+    }
+
     private static void handleZeroState(Automaton adder) {
         boolean zeroStateNeeded =
-            adder.d.stream().anyMatch(
+            adder.getD().stream().anyMatch(
                 tm -> tm.int2ObjectEntrySet().stream().anyMatch(
                     es -> es.getValue().getInt(0) == 0));
 
         if (!zeroStateNeeded) {
-            adder.d.remove(0);
-            adder.O.removeInt(0);
-            --adder.Q;
-            adder.d.forEach(tm -> {
+            adder.getD().remove(0);
+            adder.getO().removeInt(0);
+            adder.setQ(adder.getQ() - 1);
+            adder.getD().forEach(tm -> {
                 tm.forEach((k, v) -> {
                     int dest = v.getInt(0) - 1;
                     v.set(0, dest);

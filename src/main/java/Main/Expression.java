@@ -63,7 +63,6 @@ public class Expression {
     public Automaton M;
     public String identifier;
     public int constant;
-    public NumberSystem base;
     public Automaton W;
 
     public Expression() {}

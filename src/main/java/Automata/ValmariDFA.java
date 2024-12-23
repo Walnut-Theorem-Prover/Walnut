@@ -31,20 +31,20 @@ import java.util.List;
 // "Fast brief practical DFA minimization." Information Processing Letters 112.6 (2012): 213-217
 public class ValmariDFA {
     ValmariPartition blocks;
-    ValmariPartition cords;
+    private final ValmariPartition cords;
 
-    public int numStates;
-    public int numTransitions;
-    public int numFinalstates;
+    private final int numStates;
+    private int numTransitions;
+    private int numFinalstates;
 
-    int[] _A; // Adjacent transitions
-    int[] _F; // Adjacent states
+    private int[] _A; // Adjacent transitions
+    private int[] _F; // Adjacent states
 
-    int[] T;
+    private final int[] T;
     // labels of transitions
-    int[] L;
+    private final int[] L;
     // heads of transitions
-    int[] H;
+    private final int[] H;
 
     public ValmariDFA(List<Int2IntMap> newMemD, int numStates) {
         // Pre-size the arrays.

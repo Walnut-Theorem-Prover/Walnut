@@ -26,6 +26,8 @@ import Token.Token;
 import java.util.List;
 
 public class NumberLiteralExpression extends Expression {
+  private final NumberSystem base;
+
   public NumberLiteralExpression(String expressionInString, int value, NumberSystem base) {
     this.expressionInString = expressionInString;
     this.constant = value;

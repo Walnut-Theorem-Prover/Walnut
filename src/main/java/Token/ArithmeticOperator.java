@@ -153,7 +153,7 @@ public class ArithmeticOperator extends Operator {
             }
 
             M = new Automaton(true);
-            for (int o : word.W.O) {
+            for (int o : word.W.getO()) {
                 Automaton N = word.W.clone();
                 AutomatonLogicalOps.compare(N, o, "=", print, prefix + " ", log);
                 Automaton C;

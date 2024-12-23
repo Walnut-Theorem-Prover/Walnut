@@ -79,7 +79,7 @@ public class Computer {
                 Expression nextExpression = expressions.peek();
                 if (t.isOperator() && nextExpression instanceof AutomatonExpression) {
                     step = prefix + nextExpression + ":" +
-                        nextExpression.M.Q + " states - " + (timeAfter - timeBefore) + "ms";
+                        nextExpression.M.getQ() + " states - " + (timeAfter - timeBefore) + "ms";
                     log.append(step + System.lineSeparator());
                     logDetails.append(step + System.lineSeparator());
                     if (printSteps || printDetails) {

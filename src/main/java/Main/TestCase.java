@@ -21,17 +21,31 @@ package Main;
 import Automata.Automaton;
 
 public class TestCase {
-    String command;
-    String error;
-    String details;
-    String mpl;
-    Automaton result;
+    private final String error;
+    private final String details;
+    private final String mpl;
+    private final Automaton result;
 
-    public TestCase(String command, Automaton result, String error, String mpl, String details) {
-        this.command = command;
+    public TestCase(Automaton result, String error, String mpl, String details) {
         this.result = result;
         this.error = error;
         this.mpl = mpl;
         this.details = details;
+    }
+
+    public Automaton getResult() {
+        return result;
+    }
+
+    public String getMpl() {
+        return mpl;
+    }
+
+    public String getDetails() {
+        return details;
+    }
+
+    public String getError() {
+        return error;
     }
 }
