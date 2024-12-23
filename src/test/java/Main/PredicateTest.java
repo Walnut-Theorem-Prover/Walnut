@@ -38,6 +38,7 @@ public class PredicateTest {
 	@TestFactory
 	List<DynamicTest> runPredicateTests()  {
 		Session.setPathsAndNamesIntegrationTests();
+		Session.cleanPathsAndNamesIntegrationTest();
 		List<PredTest> tests = new ArrayList<>();
 		tests.add(new PredTest(
 				0,

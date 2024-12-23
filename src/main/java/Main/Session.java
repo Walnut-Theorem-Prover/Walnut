@@ -70,6 +70,24 @@ public class Session {
     }
   }
 
+  // Clean the paths for integration tests, so that we don't re-use previously generated results.
+  public static void cleanPathsAndNamesIntegrationTest() {
+    List<String> filesToKeep = List.of("PD.txt", "PR.txt", "P.txt", "RS.txt", "T2.txt");
+    for (String s : List.of(
+        sessionWalnutDir, getAddressForResult(), getWriteAddressForAutomataLibrary(),
+        getWriteAddressForCustomBases(), getWriteAddressForMacroLibrary(), getWriteAddressForMorphismLibrary(),
+        getWriteAddressForWordsLibrary())) {
+      try {
+        Files.list(Paths.get(s))
+            .filter(Files::isRegularFile) // Select only files
+            .filter(path -> !filesToKeep.contains(path.getFileName().toString())) // Exclude files to keep
+            .forEach(path -> path.toFile().delete()); // Delete each file
+      } catch (IOException ex) {
+        ex.printStackTrace();
+      }
+    }
+  }
+
   /**
    * Make various subdirectories necessary for writing results.
    */

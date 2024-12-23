@@ -1,0 +1,63 @@
+def thue_in "(i>=r) & (i<=s)";
+
+def thue_subs "(j<=i) & (i+m<=j+n)";
+
+def thue_factoreq "Ak (k<n) => T[i+k]=T[j+k]";
+
+def thue_pal "Ak (k<n) => T[i+k] = T[i+n-1-k]";
+
+def thue_occurs "(m<=n) & (Ek (k+m<=n) & $thue_factoreq(i,j+k,m))";
+
+def thue_border "$thue_in(m,1,n) & $thue_factoreq(i,i+n-m,m)";
+
+def thue_rich "Am $thue_in(m,1,n) => (Ej $thue_subs(j,i,1,m) & $thue_pal(j,i+m-j) &
+	~$thue_occurs(j,i,i+m-j,m-1))";
+
+
+def thue_priv "(n<=1) | (Am $thue_in(m,1,n) => (Ep $thue_in(p,1,m) &
+$thue_border(i,p,n) & ~$thue_occurs(i,i+1,p,m-1) & ~$thue_occurs(i,i+n-m,p,m-1)))";
+
+def thue_priv "(n<=1) | (Am $thue_in(m,1,n) => (Et (t=i+n-m) & (Ep $thue_in(p,1,m) &
+$thue_border(i,p,n) & ~$thue_occurs(i,i+1,p,m-1) & ~$thue_occurs(i,t,p,m-1))))";
+
+def thue_firstpriv "$thue_priv(i,n) & (Aj (j<i) => ~$thue_factoreq(i,j,n))";
+
+def thue_privpal "$thue_priv(i,n) & $thue_pal(i,n)";
+
+def thue_firstprivpal "$thue_privpal(i,n) & (Aj (j<i) => ~$thue_factoreq(i,j,n))";
+
+
+def thue_closed "(n<=1) | (Ej (j<n)& $thue_border(i,j,n) & ~$thue_occurs(i,i+1,j,n-2))";
+
+def thue_ucf "$thue_closed(i,n) & ~$thue_occurs(i,0,n,i+n-1)";
+
+def thue_closedn "Ei $thue_closed(i,n)";
+
+def thue_maxpal "$thue_pal(i,n) & (Aj ((j>=1)&$thue_factoreq(i,j,n)) => (T[j-1] != T[j+n]))";
+
+
+def thue_rtspec "$thue_subs(i,j,m,n-1) & (Er $thue_subs(r,j,m,n-1) & $thue_factoreq(i,r,m) &
+	T[r+m]=@0) & (Es $thue_subs(s,j,m,n-1) & $thue_factoreq(i,s,m) & T[s+m] = @1)";
+
+def thue_rt "Ei $thue_rtspec(i,j,p,n)";
+
+def thue_rt2 "Er Es ($thue_subs(r,j,p+1,n) & $thue_subs(s,j,p+1,n) & $thue_factoreq(r,s,p) & T[s+p] != T[r+p])";
+
+def thue_minrt  "~$thue_rt(j,n,p) & (Ac (~$thue_rt(j,n,c)) => c >=p)";
+
+def thue_minrt2  "~$thue_rt2(j,n,p) & (Ac (~$thue_rt2(j,n,c)) => c >=p)";
+
+def thue_unrepsuf "~$thue_occurs(j+n-q,j,q,n-1)";
+
+def thue_minunrepsuf "$thue_unrepsuf(j,n,q) & (Ac $thue_unrepsuf(j,n,c) => (c >= q))";
+
+def thue_trap "(n<=1) | (Ep Eq (n=p+q) & $thue_minunrepsuf(j,n,p) & $thue_minrt(j,n,q))";
+
+def thue_trap2 "(n<=1) | (Ep Eq (n=p+q) & $thue_minunrepsuf(j,n,p) & $thue_minrt2(j,n,q))";
+
+
+def thue_unbal "Em (m+2 <= n) & Ej Ek ($thue_subs(j,i+1,m,n-2) & $thue_subs(k,i+1,m,n-2) &
+$thue_pal(j,m) & $thue_factoreq(j,k,m) & (T[j-1]=T[j+m]) & (T[k-1]=T[k+m]) &
+(T[j-1] != T[k-1]))";
+
+def thue_unbal2 "Em (m >= 2) & (Ej Ek ($thue_subs(j,i,m,n) & $thue_subs(k,i,m,n) & $thue_pal(j,m) & $thue_pal(k,m) & $thue_factoreq(j+1,k+1,m-2) & T[j]!=T[k]))";

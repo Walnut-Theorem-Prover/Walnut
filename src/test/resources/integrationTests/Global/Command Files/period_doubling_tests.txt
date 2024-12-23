@@ -1,0 +1,52 @@
+def period_doubling_in "(i>=r) & (i<=s)";
+
+def period_doubling_subs "(j<=i) & (i+m<=j+n)";
+
+def period_doubling_factoreq "Ak (k<n) => PD[i+k]=PD[j+k]";
+
+def period_doubling_pal "Ak (k<n) => PD[i+k] = PD[i+n-1-k]";
+
+def period_doubling_occurs "(m<=n) & (Ek (k+m<=n) & $period_doubling_factoreq(i,j+k,m))";
+
+def period_doubling_border "$period_doubling_in(m,1,n) & $period_doubling_factoreq(i,i+n-m,m)";
+
+def period_doubling_rich "Am $period_doubling_in(m,1,n) => (Ej $period_doubling_subs(j,i,1,m) & $period_doubling_pal(j,i+m-j) &
+	~$period_doubling_occurs(j,i,i+m-j,m-1))";
+
+def period_doubling_uniqpref "Aj $period_doubling_in(j,1,n-m-1) => ~$period_doubling_factoreq(i,i+j,m)";
+
+def period_doubling_uniqsuff "Aj $period_doubling_in(j,1,n-m-1) => ~$period_doubling_factoreq(i+n-m,i+n-m-j,m)";
+
+def period_doubling_priv "(n<=1) | (Am $period_doubling_in(m,1,n) => (Ep $period_doubling_in(p,1,m) & ($period_doubling_border(i,p,n) & 
+$period_doubling_uniqpref(i,p,m) & $period_doubling_uniqsuff(i+n-m,p,m))))";
+
+def period_doubling_closed "(n<=1) | (Ej (j<n)& $period_doubling_border(i,j,n) & ~$period_doubling_occurs(i,i+1,j,n-2))";
+
+def period_doubling_ucf "$period_doubling_closed(i,n) & ~$period_doubling_occurs(i,0,n,i+n-1)";
+
+def period_doubling_closedn "Ei $period_doubling_closed(i,n)";
+
+def period_doubling_maxpal "$period_doubling_pal(i,n) & (Aj ((j>=1)&$period_doubling_factoreq(i,j,n)) => (PD[j-1] != PD[j+n]))";
+
+def period_doubling_rtspec "$period_doubling_subs(i,j,m,n-1) & (Er $period_doubling_subs(r,j,m,n-1) & $period_doubling_factoreq(i,r,m) &
+	PD[r+m]=@0) & (Es $period_doubling_subs(s,j,m,n-1) & $period_doubling_factoreq(i,s,m) & PD[s+m] = @1)";
+
+def period_doubling_rt "Ei $period_doubling_rtspec(i,j,p,n)";
+
+def period_doubling_minrt  "~$period_doubling_rt(j,n,p) & (Ac (~$period_doubling_rt(j,n,c)) => (c >=p)) ";
+
+def period_doubling_rt2 "Er Es ($period_doubling_subs(r,j,p+1,n) & $period_doubling_subs(s,j,p+1,n) & $period_doubling_factoreq(r,s,p) & T[s+p] != T[r+p])";
+
+def period_doubling_minrt2  "~$period_doubling_rt2(j,n,p) & (Ac (~$period_doubling_rt2(j,n,c)) => (c >=p)) ";
+
+def period_doubling_unrepsuf "~$period_doubling_occurs(j+n-q,j,q,n-1)";
+
+def period_doubling_minunrepsuf "$period_doubling_unrepsuf(j,n,q) & (Ac $period_doubling_unrepsuf(j,n,c) => (c >= q))";
+
+def period_doubling_trap "(n <=1) | (Ep Eq (n=p+q) & $period_doubling_minunrepsuf(j,n,p) & $period_doubling_minrt(j,n,q))";
+
+def period_doubling_unbal "Em (m+2 <= n) & Ej Ek ($period_doubling_subs(j,i+1,m,n-2) & $period_doubling_subs(k,i+1,m,n-2) &
+$period_doubling_pal(j,m) & $period_doubling_factoreq(j,k,m) & (PD[j-1]=PD[j+m]) & (PD[k-1]=PD[k+m]) &
+(PD[j-1] != PD[k-1]))";
+
+def period_doubling_unbal2 "Em (m >= 2) & (Ej Ek ($period_doubling_subs(j,i,m,n) & $period_doubling_subs(k,i,m,n) & $period_doubling_pal(j,m) & $period_doubling_pal(k,m) & $period_doubling_factoreq(j+1,k+1,m-2) & T[j]!=T[k]))";

@@ -1,0 +1,44 @@
+def fibonacci_in "?msd_fib (i>=r) & (i<=s)";
+
+def fibonacci_subs "?msd_fib (j<=i) & (i+m<=j+n)";
+
+def fibonacci_factoreq "?msd_fib Ak (k<n) => F[i+k]=F[j+k]";
+
+def fibonacci_pal "?msd_fib Ak (k<n) => F[i+k] = F[i+n-1-k]";
+
+def fibonacci_occurs "?msd_fib (m<=n) & (Ek (k+m<=n) & $fibonacci_factoreq(i,j+k,m))";
+
+def fibonacci_border "?msd_fib $fibonacci_in(m,1,n) & $fibonacci_factoreq(i,i+n-m,m)";
+
+def fibonacci_rich "?msd_fib Am $fibonacci_in(m,1,n) => (Ej $fibonacci_subs(j,i,1,m) & $fibonacci_pal(j,i+m-j) &
+	~$fibonacci_occurs(j,i,i+m-j,m-1))";
+
+def fibonacci_priv "?msd_fib (n<=1) | (Am $fibonacci_in(m,1,n) => (Ep $fibonacci_in(p,1,m) & 
+$fibonacci_border(i,p,n) & ~$fibonacci_occurs(i,i+1,p,m-1) & ~$fibonacci_occurs(i,i+n-m,p,m-1)))";
+
+def fibonacci_closed "?msd_fib (n<=1) | (Ej (j<n)& $fibonacci_border(i,j,n) & ~$fibonacci_occurs(i,i+1,j,n-2))";
+
+def fibonacci_ucf "?msd_fib $fibonacci_closed(i,n) & ~$fibonacci_occurs(i,0,n,i+n-1)";
+
+def fibonacci_closedn "?msd_fib Ei $fibonacci_closed(i,n)";
+
+def fibonacci_maxpal "?msd_fib $fibonacci_pal(i,n) & (Aj ((j>=1)&$fibonacci_factoreq(i,j,n)) => (F[j-1] != F[j+n]))";
+
+def fibonacci_rtspec "?msd_fib $fibonacci_subs(i,j,m,n-1) & (Er $fibonacci_subs(r,j,m,n-1) & $fibonacci_factoreq(i,r,m) & F[r+m]=@0) & (Es $fibonacci_subs(s,j,m,n-1) & $fibonacci_factoreq(i,s,m) & F[s+m] = @1)";
+
+def fibonacci_rt "?msd_fib Ei $fibonacci_rtspec(i,j,p,n)";
+
+def fibonacci_minrt "?msd_fib (~$fibonacci_rt(j,n,p)) & (Ac (~$fibonacci_rt(j,n,c)) => (c >= p))";
+
+def fibonacci_unrepsuf "?msd_fib ~$fibonacci_occurs(j+n-q,j,q,n-1)";
+
+def fibonacci_minunrepsuf "?msd_fib $fibonacci_unrepsuf(j,n,q) & (Ac $fibonacci_unrepsuf(j,n,c) => (c >= q))";
+
+def fibonacci_trap "?msd_fib (Ep Eq (n=p+q) & $fibonacci_minunrepsuf(j,n,p)
+& $fibonacci_minrt(j,n,q))";
+
+def fibonacci_unbal "?msd_fib Em (m+2 <= n) & Ej Ek ($fibonacci_subs(j,i+1,m,n-2) & $fibonacci_subs(k,i+1,m,n-2) &
+$fibonacci_pal(j,m) & $fibonacci_factoreq(j,k,m) & (F[j-1]=F[j+m]) & (F[k-1]=F[k+m]) &
+(F[j-1] != F[k-1]))";
+
+def fibonacci_unbal2 "Em (m >= 2) & (Ej Ek ($fibonacci_subs(j,i,m,n) & $fibonacci_subs(k,i,m,n) & $fibonacci_pal(j,m) & $fibonacci_pal(k,m) & $fibonacci_factoreq(j+1,k+1,m-2) & F[j]!=F[k]))";

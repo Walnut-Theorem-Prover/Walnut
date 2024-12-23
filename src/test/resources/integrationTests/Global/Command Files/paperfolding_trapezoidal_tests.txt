@@ -1,0 +1,17 @@
+def paperfolding_trapezoidal_subs "?lsd_2 (j<=i) & (i+m<=j+n)";
+
+def paperfolding_trapezoidal_factoreq "?lsd_2 Ak (k<n) => PR[i+k]=PR[j+k]";
+
+def paperfolding_trapezoidal_pal "?lsd_2 Ak (k<n) => PR[i+k] = PR[i+n-1-k]";
+
+def paperfolding_trapezoidal_occurs "?lsd_2 (m<=n) & (Ek (k+m<=n) & $paperfolding_trapezoidal_factoreq(i,j+k,m))";
+
+def paperfolding_trapezoidal_rt2 "?lsd_2 Er Es ($paperfolding_trapezoidal_subs(r,j,p+1,n) & $paperfolding_trapezoidal_subs(s,j,p+1,n) & $paperfolding_trapezoidal_factoreq(r,s,p) & PR[s+p] != PR[r+p])";
+
+def paperfolding_trapezoidal_minrt2 "?lsd_2 ~$paperfolding_trapezoidal_rt2(j,n,p) & (Ac (~$paperfolding_trapezoidal_rt2(j,n,c)) => c >=p)";
+
+def paperfolding_trapezoidal_unrepsuf "?lsd_2 ~$paperfolding_trapezoidal_occurs(j+n-q,j,q,n-1)";
+
+def paperfolding_trapezoidal_minunrepsuf "?lsd_2 $paperfolding_trapezoidal_unrepsuf(j,n,q) & (Ac $paperfolding_trapezoidal_unrepsuf(j,n,c) => (c >= q))";
+
+def paperfolding_trapezoidal_trap2 "?lsd_2 (n<=1) | (Ep Eq (n=p+q) & $paperfolding_trapezoidal_minunrepsuf(j,n,p) & $paperfolding_trapezoidal_minrt2(j,n,q))";

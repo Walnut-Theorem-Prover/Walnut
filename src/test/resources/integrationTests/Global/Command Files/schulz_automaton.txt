@@ -1,0 +1,5 @@
+def pell_successor "?msd_pell x < y & (Az (z <= x) | (z >= y))";
+
+eval base_proof "?msd_pell Ax,z ((x + 0 = z) <=> (x = z))";
+
+eval inductive_proof "?msd_pell Ax,y,z,u,v ($pell_successor(y, u) & $pell_successor(z, v)) => ((x + y = z) <=> (x + u = v))";

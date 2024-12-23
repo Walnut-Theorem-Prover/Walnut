@@ -520,20 +520,7 @@ public class AutomatonLogicalOps {
 
         if (!skipSubsetCheck) {
             // check whether the alphabet of other is a subset of the alphabet of self. If not, throw an error.
-            boolean isSubset = true;
-
-            if (automaton.getA().size() == other.getA().size()) {
-                for (int i = 0; i < automaton.getA().size(); i++) {
-                    if (!automaton.getA().get(i).containsAll(other.getA().get(i))) {
-                        isSubset = false;
-                        break;
-                    }
-                }
-            } else {
-                isSubset = false;
-            }
-
-            if (!isSubset) {
+            if (!isSubsetA(other, automaton)) {
                 throw new RuntimeException("Second automaton's alphabet must be a subset of the first automaton's alphabet for right quotient.");
             }
         }
@@ -606,20 +593,7 @@ public class AutomatonLogicalOps {
         }
 
         // check whether the alphabet of self is a subset of the alphabet of other. If not, throw an error.
-        boolean isSubset = true;
-
-        if (automaton.getA().size() == other.getA().size()) {
-            for (int i = 0; i < automaton.getA().size(); i++) {
-                if (!other.getA().get(i).containsAll(automaton.getA().get(i))) {
-                    isSubset = false;
-                    break;
-                }
-            }
-        } else {
-            isSubset = false;
-        }
-
-        if (!isSubset) {
+        if (!isSubsetA(automaton, other)) {
             throw new RuntimeException("First automaton's alphabet must be a subset of the second automaton's alphabet for left quotient.");
         }
 
@@ -645,6 +619,22 @@ public class AutomatonLogicalOps {
         }
 
         return M;
+    }
+
+    private static boolean isSubsetA(Automaton automaton, Automaton other) {
+        boolean isSubset = true;
+
+        if (automaton.getA().size() == other.getA().size()) {
+            for (int i = 0; i < automaton.getA().size(); i++) {
+                if (!other.getA().get(i).containsAll(automaton.getA().get(i))) {
+                    isSubset = false;
+                    break;
+                }
+            }
+        } else {
+            isSubset = false;
+        }
+        return isSubset;
     }
 
     /**

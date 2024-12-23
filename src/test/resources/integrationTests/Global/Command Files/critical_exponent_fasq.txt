@@ -1,0 +1,24 @@
+# Showing that this word has only two antisquares.
+# This predicate produces an automaton that only accepts the integer 1.
+# This means that only antisquares of length 2 are present in the word (01, 10).
+eval antisq_lengths "?msd_fib Ei (p >= 1) & (Aj (j < p) => ~(FASQ[i + j] = FASQ[i + j + p]))":
+
+# To compute the critical exponent, we first gather the periods of all high-power repetitions
+# for which the exponent is >= 3.
+eval periods_of_high_powers "?msd_fib Ei (p >= 1) & (Aj (j <= 2*p) => FASQ[i + j] = FASQ[i + j + p])":
+
+reg pows msd_fib "0*10010*":
+
+def maximal_reps "?msd_fib Ei (Aj (j < n) => FASQ[i + j] = FASQ[i + j + p]) & (FASQ[i + n] != FASQ[i + n + p])":
+
+eval highest_powers "?msd_fib (p >= 1) & $pows(p) & $maximal_reps(n, p) & (Am $maximal_reps(m, p) => m <= n)":
+
+# Check that if a subword x of FASQ starts with 00, then there exists another subword of FASQ y such that y = 1x.
+def FactorEq "?msd_fib Ak (k < n) => (F[i + k] = F[j + k])":
+eval test "?msd_fib Ai ((F[i] = @0) & (F[i+1] = @0)) => (An Ej (F[j] = @1) & $FactorEq(i, j+1, n))":
+
+
+eval test "?msd_fib Ai ((F[i] = @0) & (F[i+1] = @1)) => (An Ej $FactorEq(i, j+1, n))":
+
+
+eval test "?msd_fib (F[i] = @1) & (F[i+1] = @0) & (F[i+2] = @1) & (F[i+3] = @0) & (F[i+4] = @1) & (F[i+5] = @0) & (F[i+6] = @0) & (F[i+7] = @1) & (F[i+8] = @0) & (F[i+9] = @1) & (F[i+10] = @0) & (F[i+11] = @0) & (F[i+12] = @1) & (F[i+13] = @0) & (F[i+14] = @1)":

@@ -1,0 +1,44 @@
+morphism revmor "0->0012 1->0112";
+
+image FS revmor T;
+
+def fsrevchk "As,t (s>=i & t>=j & s+t+1=i+j+n) => FS[s]=FS[t]";
+
+morphism gam "0->01 1->21 2->03 3->23";
+
+promote B4 gam;
+
+morphism g3 "0->0010 1->1122 2->0200 3->1212";
+
+morphism g6 "0->01230 1->24134 2->52340 3->24513";
+
+image G3B4 g3 B4;
+
+image G6B4 g6 B4;
+
+def gamard6factoreq "Au,v (i+v=j+u & u>=i & u<i+n) => G6B4[u]=G6B4[v]";
+
+def gamard6shift "$gamard6factoreq(j,i+t,n-t) & $gamard6factoreq(i,(j+n)-t,t)";
+
+def gamard6conj "Et t<=n & $gamard6shift(i,j,n,t)";
+
+def gamard6allconj "At t<=n => Ej $gamard6shift(i,j,n,t)";
+
+def gamard3factoreq "Au,v (i+v=j+u & u>=i & u<i+n) => G3B4[u]=G3B4[v]";
+
+def gamard3shift "$gamard3factoreq(j,i+t,n-t) & $gamard3factoreq(i,(j+n)-t,t)";
+
+def gamard3conj "Et t<=n & $gamard3shift(i,j,n,t)";
+
+def gamard3allconj "At t<=n => Ej $gamard3shift(i,j,n,t)";
+
+morphism g "0->01 1->23 2->45 3->46 4->54 5->66 6->66";
+
+morphism h "0->2 1->2 2->2 3->0 4->1 5->0 6->1";
+
+promote GG g;
+
+image WSA h GG;
+
+reg power2 msd_2 "0*10*";
+

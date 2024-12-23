@@ -1,0 +1,10 @@
+reg power2 lsd_2 "0*10*";
+reg endsIn4Zeros lsd_2 "(0|1)*0000";
+def twoceilinglog "?lsd_2 $power2(x) & (x >= y) & x < 2*y";
+def lessThanSixTimesTwoCeilingLog "?lsd_2 Ez x < 6*z & $twoceilinglog(z,y)";
+eval appearance "?lsd_2 An Ai n >= 3 & i >= 1 & $endsIn4Zeros(n) & $endsIn4Zeros(i) => (Ej (Ex j <= 6*x+n-1 & $twoceilinglog(x,n)) & Ak k < n => PF[f][i+k] = PF[f][j+k])";
+eval appearance "?lsd_2 En Ei n >= 3 & i >= 1 & $endsIn4Zeros(n) & $endsIn4Zeros(i) & (Aj (Ex x >= 1 & j <= 6*x & $twoceilinglog(x,n)) => Ek k < n & PF[f][i+k] != PF[f][j+k])";
+eval appearance "?lsd_2 An Ai n >= 3 & $endsIn4Zeros(n) & $endsIn4Zeros(i) => (Ej $lessThanSixTimesTwoCeilingLog(j,n) & Ak k < n => PF[f][i+k] = PF[f][j+k])";
+
+eval appearance "?lsd_2 n > 2 & $endsIn4Zeros(n) & (Ai i > 0 & $endsIn4Zeros(i) => (Ej (Ex j <= 6*x+n-1 & $twoceilinglog(x,n)) & Ak k < n => PF[f][i+k] = PF[f][j+k]))";
+eval test "?lsd_2 $endsIn4Zeros(n) & n > 2";

@@ -1,0 +1,22 @@
+// p is the length of the root word (the period), n is the length of the cube.
+// This predicate evaluates to true, proving that the word VN has cubes.
+eval cube_exists "?msd_2 Ei,p,n (p >= 1) & (n = 3*p) & (Aj (j + p < n) => VN[i + j] = VN[i + j + p])":
+
+// This predicate evaluates to false, proving that there are no powers greater than 3 in the word VN.
+eval higher_pow "?msd_2 Ei,p,n (p >= 1) & (n > 3*p) & (Aj (j + p < n) => VN[i + j] = VN[i + j + p])":
+
+
+// $vcubes(n): Accepts all n such that there is a cube of length n in VN.
+// The automaton shows that this is only true for n = 6, which means the root word is of length 2.
+// There are only 4 2-length words: 00, 01, 10, 11.
+eval vcubes "?msd_2 Ei,p (p >= 1) & (n = 3*p) & (Aj (j + p < n) => VN[i + j] = VN[i + j + p])":
+
+// Let's see if there's a cube from the root words 00 or 11.
+// This predicate evaluates to true only for 01 and 10.
+eval vcubesxx "?msd_2 Ei (Aj (j < 4) => VN[i + j] = VN[i + j + 2]) & ((VN[i] = @0) & (VN[i+1] = @0) | (VN[i] = @1) & (VN[i+1] = @1))":
+eval vcubes "?msd_2 Ei (Aj (j < 4) => VN[i + j] = VN[i + j + 2]) & (VN[i] = @1) & (VN[i+1] = @0)":
+eval vcubes "?msd_2 Ei (Aj (j < 4) => VN[i + j] = VN[i + j + 2]) & (VN[i] = @1) & (VN[i+1] = @1)":
+
+// $s2pal(n): VN has a palindromic factor of length n.
+// This predicate accepts only finite values of n (1, 2, 3, 4, 5, 6, 8, 10, 12).
+eval s2pal "?msd_2 (n > 0) & Ei Ak (k < n) => (VN[i + k] = VN[i + n - 1 - k])":

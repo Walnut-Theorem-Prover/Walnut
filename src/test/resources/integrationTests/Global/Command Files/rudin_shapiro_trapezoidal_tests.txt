@@ -1,0 +1,17 @@
+def rudin_trapezoid_subs "?lsd_2 (j<=i) & (i+m<=j+n)";
+
+def rudin_trapezoid_factoreq "?lsd_2 Ak (k<n) => RS[i+k]=RS[j+k]";
+
+def rudin_trapezoid_pal "?lsd_2 Ak (k<n) => RS[i+k] = RS[i+n-1-k]";
+
+def rudin_trapezoid_occurs "?lsd_2 (m<=n) & (Ek (k+m<=n) & $rudin_trapezoid_factoreq(i,j+k,m))";
+
+def rudin_trapezoid_rt2 "?lsd_2 Er Es ($rudin_trapezoid_subs(r,j,p+1,n) & $rudin_trapezoid_subs(s,j,p+1,n) & $rudin_trapezoid_factoreq(r,s,p) & RS[s+p] != RS[r+p])";
+
+def rudin_trapezoid_minrt2 "?lsd_2 ~$rudin_trapezoid_rt2(j,n,p) & (Ac (~$rudin_trapezoid_rt2(j,n,c)) => c >=p)";
+
+def rudin_trapezoid_unrepsuf "?lsd_2 ~$rudin_trapezoid_occurs(j+n-q,j,q,n-1)";
+
+def rudin_trapezoid_minunrepsuf "?lsd_2 $rudin_trapezoid_unrepsuf(j,n,q) & (Ac $rudin_trapezoid_unrepsuf(j,n,c) => (c >= q))";
+
+def rudin_trapezoid_trap2 "?lsd_2 (n<=1) | (Ep Eq (n=p+q) & $rudin_trapezoid_minunrepsuf(j,n,p) & $rudin_trapezoid_minrt2(j,n,q))";

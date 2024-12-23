@@ -1,0 +1,45 @@
+def rudin_in "(i>=r) & (i<=s)";
+
+def rudin_subs "(j<=i) & (i+m<=j+n)";
+
+def rudin_factoreq "Ak (k<n) => RS[i+k]=RS[j+k]";
+
+def rudin_pal "Ak (k<n) => RS[i+k] = RS[i+n-1-k]";
+
+def rudin_occurs "(m<=n) & (Ek (k+m<=n) & $rudin_factoreq(i,j+k,m))";
+
+def rudin_border "$rudin_in(m,1,n) & $rudin_factoreq(i,i+n-m,m)";
+
+def rudin_rich "Am $rudin_in(m,1,n) => (Ej $rudin_subs(j,i,1,m) & $rudin_pal(j,i+m-j) &
+	~$rudin_occurs(j,i,i+m-j,m-1))";
+
+def rudin_uniqpref "Aj $rudin_in(j,1,n-m-1) => ~$rudin_factoreq(i,i+j,m)";
+
+def rudin_uniqsuff "Aj $rudin_in(j,1,n-m-1) => ~$rudin_factoreq(i+n-m,i+n-m-j,m)";
+
+def rudin_priv "(n<=1) | (Am $rudin_in(m,1,n) => (Ep $rudin_in(p,1,m) & ($rudin_border(i,p,n) & 
+$rudin_uniqpref(i,p,m) & $rudin_uniqsuff(i+n-m,p,m))))";
+
+def rudin_closed "(n<=1) | (Ej (j<n)& $rudin_border(i,j,n) & ~$rudin_occurs(i,i+1,j,n-2))";
+
+def rudin_ucf "$rudin_closed(i,n) & ~$rudin_occurs(i,0,n,i+n-1)";
+
+def rudin_closedn "Ei $rudin_closed(i,n)";
+
+def rudin_maxpal "$rudin_pal(i,n) & (Aj ((j>=1)&$rudin_factoreq(i,j,n)) => (RS[j-1] != RS[j+n]))";
+
+def rudin_rt2 "Er Es ($rudin_subs(r,j,p+1,n) & $rudin_subs(s,j,p+1,n) & $rudin_factoreq(r,s,p) & RS[s+p] != RS[r+p])";
+
+def rudin_minrt2  "~$rudin_rt2(j,n,p) & (Ac (~$rudin_rt2(j,n,c)) => c >=p)";
+
+def rudin_unrepsuf "~$rudin_occurs(j+n-q,j,q,n-1)";
+
+def rudin_minunrepsuf "$rudin_unrepsuf(j,n,q) & (Ac $rudin_unrepsuf(j,n,c) => (c >= q))";
+
+def rudin_trap2 "(n<=1) | (Ep Eq (n=p+q) & $rudin_minunrepsuf(j,n,p) & $rudin_minrt2(j,n,q))";
+
+def rudin_unbal "Em (m+2 <= n) & Ej Ek ($rudin_subs(j,i+1,m,n-2) & $rudin_subs(k,i+1,m,n-2) &
+$rudin_pal(j,m) & $rudin_factoreq(j,k,m) & (RS[j-1]=RS[j+m]) & (RS[k-1]=RS[k+m]) &
+(RS[j-1] != RS[k-1]))";
+
+def rudin_unbal2 "Em (m >= 2) & (Ej Ek ($rudin_subs(j,i,m,n) & $rudin_subs(k,i,m,n) & $rudin_pal(j,m) & $rudin_pal(k,m) & $rudin_factoreq(j+1,k+1,m-2) & RS[j]!=RS[k]))";

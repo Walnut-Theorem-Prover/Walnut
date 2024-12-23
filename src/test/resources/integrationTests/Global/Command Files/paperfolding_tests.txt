@@ -1,0 +1,34 @@
+def paperfolding_in "(i>=r) & (i<=s)";
+
+def paperfolding_subs "(j<=i) & (i+m<=j+n)";
+
+def paperfolding_factoreq "Ak (k<n) => P[i+k]=P[j+k]";
+
+def paperfolding_pal "Ak (k<n) => P[i+k] = P[i+n-1-k]";
+
+def paperfolding_occurs "(m<=n) & (Ek (k+m<=n) & $paperfolding_factoreq(i,j+k,m))";
+
+def paperfolding_border "$paperfolding_in(m,1,n) & $paperfolding_factoreq(i,i+n-m,m)";
+
+def paperfolding_rich "Am $paperfolding_in(m,1,n) => (Ej $paperfolding_subs(j,i,1,m) & $paperfolding_pal(j,i+m-j) &
+	~$paperfolding_occurs(j,i,i+m-j,m-1))";
+
+def paperfolding_uniqpref "Aj $paperfolding_in(j,1,n-m-1) => ~$paperfolding_factoreq(i,i+j,m)";
+
+def paperfolding_uniqsuff "Aj $paperfolding_in(j,1,n-m-1) => ~$paperfolding_factoreq(i+n-m,i+n-m-j,m)";
+
+def paperfolding_priv "(n<=1) | (Am $paperfolding_in(m,1,n) => (Ep $paperfolding_in(p,1,m) & ($paperfolding_border(i,p,n) & 
+$paperfolding_uniqpref(i,p,m) & $paperfolding_uniqsuff(i+n-m,p,m))))";
+
+
+def paperfolding_closed "(n<=1) | (Ej (j<n)& $paperfolding_border(i,j,n) & ~$paperfolding_occurs(i,i+1,j,n-2))";
+
+def paperfolding_ucf "$paperfolding_closed(i,n) & ~$paperfolding_occurs(i,0,n,i+n-1)";
+
+def paperfolding_closedn "Ei $paperfolding_closed(i,n)";
+
+def paperfolding_maxpal "$paperfolding_pal(i,n) & (Aj ((j>=1)&$paperfolding_factoreq(i,j,n)) => (P[j-1] != P[j+n]))";
+
+def paperfolding_unbal "Em (m+2 <= n) & Ej Ek ($paperfolding_subs(j,i+1,m,n-2) & $paperfolding_subs(k,i+1,m,n-2) &
+$paperfolding_pal(j,m) & $paperfolding_factoreq(j,k,m) & (P[j-1]=P[j+m]) & (P[k-1]=P[k+m]) &
+(P[j-1] != P[k-1]))";

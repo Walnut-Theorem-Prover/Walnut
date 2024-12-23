@@ -414,7 +414,8 @@ public class Prover {
         return true;
     }
 
-    public static TestCase dispatchForIntegrationTest(String s) throws IOException {
+    public static TestCase dispatchForIntegrationTest(String s, String msg) throws IOException {
+        System.out.println("Running integration test: " + msg);
         if (s.matches(REGEXP_FOR_EMPTY_COMMAND)) {//if the command is just ; or : do nothing
             return null;
         }

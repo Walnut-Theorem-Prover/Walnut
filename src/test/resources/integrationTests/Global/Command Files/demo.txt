@@ -1,0 +1,14 @@
+reg endsIn2Zeros lsd_2 "(0|1)*00"; all binary strings ending in 00
+			
+reg startsWith2Zeros msd_2 "00(0|1)*"; all binary strings starting with 00
+
+def func "(?msd_3 c < 5) & (a = b+1) & (?msd_10 e = 17)"; defining a function 
+
+eval paperfolding_square_orders "?lsd_2 n > 0 & Ef,i i >= 1 & $endsIn2Zeros(i) & $endsIn2Zeros(n) & (Ak k < n => PF[f][i+k] = PF[f][i+k+n])":
+
+eval paperfolding_square_orders_in_msd "n > 0 & Ef,i i >= 1 & $startsWith2Zeros(i) & $startsWith2Zeros(n) & (Ak k < n => PFmsd[f][i+k] = PFmsd[f][i+k+n])";//squares in msd
+
+eval paperfolding_cube_orders "?lsd_2 n > 0 & Ef,i i >= 1 & $endsIn2Zeros(i) & $endsIn2Zeros(n) & (Ak k < 2*n => PF[f][i+k] = PF[f][i+k+n])";//cubes
+
+
+eval using_function_example "Ea,b,c $func(a,Ec b = c+1 & c = 10,?msd_3 c-2 ,?msd_10 x+1)":

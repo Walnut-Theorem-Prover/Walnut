@@ -1,0 +1,28 @@
+eval CheckCritExp "?msd_pell ~(E i, p (p >= 1) & Aj (j < 2*p) => R2[i + j] = R2[i + j + p])":
+
+def HighPowPeriods "?msd_pell (p >= 1) & (Ei Aj (2*j <= 3*p) => R2[i + j] = R2[i + j + p])":
+
+reg pows msd_pell "0*1100*":
+
+def MaximalReps "?msd_pell Ei (Aj (j < n) => R2[i + j] = R2[i + j + p]) & (R2[i + n] != R2[i + n + p])":
+
+eval HighestPowers "?msd_pell $HighPowPeriods(p) & $MaximalReps(n, p) & (Am $MaximalReps(m, p) => m <= n)":
+
+# $FactorEq(i, j, n): R2[i .. i + n - 1] = R2[j .. j + n - 1].
+def FactorEq "?msd_pell Ak (k < n) => (R2[i + k] = R2[j + k])":
+
+# $Occurs(i, j, m, n): R2[i .. i + m - 1] is a factor of R2[j .. j + n - 1].
+def Occurs "?msd_pell (m <= n) & (Ek (k + m <= n) & $FactorEq(i, j + k, m))":
+
+# $Subs(i, j, m, n): i .. i + m - 1 is contained in j .. j + n - 1.
+def Subs "?msd_pell (j <= i) & (i + m <= j + n)":
+
+# $Palindrome(i, n): R2 has a palindromic factor of length n starting at index i.
+def Palindrome "?msd_pell Aj,k ((k < n) & (j + k + 1 = n)) => (R2[i + k] = R2[i + j])":
+
+# $RichFactor(i, n): R2 has a rich factor of length n starting at index i.
+def RichFactor "?msd_pell
+    Am ((m >= 1) & (m <= n)) =>
+        (Ej (i <= j) & (j < i + m) & $Palindrome(j, i + m - j) & ~$Occurs(j, i, i + m - j, m - 1))":
+
+eval R_Is_Rich "?msd_pell An $RichFactor(0, n)":

@@ -1,0 +1,29 @@
+# Regular expressions.
+reg IsFibo msd_fib  "0*10*":
+reg IsLargeFibo msd_fib  "0*10000000*":
+reg IsLucas msd_fib "0*1010*":
+
+# Values x, y, z are in non-decreasing order.
+def Inc "?msd_fib (x<=y) & (y<=z)":
+
+# $FactorEq(i, j, n): F[i .. i + n - 1] = F[j .. j + n - 1].
+def FactorEq "?msd_fib Ak (k < n) => (F[i + k] = F[j + k])":
+
+# $Factor(i, j, m, n): F[j .. j + m - 1] is a factor of F[i .. i + n - 1].
+def Factor "?msd_fib (m <= n) & (Ek (k + m <= n) & $FactorEq(j, i + k, m))":
+
+# The word starting at index i of length n has p as a period.
+def ValidTriplet "?msd_fib $Inc(1, p, n) & Aj (j + p < n) => F[i+j] = F[i+j+p]":
+
+# The word starting at index i of length n has lowest period p.
+def PrimitiveTriplet "?msd_fib $ValidTriplet(i, n, p) & (Aq $ValidTriplet(i, n, q) => (q >= p))":
+
+
+# Tests.
+
+eval test "?msd_fib ($IsLargeFibo(n) & (m <= n) & (Ei $PrimitiveTriplet(i, m, p)))":
+
+eval test "?msd_fib Ai,m (m <= 21) => "
+
+
+eval test "?msd_fib Aj,m ($Inc(i, j, n-1) & $Factor(i, j, m, n)) => $PrimitiveTriplet(j, m, p)":

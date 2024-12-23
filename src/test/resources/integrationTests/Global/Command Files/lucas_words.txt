@@ -1,0 +1,16 @@
+# The infinite Lucas word is aperiodic.
+# Test predicate evaluates to true.
+eval test "?msd_fib ~En,p (p>=1) & (Ai (i>=n) => (LUCAS[i] = LUCAS[i+p]))":
+
+# Test that 1111 and 00 are not subwords of the infinite Lucas word.
+# Both test predicates evaluate to false.
+eval test "?msd_fib Ei LUCAS[i]=@0 & LUCAS[i+1]=@0":
+eval test "?msd_fib Ei LUCAS[i]=@1 & LUCAS[i+1]=@1 & LUCAS[i+2]=@1 & LUCAS[i+3]=@1":
+
+# For n > 2, the last two symbols of Ln are 01 (if n is odd) or 10 (if n is even).
+# The test predicate evaluates to true.
+reg lneven msd_fib "0*1010(00)*":
+reg lnodd msd_fib "0*101(00)*":
+eval test "?msd_fib An
+    ($lneven(n) => (LUCAS[n-2]=@1 & LUCAS[n-1]=@0)) &
+    ($lnodd(n) => (LUCAS[n-2]=@0 & LUCAS[n-1]=@1))":

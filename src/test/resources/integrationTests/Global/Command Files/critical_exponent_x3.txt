@@ -1,0 +1,17 @@
+eval periods_of_high_powers "?msd_pell Ei (p >= 1) & (Aj (5*j <= 8*p) => X3[i + j] = X3[i + j + p])":
+
+reg pows msd_pell "0*11000*":
+
+def maximal_reps "?msd_pell Ei (Aj (j < n) => X3[i + j] = X3[i + j + p]) & (X3[i + n] != X3[i + n + p])":
+
+eval highest_powers "?msd_pell (p >= 1) & $pows(p) & $maximal_reps(n, p) & (Am $maximal_reps(m, p) => m <= n)";
+
+
+eval test "?msd_pell C_alpha[1] = @0 & X3[0] = @0":
+eval test "?msd_pell Ap,q
+((p < q) & (C_alpha[p + 1]=@0) & (C_alpha[q + 1]=@0) &
+ (Ai ((i > p) & (i < q)) => (C_alpha[i + 1]=@1))) =>
+(((X3[p] = @0) & (X3[q] = @1)) |
+ ((X3[p] = @1) & (X3[q] = @0)))":
+
+eval test "?msd_pell Ap (C_alpha[p + 1] = @1) => (X3[p] = @2)":

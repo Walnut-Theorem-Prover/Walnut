@@ -1,0 +1,38 @@
+def pell_successor "?msd_pell x < y & (Az (z <= x) | (z >= y))";
+
+eval base_proof "?msd_pell Ax,z ((x + 0 = z) <=> (x = z))";
+
+eval inductive_proof "?msd_pell Ax,y,z,u,v ($pell_successor(y, u) & $pell_successor(z, v)) => ((x + y = z) <=> (x + u = v))";
+
+
+eval fac_low_exponent "?msd_pell Ei,p,n (p >= 1) & (2*n <= 3*p) & (Aj (j + p < n) => X5[i + j] = X5[i + j + p])";
+
+eval fac_ex_exponent "?msd_pell Ei,p,n (p >= 1) & (2*n = 3*p) & (Aj (j + p < n) => X5[i + j] = X5[i + j + p])";
+
+eval fac_high_exponent "?msd_pell Ei,p,n (p >= 1) & (2*n > 3*p) & (Aj (j + p < n) => X5[i + j] = X5[i + j + p])";
+
+
+eval fac_cex5 "?msd_pell En (p >= 1) & (2*n = 3*p) & (Aj (j + p < n) => X5[i + j] = X5[i + j + p])";
+
+eval almost_ce_period "?msd_pell Ei (p > 10) & (2*n + 4 >= 3*p) & (Aj (j + p < n) => X5[i + j] = X5[i + j + p])";
+
+
+eval first_0_to_0 "?msd_pell C_alpha[1]=@0 & X5[0]=@0":
+eval second_0_to_1 "?msd_pell C_alpha[3]=@0 & X5[2]=@1":
+eval possible_triplets_for_0s "?msd_pell Ap,q,r
+((p < q) & (q < r) & (C_alpha[p+1]=@0) & (C_alpha[q+1]=@0) &
+ (C_alpha[r+1]=@0) & (Ai
+    ((i > p) & (i < r) & (i != q)) =>
+    (C_alpha[i+1]=@1))) =>
+(((X5[p]=@0) & (X5[q]=@1) & (X5[r]=@0)) |
+ ((X5[p]=@1) & (X5[q]=@0) & (X5[r]=@2)) |
+ ((X5[p]=@0) & (X5[q]=@2) & (X5[r]=@0)) |
+ ((X5[p]=@2) & (X5[q]=@0) & (X5[r]=@1)))":
+
+eval first_1_to_3 "?msd_pell C_alpha[2]=@1 & X5[1]=@3":
+eval alternate_3_4_for_1s "?msd_pell Ap,q (
+    (p < q) &
+    (C_alpha[p+1]=@1) &
+    (C_alpha[q+1]=@1) &
+    (Ai ((i > p) & (i < q)) => (C_alpha[i+1]=@0))) =>
+(((X5[p]=@3) & (X5[q]=@4)) | ((X5[p]=@4) & (X5[q]=@3)))":

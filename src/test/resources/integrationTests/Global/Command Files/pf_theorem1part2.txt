@@ -1,0 +1,3 @@
+eval PFTheorem1Part2 "?lsd_2 An (n = 1 | n = 3 | n = 5) & $endsIn2Zeros(n) => Ei $endsIn2Zeros(i) & i >= 1 & Ak k < n => PF[f][i+k] = PF[f][i+k+n]";
+eval PFTheorem1Part2NonExample1 "?lsd_2 An n = 2 & $endsIn2Zeros(n) => Ei $endsIn2Zeros(i) & i >= 1 & Ak k < n => PF[f][i+k] = PF[f][i+k+n]";
+eval PFTheorem1Part2NonExample2 "?lsd_2 An n = 4 & $endsIn2Zeros(n) => Ei $endsIn2Zeros(i) & i >= 1 & Ak k < n => PF[f][i+k] = PF[f][i+k+n]";

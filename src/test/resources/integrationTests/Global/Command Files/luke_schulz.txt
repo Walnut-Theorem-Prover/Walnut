@@ -1,0 +1,16 @@
+def bco_valid "$bco_simple_valid(a,x) & $bco_standard(a)":
+def bco_valid2 "$bco_valid(a,x) & $bco_valid(a,y)":
+def bco_valid3 "$bco_valid(a,x) & $bco_valid(a,y) & $bco_valid(a,z)":
+
+def bco_adder "$msd_ost_binary_adder(a,x,y,z) & $bco_valid3(a,x,y,z)":
+
+def bco_eq "$bco_leq(x,y) & $bco_leq(y,x)":
+def bco_zero "Ea $bco_valid(a,z) & (Ay $bco_valid(a,y) => $bco_leq(z,y))":
+def bco_succ "$bco_valid2(a,x,y) & $bco_leq(x,y) & ~$bco_eq(x,y) & (Az $bco_valid(a,z) => ($bco_leq(z,x) | $bco_leq(y,z)))":
+
+eval test_bco_adder_base_case "Aa Ax Ay Az ($bco_zero(x) & $bco_valid3(a,x,y,z)) => ($bco_adder(a,x,y,z) <=> $bco_eq(y,z))":
+eval test_bco_adder_inductive_case "Aa Ax Ay Az Au Av ($bco_valid3(a,x,y,z) & $bco_valid3(a,u,y,v) & $bco_succ(a,u,x) & $bco_succ(a,v,z)) => ($bco_adder(a,x,y,z) <=> $bco_adder(a,u,y,v))":
+
+eval test_bco_pred "Aa Ax $bco_valid(a,x) => ($bco_zero(x) | (Eu $bco_valid(a,u) & $bco_succ(a,u,x)))":
+
+eval test_bco_adder_not_zero "Aa Ax Ay Az $bco_adder(a,x,y,z) & $bco_zero(z) => ($bco_zero(x) & $bco_zero(y))":

@@ -24,7 +24,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import Automata.Automaton;
-import Automata.AutomatonWriter;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
@@ -35,32 +34,35 @@ public class IntegrationTest {
 
 	private void initialize(){
 		Session.setPathsAndNamesIntegrationTests();
+		Session.cleanPathsAndNamesIntegrationTest();
 		PrintWriter out = null;
 		try {
 			Prover.dispatch("reg endsIn2Zeros lsd_2 \"(0|1)*00\";");
 			Prover.dispatch("reg startsWith2Zeros msd_2 \"00(0|1)*\";");
-			Prover.dispatchForIntegrationTest("def thueeq \"T[x]=T[y]\";");
-			Prover.dispatchForIntegrationTest("def func \"(?msd_3 c < 5) & (a = b+1) & (?msd_10 e = 17)\";");
-			Prover.dispatchForIntegrationTest("def thuefactoreq \"Ak (k < n) => T[i+k] = T[j+k]\";");
-			Prover.dispatchForIntegrationTest("def thueuniquepref \"Aj (j > 0 & j < n-m) => ~$thuefactoreq(i,i+j,m)\";");
-			Prover.dispatchForIntegrationTest("def thueuniquesuff \"Aj (j > 0 & j < n-m) => ~$thuefactoreq(i+n-m,i+n-m-j,m)\";");
-			Prover.dispatchForIntegrationTest("def thuepriv \"(n >= 1) & Am (m <= n & m >= 1) => (Ep (p <= m & p >= 1) & $thueuniquepref(i,p,m) & $thueuniquesuff(i+n-m,p,m) & $thuefactoreq(i, i+n-p, p))\";");
-			Prover.dispatchForIntegrationTest("def fibmr \"?msd_fib (i<=j)&(j<n)&Ep ((p>=1)&(2*p+i<=j+1)&(Ak (k+i+p<=j) => (F[i+k]=F[i+k+p]))&((i>=1) => (Aq ((1<=q)&(q<=p)) =>"
-											+ "(El (l+i+q<=j+1)&(F[i+l-1]!=F[i+l+q-1]))))&((j+2<=n) => (Ar ((1<=r)&(r<=p)) =>"
-											+ "(Em (m+r+i<=j+1)&(F[i+m]!=F[i+m+r])))))\";");
-
-			Prover.dispatchForIntegrationTest("load thue_tests.txt;");
-			Prover.dispatchForIntegrationTest("load rudin_shapiro_tests.txt;");
-			Prover.dispatchForIntegrationTest("load rudin_shapiro_trapezoidal_tests.txt;");
-			Prover.dispatchForIntegrationTest("load paperfolding_tests.txt;");
-			Prover.dispatchForIntegrationTest("load paperfolding_trapezoidal_tests.txt;");
-			Prover.dispatchForIntegrationTest("load period_doubling_tests.txt;");
-			Prover.dispatchForIntegrationTest("load fibonacci_tests.txt;");
-			Prover.dispatchForIntegrationTest("load morphism_image_tests.txt;");
-
-			Prover.dispatchForIntegrationTest("macro palindrome \"?%0 Ak (k<n) => %1[i+k] = %1[i+n-1-k]\";");
-			//Prover.dispatchForIntegrationTest("macro factoreq \"%0 Ak (%4<n) => %1[%2+k]=%1[%3+k]\"");
-			Prover.dispatchForIntegrationTest("macro border \"?%0 m>=1 & m<=n & $%1_factoreq(i,i+n-m,m)\";");
+			List<String> integTests = List.of(
+					"def thueeq \"T[x]=T[y]\";",
+					"def func \"(?msd_3 c < 5) & (a = b+1) & (?msd_10 e = 17)\";",
+					"def thuefactoreq \"Ak (k < n) => T[i+k] = T[j+k]\";",
+					"def thueuniquepref \"Aj (j > 0 & j < n-m) => ~$thuefactoreq(i,i+j,m)\";",
+					"def thueuniquesuff \"Aj (j > 0 & j < n-m) => ~$thuefactoreq(i+n-m,i+n-m-j,m)\";",
+					"def thuepriv \"(n >= 1) & Am (m <= n & m >= 1) => (Ep (p <= m & p >= 1) & $thueuniquepref(i,p,m) & $thueuniquesuff(i+n-m,p,m) & $thuefactoreq(i, i+n-p, p))\";",
+					"def fibmr \"?msd_fib (i<=j)&(j<n)&Ep ((p>=1)&(2*p+i<=j+1)&(Ak (k+i+p<=j) => (F[i+k]=F[i+k+p]))&((i>=1) => (Aq ((1<=q)&(q<=p)) =>"
+							+ "(El (l+i+q<=j+1)&(F[i+l-1]!=F[i+l+q-1]))))&((j+2<=n) => (Ar ((1<=r)&(r<=p)) =>"
+							+ "(Em (m+r+i<=j+1)&(F[i+m]!=F[i+m+r])))))\";",
+					"load thue_tests.txt;",
+					"load rudin_shapiro_tests.txt;",
+					"load rudin_shapiro_trapezoidal_tests.txt;",
+					"load paperfolding_tests.txt;",
+					"load paperfolding_trapezoidal_tests.txt;",
+					"load period_doubling_tests.txt;",
+					"load fibonacci_tests.txt;",
+					"load morphism_image_tests.txt;",
+					"macro palindrome \"?%0 Ak (k<n) => %1[i+k] = %1[i+n-1-k]\";",
+					"macro border \"?%0 m>=1 & m<=n & $%1_factoreq(i,i+n-m,m)\";"
+					);
+			for(int i=0;i<integTests.size();i++) {
+				Prover.dispatchForIntegrationTest(integTests.get(i), "dispatch:" + i);
+			}
 		} catch (FileNotFoundException | UnsupportedEncodingException e) {
 			e.printStackTrace();
 		} catch(Exception e){
@@ -825,7 +827,7 @@ public class IntegrationTest {
 		L.add("def test621 \"?msd_fib (s=0 & n=0) | Ex $test620(n-1,x) & s=x+1\";"); // def phin "?msd_fib (s=0 & n=0) | Ex $shift(n-1,x) & s=x+1":
 		L.add("def test622 \"?msd_fib Ex,y $test621(3*n,x) & $test621(n,y) & x=3*y+1\";"); // def phid3a "?msd_fib Ex,y $phin(3*n,x) & $phin(n,y) & x=3*y+1":
 		L.add("def test623 \"?msd_fib Ex,y $test621(3*n,x) & $test621(n,y) & x=3*y+2\";"); // def phid3b "?msd_fib Ex,y $phin(3*n,x) & $phin(n,y) & x=3*y+2":
-		L.add("combine test624 test622=1 test623=2;"); // combine FD3 phid3a=1 phid3b=2:*/
+		L.add("combine test624 test622=1 test623=2;"); // combine FD3 phid3a=1 phid3b=2:
 	}
 
 	/*public long runTestCases() throws IOException {
@@ -919,7 +921,7 @@ public class IntegrationTest {
 		TestCase expected = testCases.get(i);
 		String command = L.get(i);
 		try{
-			TestCase actual = Prover.dispatchForIntegrationTest(command);
+			TestCase actual = Prover.dispatchForIntegrationTest(command, String.valueOf(i));
 			Assertions.assertTrue(conformMPL(expected.getMpl().trim(), actual.getMpl().trim()), "MPL does not conform");
 			Assertions.assertTrue(conformDetails(expected.getDetails().trim(), actual.getDetails().trim()), "Details do not conform. \n ----- EXPECTED DETAILS: \n\n" + expected.getDetails().trim() + "\n ----- ACTUAL DETAILS: \n\n" + actual.getDetails().trim());
 			Assertions.assertTrue(actual.getResult() == null || expected.getResult() != null);
