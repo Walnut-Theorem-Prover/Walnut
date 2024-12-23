@@ -1,5 +1,6 @@
 package Automata;
 
+import Main.Session;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -94,7 +95,7 @@ class AutomatonExpressionTest {
     void testAddressAutomatonConstructor() {
         Automaton a, b;
         try {
-            a = new Automaton("src/test/resources/LUCAS.txt");
+            a = new Automaton(Session.getAddressForTestResources() + "LUCAS.txt");
         } catch (RuntimeException ex) {
             // Hack because everything s
             Assertions.fail(ex);

@@ -64,6 +64,7 @@ test {
 }
 
 test {
+    failFast = true // stop unit/integration tests when there's a failure
     finalizedBy jacocoTestReport // report is always generated after tests run
 }
 jacocoTestReport {

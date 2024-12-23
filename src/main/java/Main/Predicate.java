@@ -391,20 +391,8 @@ public class Predicate {
     private int putMacro() {
         Matcher matcher = MATCHER_FOR_MACRO;
 
-        StringBuilder macro = new StringBuilder();
-        try (BufferedReader in = new BufferedReader(
-            new InputStreamReader(
-                new FileInputStream(
-                    Session.getReadFileForMacroLibrary(matcher.group(2) + ".txt")),
-                StandardCharsets.UTF_8))) {
-            String line;
-            while ((line = in.readLine()) != null) {
-                macro.append(line);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-            throw new RuntimeException("Macro does not exist: " + matcher.group(2), e);
-        }
+        String filename = matcher.group(2);
+        StringBuilder macro = readMacroFile(filename);
         Stack<Character> parenthesisStack = new Stack<>();
         parenthesisStack.push('(');
         int i = matcher.end();
@@ -443,6 +431,24 @@ public class Predicate {
         predicate = predicate.substring(0, matcher.start()) + matcher.group(1) + macro + predicate.substring(i + 1);
         initializeMatchers();
         return matcher.start();
+    }
+
+    private static StringBuilder readMacroFile(String filename) {
+        StringBuilder macro = new StringBuilder();
+        try (BufferedReader in = new BufferedReader(
+            new InputStreamReader(
+                new FileInputStream(
+                    Session.getReadFileForMacroLibrary(filename + ".txt")),
+                StandardCharsets.UTF_8))) {
+            String line;
+            while ((line = in.readLine()) != null) {
+                macro.append(line);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new RuntimeException("Macro does not exist: " + filename, e);
+        }
+        return macro;
     }
 
     public List<Token> getPostOrder() {

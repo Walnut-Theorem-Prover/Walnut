@@ -1,6 +1,7 @@
 package Automata;
 
 import Main.Prover;
+import Main.Session;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -8,7 +9,7 @@ public class EndToEndTest {
     @Test
     void testSimpleFiles() {
         String[] args = new String[1];
-        args[0] = "src/test/resources/input2.txt";
+        args[0] = Session.getAddressForTestResources() + "input2.txt";
         try {
             Prover.run(args);
             /*a = new Automaton("src/test/resources/input2.txt");

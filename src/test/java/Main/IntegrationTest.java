@@ -1,4 +1,4 @@
-/*	 Copyright 2016 Hamoon Mousavi
+/*	 Copyright 2016 Hamoon Mousavi, 2025 John Nicol
  *
  * 	 This file is part of Walnut.
  *
@@ -30,31 +30,13 @@ import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
 
 public class IntegrationTest {
-	String directoryAddress = Session.getAddressForIntegrationTestResults();
 	List<TestCase> testCases;//list of test cases
 	List<String> L;//list of commands
+
 	private void initialize(){
+		Session.setPathsAndNamesIntegrationTests();
 		PrintWriter out = null;
 		try {
-			String wordsLibrary = Session.getWriteAddressForWordsLibrary();
-			File file = new File(wordsLibrary + "T2.txt");
-			file.getParentFile().mkdirs();
-			out = new PrintWriter(wordsLibrary + "T2.txt", StandardCharsets.UTF_8);
-			out.write("msd_2 msd_2\n0 1\n0 0 -> 0\n1 0 -> 1\n0 1 -> 1\n1 1 -> 0\n1 0\n0 0 -> 1\n1 0 -> 0\n0 1 -> 0\n1 1 -> 1\n");
-			out.close();
-			out = new PrintWriter(wordsLibrary + "RS.txt", StandardCharsets.UTF_8);
-			out.write("msd_2\n0 0\n0 -> 0\n1 -> 1\n1 0\n0 -> 0\n1 -> 2\n2 1\n0 -> 3\n1 -> 1\n3 1\n0 -> 3\n1 -> 2\n");
-			out.close();
-			out = new PrintWriter(wordsLibrary + "P.txt", StandardCharsets.UTF_8);
-			out.write("msd_2\n0 0\n0 -> 0\n1 -> 1\n1 0\n0 -> 0\n1 -> 2\n2 1\n0 -> 3\n1 -> 2\n3 1\n0 -> 3\n1 -> 1\n");
-			out.close();
-			out = new PrintWriter(wordsLibrary + "PR.txt", StandardCharsets.UTF_8);
-			out.write("lsd_2\n0 0\n0 -> 1\n1 -> 0\n1 0\n0 -> 2\n1 -> 3\n2 0\n0 -> 2\n1 -> 2\n3 1\n0 -> 3\n1 -> 3\n");
-			out.close();
-			out = new PrintWriter(wordsLibrary + "PD.txt", StandardCharsets.UTF_8);
-			out.write("msd_2\n0 1\n0 -> 0\n1 -> 1\n1 0\n0 -> 0\n1 -> 0\n");
-			out.close();
-
 			Prover.dispatch("reg endsIn2Zeros lsd_2 \"(0|1)*00\";");
 			Prover.dispatch("reg startsWith2Zeros msd_2 \"00(0|1)*\";");
 			Prover.dispatchForIntegrationTest("def thueeq \"T[x]=T[y]\";");
@@ -846,14 +828,15 @@ public class IntegrationTest {
 		L.add("combine test624 test622=1 test623=2;"); // combine FD3 phid3a=1 phid3b=2:*/
 	}
 
-	public long runTestCases() throws IOException {
+	/*public long runTestCases() throws IOException {
 		return runTestCases(0,L.size());
 	}
 	public long runTestCases(int begin) throws IOException {
 		return runTestCases(begin,L.size());
 	}
 	public long runTestCases(int begin, int end) throws IOException {
-		loadTestCases(directoryAddress);
+		String directoryAddress = Session.getAddressForIntegrationTestResults();
+		testCases = loadTestCases(L, directoryAddress);
 		int failedTestsCount = 0;
 		int mplFailedTestsCount = 0;
 		int detailsFailedTestsCount = 0;
@@ -919,11 +902,11 @@ public class IntegrationTest {
 		}
 		return total;
 	}
-
+*/
 
 	@TestFactory
 	List<DynamicTest> runAllIntegrationTests() throws IOException {
-		loadTestCases(UtilityMethods.ADDRESS_FOR_UNIT_TEST_INTEGRATION_TEST_RESULTS);
+		testCases = loadTestCases(L, UtilityMethods.ADDRESS_FOR_UNIT_TEST_INTEGRATION_TEST_RESULTS);
 		List<DynamicTest> dynamicTests = new ArrayList<>(L.size());
 		for (int i = 0; i < L.size(); i++) {
 			int finalI = i;
@@ -966,72 +949,49 @@ public class IntegrationTest {
 		return expected_details.equals(actual_details);
 	}
 
-	void loadTestCases(String directoryAddress) throws IOException {
-		testCases = new ArrayList<>();
-		for(int i = 0 ; i < L.size();i++){
+	private static List<TestCase> loadTestCases(List<String> L, String directoryAddress) throws IOException {
+		List<TestCase> testCases = new ArrayList<>();
+		for(int i = 0 ; i < L.size();i++) {
 			Automaton M = null;
-			StringBuilder error = new StringBuilder();
-			StringBuilder details = new StringBuilder();
-			StringBuilder mpl = new StringBuilder();
-			if(new File(directoryAddress+"automaton"+ i +".txt").isFile()){
-				M = new Automaton(directoryAddress+"automaton"+i+".txt");
+			String automatonFilePath = directoryAddress + "automaton" + i + ".txt";
+			if (new File(automatonFilePath).isFile()) {
+				M = new Automaton(automatonFilePath);
 			}
-			if(new File(directoryAddress+"error"+ i +".txt").isFile()){
-				BufferedReader errorReader = new BufferedReader(new InputStreamReader(new FileInputStream(directoryAddress+"error" + i +".txt"), StandardCharsets.UTF_8));
-				String temp;
-				boolean flag = false;
-				while((temp = errorReader.readLine())!= null){
-					error.append((flag ? System.lineSeparator() : "") + temp);
-					flag = true;
-				}
-				errorReader.close();
-			}
-
-			if(new File(directoryAddress+"mpl"+ i +".mpl").isFile()){
-				BufferedReader mplReader = new BufferedReader(new InputStreamReader(new FileInputStream(directoryAddress+"mpl" + i +".mpl"), StandardCharsets.UTF_8));
-				String temp;
-				boolean flag = false;
-				while((temp = mplReader.readLine())!= null){
-					if(flag)
-						mpl.append(System.lineSeparator() + temp);
-					else
-						mpl.append(temp);
-					flag = true;
-				}
-				mplReader.close();
-			}
-
-			if(new File(directoryAddress+"details"+ i +".txt").isFile()){
-				BufferedReader detailsReader = new BufferedReader(new InputStreamReader(new FileInputStream(directoryAddress+"details" + i +".txt"), StandardCharsets.UTF_8));
-				String temp;
-				boolean flag = false;
-				while((temp = detailsReader.readLine())!= null){
-					if(flag)
-						details.append(System.lineSeparator() + temp);
-					else
-						details.append(temp);
-					flag = true;
-				}
-				detailsReader.close();
-			}
-
-			testCases.add(new TestCase(M,error.toString(),mpl.toString(),details.toString()));
+			String error = readFromFile(directoryAddress + "error" + i + ".txt");
+			String mpl = readFromFile(directoryAddress + "mpl" + i + ".mpl");
+			String details = readFromFile(directoryAddress+"details"+ i +".txt");
+			testCases.add(new TestCase(M,error,mpl,details));
 		}
+		return testCases;
 	}
-	//@Test // uncomment this line if you want to regenerate test cases
-	public void createTestCases() throws IOException {
-		for(int i = 0; i < L.size();i++){
-			String command = L.get(i);
-			System.out.println(command);
-			TestCase test_case;
-			try{
-				test_case = Prover.dispatchForIntegrationTest(command);
+
+	private static String readFromFile(String filePath) throws IOException {
+		StringBuilder output = new StringBuilder();
+		if((new File(filePath).isFile())) {
+			BufferedReader mplReader = new BufferedReader(new InputStreamReader(new FileInputStream(filePath), StandardCharsets.UTF_8));
+			String temp;
+			boolean flag = false;
+			while ((temp = mplReader.readLine()) != null) {
+				output.append(flag ? System.lineSeparator() : "").append(temp);
+				flag = true;
 			}
-			catch(Exception e){
-				test_case = new TestCase(null,e.getMessage(),"","");
-			}
-			testCases.add(test_case);
+			mplReader.close();
 		}
+		return output.toString();
+	}
+
+	//@Test // uncomment this line if you want to regenerate test cases
+	/*public void createTestCases() throws IOException {
+    for (String command : L) {
+      System.out.println(command);
+      TestCase test_case;
+      try {
+        test_case = Prover.dispatchForIntegrationTest(command);
+      } catch (Exception e) {
+        test_case = new TestCase(null, e.getMessage(), "", "");
+      }
+      testCases.add(test_case);
+    }
 		writeTestCases(UtilityMethods.ADDRESS_FOR_UNIT_TEST_INTEGRATION_TEST_RESULTS);
 	}
 	private void writeTestCases(String directory) throws IOException {
@@ -1042,20 +1002,20 @@ public class IntegrationTest {
 				AutomatonWriter.write(t.getResult(), directory+"automaton" + i + ".txt");
 			}
 			if(t.getError() != null && !t.getError().isEmpty()){
-				PrintWriter errorWriter = new PrintWriter(directory+"error"+ i +".txt", StandardCharsets.UTF_8);
-				errorWriter.println(t.getError());
-				errorWriter.close();
+				writeToFile(directory, "error", i, ".txt", t.getError());
 			}
 			if(t.getMpl() != null && !t.getMpl().isEmpty()){
-				PrintWriter mplWriter = new PrintWriter(directory+"mpl"+ i +".mpl", StandardCharsets.UTF_8);
-				mplWriter.println(t.getMpl());
-				mplWriter.close();
+				writeToFile(directory, "mpl", i, ".mpl", t.getMpl());
 			}
 			if(t.getDetails() != null && !t.getDetails().isEmpty()){
-				PrintWriter detailsWriter = new PrintWriter(directory+"details"+ i +".txt", StandardCharsets.UTF_8);
-				detailsWriter.println(t.getDetails());
-				detailsWriter.close();
+				writeToFile(directory, "details", i, ".txt", t.getDetails());
 			}
 		}
 	}
+
+	private static void writeToFile(String directory, String error, int i, String x, String t) throws IOException {
+		PrintWriter errorWriter = new PrintWriter(directory + error + i + x, StandardCharsets.UTF_8);
+		errorWriter.println(t);
+		errorWriter.close();
+	}*/
 }

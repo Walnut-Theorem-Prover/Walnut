@@ -35,12 +35,14 @@ hs_err_pid*
 
 # Result files
 Result/
+Session/
 Automata Library/
-Test Results/
 Custom Bases/
-Word Automata Library/
+Macro Library/
 Morphism Library/
+Word Automata Library/
 Transducer Library/
+Test Results/
 
 *.swp
 *.swo

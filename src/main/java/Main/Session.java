@@ -19,8 +19,12 @@
 package Main;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 
 /**
  * This class stores session-specific data, like Results directories.
@@ -37,13 +41,44 @@ public class Session {
   static final String PROMPT = "\n[Walnut]$ ";
   private static final String FRIENDLY_DATE_TIME_PATTERN = "yyyy_MM_dd_HH_mm"; // TODO; what about localization?
 
+  private static final String GLOBAL_NAME = "Global";
+  private static final String SESSION_NAME = "Session";
+
   public static void setPathsAndNames() {
     String path = System.getProperty("user.dir");
     if (path.endsWith("bin"))
       mainWalnutDir = "../";
-    name = LocalDateTime.now().format(DateTimeFormatter.ofPattern(FRIENDLY_DATE_TIME_PATTERN));
+    name = SESSION_NAME + "/" +
+        LocalDateTime.now().format(DateTimeFormatter.ofPattern(FRIENDLY_DATE_TIME_PATTERN)) + "/";
     if (sessionWalnutDir == null) {
-      setSessionWalnutDir(mainWalnutDir + name + "/");
+      sessionWalnutDir = mainWalnutDir + name;
+    }
+    createSubdirectories();
+  }
+
+  public static void setPathsAndNamesIntegrationTests() {
+    mainWalnutDir = getAddressForIntegrationTestResults() + GLOBAL_NAME + "/";
+    sessionWalnutDir = getAddressForIntegrationTestResults() + SESSION_NAME + "/";
+    createSubdirectories();
+    // clear out directory if it has anything in it
+    try {
+      Files.list(Paths.get(getAddressForResult()))
+          .filter(Files::isRegularFile) // Select only files
+          .forEach(path -> path.toFile().delete()); // Delete each file
+    } catch (IOException ex) {
+      ex.printStackTrace();
+    }
+  }
+
+  /**
+   * Make various subdirectories necessary for writing results.
+   */
+  private static void createSubdirectories() {
+    for (String s : List.of(
+        sessionWalnutDir, getAddressForResult(), getWriteAddressForAutomataLibrary(),
+        getWriteAddressForCustomBases(), getWriteAddressForMacroLibrary(), getWriteAddressForMorphismLibrary(),
+        getWriteAddressForWordsLibrary())) {
+      new File(s).mkdir();
     }
   }
 
@@ -62,12 +97,15 @@ public class Session {
     return mainWalnutDir + "Help Documentation/Commands/";
   }
 
+  public static String getAddressForTestResources() {
+    return "src/test/resources/";
+  }
   // read/write from, don't need session-specific code
   public static String getAddressForIntegrationTestResults() {
-    return mainWalnutDir + "Test Results/Integration Tests/";
+    return getAddressForTestResources() + "integrationTests/";
   }
 
-  // read from, need session-specific code
+  // read from, session-specific
   public static String getReadAddressForCustomBases() {
     return mainWalnutDir + "Custom Bases/";
   }
@@ -96,32 +134,27 @@ public class Session {
     }
     if (new File(globalFile).exists()) {
       System.out.println("Overriding global file with session file:" + sessionFile);
-    }
-    return sessionFile;
+    }return sessionFile;
   }
 
 
-  // write to
+  // write to, session-specific
   public static String getWriteAddressForCustomBases() {
-    return mainWalnutDir + "Custom Bases/";
+    return sessionWalnutDir + "Custom Bases/";
   }
   public static String getWriteAddressForMacroLibrary() {
-    return mainWalnutDir + "Macro Library/";
+    return sessionWalnutDir + "Macro Library/";
   }
   public static String getWriteAddressForMorphismLibrary() {
-    return mainWalnutDir + "Morphism Library/";
+    return sessionWalnutDir + "Morphism Library/";
   }
   public static String getWriteAddressForAutomataLibrary() {
-    return mainWalnutDir + "Automata Library/";
+    return sessionWalnutDir + "Automata Library/";
   }
   public static String getAddressForResult() {
-    return mainWalnutDir + "Result/";
+    return sessionWalnutDir + "Result/";
   }
   public static String getWriteAddressForWordsLibrary() {
-    return mainWalnutDir + "Word Automata Library/";
-  }
-
-  public static void setSessionWalnutDir(String sessionWalnutDir) {
-    Session.sessionWalnutDir = sessionWalnutDir;
+    return sessionWalnutDir + "Word Automata Library/";
   }
 }
