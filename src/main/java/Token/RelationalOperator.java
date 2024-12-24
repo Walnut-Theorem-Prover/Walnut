@@ -165,7 +165,7 @@ public class RelationalOperator extends Operator {
         };
     }
 
-    private static String reverseOperator(String op) {
+    public static String reverseOperator(String op) {
         return switch (op) {
             case "=" -> "=";
             case "!=" -> "!=";

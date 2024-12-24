@@ -828,6 +828,14 @@ public class IntegrationTest {
 		L.add("def test622 \"?msd_fib Ex,y $test621(3*n,x) & $test621(n,y) & x=3*y+1\";"); // def phid3a "?msd_fib Ex,y $phin(3*n,x) & $phin(n,y) & x=3*y+1":
 		L.add("def test623 \"?msd_fib Ex,y $test621(3*n,x) & $test621(n,y) & x=3*y+2\";"); // def phid3b "?msd_fib Ex,y $phin(3*n,x) & $phin(n,y) & x=3*y+2":
 		L.add("combine test624 test622=1 test623=2;"); // combine FD3 phid3a=1 phid3b=2:
+
+		// Ostrowski test
+		L.add("ost test625 [0 3 1] [1 2];");
+
+		// Handle multiply by zero
+		L.add("eval test626 \"0 * 3 = 0\";");
+		L.add("eval test627 \"3 * 0 = 0\";");
+
 	}
 
 	/*public long runTestCases() throws IOException {

@@ -453,8 +453,8 @@ public class Automaton {
         if (isTRUE_FALSE_AUTOMATON() && M.isTRUE_FALSE_AUTOMATON()) {
           return isTRUE_AUTOMATON() == M.isTRUE_AUTOMATON();
         }
-        dk.brics.automaton.Automaton Y = M.to_dk_bricks_automaton();
-        dk.brics.automaton.Automaton X = to_dk_bricks_automaton();
+        dk.brics.automaton.Automaton Y = M.to_dk_brics_automaton();
+        dk.brics.automaton.Automaton X = to_dk_brics_automaton();
         return X.equals(Y);
     }
 
@@ -1285,22 +1285,24 @@ public class Automaton {
             System.out.println(msg);
         }
         for (int p = 0; p < getQ(); p++) {
+            IntList thisO = this.getO();
+            int thisP = thisO.getInt(p);
             switch (operator) {
                 case "+":
-                    getO().set(p, getO().getInt(p) + o);
+                    thisO.set(p, thisP + o);
                     break;
                 case "-":
-                    getO().set(p, getO().getInt(p) - o);
+                    thisO.set(p, thisP - o);
                     break;
                 case "*":
-                    getO().set(p, getO().getInt(p) * o);
+                    thisO.set(p, thisP * o);
                     break;
                 case "/":
                     if (o == 0) throw ExceptionHelper.divisionByZero();
-                    getO().set(p, getO().getInt(p) / o);
+                    thisO.set(p, thisP / o);
                     break;
                 case "_":
-                    getO().set(p, -getO().getInt(p));
+                    thisO.set(p, -thisP);
                     break;
             }
         }
@@ -1329,22 +1331,24 @@ public class Automaton {
             System.out.println(msg);
         }
         for (int p = 0; p < getQ(); p++) {
+            IntList thisO = this.getO();
+            int thisP = thisO.getInt(p);
             switch (operator) {
                 case "+":
-                    getO().set(p, o + getO().getInt(p));
+                    thisO.set(p, o + thisP);
                     break;
                 case "-":
-                    getO().set(p, o - getO().getInt(p));
+                    thisO.set(p, o - thisP);
                     break;
                 case "*":
-                    getO().set(p, o * getO().getInt(p));
+                    thisO.set(p, o * thisP);
                     break;
                 case "/":
-                    if (getO().getInt(p) == 0) throw ExceptionHelper.divisionByZero();
-                    getO().set(p, o / getO().getInt(p));
+                    if (thisP == 0) throw ExceptionHelper.divisionByZero();
+                    thisO.set(p, o / thisP);
                     break;
                 case "_":
-                    getO().set(p, -getO().getInt(p));
+                    thisO.set(p, -thisP);
                     break;
             }
         }
@@ -1376,15 +1380,15 @@ public class Automaton {
     }
 
     /**
-     * Transform this automaton from Automaton to dk.bricks.automaton.Automaton. This automaton can be
+     * Transform this automaton from Automaton to dk.brics.automaton.Automaton. This automaton can be
      * any automaton (deterministic/non-deterministic and with output/without output).
      *
      * @return
      */
-    public dk.brics.automaton.Automaton to_dk_bricks_automaton() {
+    private dk.brics.automaton.Automaton to_dk_brics_automaton() {
         /**
-         * Since the dk.bricks.automaton uses char as its input alphabet for an automaton, then in order to transform
-         * Automata.Automaton to dk.bricks.automaton.Automata we've got to make sure, the input alphabet is less than
+         * Since the dk.brics.automaton uses char as its input alphabet for an automaton, then in order to transform
+         * Automata.Automaton to dk.brics.automaton.Automata we've got to make sure, the input alphabet is less than
          * size of char which 2^16 - 1
          */
         if (getAlphabetSize() > ((1 << Character.SIZE) - 1)) {
@@ -1415,7 +1419,7 @@ public class Automaton {
     /**
      * Set the fields of this automaton to represent a dk.brics.automaton.Automaton.
      * An automata in our program can be of type Automaton or dk.brics.automaton.Automaton. We use package
-     * dk.bricks.automaton for automata minimization. This method transforms an automaton of type dk.bricks.automaton.Automaton
+     * dk.brics.automaton for automata minimization. This method transforms an automaton of type dk.brics.automaton.Automaton
      * to an automaton of type Automaton.
      *
      * @param M is a deterministic automaton without output.
@@ -1596,9 +1600,9 @@ public class Automaton {
      */
     static List<Integer> decode(List<List<Integer>> A, int n) {
         List<Integer> l = new ArrayList<>(A.size());
-        for (int i = 0; i < A.size(); i++) {
-            l.add(A.get(i).get(n % A.get(i).size()));
-            n = n / A.get(i).size();
+        for (List<Integer> integers : A) {
+            l.add(integers.get(n % integers.size()));
+            n = n / integers.size();
         }
         return l;
     }
@@ -1740,7 +1744,7 @@ public class Automaton {
         if (isTRUE_FALSE_AUTOMATON()) {
             return !isTRUE_AUTOMATON();
         }
-        return to_dk_bricks_automaton().isEmpty();
+        return to_dk_brics_automaton().isEmpty();
     }
 
     /**

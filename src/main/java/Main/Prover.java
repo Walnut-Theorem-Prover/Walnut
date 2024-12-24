@@ -445,6 +445,10 @@ public class Prover {
             case "reg" -> {
                 return regCommand(s);
             }
+            case "ost" -> {
+                return ostCommand(s);
+            }
+
             case "combine" -> {
                 return combineCommand(s);
             }
@@ -1032,7 +1036,7 @@ public class Prover {
         }
     }
 
-    public static void ostCommand(String s) {
+    public static TestCase ostCommand(String s) {
         Matcher m = PATTERN_FOR_ost_COMMAND.matcher(s);
         if (!m.find()) {
             throw ExceptionHelper.invalidCommandUse("ost");
@@ -1041,7 +1045,9 @@ public class Prover {
         String name = m.group(GROUP_OST_NAME);
         Ostrowski ostr = new Ostrowski(name, m.group(GROUP_OST_PREPERIOD), m.group(GROUP_OST_PERIOD));
         Ostrowski.writeRepresentation(name, ostr.createRepresentationAutomaton());
-        Ostrowski.writeAdder(name, ostr.createAdderAutomaton());
+        Automaton adder = ostr.createAdderAutomaton();
+        Ostrowski.writeAdder(name, adder);
+        return new TestCase(adder,"","","");
     }
 
     public static TestCase transduceCommand(String s) {

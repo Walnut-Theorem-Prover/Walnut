@@ -124,7 +124,7 @@ public class LogicalOperator extends Operator {
     }
 
     private void actQuantifier(Stack<Expression> S, boolean print, String prefix, StringBuilder log) {
-        String stringValue = "(" + op + " ";
+        StringBuilder stringValue = new StringBuilder("(" + op + " ");
         Stack<Expression> temp = new Stack<>();
         List<Expression> operands = new ArrayList<>();
         Automaton M = null;
@@ -142,15 +142,15 @@ public class LogicalOperator extends Operator {
             Expression operand = operands.get(i);
             if (i < getArity() - 1) {
                 if (i == 0)
-                    stringValue += operand + " ";
+                    stringValue.append(operand).append(" ");
                 else
-                    stringValue += ", " + operand + " ";
+                    stringValue.append(", ").append(operand).append(" ");
                 if (!(operand instanceof VariableExpression))
                     throw new RuntimeException("operator " + op + " requires a list of " + number_of_quantified_variables + " variables");
 
                 list_of_identifiers_to_quantify.add(operand.identifier);
             } else if (i == getArity() - 1) {
-                stringValue += operand;
+                stringValue.append(operand);
                 if (!(operand instanceof AutomatonExpression))
                     throw new RuntimeException("the last operand of " + op + " can only be of type automaton");
                 M = operand.M;
@@ -163,12 +163,12 @@ public class LogicalOperator extends Operator {
                 } else {
                     M = AutomatonLogicalOps.removeLeadingZeroes(M, list_of_identifiers_to_quantify, print, prefix + " ", log);
                     String infReg = M.infinite();
-                    M = infReg.equals("") ? new Automaton(false) : new Automaton(true);
+                    M = infReg.isEmpty() ? new Automaton(false) : new Automaton(true);
                 }
             }
         }
-        stringValue += ")";
-        S.push(new AutomatonExpression(stringValue, M));
+        stringValue.append(")");
+        S.push(new AutomatonExpression(stringValue.toString(), M));
         String postStep = prefix + "computed quantifier " + stringValue;
         log.append(postStep + System.lineSeparator());
         if (print) {

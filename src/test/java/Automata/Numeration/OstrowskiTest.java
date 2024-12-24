@@ -22,6 +22,17 @@ public class OstrowskiTest {
     }
 
     @Test
+    void testNode() {
+        // extra coverage
+        NodeState nodeState = new NodeState(0,1,2);
+        Assertions.assertFalse(nodeState.equals("x"));
+        Assertions.assertEquals("[0 1 2]", nodeState.toString());
+        Assertions.assertEquals(66065, nodeState.hashCode());
+        NodeState nodeState2 = new NodeState(1,1,2);
+        Assertions.assertEquals(-1, nodeState.compareTo(nodeState2));
+    }
+
+    @Test
     void createFib() {
         Ostrowski ost = new Ostrowski("fib", "0 2", "1");
         Assertions.assertEquals(List.of(2),ost.preperiod);

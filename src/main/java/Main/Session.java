@@ -21,6 +21,7 @@ package Main;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -93,10 +94,14 @@ public class Session {
    */
   private static void createSubdirectories() {
     for (String s : List.of(
-        sessionWalnutDir, getAddressForResult(), getWriteAddressForAutomataLibrary(),
+        mainWalnutDir + SESSION_NAME,
+            sessionWalnutDir, getAddressForResult(), getWriteAddressForAutomataLibrary(),
         getWriteAddressForCustomBases(), getWriteAddressForMacroLibrary(), getWriteAddressForMorphismLibrary(),
         getWriteAddressForWordsLibrary())) {
-      new File(s).mkdir();
+      File f = new File(s);
+      if (!f.exists() && !f.mkdir()) {
+        throw new RuntimeException("Couldn't create directory:" + s);
+      }
     }
   }
 
@@ -151,8 +156,19 @@ public class Session {
       return globalFile;
     }
     if (new File(globalFile).exists()) {
-      System.out.println("Overriding global file with session file:" + sessionFile);
-    }return sessionFile;
+      String overrideMessage = "Overriding global file with session file:" + sessionFile;
+      try {
+        // Are they the same?
+        boolean areFilesNonEqual = Files.mismatch(Path.of(sessionFile), Path.of(globalFile)) != -1;
+        if (areFilesNonEqual) {
+          System.out.println(overrideMessage);
+        }
+      } catch (IOException ex) {
+        // unclear why there would be an exception, but this is all informational anyway
+        System.out.println(overrideMessage);
+      }
+    }
+    return sessionFile;
   }
 
 

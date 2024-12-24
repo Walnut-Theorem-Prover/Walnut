@@ -150,63 +150,7 @@ public class AutomatonLogicalOps {
             int q = s.get(1);
             Int2ObjectRBTreeMap<IntList> thisStatesTransitions = new Int2ObjectRBTreeMap<>();
             N.getD().add(thisStatesTransitions);
-            switch (op) {
-                case "&":
-                    N.getO().add((automaton.getO().getInt(p) != 0 && M.getO().getInt(q) != 0) ? 1 : 0);
-                    break;
-                case "|":
-                    N.getO().add((automaton.getO().getInt(p) != 0 || M.getO().getInt(q) != 0) ? 1 : 0);
-                    break;
-                case "^":
-                    N.getO().add(((automaton.getO().getInt(p) != 0 && M.getO().getInt(q) == 0) || (automaton.getO().getInt(p) == 0 && M.getO().getInt(q) != 0)) ? 1 : 0);
-                    break;
-                case "=>":
-                    N.getO().add((automaton.getO().getInt(p) == 0 || M.getO().getInt(q) != 0) ? 1 : 0);
-                    break;
-                case "<=>":
-                    N.getO().add(((automaton.getO().getInt(p) == 0 && M.getO().getInt(q) == 0) || (automaton.getO().getInt(p) != 0 && M.getO().getInt(q) != 0)) ? 1 : 0);
-                    break;
-                case "<":
-                    N.getO().add((automaton.getO().getInt(p) < M.getO().getInt(q)) ? 1 : 0);
-                    break;
-                case ">":
-                    N.getO().add((automaton.getO().getInt(p) > M.getO().getInt(q)) ? 1 : 0);
-                    break;
-                case "=":
-                    N.getO().add((automaton.getO().getInt(p) == M.getO().getInt(q)) ? 1 : 0);
-                    break;
-                case "!=":
-                    N.getO().add((automaton.getO().getInt(p) != M.getO().getInt(q)) ? 1 : 0);
-                    break;
-                case "<=":
-                    N.getO().add((automaton.getO().getInt(p) <= M.getO().getInt(q)) ? 1 : 0);
-                    break;
-                case ">=":
-                    N.getO().add((automaton.getO().getInt(p) >= M.getO().getInt(q)) ? 1 : 0);
-                    break;
-                case "+":
-                    N.getO().add(automaton.getO().getInt(p) + M.getO().getInt(q));
-                    break;
-                case "-":
-                    N.getO().add(automaton.getO().getInt(p) - M.getO().getInt(q));
-                    break;
-                case "*":
-                    N.getO().add(automaton.getO().getInt(p) * M.getO().getInt(q));
-                    break;
-                case "/":
-                    if (M.getO().getInt(q) == 0) throw ExceptionHelper.divisionByZero();
-                    N.getO().add(Math.floorDiv(automaton.getO().getInt(p), M.getO().getInt(q)));
-                    break;
-                case "combine":
-                    N.getO().add((M.getO().getInt(q) == 1) ? automaton.combineOutputs.getInt(automaton.combineIndex) : automaton.getO().getInt(p));
-                    break;
-                case "first":
-                    N.getO().add(automaton.getO().getInt(p) == 0 ? M.getO().getInt(q) : automaton.getO().getInt(p));
-                    break;
-                case "if_other":
-                    N.getO().add(M.getO().getInt(q) != 0 ? automaton.getO().getInt(p) : 0);
-                    break;
-            }
+            N.getO().add(determineOutput(automaton, M, op, N, p, q));
 
             for (int x : automaton.getD().get(p).keySet()) {
                 for (int y : M.getD().get(q).keySet()) {
@@ -237,6 +181,34 @@ public class AutomatonLogicalOps {
             System.out.println(msg);
         }
         return N;
+    }
+
+    private static int determineOutput(Automaton automaton, Automaton M, String op, Automaton N, int p, int q) {
+        int aP = automaton.getO().getInt(p);
+        int mQ = M.getO().getInt(q);
+        return switch (op) {
+            case "&" -> (aP != 0 && mQ != 0) ? 1 : 0;
+            case "|" -> (aP != 0 || mQ != 0) ? 1 : 0;
+            case "^" -> ((aP != 0 && mQ == 0) || (aP == 0 && mQ != 0)) ? 1 : 0;
+            case "=>" -> (aP == 0 || mQ != 0) ? 1 : 0;
+            case "<=>" -> ((aP == 0 && mQ == 0) || (aP != 0 && mQ != 0)) ? 1 : 0;
+            case "<" -> (aP < mQ) ? 1 : 0;
+            case ">" -> (aP > mQ) ? 1 : 0;
+            case "=" -> (aP == mQ) ? 1 : 0;
+            case "!=" -> (aP != mQ) ? 1 : 0;
+            case "<=" -> (aP <= mQ) ? 1 : 0;
+            case ">=" -> (aP >= mQ) ? 1 : 0;
+            case "+" -> aP + mQ;
+            case "-" -> aP - mQ;
+            case "*" -> aP * mQ;
+            case "/" -> {
+                if (mQ == 0) throw ExceptionHelper.divisionByZero();
+                yield Math.floorDiv(aP, mQ);
+            }
+            case "combine" -> (mQ == 1) ? automaton.combineOutputs.getInt(automaton.combineIndex) : aP;
+            case "first" -> aP == 0 ? mQ : aP;
+            default -> mQ != 0 ? aP : 0;
+        };
     }
 
     /**
@@ -622,19 +594,17 @@ public class AutomatonLogicalOps {
     }
 
     private static boolean isSubsetA(Automaton automaton, Automaton other) {
-        boolean isSubset = true;
-
-        if (automaton.getA().size() == other.getA().size()) {
-            for (int i = 0; i < automaton.getA().size(); i++) {
-                if (!other.getA().get(i).containsAll(automaton.getA().get(i))) {
-                    isSubset = false;
-                    break;
-                }
-            }
-        } else {
-            isSubset = false;
+        List<List<Integer>> aA = automaton.getA();
+        List<List<Integer>> otherA = other.getA();
+        if (aA.size() != otherA.size()) {
+            return false;
         }
-        return isSubset;
+        for (int i = 0; i < aA.size(); i++) {
+            if (!new HashSet<>(otherA.get(i)).containsAll(aA.get(i))) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
@@ -1846,25 +1816,27 @@ public class AutomatonLogicalOps {
             log.append(msg + System.lineSeparator());
             System.out.println(msg);
         }
+        IntList aO = automaton.getO();
         for (int p = 0; p < automaton.getQ(); p++) {
+            int aP = aO.getInt(p);
             switch (operator) {
                 case "<":
-                    automaton.getO().set(p, (automaton.getO().getInt(p) < o) ? 1 : 0);
+                    aO.set(p, (aP < o) ? 1 : 0);
                     break;
                 case ">":
-                    automaton.getO().set(p, (automaton.getO().getInt(p) > o) ? 1 : 0);
+                    aO.set(p, (aP > o) ? 1 : 0);
                     break;
                 case "=":
-                    automaton.getO().set(p, (automaton.getO().getInt(p) == o) ? 1 : 0);
+                    aO.set(p, (aP == o) ? 1 : 0);
                     break;
                 case "!=":
-                    automaton.getO().set(p, (automaton.getO().getInt(p) != o) ? 1 : 0);
+                    aO.set(p, (aP != o) ? 1 : 0);
                     break;
                 case "<=":
-                    automaton.getO().set(p, (automaton.getO().getInt(p) <= o) ? 1 : 0);
+                    aO.set(p, (aP <= o) ? 1 : 0);
                     break;
                 case ">=":
-                    automaton.getO().set(p, (automaton.getO().getInt(p) >= o) ? 1 : 0);
+                    aO.set(p, (aP >= o) ? 1 : 0);
                     break;
             }
         }

@@ -35,9 +35,9 @@ import Automata.NumberSystem;
 
 
 public class Function extends Token {
-    Automaton A;
-    String name;
-    NumberSystem ns;
+    private Automaton A;
+    private final String name;
+    private final NumberSystem ns;
 
 
     public Function(String number_system, int position, String name, Automaton A, int number_of_arguments) {
@@ -55,12 +55,12 @@ public class Function extends Token {
     }
 
     public void act(Stack<Expression> S, boolean print, String prefix, StringBuilder log) {
-        if (S.size() < getArity()) throw new RuntimeException("function " + name + " requires " + getArity() + " arguments");
+        if (S.size() < getArity()) throw new RuntimeException("function " + this + " requires " + getArity() + " arguments");
         Stack<Expression> temp = new Stack<>();
         for (int i = 0; i < getArity(); i++) {
             temp.push(S.pop());
         }
-        String stringValue = name + "(";
+        String stringValue = this + "(";
         String preStep = prefix + "computing " + stringValue + "...)";
         log.append(preStep + System.lineSeparator());
         if (print) {
@@ -81,7 +81,7 @@ public class Function extends Token {
                 case ArithmeticExpression ae -> M = ae.act(print, prefix, log, identifiers, M, quantify);
                 case NumberLiteralExpression ne -> M = ne.act(print, prefix, log, this, identifiers, quantify, M);
                 case AutomatonExpression ae -> M = ae.act(print, prefix, name, log, i, M, identifiers);
-                case null, default -> expression.act("argument " + (i + 1) + " of function " + name);
+                case null, default -> expression.act("argument " + (i + 1) + " of function " + this);
             }
         }
         A.bind(identifiers);

@@ -24,6 +24,7 @@ import java.util.*;
 import Main.ExceptionHelper;
 import Main.Session;
 import Main.UtilityMethods;
+import Token.RelationalOperator;
 import it.unimi.dsi.fastutil.ints.Int2ObjectRBTreeMap;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
@@ -635,7 +636,7 @@ public class NumberSystem {
             case "!=" -> applyComparison(equality, a, b, false, true);
             case ">=" -> applyComparison(lessThan, a, b, false, true);
             case "<=" -> applyComparison(lessThan, a, b, true, true);
-            default -> throw new RuntimeException("undefined comparison operator");
+            default -> throw new RuntimeException("undefined comparison operator:" + comparisonOperator);
         };
     }
 
@@ -678,15 +679,11 @@ public class NumberSystem {
      */
     public Automaton comparison(int a, String b, String comparisonOperator) {
         if (!is_neg && a < 0) throw ExceptionHelper.negativeConstant(a);
-        return switch (comparisonOperator) {
-            case "<" -> comparison(b, a, ">");
-            case ">" -> comparison(b, a, "<");
-            case "=" -> comparison(b, a, "=");
-            case "!=" -> comparison(b, a, "!=");
-            case "<=" -> comparison(b, a, ">=");
-            case ">=" -> comparison(b, a, "<=");
-            default -> throw new RuntimeException("undefined comparison operator");
-        };
+        String revOp = RelationalOperator.reverseOperator(comparisonOperator);
+        if (revOp.isEmpty()) {
+            throw new RuntimeException("undefined comparison operator:" + comparisonOperator);
+        }
+        return comparison(b, a, revOp);
     }
 
     /**
@@ -717,7 +714,7 @@ public class NumberSystem {
             case "/":
                 throw new RuntimeException("the operator / cannot be applied to two variables");
             default:
-                throw new RuntimeException("undefined arithmetic operator");
+                throw new RuntimeException("undefined arithmetic operator:" + arithmeticOperator);
         }
         return M;
     }
@@ -870,12 +867,12 @@ public class NumberSystem {
         }
 
         Automaton P;
+        String a = "a", b = "b", c = "c";
         if (n == 0) {
             P = make_zero();
         } else if (n == 1) {
             P = make_one();
         } else if (n < 0) {
-            String a = "a", b = "b";
             // b = -n
             Automaton M = get(-n);
             M.bind(b);
@@ -884,11 +881,10 @@ public class NumberSystem {
             P = AutomatonLogicalOps.and(P, M, false, null, null);
             AutomatonLogicalOps.quantify(P, b, false, null, null);
         } else { // n > 0
-            String a = "a", b = "b", c = "c";
             // a = floor(n/2)
             Automaton M = get(n / 2);
             M.bind(a);
-            // b = ciel(n/2)
+            // b = ceil(n/2)
             Automaton N = get(n / 2 + (n % 2 == 0 ? 0 : 1));
             N.bind(b);
             // Ea,Eb, a + b = c & a = floor(n/2) & b = ceil(n/2)
@@ -913,10 +909,10 @@ public class NumberSystem {
         if (multiplicationsDynamicTable.containsKey(n)) return multiplicationsDynamicTable.get(n);
         //note that the case of n==0 is handled in Computer class
         Automaton P;
+        String a = "a", b = "b", c = "c", d = "d";
         if (n == 1) {
             P = equality;
         } else if (n < 0) {
-            String a = "a", b = "b", c = "c";
             // c = (-n)*a
             Automaton M = getMultiplication(-n);
             M.bind(a, c);
@@ -926,12 +922,9 @@ public class NumberSystem {
             AutomatonLogicalOps.quantify(P, c, false, null, null);
             P.sortLabel();
         } else if (n == 2) {
-            String a = "a", d = "d";
             P = arithmetic(a, a, d, "+");
             P.sortLabel();
         } else { // n > 2
-            String a = "a", b = "b", c = "c", d = "d";
-
             // doubler
             Automaton D = getMultiplication(2);
 
@@ -949,7 +942,6 @@ public class NumberSystem {
                 P = AutomatonLogicalOps.and(P, M, false, null, null);
                 P = AutomatonLogicalOps.and(P, D, false, null, null);
                 AutomatonLogicalOps.quantify(P, b, c, is_msd, false, null, null);
-
             }
 
             P.sortLabel();

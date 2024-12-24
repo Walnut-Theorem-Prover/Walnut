@@ -84,6 +84,9 @@ public class Predicate {
     static Pattern PATTERN_FOR_ARITHMETIC_OPERATORS = Pattern.compile("\\G\\s*(_|/|\\*|\\+|\\-)");
     static Pattern PATTERN_FOR_NUMBER_SYSTEM =
         Pattern.compile("\\G\\s*\\?(((msd|lsd)_(\\d+|\\w+))|((msd|lsd)(\\d+|\\w+))|(msd|lsd)|(\\d+|\\w+))");
+    // 2, 5, 8, 9
+    static int R_NS_AND_BASE = 2, R_BASE_ONLY = 5, R_NS_ONLY = 8, R_BASE_ONLY_2 = 9;
+
     static Pattern PATTERN_FOR_WORD = Pattern.compile("\\G\\s*([a-zA-Z&&[^AEI]]\\w*)\\s*\\[");
     static Pattern PATTERN_FOR_WORD_WITH_DELIMITER = Pattern.compile("\\G\\s*\\.([a-zA-Z]\\w*)\\s*\\[");
     static Pattern PATTERN_FOR_FUNCTION = Pattern.compile("\\G\\s*\\$([a-zA-Z&&[^AEI]]\\w*)\\s*\\(");
@@ -277,10 +280,14 @@ public class Predicate {
     }
 
     private String deriveNumberSystem() {
-        if (MATCHER_FOR_NUMBER_SYSTEM.group(2) != null) return MATCHER_FOR_NUMBER_SYSTEM.group(2);
-        if (MATCHER_FOR_NUMBER_SYSTEM.group(5) != null) return "msd_" + MATCHER_FOR_NUMBER_SYSTEM.group(5);
-        if (MATCHER_FOR_NUMBER_SYSTEM.group(8) != null) return MATCHER_FOR_NUMBER_SYSTEM.group(8) + "_2";
-        if (MATCHER_FOR_NUMBER_SYSTEM.group(9) != null) return "msd_" + MATCHER_FOR_NUMBER_SYSTEM.group(9);
+        if (MATCHER_FOR_NUMBER_SYSTEM.group(R_NS_AND_BASE) != null)
+            return MATCHER_FOR_NUMBER_SYSTEM.group(R_NS_AND_BASE);
+        if (MATCHER_FOR_NUMBER_SYSTEM.group(R_BASE_ONLY) != null)
+            return "msd_" + MATCHER_FOR_NUMBER_SYSTEM.group(R_BASE_ONLY);
+        if (MATCHER_FOR_NUMBER_SYSTEM.group(R_NS_ONLY) != null)
+            return MATCHER_FOR_NUMBER_SYSTEM.group(R_NS_ONLY) + "_2";
+        if (MATCHER_FOR_NUMBER_SYSTEM.group(R_BASE_ONLY_2) != null)
+            return "msd_" + MATCHER_FOR_NUMBER_SYSTEM.group(R_BASE_ONLY_2);
         return "msd_2";
     }
 

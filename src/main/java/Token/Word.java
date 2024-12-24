@@ -44,7 +44,7 @@ public class Word extends Token {
     }
 
     public void act(Stack<Expression> S, boolean print, String prefix, StringBuilder log) {
-        if (S.size() < getArity()) throw new RuntimeException("word " + name + " requires " + getArity() + " indices");
+        if (S.size() < getArity()) throw new RuntimeException("word " + this + " requires " + getArity() + " indices");
         Stack<Expression> temp = new Stack<>();
         for (int i = 1; i <= getArity(); i++) {
             temp.push(S.pop());
@@ -66,7 +66,7 @@ public class Word extends Token {
                 case ArithmeticExpression ae -> M = ae.act(print, prefix, log, identifiers, M, quantify);
                 case NumberLiteralExpression ne -> M = ne.act(print, prefix, log, this, identifiers, quantify, M);
                 case AutomatonExpression ae -> M = ae.act(print, prefix, name, log, i, M, identifiers);
-                case null, default -> expression.act("argument " + (i + 1) + " of function " + name);
+                case null, default -> expression.act("argument " + (i + 1) + " of function " + this);
             }
         }
         W.bind(identifiers);

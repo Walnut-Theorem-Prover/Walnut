@@ -169,6 +169,7 @@ public class Ostrowski {
     public static void writeRepresentation(String name, Automaton repr) {
         String repr_file_name =
                 Session.getWriteAddressForCustomBases() + "msd_" + name + ".txt";
+        System.out.println("Writing to: " + repr_file_name);
         File f = new File(repr_file_name);
         if (f.exists() && !f.isDirectory()) {
             throw new RuntimeException("Error: number system " + name + " already exists.");
