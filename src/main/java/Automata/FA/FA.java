@@ -38,6 +38,8 @@ public class FA implements Cloneable {
   private IntList O;
   private List<Int2ObjectRBTreeMap<IntList>> d;
 
+  private static final int MAX_BRICS_CHARACTER = (1 << Character.SIZE) - 1;
+
   public FA() {
     O = new IntArrayList();
     d = new ArrayList<>();
@@ -628,18 +630,18 @@ public class FA implements Cloneable {
      * Automata.Automaton to dk.brics.automaton.Automata we've got to make sure, the input alphabet is less than
      * size of char which 2^16 - 1
      */
-    if (getAlphabetSize() > ((1 << Character.SIZE) - 1)) {
-      throw ExceptionHelper.alphabetExceedsSize(((1 << Character.SIZE) - 1));
+    if (getAlphabetSize() > MAX_BRICS_CHARACTER) {
+      throw ExceptionHelper.alphabetExceedsSize(MAX_BRICS_CHARACTER);
     }
     boolean deterministic = true;
-    List<dk.brics.automaton.State> setOfStates = new ArrayList<>();
-    for (int q = 0; q < getQ(); q++) {
+    List<dk.brics.automaton.State> setOfStates = new ArrayList<>(Q);
+    for (int q = 0; q < Q; q++) {
       setOfStates.add(new dk.brics.automaton.State());
-      if (getO().getInt(q) != 0) setOfStates.get(q).setAccept(true);
+      if (O.getInt(q) != 0) setOfStates.get(q).setAccept(true);
     }
     dk.brics.automaton.State initialState = setOfStates.get(getQ0());
-    for (int q = 0; q < getQ(); q++) {
-      for (Int2ObjectMap.Entry<IntList> entry : getD().get(q).int2ObjectEntrySet()) {
+    for (int q = 0; q < Q; q++) {
+      for (Int2ObjectMap.Entry<IntList> entry : d.get(q).int2ObjectEntrySet()) {
         for (int dest : entry.getValue()) {
           setOfStates.get(q).addTransition(new dk.brics.automaton.Transition((char) entry.getIntKey(), setOfStates.get(dest)));
         }
@@ -691,7 +693,7 @@ public class FA implements Cloneable {
     Set<Integer> result = new HashSet<>();
     Queue<Integer> queue = new LinkedList<>();
     //this is the adjacency matrix of the reverse of the transition graph of this automaton on 0
-    List<List<Integer>> adjacencyList = new ArrayList<>();
+    List<List<Integer>> adjacencyList = new ArrayList<>(Q);
     for (int q = 0; q < Q; q++) adjacencyList.add(new ArrayList<>());
     for (int q = 0; q < Q; q++) {
       if (d.get(q).containsKey(zero)) {
@@ -714,8 +716,8 @@ public class FA implements Cloneable {
     }
   }
 
-  public void setFieldsFromFile(
-      int newQ, int newQ0, Map<Integer, Integer> state_output, Map<Integer, Int2ObjectRBTreeMap<IntList>> state_transition) {
+  public void setFieldsFromFile(int newQ, int newQ0, Map<Integer, Integer> state_output,
+                                Map<Integer, Int2ObjectRBTreeMap<IntList>> state_transition) {
     Q = newQ;
     q0 = newQ0;
     for (int q = 0; q < newQ; q++) {
@@ -797,6 +799,16 @@ public class FA implements Cloneable {
   public void addTransition(int src, int dest, int inp) {
       IntList destStates = new IntArrayList();
       destStates.add(dest);
-      getD().get(src).put(inp, destStates);
+      d.get(src).put(inp, destStates);
+  }
+
+  public IntSet getFinalStates() {
+      IntSet finalStates = new IntOpenHashSet();
+      for (int q = 0; q < O.size(); q++) {
+          if (O.getInt(q) > 0) {
+              finalStates.add(q);
+          }
+      }
+      return finalStates;
   }
 }
