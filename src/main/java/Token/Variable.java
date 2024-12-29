@@ -29,7 +29,6 @@ public class Variable extends Token {
 
     public Variable(int position, String name) {
         setPositionInPredicate(position);
-        setArity(0);
         this.name = name;
     }
 

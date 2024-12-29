@@ -41,7 +41,7 @@ public abstract class Token {
         postOrder.add(this);
     }
 
-    public abstract void act(Stack<Expression> S, boolean print, String prefix, StringBuilder log);
+    public void act(Stack<Expression> S, boolean print, String prefix, StringBuilder log) {}
 
     public boolean isOperator() {
         return false;

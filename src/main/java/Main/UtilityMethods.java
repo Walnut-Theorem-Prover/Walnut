@@ -264,4 +264,18 @@ public class UtilityMethods {
         }
         return permuted_encoder;
     }
+
+    public static void logMessage(boolean print, String msg, StringBuilder log) {
+        if (print) {
+            log.append(msg).append(System.lineSeparator());
+            System.out.println(msg);
+        }
+    }
+
+    public static void logAndPrint(boolean print, String msg, StringBuilder log) {
+        log.append(msg + System.lineSeparator());
+        if (print) {
+            System.out.println(msg);
+        }
+    }
 }

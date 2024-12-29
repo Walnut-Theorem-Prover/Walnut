@@ -111,6 +111,38 @@ public class NumberSystem {
 
     private boolean flag_should_we_use_allRepresentations = true;
 
+    // flip the number system from msd to lsd and vice versa.
+    static void flipNS(List<NumberSystem> numberSystems) {
+        for (int i = 0; i < numberSystems.size(); i++) {
+            NumberSystem NS = numberSystems.get(i);
+            if (NS == null) {
+                continue;
+            }
+            int indexOfUnderscore = NS.getName().indexOf("_");
+            String msd_or_lsd = NS.getName().substring(0, indexOfUnderscore);
+            String suffix = NS.getName().substring(indexOfUnderscore);
+            String newName = (msd_or_lsd.equals("msd") ? "lsd" : "msd") + suffix;
+            numberSystems.set(i, new NumberSystem(newName));
+        }
+    }
+
+    static boolean isNSDiffering(
+        List<NumberSystem> NNS, List<NumberSystem> firstNS, List<List<Integer>> A1, List<List<Integer>> A2) {
+        if (NNS.size() != firstNS.size()) {
+            return true;
+        }
+        for (int j = 0; j < NNS.size(); j++) {
+            NumberSystem Nj = NNS.get(j);
+            NumberSystem firstJ = firstNS.get(j);
+            if ((Nj == null && firstJ != null) || (Nj != null && firstJ == null) ||
+                (Nj != null && firstJ != null &&
+                    !NNS.get(j).getName().equals(firstJ.getName())) || !A1.equals(A2)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public boolean isMsd() {
         return is_msd;
     }
@@ -262,16 +294,7 @@ public class NumberSystem {
      * @param alphabet
      */
     private void setEquality(List<Integer> alphabet) {
-        equality = new Automaton();
-        equality.setQ(1);
-        equality.setQ0(0);
-        equality.getO().add(1);
-        equality.getNS().add(this);
-        equality.getNS().add(this);
-        equality.getA().add(new ArrayList<>(alphabet));
-        equality.getA().add(new ArrayList<>(alphabet));
-        equality.setAlphabetSize(alphabet.size() * alphabet.size());
-        equality.getD().add(new Int2ObjectRBTreeMap<>());
+        equality = initBasicAutomaton(IntList.of(1), 2, alphabet);
         for (int i = 0; i < alphabet.size(); i++) {
             addTransition(equality, 0, 0, i * alphabet.size() + i);
         }
@@ -286,18 +309,7 @@ public class NumberSystem {
     private void lexicographicLessThan(List<Integer> alphabet) {
         alphabet = new ArrayList<>(alphabet);
         Collections.sort(alphabet);
-        lessThan = new Automaton();
-        lessThan.setQ(2);
-        lessThan.setQ0(0);
-        lessThan.getO().add(0);
-        lessThan.getO().add(1);
-        lessThan.getNS().add(this);
-        lessThan.getNS().add(this);
-        lessThan.getA().add(new ArrayList<>(alphabet));
-        lessThan.getA().add(new ArrayList<>(alphabet));
-        lessThan.setAlphabetSize(alphabet.size() * alphabet.size());
-        lessThan.getD().add(new Int2ObjectRBTreeMap<>());
-        lessThan.getD().add(new Int2ObjectRBTreeMap<>());
+        lessThan = initBasicAutomaton(IntList.of(0,1), 2, alphabet);
         for (int i = 0; i < alphabet.size(); i++) {
             for (int j = 0; j < alphabet.size(); j++) {
                 if (i == j) {
@@ -367,20 +379,7 @@ public class NumberSystem {
     private void base_n_addition(int n) {
         List<Integer> alphabet = new ArrayList<>();
         for (int i = 0; i < n; i++) alphabet.add(i);
-        addition = new Automaton();
-        addition.setQ(2);
-        addition.setQ0(0);
-        addition.getO().add(1);
-        addition.getO().add(0);
-        addition.getD().add(new Int2ObjectRBTreeMap<>());
-        addition.getD().add(new Int2ObjectRBTreeMap<>());
-        addition.getNS().add(this);
-        addition.getNS().add(this);
-        addition.getNS().add(this);
-        addition.getA().add(new ArrayList<>(alphabet));
-        addition.getA().add(new ArrayList<>(alphabet));
-        addition.getA().add(alphabet);
-        addition.setAlphabetSize(alphabet.size() * alphabet.size() * alphabet.size());
+        addition = initBasicAutomaton(IntList.of(1,0), 3, alphabet);
         int l = 0;
         for (int k = 0; k < n; k++) {
             for (int j = 0; j < n; j++) {
@@ -414,24 +413,9 @@ public class NumberSystem {
      * @param n
      */
     private void base_neg_n_addition(int n) {
-        List<Integer> alphabet = new ArrayList<>();
+        List<Integer> alphabet = new ArrayList<>(n);
         for (int i = 0; i < n; i++) alphabet.add(i);
-        addition = new Automaton();
-        addition.setQ(3);
-        addition.setQ0(0);
-        addition.getO().add(1);
-        addition.getO().add(0);
-        addition.getO().add(0);
-        addition.getD().add(new Int2ObjectRBTreeMap<>());
-        addition.getD().add(new Int2ObjectRBTreeMap<>());
-        addition.getD().add(new Int2ObjectRBTreeMap<>());
-        addition.getNS().add(this);
-        addition.getNS().add(this);
-        addition.getNS().add(this);
-        addition.getA().add(new ArrayList<>(alphabet));
-        addition.getA().add(new ArrayList<>(alphabet));
-        addition.getA().add(alphabet);
-        addition.setAlphabetSize(alphabet.size() * alphabet.size() * alphabet.size());
+        addition =  initBasicAutomaton(IntList.of(1,0,0), 3, alphabet);
         int l = 0;
         for (int k = 0; k < n; k++) {
             for (int j = 0; j < n; j++) {
@@ -482,22 +466,8 @@ public class NumberSystem {
     private void base_neg_n_less_than(int n) {
         List<Integer> alphabet = new ArrayList<>();
         for (int i = 0; i < n; i++) alphabet.add(i);
-        lessThan = new Automaton();
-        lessThan.setQ(3);
-        lessThan.setQ0(0);
-        lessThan.getO().add(0);
-        lessThan.getO().add(1);
-        lessThan.getO().add(0);
-        lessThan.getD().add(new Int2ObjectRBTreeMap<>());
-        lessThan.getD().add(new Int2ObjectRBTreeMap<>());
-        lessThan.getD().add(new Int2ObjectRBTreeMap<>());
-        lessThan.getNS().add(this);
-        lessThan.getNS().add(this);
-        lessThan.getA().add(new ArrayList<>(alphabet));
-        lessThan.getA().add(alphabet);
-        lessThan.setAlphabetSize(alphabet.size() * alphabet.size());
+        lessThan = initBasicAutomaton(IntList.of(0,1,0), 2, alphabet);
         int l = 0;
-        int dest;
         for (int j = 0; j < n; j++) {
             for (int i = 0; i < n; i++) {
                 if (i == j) {
@@ -530,17 +500,7 @@ public class NumberSystem {
     private void base_n_base_change(int n) {
         List<Integer> alphabet = new ArrayList<>();
         for (int i = 0; i < n; i++) alphabet.add(i);
-        baseChange = new Automaton();
-        baseChange.setQ(4);
-        baseChange.setQ0(0);
-        baseChange.getO().add(1);
-        baseChange.getO().add(1);
-        baseChange.getO().add(0);
-        baseChange.getO().add(0);
-        baseChange.getD().add(new Int2ObjectRBTreeMap<>());
-        baseChange.getD().add(new Int2ObjectRBTreeMap<>());
-        baseChange.getD().add(new Int2ObjectRBTreeMap<>());
-        baseChange.getD().add(new Int2ObjectRBTreeMap<>());
+        baseChange = initBasicAutomaton(IntList.of(1,1,0,0));
         if (is_msd) {
             baseChange.getNS().add(new NumberSystem("msd_" + n));
             baseChange.getNS().add(new NumberSystem("msd_neg_" + n));
@@ -550,7 +510,7 @@ public class NumberSystem {
         }
         baseChange.getA().add(new ArrayList<>(alphabet));
         baseChange.getA().add(alphabet);
-        baseChange.setAlphabetSize(alphabet.size() * alphabet.size());
+        baseChange.determineAlphabetSizeFromA();
         int l = 0;
         for (int j = 0; j < n; j++) {
             for (int i = 0; i < n; i++) {
@@ -581,9 +541,32 @@ public class NumberSystem {
         }
     }
 
-    /**
-     * Gives the corresponding negative number system if one is defined. Throws an exception otherwise.
-     */
+    private static Automaton initBasicAutomaton(int Q) {
+        Automaton a = new Automaton();
+        a.getFa().setQ(Q);
+        for(int i=0;i<Q;i++) {
+            a.getFa().getD().add(new Int2ObjectRBTreeMap<>());
+        }
+        return a;
+    }
+    private static Automaton initBasicAutomaton(IntList O) {
+        Automaton a = initBasicAutomaton(O.size());
+        a.getFa().setO(new IntArrayList(O)); // IntList.of() is immutable
+        return a;
+    }
+    private Automaton initBasicAutomaton(IntList O, int inputSize, List<Integer> alphabet) {
+        Automaton a = initBasicAutomaton(O);
+        for(int i=0;i<inputSize;i++) {
+            a.getNS().add(this);
+            a.getA().add(new ArrayList<>(alphabet));
+        }
+        a.determineAlphabetSizeFromA();
+        return a;
+    }
+
+        /**
+         * Gives the corresponding negative number system if one is defined. Throws an exception otherwise.
+         */
     public NumberSystem negative_number_system() {
         String msd_or_lsd = name.substring(0, name.indexOf("_"));
         String base = name.substring(name.indexOf("_") + 1);
@@ -614,8 +597,7 @@ public class NumberSystem {
 
     private Automaton applyComparison(Automaton base, String a, String b, boolean reverse, boolean negate) {
         Automaton result = base.clone();
-        if (reverse) result.bind(b, a);
-        else result.bind(a, b);
+        result.bind(reverse ? List.of(b,a) : List.of(a,b));
         if (negate) AutomatonLogicalOps.not(result, false, null, null);
         return result;
     }
@@ -656,14 +638,14 @@ public class NumberSystem {
         } else { // b >= 0
             N = get(b);
             if (comparisonOperator.equals("=")) {
-                N.bind(a);
+                N.bind(List.of(a));
                 return N;
             } else if (comparisonOperator.equals("!=")) {
-                N.bind(a);
+                N.bind(List.of(a));
                 AutomatonLogicalOps.not(N, false, null, null);
                 return N;
             }
-            N.bind(B);
+            N.bind(List.of(B));
             M = comparison(a, B, comparisonOperator);
         }
         M = AutomatonLogicalOps.and(M, N, false, null, null);
@@ -704,10 +686,10 @@ public class NumberSystem {
         Automaton M = addition.clone();
         switch (arithmeticOperator) {
             case "+":
-                M.bind(a, b, c);
+                M.bind(List.of(a, b, c));
                 break;
             case "-":
-                M.bind(b, c, a);
+                M.bind(List.of(b, c, a));
                 break;
             case "*":
                 throw new RuntimeException("the operator * cannot be applied to two variables");
@@ -739,13 +721,13 @@ public class NumberSystem {
         if (arithmeticOperator.equals("*")) {
             //note that the case of b = 0 is handled in Computer class
             N = getMultiplication(b);
-            N.bind(a, c);
+            N.bind(List.of(a, c));
             return N;
         }
         if (arithmeticOperator.equals("/")) {
             if (b == 0) throw ExceptionHelper.divisionByZero();
             N = getDivision(b);
-            N.bind(a, c);
+            N.bind(List.of(a, c));
             return N;
         }
 
@@ -753,11 +735,11 @@ public class NumberSystem {
         String B = a + c; //this way we make sure that B is not equal to a or c
         if (b < 0) { // We rewrite "a-b=c" as "a+(-b)=c" and "a+b=c" as "a-(-b)=c"
             N = get(-b);
-            N.bind(B);
+            N.bind(List.of(B));
             M = arithmetic(a, B, c, arithmeticOperator.equals("+") ? "-" : "+");
         } else { // b >= 0
             N = get(b);
-            N.bind(B);
+            N.bind(List.of(B));
             M = arithmetic(a, B, c, arithmeticOperator);
         }
         M = AutomatonLogicalOps.and(M, N, false, null, null);
@@ -784,7 +766,7 @@ public class NumberSystem {
         Automaton N;
         if (arithmeticOperator.equals("*")) {
             N = getMultiplication(a);
-            N.bind(b, c);
+            N.bind(List.of(b, c));
             return N;
         }
         if (arithmeticOperator.equals("/"))
@@ -794,16 +776,13 @@ public class NumberSystem {
         String A = b + c; //this way we make sure that A is not equal to b or c
         if (a < 0 && arithmeticOperator.equals("+")) { // We rewrite "a+b=c" and "c+(-a)=b"
             N = get(-a);
-            N.bind(A);
+            N.bind(List.of(A));
             M = arithmetic(c, A, b, arithmeticOperator);
-        } else if (a < 0 && arithmeticOperator.equals("-")) { // Notice "a-b=c" is false unless we are in a negative base
+        } else {
+            // Notice "a-b=c" is false unless we are in a negative base
             // So we may call get(a) where a < 0
             N = get(a);
-            N.bind(A);
-            M = arithmetic(A, b, c, arithmeticOperator);
-        } else { // a >= 0
-            N = get(a);
-            N.bind(A);
+            N.bind(List.of(A));
             M = arithmetic(A, b, c, arithmeticOperator);
         }
         M = AutomatonLogicalOps.and(M, N, false, null, null);
@@ -827,26 +806,22 @@ public class NumberSystem {
             int c,
             String arithmeticOperator) {
         if (!is_neg && c < 0) throw ExceptionHelper.negativeConstant(c);
-        Automaton N;
-        if (arithmeticOperator.equals("*")) {
-            throw new RuntimeException("the operator * cannot be applied to two variables");
-        } else if (arithmeticOperator.equals("/"))
-            throw new RuntimeException("the operator / cannot be applied to two variables");
+        if (arithmeticOperator.equals("*") || arithmeticOperator.equals("/")) {
+            throw ExceptionHelper.operatorTwoVariables(arithmeticOperator);
+        }
 
+        Automaton N;
         Automaton M;
         String C = a + b; //this way we make sure that A is not equal to a or b
         if (c < 0 && arithmeticOperator.equals("-")) { // We rewrite "a-b=c" and "a+(-c)=b"
             N = get(-c);
-            N.bind(C);
+            N.bind(List.of(C));
             M = arithmetic(a, C, b, arithmeticOperator);
-        } else if (c < 0 && arithmeticOperator.equals("+")) { // Notice "a+b=c" is false unless we are in a negative base
+        } else {
+            // Notice "a+b=c" is false unless we are in a negative base
             // So we may call get(c) where c < 0
             N = get(c);
-            N.bind(C);
-            M = arithmetic(a, b, C, arithmeticOperator);
-        } else { // c >= 0
-            N = get(c);
-            N.bind(C);
+            N.bind(List.of(C));
             M = arithmetic(a, b, C, arithmeticOperator);
         }
         M = AutomatonLogicalOps.and(M, N, false, null, null);
@@ -869,13 +844,13 @@ public class NumberSystem {
         Automaton P;
         String a = "a", b = "b", c = "c";
         if (n == 0) {
-            P = make_zero();
+            P = makeZero();
         } else if (n == 1) {
-            P = make_one();
+            P = makeOne();
         } else if (n < 0) {
             // b = -n
             Automaton M = get(-n);
-            M.bind(b);
+            M.bind(List.of(b));
             // Eb, a + b = 0 & b = -n
             P = arithmetic(a, b, 0, "+");
             P = AutomatonLogicalOps.and(P, M, false, null, null);
@@ -883,10 +858,10 @@ public class NumberSystem {
         } else { // n > 0
             // a = floor(n/2)
             Automaton M = get(n / 2);
-            M.bind(a);
+            M.bind(List.of(a));
             // b = ceil(n/2)
             Automaton N = get(n / 2 + (n % 2 == 0 ? 0 : 1));
-            N.bind(b);
+            N.bind(List.of(b));
             // Ea,Eb, a + b = c & a = floor(n/2) & b = ceil(n/2)
             P = arithmetic(a, b, c, "+");
             P = AutomatonLogicalOps.and(P, M, false, null, null);
@@ -915,7 +890,7 @@ public class NumberSystem {
         } else if (n < 0) {
             // c = (-n)*a
             Automaton M = getMultiplication(-n);
-            M.bind(a, c);
+            M.bind(List.of(a, c));
             // Ec b + c = 0 & c = (-n)*a
             P = arithmetic(b, c, 0, "+");
             P = AutomatonLogicalOps.and(P, M, false, null, null);
@@ -930,14 +905,14 @@ public class NumberSystem {
 
             //b = k*a
             Automaton M = getMultiplication(n / 2);
-            M.bind(a, b);
+            M.bind(List.of(a, b));
 
             if (n % 2 == 0) { // suppose n = 2k
-                D.bind(b, d);
+                D.bind(List.of(b, d));
                 P = AutomatonLogicalOps.and(M, D, false, null, null);
                 AutomatonLogicalOps.quantify(P, b, false, null, null);
             } else { // n = 2k+1
-                D.bind(b, c);
+                D.bind(List.of(b, c));
                 P = arithmetic(c, a, d, "+");
                 P = AutomatonLogicalOps.and(P, M, false, null, null);
                 P = AutomatonLogicalOps.and(P, D, false, null, null);
@@ -967,16 +942,11 @@ public class NumberSystem {
         // a / n = b <=> Er,q a = q + r & q = n*b & 0 <= r < n if n > 0
         Automaton M = arithmetic(q, r, a, "+");
         Automaton N = arithmetic(n, b, q, "*");
-        Automaton P1, P2;
-        if (n < 0) {
-            // n < 0 <= 0
-            P1 = comparison(r, 0, "<=");
-            P2 = comparison(r, n, ">");
-        } else { // n > 0
-            // 0 <= r < n
-            P1 = comparison(r, 0, ">=");
-            P2 = comparison(r, n, "<");
-        }
+
+        // n < 0: n < r <= 0, n > 0: 0 <= r < n
+        Automaton P1 = comparison(r, 0, n < 0 ? "<=" : ">=");
+        Automaton P2 = comparison(r, n, n < 0 ? ">" : "<");
+
         Automaton P = AutomatonLogicalOps.and(P1, P2, false, null, null);
         Automaton R = AutomatonLogicalOps.and(M, N, false, null, null);
         R = AutomatonLogicalOps.and(R, P, false, null, null);
@@ -986,33 +956,26 @@ public class NumberSystem {
         return R;
     }
 
-    private Automaton make_zero() {
-        List<Integer> alph = new ArrayList<>();
-        alph.add(0);
-        alph.add(1);
-        Automaton M = new Automaton("0*", alph, this);
-        M.setA(new ArrayList<>());
-        M.getA().add(new ArrayList<>(addition.getA().get(0)));
-        M.setAlphabetSize(M.getA().get(0).size());
-        M.setEncoder(new ArrayList<>());
-        M.getEncoder().add(1);
-        M.canonize();
-        constantsDynamicTable.put(0, M);
-        return M;
+    private Automaton makeZero() {
+        return makeConstant("0*", 0);
     }
 
-    private Automaton make_one() {
+    private Automaton makeOne() {
+        return makeConstant(is_msd ? "0*1" : "10*", 1);
+    }
+
+    private Automaton makeConstant(String regex, int constant) {
         List<Integer> alph = new ArrayList<>();
         alph.add(0);
         alph.add(1);
-        Automaton M = new Automaton(is_msd ? "0*1" : "10*", alph, this);
+        Automaton M = new Automaton(regex, alph, this);
         M.setA(new ArrayList<>());
         M.getA().add(new ArrayList<>(addition.getA().get(0)));
-        M.setAlphabetSize(M.getA().get(0).size());
+        M.determineAlphabetSizeFromA();
         M.setEncoder(new ArrayList<>());
         M.getEncoder().add(1);
         M.canonize();
-        constantsDynamicTable.put(1, M);
+        constantsDynamicTable.put(constant, M);
         return M;
     }
 }

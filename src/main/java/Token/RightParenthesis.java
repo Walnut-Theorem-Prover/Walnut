@@ -26,10 +26,6 @@ import java.util.Stack;
 
 
 public class RightParenthesis extends Operator {
-
-    public void act(Stack<Expression> S, boolean print, String prefix, StringBuilder log) {
-    }
-
     public RightParenthesis(int position) {
         setPositionInPredicate(position);
     }

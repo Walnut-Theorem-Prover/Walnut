@@ -21,7 +21,6 @@ package Main;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.LinkedList;
 import java.util.regex.Matcher;
@@ -408,7 +407,7 @@ public class Prover {
             case "rightquo" -> rightquoCommand(s);
             case "leftquo" -> leftquoCommand(s);
             case "draw" -> drawCommand(s);
-            case "help" -> helpCommand(s);
+            case "help" -> HelpMessages.helpCommand(s);
             default -> throw ExceptionHelper.invalidCommand(commandName);
         }
         return true;
@@ -509,7 +508,7 @@ public class Prover {
             case "draw" -> {
                 return drawCommand(s);
             }
-            case "help" -> helpCommand(s);
+            case "help" -> HelpMessages.helpCommand(s);
             default -> throw ExceptionHelper.invalidCommand(commandName);
         }
         return null;
@@ -688,10 +687,7 @@ public class Prover {
                     .replace(alphabetVectorCopy, replacementStr)
                     .replace("§", "[-" + alphabetVectorCopy + "]");
         }
-        M.setAlphabetSize(1);
-        for (List<Integer> alphlist : M.getA()) {
-            M.setAlphabetSize(M.getAlphabetSize() * alphlist.size());
-        }
+        M.determineAlphabetSizeFromA();
 
         // We should always do this with replacement, since we may have regexes such as "...", which accepts any three characters
         // in a row, on an alphabet containing bracketed characters. We don't make any replacements here, but they are implicitly made
@@ -702,7 +698,7 @@ public class Prover {
 
         Automaton R = new Automaton(baseexp, M.getAlphabetSize());
         R.setA(M.getA());
-        R.setAlphabetSize(M.getAlphabetSize());
+        R.determineAlphabetSizeFromA();
         R.setNS(numSys);
 
         writeAutomata(m.group(R_REGEXP), R, Session.getWriteAddressForAutomataLibrary(), m.group(R_NAME), false);
@@ -886,9 +882,7 @@ public class Prover {
         List<Automaton> subautomata = M.uncombine(outputs);
 
         for (int i = 0; i < subautomata.size(); i++) {
-            Automaton N = isReverse
-                ? subautomata.get(i).reverseSplit(inputs, printSteps, prefix, log)
-                : subautomata.get(i).split(inputs, printSteps, prefix, log);
+            Automaton N = subautomata.get(i).processSplit(inputs, isReverse, printSteps, prefix, log);
             subautomata.set(i, N);
         }
 
@@ -1547,48 +1541,6 @@ public class Prover {
             throw new RuntimeException("Error using the draw command");
         }
     }
-
-    public static void helpCommand(String s) {
-        try {
-            Matcher m = PATTERN_FOR_help_COMMAND.matcher(s);
-
-            if (!m.find()) {
-                throw ExceptionHelper.invalidCommandUse("help");
-            }
-
-            String helpAddress = Session.getAddressForHelpCommands();
-            File f = new File(helpAddress);
-
-            ArrayList<String> pathnames = new ArrayList<>(Arrays.asList(f.list()));
-
-            String commandName = m.group(GROUP_help_NAME);
-            if (commandName == null) {
-                // default help message
-
-                System.out.println("Walnut provides documentation for the following commands.\nType \"help <command>;\" to view documentation for a specific command.");
-                for (String pathname : pathnames) {
-                    System.out.println(" - " + pathname.substring(0, pathname.length() - 4));
-                }
-            } else {
-                // help with a specific command.
-                int index = pathnames.indexOf(commandName + ".txt");
-                if (index == -1) {
-                    System.out.println("There is no documentation for \"" + commandName + "\". Type \"help;\" to list all commands.");
-                } else {
-                    try (BufferedReader br = new BufferedReader(new FileReader(helpAddress + commandName + ".txt"))) {
-                        String line;
-                        while ((line = br.readLine()) != null) {
-                            System.out.println(line);
-                        }
-                    }
-                }
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-            throw new RuntimeException("Error using the help command");
-        }
-    }
-
 
     public static void clearScreen() {
         System.out.print("\033[H\033[2J");

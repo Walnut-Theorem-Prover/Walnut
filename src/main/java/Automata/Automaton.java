@@ -10,21 +10,12 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Queue;
-import java.util.Set;
-import java.util.TreeMap;
+import java.util.*;
+import java.util.function.Predicate;
 
 import dk.brics.automaton.RegExp;
 import dk.brics.automaton.State;
-import dk.brics.automaton.Transition;
 import it.unimi.dsi.fastutil.ints.*;
-import it.unimi.dsi.fastutil.objects.Object2IntMap;
-import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 
 import static Automata.ParseMethods.PATTERN_WHITESPACE;
 
@@ -72,26 +63,17 @@ public class Automaton {
     private boolean TRUE_AUTOMATON = false;
 
     private List<List<Integer>> A;
-
-    private int alphabetSize;
-
     private List<Integer> encoder;
-
     private List<NumberSystem> NS;
-
-    private int Q;
-
-    private int q0;
-
-    private IntList O;
-
     private List<String> label;
+    private boolean labelSorted;  // hen true, labels are sorted lexicographically. It is used in sortLabel() method.
+
 
     private boolean canonized;
 
-    private boolean labelSorted;
 
-    private List<Int2ObjectRBTreeMap<IntList>> d;
+    private FA fa; // abstract FA fields
+
 
 
     // for use in the combine command, counts how many products we have taken so far, and hence what to set outputs to
@@ -99,22 +81,6 @@ public class Automaton {
 
     // for use in the combine command, allows crossProduct to determine what to set outputs to
     IntList combineOutputs;
-
-    /* Minimization algorithm */
-    void minimize_valmari(List<Int2IntMap> newMemD, boolean print, String prefix, StringBuilder log) {
-        IntSet qqq = new IntOpenHashSet();
-        qqq.add(getQ0());
-        newMemD = subsetConstruction(newMemD, qqq, print, prefix, log);
-
-        ValmariDFA v = new ValmariDFA(newMemD, getQ());
-        v.minValmari(getO());
-        setQ(v.blocks.z);
-        setQ0(v.blocks.S[getQ0()]);
-        setO(v.determineO());
-        setD(v.determineD());
-
-        setCanonized(false);
-    }
 
     /**
      * We would like to give label to inputs. For example we might want to call the first input by a and so on.
@@ -130,19 +96,10 @@ public class Automaton {
     }
 
     public Automaton() {
-        setTRUE_FALSE_AUTOMATON(false);
-
+        setFa(new FA());
         setA(new ArrayList<>());
-
         setNS(new ArrayList<>());
-        setEncoder(null);
-
-        setO(new IntArrayList());
-
-        setD(new ArrayList<>());
         setLabel(new ArrayList<>());
-        setCanonized(false);
-        setLabelSorted(false);
         dk.brics.automaton.Automaton.setMinimization(dk.brics.automaton.Automaton.MINIMIZE_HOPCROFT);
     }
 
@@ -154,6 +111,7 @@ public class Automaton {
      * @param true_automaton
      */
     public Automaton(boolean true_automaton) {
+        setFa(new FA());
         setTRUE_FALSE_AUTOMATON(true);
         this.setTRUE_AUTOMATON(true_automaton);
     }
@@ -198,27 +156,8 @@ public class Automaton {
          * move forward.
          */
         getA().add(alphabet);
-        setAlphabetSize(alphabet.size());
         getNS().add(null);
-        List<State> setOfStates = new ArrayList<>(M.getStates());
-        setQ(setOfStates.size());
-        setQ0(setOfStates.indexOf(M.getInitialState()));
-        for (int q = 0; q < getQ(); q++) {
-            State state = setOfStates.get(q);
-            if (state.isAccept()) getO().add(1);
-            else getO().add(0);
-            Int2ObjectRBTreeMap<IntList> currentStatesTransitions = new Int2ObjectRBTreeMap<>();
-            getD().add(currentStatesTransitions);
-            for (Transition t : state.getTransitions()) {
-                for (char a = UtilityMethods.max(t.getMin(), '0'); a <= UtilityMethods.min(t.getMax(), '9'); a++) {
-                    if (alphabet.contains(a - '0')) {
-                        IntList dest = new IntArrayList();
-                        dest.add(setOfStates.indexOf(t.getDest()));
-                        currentStatesTransitions.put(alphabet.indexOf(a - '0'), dest);
-                    }
-                }
-            }
-        }
+        this.getFa().convertBrics(alphabet, M);
         long timeAfter = System.currentTimeMillis();
         String msg = "computed ~:" + getQ() + " states - " + (timeAfter - timeBefore) + "ms";
         System.out.println(msg);
@@ -253,14 +192,7 @@ public class Automaton {
         this.setThisAutomatonToRepresent(M);
         // We added 128 to the encoding of every input vector before to avoid reserved characters, now we subtract it again
         // to get back the standard encoding
-        List<Int2ObjectRBTreeMap<IntList>> new_d = new ArrayList<>();
-        for (int q = 0; q < getQ(); q++) new_d.add(new Int2ObjectRBTreeMap<>());
-        for (int q = 0; q < getQ(); q++) {
-            for (int x : getD().get(q).keySet()) {
-                new_d.get(q).put(x - 128, getD().get(q).get(x));
-            }
-        }
-        setD(new_d);
+        this.getFa().addOffsetToInputs(-128);
         long timeAfter = System.currentTimeMillis();
         String msg = "computed ~:" + getQ() + " states - " + (timeAfter - timeBefore) + "ms";
         System.out.println(msg);
@@ -319,8 +251,8 @@ public class Automaton {
                                     lineNumber);
                         }
                         UtilityMethods.removeDuplicates(getA().get(i));
-                        setAlphabetSize(getAlphabetSize() * getA().get(i).size());
                     }
+                    this.determineAlphabetSizeFromA();
 
                     break;
                 } else {
@@ -337,15 +269,15 @@ public class Automaton {
             int currentState = -1;
             int currentOutput;
             Int2ObjectRBTreeMap<IntList> currentStateTransitions = new Int2ObjectRBTreeMap<>();
-            TreeMap<Integer, Integer> state_output = new TreeMap<>();
-            TreeMap<Integer, Int2ObjectRBTreeMap<IntList>> state_transition =
+            TreeMap<Integer, Integer> output = new TreeMap<>();
+            TreeMap<Integer, Int2ObjectRBTreeMap<IntList>> transitions =
                     new TreeMap<>();
             /**
              * This will hold all states that are destination of some transition.
              * Then we make sure all these states are declared.
              */
+            int Q = 0, q0=0;
             Set<Integer> setOfDestinationStates = new HashSet<>();
-            setQ(0);
             while ((line = in.readLine()) != null) {
                 lineNumber++;
                 if (PATTERN_WHITESPACE.matcher(line).matches()) {
@@ -353,16 +285,16 @@ public class Automaton {
                 }
 
                 if (ParseMethods.parseStateDeclaration(line, pair)) {
-                    setQ(getQ() + 1);
+                    Q++;
                     if (currentState == -1) {
-                        setQ0(pair[0]);
+                        q0 = pair[0];
                     }
 
                     currentState = pair[0];
                     currentOutput = pair[1];
-                    state_output.put(currentState, currentOutput);
+                    output.put(currentState, currentOutput);
                     currentStateTransitions = new Int2ObjectRBTreeMap<>();
-                    state_transition.put(currentState, currentStateTransitions);
+                    transitions.put(currentState, currentStateTransitions);
                 } else if (ParseMethods.parseTransition(line, input, dest)) {
                     setOfDestinationStates.addAll(dest);
                     if (currentState == -1) {
@@ -392,16 +324,13 @@ public class Automaton {
             }
             in.close();
             for (int q : setOfDestinationStates) {
-                if (!state_output.containsKey(q)) {
+                if (!output.containsKey(q)) {
                     throw new RuntimeException(
                             "State " + q + " is used but never declared anywhere in file: " + address);
                 }
             }
 
-            for (int q = 0; q < getQ(); q++) {
-                getO().add((int) state_output.get(q));
-                getD().add(state_transition.get(q));
-            }
+            this.getFa().setFieldsFromFile(Q, q0, output, transitions);
         } catch (IOException e) {
             e.printStackTrace();
             throw new RuntimeException("File does not exist: " + address);
@@ -421,11 +350,10 @@ public class Automaton {
     }
 
     Automaton cloneFields(Automaton M) {
-        M.setQ(getQ());
-        M.setQ0(getQ0());
+        M.setFa(this.getFa().clone());
         M.setAlphabetSize(getAlphabetSize());
         M.setCanonized(isCanonized());
-        M.setLabelSorted(isLabelSorted());
+        M.labelSorted = labelSorted;
         for (int i = 0; i < getA().size(); i++) {
             M.getA().add(new ArrayList<>(getA().get(i)));
             M.getNS().add(getNS().get(i));
@@ -435,13 +363,6 @@ public class Automaton {
             }
             if (getLabel() != null && getLabel().size() == getA().size())
                 M.getLabel().add(getLabel().get(i));
-        }
-        for (int q = 0; q < getQ(); q++) {
-            M.getO().add(getO().getInt(q));
-            M.getD().add(new Int2ObjectRBTreeMap<>());
-            for (int x : getD().get(q).keySet()) {
-                M.getD().get(q).put(x, new IntArrayList(getD().get(q).get(x)));
-            }
         }
         return M;
     }
@@ -453,8 +374,8 @@ public class Automaton {
         if (isTRUE_FALSE_AUTOMATON() && M.isTRUE_FALSE_AUTOMATON()) {
           return isTRUE_AUTOMATON() == M.isTRUE_AUTOMATON();
         }
-        dk.brics.automaton.Automaton Y = M.to_dk_brics_automaton();
-        dk.brics.automaton.Automaton X = to_dk_brics_automaton();
+        dk.brics.automaton.Automaton Y = M.getFa().to_dk_brics_automaton();
+        dk.brics.automaton.Automaton X = this.getFa().to_dk_brics_automaton();
         return X.equals(Y);
     }
 
@@ -476,7 +397,7 @@ public class Automaton {
             Automaton N = readAutomatonFromFile(automataName);
 
             // ensure that N has the same number system as first.
-            if (isNSDiffering(N, first.getNS(), N.getA(), first)) {
+            if (NumberSystem.isNSDiffering(N.getNS(), first.getNS(), N.getA(), first.getA())) {
                 throw new RuntimeException("Automata to be unioned must have the same number system(s).");
             }
 
@@ -495,33 +416,13 @@ public class Automaton {
 
 
             long timeAfter = System.currentTimeMillis();
-            if (print) {
-                String msg = prefix + "computed =>:" + first.getQ() + " states - " + (timeAfter - timeBefore) + "ms";
-                log.append(msg + System.lineSeparator());
-                System.out.println(msg);
-            }
+            UtilityMethods.logMessage(print, prefix + "computed =>:" + first.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
         }
         return first;
     }
 
     private static Automaton readAutomatonFromFile(String automataName) {
       return new Automaton(Session.getReadFileForAutomataLibrary(automataName + ".txt"));
-    }
-
-    static boolean isNSDiffering(Automaton N, List<NumberSystem> first, List<List<Integer>> N1, Automaton first1) {
-        if (N.getNS().size() != first.size()) {
-            return true;
-        }
-        for (int j = 0; j < N.getNS().size(); j++) {
-            NumberSystem Nj = N.getNS().get(j);
-            NumberSystem firstJ = first.get(j);
-            if ((Nj == null && firstJ != null) || (Nj != null && firstJ == null) ||
-                (Nj != null && firstJ != null &&
-                    !N.getNS().get(j).getName().equals(firstJ.getName())) || !N1.equals(first1.getA())) {
-                return true;
-            }
-        }
-        return false;
     }
 
     public Automaton combine(List<String> automataNames, IntList outputs, boolean print, String prefix, StringBuilder log) {
@@ -551,18 +452,11 @@ public class Automaton {
         List<Automaton> automata = new ArrayList<>();
         for (Integer output : outputs) {
             Automaton M = clone();
-            for (int j = 0; j < M.getO().size(); j++) {
-                if (M.getO().getInt(j) == output) {
-                    M.getO().set(j, 1);
-                } else {
-                    M.getO().set(j, 0);
-                }
-            }
+            M.getFa().setOutput(output);
             automata.add(M);
         }
         return automata;
     }
-
 
     /**
      * @return A minimized DFA with output recognizing the same language as the current DFA (possibly also with output).
@@ -615,39 +509,12 @@ public class Automaton {
 
     public Automaton star(boolean print, String prefix, StringBuilder log) {
         long timeBefore = System.currentTimeMillis();
-        if (print) {
-            String msg = prefix + "star: " + getQ() + " state automaton";
-            log.append(msg + System.lineSeparator());
-            System.out.println(msg);
-        }
+        UtilityMethods.logMessage(print, prefix + "star: " + getQ() + " state automaton", log);
 
         // this will be the returned automaton.
         Automaton N = clone();
 
-        // We clone the current automaton and add a new state which will be our new initial state.
-        // We will then canonize the resulting automaton after.
-        int newState = N.getQ();
-        N.getO().add(1); // The newly added state is a final state.
-        N.getD().add(new Int2ObjectRBTreeMap<>());
-        for (int q = 0; q < N.getQ(); q++) {
-            if (N.getO().getInt(q) == 0) { // if it is NOT a final state
-                continue;
-            }
-            // otherwise, it is a final state, and we add our transitions.
-            for (int x : getD().get(getQ0()).keySet()) {
-                if (N.getD().get(q).containsKey(x)) {
-                    N.getD().get(q).get(x).addAll(N.getD().get(q).get(x).size(), getD().get(getQ0()).get(x));
-                } else {
-                    N.getD().get(q).put(x, new IntArrayList(getD().get(getQ0()).get(x)));
-                }
-            }
-        }
-        for (int x : getD().get(getQ0()).keySet()) {
-            N.getD().get(newState).put(x, new IntArrayList(getD().get(getQ0()).get(x)));
-        }
-
-        N.setQ(N.getQ() + 1);
-        N.setQ0(newState);
+        FA.starStates(this.getFa(), N.getFa());
 
         N.normalizeNumberSystems(print, prefix, log);
 
@@ -658,11 +525,7 @@ public class Automaton {
         N.applyAllRepresentations();
 
         long timeAfter = System.currentTimeMillis();
-        if (print) {
-            String msg = prefix + "star complete: " + N.getQ() + " states - " + (timeAfter - timeBefore) + "ms";
-            log.append(msg + System.lineSeparator());
-            System.out.println(msg);
-        }
+        UtilityMethods.logMessage(print, prefix + "star complete: " + N.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
 
         return N;
     }
@@ -678,63 +541,25 @@ public class Automaton {
             first = first.concat(N, print, prefix, log);
 
             long timeAfter = System.currentTimeMillis();
-            if (print) {
-                String msg = prefix + "concatenated =>:" + first.getQ() + " states - " + (timeAfter - timeBefore) + "ms";
-                log.append(msg + System.lineSeparator());
-                System.out.println(msg);
-            }
+            UtilityMethods.logMessage(print, prefix + "concatenated =>:" + first.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
         }
         return first;
     }
 
     public Automaton concat(Automaton other, boolean print, String prefix, StringBuilder log) {
         long timeBefore = System.currentTimeMillis();
-        if (print) {
-            String msg = prefix + "concat: " + getQ() + " state automaton with " + other.getQ() + " state automaton";
-            log.append(msg + System.lineSeparator());
-            System.out.println(msg);
-        }
+        UtilityMethods.logMessage(print, prefix + "concat: " + getQ() + " state automaton with " + other.getQ() + " state automaton", log);
 
         // ensure that N has the same number system as first.
-        if (isNSDiffering(other, getNS(), getA(), other)) {
+        if (NumberSystem.isNSDiffering(other.getNS(), this.getNS(), this.getA(), other.getA())) {
             throw new RuntimeException("Automata to be concatenated must have the same number system(s).");
         }
 
-        Automaton N = clone();
+        Automaton N = this.clone();
 
-        int otherQ0 = getQ();
+        int originalQ = this.getQ();
 
-        // to access the other's states, just do q. To access the other's states in N, do otherQ0 + q.
-        for (int q = 0; q < other.getQ(); q++) {
-            N.getO().add(other.getO().getInt(q)); // add the output
-            N.getD().add(new Int2ObjectRBTreeMap<>());
-            for (int x : other.getD().get(q).keySet()) {
-                IntArrayList newTransitionMap = new IntArrayList();
-                for (int i = 0; i < other.getD().get(q).get(x).size(); i++) {
-                    newTransitionMap.add(other.getD().get(q).get(x).getInt(i) + otherQ0);
-                }
-                N.getD().get(otherQ0 + q).put(x, newTransitionMap);
-            }
-        }
-
-        // now iterate through all of self's states. If they are final, add a transition to wherever the other's
-        // initial state goes.
-        for (int q = 0; q < getQ(); q++) {
-            if (N.getO().getInt(q) == 0) { // if it is NOT a final state
-                continue;
-            }
-
-            // otherwise, it is a final state, and we add our transitions.
-            for (int x : N.getD().get(otherQ0).keySet()) {
-                if (N.getD().get(q).containsKey(x)) {
-                    N.getD().get(q).get(x).addAll(N.getD().get(q).get(x).size(), N.getD().get(otherQ0).get(x));
-                } else {
-                    N.getD().get(q).put(x, new IntArrayList(N.getD().get(otherQ0).get(x)));
-                }
-            }
-        }
-
-        N.setQ(getQ() + other.getQ());
+        FA.concatStates(other.getFa(), N.getFa(), originalQ);
 
         N.normalizeNumberSystems(print, prefix, log);
 
@@ -742,11 +567,7 @@ public class Automaton {
         N.applyAllRepresentations();
 
         long timeAfter = System.currentTimeMillis();
-        if (print) {
-            String msg = prefix + "concat complete: " + N.getQ() + " states - " + (timeAfter - timeBefore) + "ms";
-            log.append(msg + System.lineSeparator());
-            System.out.println(msg);
-        }
+        UtilityMethods.logMessage(print, prefix + "concat complete: " + N.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
 
         return N;
     }
@@ -763,9 +584,7 @@ public class Automaton {
 
         long timeBefore = System.currentTimeMillis();
         if (print) {
-
             ArrayList<String> nsNames = new ArrayList<>();
-
             for (int i = 0; i < numberSystems.size(); i++) {
                 if (numberSystems.get(i) == null) {
                     nsNames.add(alphabet.get(i).toString());
@@ -773,7 +592,6 @@ public class Automaton {
                     nsNames.add(numberSystems.get(i).toString());
                 }
             }
-
             String msg = prefix + "setting alphabet to " + nsNames;
             log.append(msg + System.lineSeparator());
             System.out.println(msg);
@@ -783,34 +601,10 @@ public class Automaton {
         Automaton M = clone();
         M.setA(alphabet);
         M.setNS(numberSystems);
-        M.setAlphabetSize(1);
-        for (List<Integer> x : M.getA()) {
-            M.setAlphabetSize(M.getAlphabetSize() * x.size());
-        }
+        M.determineAlphabetSizeFromA();
         M.setupEncoder();
 
-        List<Int2ObjectRBTreeMap<IntList>> newD = new ArrayList<>();
-
-        for (int q = 0; q < M.getQ(); q++) {
-            Int2ObjectRBTreeMap<IntList> newMap = new Int2ObjectRBTreeMap<>();
-            for (int x : getD().get(q).keySet()) {
-                List<Integer> decoded = decode(getA(), x);
-
-                boolean inNewAlphabet = true;
-
-                for (int i = 0; i < decoded.size(); i++) {
-                    if (!alphabet.get(i).contains(decoded.get(i))) {
-                        inNewAlphabet = false;
-                        break;
-                    }
-                }
-                if (inNewAlphabet) {
-                    newMap.put(M.encode(decoded), getD().get(q).get(x));
-                }
-            }
-            newD.add(newMap);
-        }
-        M.setD(newD);
+        FA.alphabetStates(this, alphabet, M);
 
         if (isDFAO) {
             M.minimizeSelfWithOutput(print, prefix, log);
@@ -823,30 +617,31 @@ public class Automaton {
         copy(M);
 
         long timeAfter = System.currentTimeMillis();
-        if (print) {
-            String msg = prefix + "set alphabet complete:" + (timeAfter - timeBefore) + "ms";
-            log.append(msg + System.lineSeparator());
-            System.out.println(msg);
+        UtilityMethods.logMessage(print, prefix + "set alphabet complete:" + (timeAfter - timeBefore) + "ms", log);
+    }
+
+    public void determineAlphabetSizeFromA() {
+        int alphabetSize = 1;
+        for (List<Integer> x : this.getA()) {
+            alphabetSize *= x.size();
         }
+        this.getFa().setAlphabetSize(alphabetSize);
     }
 
     // Determines whether an automaton accepts infinitely many values. If it does, a regex of infinitely many accepted values (not all)
     // is given. This is true iff there exists a cycle in a minimized version of the automaton, which previously had leading or
     // trailing zeroes removed according to whether it was msd or lsd
     public String infinite() {
-        // tracks which states we have visited
-        IntSet visited;
-
-        // records where we started our depth first search to find a cycle
-        int started;
-
         for (int i = 0; i < getQ(); i++) {
-            visited = new IntOpenHashSet();
-            started = i;
+            IntSet visited = new IntOpenHashSet(); // states we have visited
+            int started = i; // where we started our DFS to find a cycle
             String cycle = infiniteHelper(visited, started, i, "");
-            // once a cycle is detected, we compute a prefix leading to state i and a suffix from state i to an accepting state
-            if (cycle != "") {
-                return constructPrefix(i) + "(" + cycle + ")*" + constructSuffix(i);
+            // once a cycle is detected, compute a prefix leading to state i and a suffix from state i to an accepting state
+            if (!cycle.isEmpty()) {
+                final int finalI = i;
+                String prefix = findPath(this.getFa(), this.getFa().getQ0(), y -> y == finalI, this.getA());
+                String suffix = findPath(this.getFa(), finalI, y -> getO().getInt(y) != 0, this.getA());
+                return prefix + "(" + cycle + ")*" + suffix;
             }
         }
         return ""; // an empty string signals that we have failed to find a cycle
@@ -865,13 +660,74 @@ public class Automaton {
             for (Integer y : getD().get(state).get(x)) {
                 // this adds brackets even when inputs have arity 1 - this is fine, since we just want a usable infinite regex
                 String cycle = infiniteHelper(visited, started, y, result + decode(getA(), x));
-                if (cycle != "") {
+                if (!cycle.isEmpty()) {
                     return cycle;
                 }
             }
         }
         visited.remove(state);
         return "";
+    }
+
+    // Core pathfinding logic
+    private static String findPath(
+        FA automaton,
+        int startState,
+        Predicate<Integer> isFoundCondition,
+        List<List<Integer>> A) {
+        // Early exit if the start state meets the condition
+        if (isFoundCondition.test(startState)) {
+            return "";
+        }
+        List<Integer> distance = new ArrayList<>(Collections.nCopies(automaton.getQ(), -1));
+        List<Integer> prev = new ArrayList<>(Collections.nCopies(automaton.getQ(), -1));
+        List<Integer> input = new ArrayList<>(Collections.nCopies(automaton.getQ(), -1));
+        distance.set(startState, 0);
+
+        Queue<Integer> queue = new LinkedList<>();
+        queue.add(startState);
+
+        boolean found = false;
+        int endState = -1;
+
+        // BFS to find the path
+        while (!queue.isEmpty() && !found) {
+            int current = queue.poll();
+
+            for (Int2ObjectMap.Entry<IntList> entry : automaton.getD().get(current).int2ObjectEntrySet()) {
+                int x = entry.getIntKey();
+                IntList transitions = entry.getValue();
+
+                for (int y : transitions) {
+                    if (isFoundCondition.test(y)) {
+                        found = true;
+                        endState = y;
+                    }
+                    if (distance.get(y) == -1) { // Unvisited state
+                        distance.set(y, distance.get(current) + 1);
+                        prev.set(y, current);
+                        input.set(y, x);
+                        queue.add(y);
+                    }
+                }
+            }
+        }
+
+        // Reconstruct the path
+        List<Integer> path = new ArrayList<>();
+        int current = found ? endState : startState;
+        while (current != startState) {
+            path.add(input.get(current));
+            current = prev.get(current);
+        }
+        Collections.reverse(path);
+
+        // Convert the path to a string
+        StringBuilder result = new StringBuilder();
+        for (Integer node : path) {
+            result.append(decode(A, node));
+        }
+        return result.toString();
     }
 
     /**
@@ -911,7 +767,7 @@ public class Automaton {
         }
 
         for (int i = 0; i < inputs.size(); i++) {
-            if (!inputs.get(i).equals("")) {
+            if (!inputs.get(i).isEmpty()) {
                 if (getNS().get(i) == null)
                     throw new RuntimeException("Number system for input " + i + " must be defined.");
                 NumberSystem negativeNumberSystem;
@@ -933,11 +789,11 @@ public class Automaton {
                 String a = "a" + i, b = "b" + i, c = "c" + i;
 
                 if (inputs.get(i).equals("+")) {
-                    baseChange.bind(reverse ? b : a, reverse ? a : b); // Use ternary for binding logic
+                    baseChange.bind(reverse ? List.of(b,a) : List.of(a,b)); // Use ternary for binding logic
                     M = AutomatonLogicalOps.and(M, baseChange, print, prefix, log);
                     quantifiers.add(b);
                 } else { // inputs.get(i).equals("-")
-                    baseChange.bind(reverse ? b : a, c); // Use ternary for binding logic
+                    baseChange.bind(List.of(reverse ? b : a, c)); // Use ternary for binding logic
                     M = AutomatonLogicalOps.and(M, baseChange, print, prefix, log);
                     M = AutomatonLogicalOps.and(
                         M,
@@ -956,21 +812,6 @@ public class Automaton {
     }
 
     /**
-     * Performs the split operation on the automaton.
-     */
-    public Automaton split(List<String> inputs, boolean print, String prefix, StringBuilder log) {
-        return processSplit(inputs, false, print, prefix, log);
-    }
-
-    /**
-     * Performs the reverse split operation on the automaton.
-     */
-    public Automaton reverseSplit(List<String> inputs, boolean print, String prefix, StringBuilder log) {
-        return processSplit(inputs, true, print, prefix, log);
-    }
-
-
-    /**
      * @param subautomata A queue of automaton which we will "join" with the current automaton.
      * @return The cross product of the current automaton and automaton in subautomata, using the operation "first" on the outputs.
      * For sake of example, the current Automaton is M1, and subautomata consists of M2 and M3.
@@ -982,121 +823,18 @@ public class Automaton {
         while (!subautomata.isEmpty()) {
             Automaton next = subautomata.remove();
             long timeBefore = System.currentTimeMillis();
-            if (print) {
-                String msg = prefix + "computing =>:" + first.getQ() + " states - " + next.getQ() + " states";
-                log.append(msg + System.lineSeparator());
-                System.out.println(msg);
-            }
+            UtilityMethods.logMessage(print, prefix + "computing =>:" + first.getQ() + " states - " + next.getQ() + " states", log);
 
             // crossProduct requires both automata to be totalized, otherwise it has no idea which cartesian states to transition to
-            AutomatonLogicalOps.totalize(first, print, prefix + " ", log);
-            AutomatonLogicalOps.totalize(next, print, prefix + " ", log);
+            AutomatonLogicalOps.totalize(first.getFa(), print, prefix + " ", log);
+            AutomatonLogicalOps.totalize(next.getFa(), print, prefix + " ", log);
             first = AutomatonLogicalOps.crossProduct(first, next, "first", print, prefix + " ", log);
             first = first.minimizeWithOutput(print, prefix + " ", log);
 
             long timeAfter = System.currentTimeMillis();
-            if (print) {
-                String msg = prefix + "computed =>:" + first.getQ() + " states - " + (timeAfter - timeBefore) + "ms";
-                log.append(msg + System.lineSeparator());
-                System.out.println(msg);
-            }
+            UtilityMethods.logMessage(print, prefix + "computed =>:" + first.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
         }
         return first;
-    }
-
-    // helper function for inf, finds an input string that leads from q0 to the specified state
-    private String constructPrefix(Integer target) {
-        List<Integer> distance = new ArrayList<>(Collections.nCopies(getQ(), -1));
-        List<Integer> prev = new ArrayList<>(Collections.nCopies(getQ(), -1));
-        List<Integer> input = new ArrayList<>(Collections.nCopies(getQ(), -1));
-        int counter = 0;
-        boolean found = false;
-        distance.set(getQ0(), 0);
-
-        // we very well could have no prefix
-        if (getQ0() == target) {
-            return "";
-        }
-        while (!found) {
-            for (int i = 0; i < getQ(); i++) {
-                if (distance.get(i) != counter)
-                    continue;
-                for (int x : getD().get(i).keySet()) {
-                    for (int y : getD().get(i).get(x)) {
-                        if (y == target)
-                            found = true;
-                        if (distance.get(y) == -1) {
-                            distance.set(y, counter + 1);
-                            prev.set(y, i);
-                            input.set(y, x);
-                        }
-                    }
-                }
-            }
-            counter++;
-        }
-        List<Integer> path = new ArrayList<>();
-        Integer current = target;
-
-        while (current != getQ0()) {
-            path.add(input.get(current));
-            current = prev.get(current);
-        }
-        Collections.reverse(path);
-        StringBuilder result = new StringBuilder();
-        for (Integer node : path) {
-            result.append(decode(getA(), node));
-        }
-        return result.toString();
-    }
-
-    // helper function for inf, find an input string that leads from the specified state to an accepting state
-    private String constructSuffix(Integer target) {
-        List<Integer> distance = new ArrayList<>(Collections.nCopies(getQ(), -1));
-        List<Integer> prev = new ArrayList<>(Collections.nCopies(getQ(), -1));
-        List<Integer> input = new ArrayList<>(Collections.nCopies(getQ(), -1));
-        int counter = 0;
-        boolean found = false;
-        int endState = 0;
-        distance.set(target, 0);
-
-        // the starting state may indeed by accepting
-        if (getO().getInt(target) != 0) {
-            return "";
-        }
-        while (!found) {
-            for (int i = 0; i < getQ(); i++) {
-                if (distance.get(i) != counter)
-                    continue;
-                for (int x : getD().get(i).keySet()) {
-                    for (int y : getD().get(i).get(x)) {
-                        if (getO().getInt(y) != 0) {
-                            found = true;
-                            endState = y;
-                        }
-                        if (distance.get(y) == -1) {
-                            distance.set(y, counter + 1);
-                            prev.set(y, i);
-                            input.set(y, x);
-                        }
-                    }
-                }
-            }
-            counter++;
-        }
-        List<Integer> path = new ArrayList<>();
-        int current = endState;
-
-        while (current != target) {
-            path.add(input.get(current));
-            current = prev.get(current);
-        }
-        Collections.reverse(path);
-        StringBuilder result = new StringBuilder();
-        for (Integer node : path) {
-            result.append(decode(getA(), node));
-        }
-        return result.toString();
     }
 
     public List<String> findAccepted(Integer searchLength, Integer maxNeeded) {
@@ -1120,7 +858,7 @@ public class Automaton {
         }
         for (int x : getD().get(state).keySet()) {
             for (Integer y : getD().get(state).get(x)) {
-                List<Integer> decodeAx = decode(getA(),x);
+                List<Integer> decodeAx = decode(getA(), x);
                 String input = decodeAx.toString();
 
                 // we remove brackets if we have a single arity input that is between 0 and 9 (and hence unambiguous)
@@ -1131,7 +869,7 @@ public class Automaton {
                 }
                 // if we've already found as much as we need, then there's no need to search further; we propagate the signal
                 if (findAcceptedHelper(
-                    accepted, maxNeeded, searchLength,curLength + 1, path + input, y)) {
+                    accepted, maxNeeded, searchLength, curLength + 1, path + input, y)) {
                     return true;
                 }
             }
@@ -1140,17 +878,13 @@ public class Automaton {
     }
 
     public void applyAllRepresentations() {
-        boolean flag = false;
-        if (getLabel() == null || getLabel().size() != getA().size()) {
-            flag = true;
-            randomLabel();
-        }
+        boolean flag = determineRandomLabel();
         Automaton K = this;
         for (int i = 0; i < getA().size(); i++) {
             if (getNS().get(i) != null) {
                 Automaton N = getNS().get(i).getAllRepresentations();
                 if (N != null && getNS().get(i).should_we_use_allRepresentations()) {
-                    N.bind(getLabel().get(i));
+                    N.bind(List.of(getLabel().get(i)));
                     K = AutomatonLogicalOps.and(K, N, false, null, null);
                 }
             }
@@ -1162,17 +896,13 @@ public class Automaton {
 
     public void applyAllRepresentationsWithOutput(boolean print, String prefix, StringBuilder log) {
         // this can be a word automaton
-        boolean flag = false;
-        if (getLabel() == null || getLabel().size() != getA().size()) {
-            flag = true;
-            randomLabel();
-        }
+        boolean flag = determineRandomLabel();
         Automaton K = this;
         for (int i = 0; i < getA().size(); i++) {
             if (getNS().get(i) != null) {
                 Automaton N = getNS().get(i).getAllRepresentations();
                 if (N != null && getNS().get(i).should_we_use_allRepresentations()) {
-                    N.bind(getLabel().get(i));
+                    N.bind(List.of(getLabel().get(i)));
                     K = AutomatonLogicalOps.crossProduct(this, N, "if_other", print, prefix, log);
                 }
             }
@@ -1180,6 +910,14 @@ public class Automaton {
         if (flag)
             unlabel();
         copy(K);
+    }
+
+    private boolean determineRandomLabel() {
+        if (getLabel() == null || getLabel().size() != getA().size()) {
+            randomLabel();
+            return true;
+        }
+        return false;
     }
 
     public void randomLabel() {
@@ -1192,82 +930,21 @@ public class Automaton {
 
     private void unlabel() {
         setLabel(new ArrayList<>());
-        setLabelSorted(false);
+        labelSorted = false;
     }
 
     private void copy(Automaton M) {
         setTRUE_FALSE_AUTOMATON(M.isTRUE_FALSE_AUTOMATON());
         setTRUE_AUTOMATON(M.isTRUE_AUTOMATON());
+        setFa(M.getFa().clone());
         setA(M.getA());
         setNS(M.getNS());
-        setAlphabetSize(M.getAlphabetSize());
         setEncoder(M.getEncoder());
-        setQ(M.getQ());
-        setQ0(M.getQ0());
-        setO(M.getO());
         setLabel(M.getLabel());
         setCanonized(M.isCanonized());
-        setLabelSorted(M.isLabelSorted());
-        setD(M.getD());
+        labelSorted = M.labelSorted;
     }
 
-    /**
-     * This method adds a dead state with an output one less than the minimum output number of the word automaton.
-     * <p>
-     * Return whether a dead state was even added.
-     */
-    public boolean addDistinguishedDeadState(boolean print, String prefix, StringBuilder log) {
-        long timeBefore = System.currentTimeMillis();
-        if (print) {
-            String msg = prefix + "Adding distinguished dead state: " + getQ() + " states";
-            log.append(msg + System.lineSeparator());
-            System.out.println(msg);
-        }
-        //we first check if the automaton is totalized
-        boolean totalized = true;
-        for (int q = 0; q < getQ(); q++) {
-            for (int x = 0; x < getAlphabetSize(); x++) {
-                if (!getD().get(q).containsKey(x)) {
-                    IntList nullState = new IntArrayList();
-                    nullState.add(getQ());
-                    getD().get(q).put(x, nullState);
-                    totalized = false;
-                }
-            }
-        }
-        int min = 0;
-
-        if (!totalized) {
-            // obtain the minimum output
-            if (getO().isEmpty()) {
-                throw ExceptionHelper.alphabetIsEmpty();
-            }
-            for (int i = 0; i < getO().size(); i++) {
-                if (getO().getInt(i) < min) {
-                    min = getO().getInt(i);
-                }
-            }
-            getO().add(min - 1);
-            setQ(getQ() + 1);
-            getD().add(new Int2ObjectRBTreeMap<>());
-            for (int x = 0; x < getAlphabetSize(); x++) {
-                IntList nullState = new IntArrayList();
-                nullState.add(getQ() - 1);
-                getD().get(getQ() - 1).put(x, nullState);
-            }
-        }
-
-        long timeAfter = System.currentTimeMillis();
-        if (print) {
-            String msg = prefix + "Already totalized, no distinguished state added: " + getQ() + " states - " + (timeAfter - timeBefore) + "ms";
-            if (!totalized) {
-                msg = prefix + "Added distinguished dead state with output of " + (min - 1) + ": " + getQ() + " states - " + (timeAfter - timeBefore) + "ms";
-            }
-            log.append(msg + System.lineSeparator());
-            System.out.println(msg);
-        }
-        return !totalized;
-    }
 
     /**
      * The operator can be one of "_" "+" "-" "/" "*".
@@ -1279,11 +956,7 @@ public class Automaton {
      */
     public void applyOperator(String operator, int o, boolean print, String prefix, StringBuilder log) {
         long timeBefore = System.currentTimeMillis();
-        if (print) {
-            String msg = prefix + "applying operator (" + operator + "):" + getQ() + " states";
-            log.append(msg + System.lineSeparator());
-            System.out.println(msg);
-        }
+        UtilityMethods.logMessage(print, prefix + "applying operator (" + operator + "):" + getQ() + " states", log);
         for (int p = 0; p < getQ(); p++) {
             IntList thisO = this.getO();
             int thisP = thisO.getInt(p);
@@ -1308,11 +981,7 @@ public class Automaton {
         }
         minimizeSelfWithOutput(print, prefix + " ", log);
         long timeAfter = System.currentTimeMillis();
-        if (print) {
-            String msg = prefix + "applied operator (" + operator + "):" + getQ() + " states - " + (timeAfter - timeBefore) + "ms";
-            log.append(msg + System.lineSeparator());
-            System.out.println(msg);
-        }
+        UtilityMethods.logMessage(print, prefix + "applied operator (" + operator + "):" + getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
     }
 
     /**
@@ -1325,11 +994,7 @@ public class Automaton {
      */
     public void applyOperator(int o, String operator, boolean print, String prefix, StringBuilder log) {
         long timeBefore = System.currentTimeMillis();
-        if (print) {
-            String msg = prefix + "applying operator (" + operator + "):" + getQ() + " states";
-            log.append(msg + System.lineSeparator());
-            System.out.println(msg);
-        }
+        UtilityMethods.logMessage(print, prefix + "applying operator (" + operator + "):" + getQ() + " states", log);
         for (int p = 0; p < getQ(); p++) {
             IntList thisO = this.getO();
             int thisP = thisO.getInt(p);
@@ -1354,11 +1019,7 @@ public class Automaton {
         }
         minimizeSelfWithOutput(print, prefix + " ", log);
         long timeAfter = System.currentTimeMillis();
-        if (print) {
-            String msg = prefix + "applied operator (" + operator + "):" + getQ() + " states - " + (timeAfter - timeBefore) + "ms";
-            log.append(msg + System.lineSeparator());
-            System.out.println(msg);
-        }
+        UtilityMethods.logMessage(print, prefix + "applied operator (" + operator + "):" + getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
     }
 
     public void minimize(List<Int2IntMap> newMemD, boolean print, String prefix, StringBuilder log) {
@@ -1369,7 +1030,8 @@ public class Automaton {
             log.append(msg + System.lineSeparator());
         }
 
-        minimize_valmari(newMemD, print, prefix + " ", log);
+        this.getFa().minimizeValmari(newMemD, print, prefix + " ", log);
+        this.canonized = false;
 
         long timeAfter = System.currentTimeMillis();
         if (print) {
@@ -1377,43 +1039,6 @@ public class Automaton {
             System.out.println("----- " + msg);
             log.append(msg + System.lineSeparator());
         }
-    }
-
-    /**
-     * Transform this automaton from Automaton to dk.brics.automaton.Automaton. This automaton can be
-     * any automaton (deterministic/non-deterministic and with output/without output).
-     *
-     * @return
-     */
-    private dk.brics.automaton.Automaton to_dk_brics_automaton() {
-        /**
-         * Since the dk.brics.automaton uses char as its input alphabet for an automaton, then in order to transform
-         * Automata.Automaton to dk.brics.automaton.Automata we've got to make sure, the input alphabet is less than
-         * size of char which 2^16 - 1
-         */
-        if (getAlphabetSize() > ((1 << Character.SIZE) - 1)) {
-            throw ExceptionHelper.alphabetExceedsSize(((1 << Character.SIZE) - 1));
-        }
-        boolean deterministic = true;
-        List<dk.brics.automaton.State> setOfStates = new ArrayList<>();
-        for (int q = 0; q < getQ(); q++) {
-            setOfStates.add(new dk.brics.automaton.State());
-            if (getO().getInt(q) != 0) setOfStates.get(q).setAccept(true);
-        }
-        dk.brics.automaton.State initialState = setOfStates.get(getQ0());
-        for (int q = 0; q < getQ(); q++) {
-            for (int x : getD().get(q).keySet()) {
-                for (int dest : getD().get(q).get(x)) {
-                    setOfStates.get(q).addTransition(new dk.brics.automaton.Transition((char) x, setOfStates.get(dest)));
-                }
-                if (getD().get(q).get(x).size() > 1) deterministic = false;
-            }
-        }
-        dk.brics.automaton.Automaton M = new dk.brics.automaton.Automaton();
-        M.setInitialState(initialState);
-        M.restoreInvariant();
-        M.setDeterministic(deterministic);
-        return M;
     }
 
     /**
@@ -1428,25 +1053,8 @@ public class Automaton {
         if (!M.isDeterministic())
             throw ExceptionHelper.bricsNFA();
         List<State> setOfStates = new ArrayList<>(M.getStates());
-        setQ(setOfStates.size());
-        setQ0(setOfStates.indexOf(M.getInitialState()));
-        setO(new IntArrayList());
-        setD(new ArrayList<>());
         setCanonized(false);
-        for (int q = 0; q < getQ(); q++) {
-            State state = setOfStates.get(q);
-            if (state.isAccept()) getO().add(1);
-            else getO().add(0);
-            Int2ObjectRBTreeMap<IntList> currentStatesTransitions = new Int2ObjectRBTreeMap<>();
-            getD().add(currentStatesTransitions);
-            for (Transition t : state.getTransitions()) {
-                for (char a = t.getMin(); a <= t.getMax(); a++) {
-                    IntList dest = new IntArrayList();
-                    dest.add(setOfStates.indexOf(t.getDest()));
-                    currentStatesTransitions.put(a, dest);
-                }
-            }
-        }
+        this.getFa().setFromBricsAutomaton(M, setOfStates);
     }
 
     /**
@@ -1459,73 +1067,9 @@ public class Automaton {
      */
     public void canonize() {
         if (isCanonized()) return;
-
         sortLabel();
         if (isTRUE_FALSE_AUTOMATON()) return;
-
-        Queue<Integer> state_queue = new LinkedList<>();
-        state_queue.add(getQ0());
-
-        /**map holds the permutation we need to apply to Q. In other words if map = {(0,3),(1,10),...} then
-         *we have got to send Q[0] to Q[3] and Q[1] to Q[10]*/
-        Int2IntMap map = new Int2IntOpenHashMap();
-        map.put(getQ0(), 0);
-        int i = 1;
-        while (!state_queue.isEmpty()) {
-            int q = state_queue.poll();
-            for (int x : getD().get(q).keySet()) {
-                for (int p : getD().get(q).get(x)) {
-                    if (!map.containsKey(p)) {
-                        map.put(p, i++);
-                        state_queue.add(p);
-                    }
-                }
-            }
-        }
-
-        setQ0(map.get(getQ0()));
-        int newQ = map.size();
-        IntList newO = new IntArrayList();
-        for (int q = 0; q < newQ; q++) {
-            newO.add(0);
-        }
-        for (int q = 0; q < getQ(); q++) {
-            if (map.containsKey(q)) {
-                newO.set(map.get(q), getO().getInt(q));
-            }
-        }
-
-        List<Int2ObjectRBTreeMap<IntList>> new_d = new ArrayList<>();
-        for (int q = 0; q < newQ; q++) {
-            new_d.add(null);
-        }
-
-        for (int q = 0; q < getQ(); q++) {
-            if (map.containsKey(q)) {
-                new_d.set(map.get(q), getD().get(q));
-            }
-        }
-
-        setQ(newQ);
-        setO(newO);
-        setD(new_d);
-        for (int q = 0; q < getQ(); q++) {
-            for (int x : getD().get(q).keySet()) {
-                IntList newDestination = new IntArrayList();
-                for (int p : getD().get(q).get(x)) {
-                    if (map.containsKey(p)) {
-                        newDestination.add(map.get(p));
-                    }
-                }
-
-                if (!newDestination.isEmpty()) {
-                    getD().get(q).put(x, newDestination);
-                } else {
-                    getD().get(q).remove(x);
-                }
-            }
-        }
-
+        this.getFa().canonizeInternal();
         setCanonized(true);
     }
 
@@ -1541,8 +1085,8 @@ public class Automaton {
      * The label cannot have repeated element.
      */
     protected void sortLabel() {
-        if (isLabelSorted()) return;
-        setLabelSorted(true);
+        if (labelSorted) return;
+        labelSorted = true;
         if (isTRUE_FALSE_AUTOMATON()) return;
         if (getLabel() == null || getLabel().size() != getA().size()) return;
         if (UtilityMethods.isSorted(this.getLabel())) return;
@@ -1575,13 +1119,9 @@ public class Automaton {
         setEncoder(permuted_encoder);
         setNS(UtilityMethods.permute(getNS(), label_permutation));
 
-        for (int q = 0; q < getQ(); q++) {
-            Int2ObjectRBTreeMap<IntList> permuted_d = new Int2ObjectRBTreeMap<>();
-            for (int x : getD().get(q).keySet())
-                permuted_d.put(encoded_input_permutation[x], getD().get(q).get(x));
-            getD().set(q, permuted_d);
-        }
+        this.getFa().permuteD(encoded_input_permutation);
     }
+
 
     /**
      * Input to dk.brics.automaton.Automata is a char. Input to Automaton is List<Integer>.
@@ -1680,39 +1220,11 @@ public class Automaton {
         return R;
     }
 
-    public void bind(String a) {
-        if (isTRUE_FALSE_AUTOMATON() || getA().size() != 1) throw ExceptionHelper.invalidBind();
-        if (getLabel() == null || !getLabel().isEmpty()) setLabel(new ArrayList<>());
-        getLabel().add(a);
-        setLabelSorted(false);
-    }
-
-    public void bind(String a, String b) {
-        if (isTRUE_FALSE_AUTOMATON() || getA().size() != 2) throw ExceptionHelper.invalidBind();
-        if (getLabel() == null || !getLabel().isEmpty()) setLabel(new ArrayList<>());
-        getLabel().add(a);
-        getLabel().add(b);
-        setCanonized(false);
-        setLabelSorted(false);
-        AutomatonLogicalOps.removeSameInputs(this, 0);
-    }
-
-    public void bind(String a, String b, String c) {
-        if (isTRUE_FALSE_AUTOMATON() || getA().size() != 3) throw ExceptionHelper.invalidBind();
-        if (getLabel() == null || !getLabel().isEmpty()) setLabel(new ArrayList<>());
-        getLabel().add(a);
-        getLabel().add(b);
-        getLabel().add(c);
-        setLabelSorted(false);
-        setCanonized(false);
-        AutomatonLogicalOps.removeSameInputs(this, 0);
-    }
-
     public void bind(List<String> names) {
         if (isTRUE_FALSE_AUTOMATON() || getA().size() != names.size()) throw ExceptionHelper.invalidBind();
         if (getLabel() == null || !getLabel().isEmpty()) setLabel(new ArrayList<>());
         this.getLabel().addAll(names);
-        setLabelSorted(false);
+        labelSorted = false;
         setCanonized(false);
         AutomatonLogicalOps.removeSameInputs(this, 0);
     }
@@ -1730,128 +1242,22 @@ public class Automaton {
      * clears this automaton
      */
     void clear() {
+        this.getFa().clear();
         setA(null);
         setNS(null);
         setEncoder(null);
-        setO(null);
         setLabel(null);
-        setD(null);
         setCanonized(false);
-        setLabelSorted(false);
+        labelSorted = false;
     }
 
     protected boolean isEmpty() {
         if (isTRUE_FALSE_AUTOMATON()) {
             return !isTRUE_AUTOMATON();
         }
-        return to_dk_brics_automaton().isEmpty();
+        return this.getFa().to_dk_brics_automaton().isEmpty();
     }
 
-    /**
-     * Subset Construction (Determinizing).
-     *
-     * @param initial_state
-     * @param print
-     * @param prefix
-     * @param log
-     * @return A memory-efficient representation of a determinized transition function
-     */
-    List<Int2IntMap> subsetConstruction(
-            List<Int2IntMap> newMemD, IntSet initial_state, boolean print, String prefix, StringBuilder log) {
-        long timeBefore = System.currentTimeMillis();
-        if (print) {
-            String msg = prefix + "Determinizing: " + getQ() + " states";
-            log.append(msg + System.lineSeparator());
-            System.out.println(msg);
-        }
-
-        int number_of_states = 0, current_state = 0;
-        Object2IntMap<IntSet> statesHash = new Object2IntOpenHashMap<>();
-        List<IntSet> statesList = new ArrayList<>();
-        statesList.add(initial_state);
-        statesHash.put(initial_state, 0);
-        number_of_states++;
-
-        List<Int2IntMap> new_d = new ArrayList<>();
-
-        while (current_state < number_of_states) {
-
-            if (print) {
-                int statesSoFar = current_state + 1;
-                long timeAfter = System.currentTimeMillis();
-                if (statesSoFar == 1e2 || statesSoFar == 1e3 || statesSoFar % 1e4 == 0) {
-                    String msg = prefix + "  Progress: Added " + statesSoFar + " states - "
-                            + (number_of_states - statesSoFar) + " states left in queue - "
-                            + number_of_states + " reachable states - " + (timeAfter - timeBefore) + "ms";
-                    log.append(msg + System.lineSeparator());
-                    System.out.println(msg);
-                }
-            }
-
-            IntSet state = statesList.get(current_state);
-            new_d.add(new Int2IntOpenHashMap());
-            Int2IntMap currentStateMap = new_d.get(current_state);
-            for (int in = 0; in != getAlphabetSize(); ++in) {
-                IntOpenHashSet stateSubset = determineStateSubset(newMemD, state, in);
-                if (!stateSubset.isEmpty()) {
-                    int new_dValue;
-                    int key = statesHash.getOrDefault(stateSubset, -1);
-                    if (key != -1) {
-                        new_dValue = key;
-                    } else {
-                        stateSubset.trim(); // reduce memory footprint of set before storing
-                        statesList.add(stateSubset);
-                        statesHash.put(stateSubset, number_of_states);
-                        new_dValue = number_of_states;
-                        number_of_states++;
-                    }
-                    currentStateMap.put(in, new_dValue);
-                }
-            }
-            current_state++;
-        }
-        setD(null);
-        // NOTE: d is now null! This is to save peak memory
-        // It's recomputed in minimize_valmari via the memory-efficient newMemD
-        setQ(number_of_states);
-        setQ0(0);
-        setO(AutomatonLogicalOps.calculateNewStateOutput(getO(), statesList));
-
-        long timeAfter = System.currentTimeMillis();
-        if (print) {
-            String msg = prefix + "Determinized: " + getQ() + " states - " + (timeAfter - timeBefore) + "ms";
-            log.append(msg + System.lineSeparator());
-            System.out.println(msg);
-        }
-        return new_d;
-    }
-
-    /**
-     * Build up a new subset of states in the subset construction algorithm.
-     *
-     * @param newMemD - memory-efficient transition function
-     * @param state   -
-     * @param in      - index into alphabet
-     * @return Subset of states used in Subset Construction
-     */
-    private IntOpenHashSet determineStateSubset(List<Int2IntMap> newMemD, IntSet state, int in) {
-        IntOpenHashSet dest = new IntOpenHashSet();
-        for (int q : state) {
-            if (newMemD == null) {
-                IntList values = getD().get(q).get(in);
-                if (values != null) {
-                    dest.addAll(values);
-                }
-            } else {
-                Int2IntMap iMap = newMemD.get(q);
-                int key = iMap.getOrDefault(in, -1);
-                if (key != -1) {
-                    dest.add(key);
-                }
-            }
-        }
-        return dest;
-    }
 
     static int mapToReducedEncodedInput(int n, List<Integer> I, List<Integer> newEncoder,
                                  List<List<Integer>> oldAlphabet,
@@ -1872,22 +1278,22 @@ public class Automaton {
      * Initial State.
      */
     public int getQ0() {
-        return q0;
+        return fa.getQ0();
     }
 
     public void setQ0(int q0) {
-        this.q0 = q0;
+        this.getFa().setQ0(q0);
     }
 
     /**
      * Number of States. For example when Q = 3, the set of states is {0,1,2}
      */
     public int getQ() {
-        return Q;
+        return this.getFa().getQ();
     }
 
     public void setQ(int q) {
-        Q = q;
+        this.getFa().setQ(q);
     }
 
     /**
@@ -1896,11 +1302,11 @@ public class Automaton {
      * Example: O = [-1,2,...] then state 0 and 1 have outputs -1 and 2 respectively.
      */
     public IntList getO() {
-        return O;
+        return this.getFa().getO();
     }
 
     public void setO(IntList o) {
-        O = o;
+        this.getFa().setO(o);
     }
 
     /**
@@ -1922,18 +1328,18 @@ public class Automaton {
      * The transition function d is then regenerated during the minimize_valmari method, once the states are minimized.
      */
     public List<Int2ObjectRBTreeMap<IntList>> getD() {
-        return d;
+        return this.getFa().getD();
     }
 
     public void setD(List<Int2ObjectRBTreeMap<IntList>> d) {
-        this.d = d;
+        this.getFa().setD(d);
     }
 
     /**
      * When true, states are sorted in breadth-first order and labels are sorted lexicographically.
      * It is used in canonize method. For more information read about canonize() method.
      */
-    public boolean isCanonized() {
+    private boolean isCanonized() {
         return canonized;
     }
 
@@ -1985,11 +1391,11 @@ public class Automaton {
      * Alphabet Size. For example, if A = [[-1,1],[2,3]], then alphabetSize = 4 and if A = [[-1,1],[0,1,2]], then alphabetSize = 6
      */
     public int getAlphabetSize() {
-        return alphabetSize;
+        return this.getFa().getAlphabetSize();
     }
 
     public void setAlphabetSize(int alphabetSize) {
-        this.alphabetSize = alphabetSize;
+        this.getFa().setAlphabetSize(alphabetSize);
     }
 
     /**
@@ -2032,14 +1438,11 @@ public class Automaton {
         this.TRUE_AUTOMATON = TRUE_AUTOMATON;
     }
 
-    /**
-     * When true, labels are sorted lexicographically. It is used in sortLabel() method.
-     */
-    public boolean isLabelSorted() {
-        return labelSorted;
+    public FA getFa() {
+        return fa;
     }
 
-    public void setLabelSorted(boolean labelSorted) {
-        this.labelSorted = labelSorted;
+    private void setFa(FA fa) {
+        this.fa = fa;
     }
 }

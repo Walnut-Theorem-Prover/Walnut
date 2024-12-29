@@ -13,15 +13,15 @@ class AutomatonTest {
     List<NumberSystem> first = new ArrayList<>();
     List<List<Integer>> N1 = new ArrayList<>();
     Automaton B = new Automaton();
-    Assertions.assertFalse(Automaton.isNSDiffering(A, first, N1, B));
+    Assertions.assertFalse(NumberSystem.isNSDiffering(A.getNS(), first, N1, B.getA()));
     NumberSystem ns = new NumberSystem("msd_3");
     first.add(ns);
-    Assertions.assertTrue(Automaton.isNSDiffering(A, first, N1, B));
+    Assertions.assertTrue(NumberSystem.isNSDiffering(A.getNS(), first, N1, B.getA()));
     A.getNS().add(ns);
-    Assertions.assertFalse(Automaton.isNSDiffering(A, first, N1, B));
+    Assertions.assertFalse(NumberSystem.isNSDiffering(A.getNS(), first, N1, B.getA()));
     first.clear();
     first.add(new NumberSystem("msd_5"));
-    Assertions.assertTrue(Automaton.isNSDiffering(A, first, N1, B));
+    Assertions.assertTrue(NumberSystem.isNSDiffering(A.getNS(), first, N1, B.getA()));
   }
 
   @Test

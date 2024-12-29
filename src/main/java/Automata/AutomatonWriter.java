@@ -35,13 +35,14 @@ public class AutomatonWriter {
      * @param address
      */
     public static String writeMatrices(Automaton automaton, String address, List<String> free_variables) {
+        System.out.println("Writing to:" + address);
         if (automaton.isTRUE_FALSE_AUTOMATON()) {
             throw new RuntimeException("incidence matrices cannot be calculated, because the automaton does not have a free variable.");
         }
         automaton.canonize();
         StringBuilder s = new StringBuilder();
         s.append("with(ArrayTools):" + System.lineSeparator());
-        writeInitialStateVector(automaton, s);
+        writeInitialStateVector(automaton.getFa(), s);
         s.append(System.lineSeparator() + "# In what follows, the M_i_x, for a free variable i and a value x, denotes" + System.lineSeparator());
         s.append("# an incidence matrix of the underlying graph of (the automaton of)" + System.lineSeparator());
         s.append("# the predicate in the query." + System.lineSeparator());
@@ -58,7 +59,7 @@ public class AutomatonWriter {
         for (List<Integer> valueList : valueLists) {
             writeMatrixForAVariableListValuePair(automaton, free_variables, valueList, indices, s);
         }
-        writeFinalStatesVector(automaton, s);
+        writeFinalStatesVector(automaton.getFa(), s);
         s.append(System.lineSeparator() + "for i from 1 to Size(v)[2] do v := v.M_");
         s.append(String.join("_", free_variables) + "_");
         s.append(String.join("_", Collections.nCopies(free_variables.size(), "0")));
@@ -115,7 +116,7 @@ public class AutomatonWriter {
         s.append("]);" + System.lineSeparator());
     }
 
-    private static void writeInitialStateVector(Automaton automaton, StringBuilder s) {
+    private static void writeInitialStateVector(FA automaton, StringBuilder s) {
         s.append("# The row vector v denotes the indicator vector of the (singleton)" + System.lineSeparator());
         s.append("# set of initial states." + System.lineSeparator());
         s.append("v := Vector[row]([");
@@ -132,7 +133,7 @@ public class AutomatonWriter {
         s.append("]);" + System.lineSeparator());
     }
 
-    private static void writeFinalStatesVector(Automaton automaton, StringBuilder s) {
+    private static void writeFinalStatesVector(FA automaton, StringBuilder s) {
         s.append(System.lineSeparator() + "# The column vector w denotes the indicator vector of the" + System.lineSeparator());
         s.append("# set of final states." + System.lineSeparator());
         s.append("w := Vector[column]([");
@@ -158,6 +159,7 @@ public class AutomatonWriter {
      * @throws
      */
     public static void write(Automaton automaton, String address) {
+        System.out.println("Writing to:" + address);
         try {
             PrintWriter out = new PrintWriter(address, StandardCharsets.UTF_8);
             writeToStream(automaton, out);
@@ -222,6 +224,7 @@ public class AutomatonWriter {
      * @param address
      */
     public static void draw(Automaton automaton, String address, String predicate, boolean isDFAO) {
+        System.out.println("Writing to:" + address);
         StringBuilder gv = new StringBuilder();
         if (automaton.isTRUE_FALSE_AUTOMATON()) {
             addln(gv,"digraph G {");

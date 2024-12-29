@@ -40,6 +40,14 @@ public class ExceptionHelper {
         return new RuntimeException("Invalid use of the " + command + " command.");
     }
 
+    public static RuntimeException invalidOperator(String op, Expression a) {
+        return new RuntimeException("operator " + op + " cannot be applied to the operand " + a + " of type " + a.getClass().getName());
+    }
+
+    public static RuntimeException invalidDualOperators(String op, Expression a, Expression b) {
+        return new RuntimeException("operator " + op + " cannot be applied to operands " + a + " and " + b + " of types " + a.getClass().getName() + " and " + b.getClass().getName() + " respectively");
+    }
+
     public static RuntimeException negativeConstant(int a) {
         return new RuntimeException("negative constant " + a);
     }
@@ -50,6 +58,10 @@ public class ExceptionHelper {
 
     public static RuntimeException operatorMissing(int index) {
         return new RuntimeException("An operator is missing: char at " + index);
+    }
+
+    public static RuntimeException operatorTwoVariables(String operator) {
+        return new RuntimeException("the operator " + operator + " cannot be applied to two variables");
     }
 
     public static RuntimeException unbalancedParen(int index) {

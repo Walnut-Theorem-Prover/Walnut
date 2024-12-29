@@ -38,7 +38,7 @@ public class VariableExpression extends Expression {
     } else {
       String new_identifier = this.identifier + t.getUniqueString();
       Automaton eq = ns.equality.clone();
-      eq.bind(this.identifier, new_identifier);
+      eq.bind(List.of(this.identifier, new_identifier));
       quantify.add(new_identifier);
       identifiers.add(new_identifier);
       M = AutomatonLogicalOps.and(M, eq, print, prefix + " ", log);

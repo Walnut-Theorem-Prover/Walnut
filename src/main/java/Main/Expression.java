@@ -19,7 +19,6 @@
 package Main;
 
 import Automata.Automaton;
-import Automata.NumberSystem;
 
 /**
  * Examples of expression: a,a+b, a+b > 2,c=a+b, W[a]!=W[b], Ea W[a]!=W[a+1],...<br>
@@ -63,7 +62,7 @@ public class Expression {
     public Automaton M;
     public String identifier;
     public int constant;
-    public Automaton W;
+    public Automaton wordAutomaton;
 
     public Expression() {}
 

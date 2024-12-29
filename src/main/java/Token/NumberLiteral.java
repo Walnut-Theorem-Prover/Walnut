@@ -26,12 +26,11 @@ import Main.Expressions.NumberLiteralExpression;
 
 
 public class NumberLiteral extends Token {
-    int value;
-    NumberSystem base;
+    private final int value;
+    private final NumberSystem base;
 
     public NumberLiteral(int position, int value, NumberSystem base) {
         setPositionInPredicate(position);
-        setArity(0);
         this.value = value;
         this.base = base;
     }

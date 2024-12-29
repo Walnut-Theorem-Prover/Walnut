@@ -25,18 +25,19 @@ import java.util.Stack;
 import Main.Expression;
 import Main.Expressions.*;
 import Automata.Automaton;
+import Main.UtilityMethods;
 
 public class Word extends Token {
-    Automaton W;
-    String name;
+    private final Automaton wordAutomaton;
+    private final String name;
 
-    public Word(int position, String name, Automaton W, int number_of_indices) {
+    public Word(int position, String name, Automaton wordAutomaton, int indexCount) {
         this.name = name;
         setPositionInPredicate(position);
-        this.W = W;
-        setArity(number_of_indices);
-        if (W.getArity() != getArity())
-            throw new RuntimeException("word " + name + " requires " + W.getArity() + " indices: char at " + getPositionInPredicate());
+        this.wordAutomaton = wordAutomaton;
+        setArity(indexCount);
+        if (wordAutomaton.getArity() != getArity())
+            throw new RuntimeException("word " + name + " requires " + wordAutomaton.getArity() + " indices: char at " + getPositionInPredicate());
     }
 
     public String toString() {
@@ -49,32 +50,24 @@ public class Word extends Token {
         for (int i = 1; i <= getArity(); i++) {
             temp.push(S.pop());
         }
-        String stringValue = name;
-        String preStep = prefix + "computing " + stringValue + "[...]";
-        log.append(preStep + System.lineSeparator());
-        if (print) {
-            System.out.println(preStep);
-        }
+        StringBuilder stringValue = new StringBuilder(name);
+        UtilityMethods.logAndPrint(print, prefix + "computing " + stringValue + "[...]", log);
         List<String> identifiers = new ArrayList<>();
         List<String> quantify = new ArrayList<>();
         Automaton M = new Automaton(true);
         for (int i = 0; i < getArity(); i++) {
             Expression expression = temp.pop();
-            stringValue += "[" + expression + "]";
+            stringValue.append("[").append(expression).append("]");
             switch (expression) {
-                case VariableExpression ve -> M = ve.act(print, prefix, log, this, W.getNS().get(i), identifiers, M, quantify);
+                case VariableExpression ve -> M = ve.act(print, prefix, log, this, wordAutomaton.getNS().get(i), identifiers, M, quantify);
                 case ArithmeticExpression ae -> M = ae.act(print, prefix, log, identifiers, M, quantify);
                 case NumberLiteralExpression ne -> M = ne.act(print, prefix, log, this, identifiers, quantify, M);
                 case AutomatonExpression ae -> M = ae.act(print, prefix, name, log, i, M, identifiers);
                 case null, default -> expression.act("argument " + (i + 1) + " of function " + this);
             }
         }
-        W.bind(identifiers);
-        S.push(new WordExpression(stringValue, W, M, quantify));
-        String postStep = prefix + "computed " + stringValue;
-        log.append(postStep + System.lineSeparator());
-        if (print) {
-            System.out.println(postStep);
-        }
+        wordAutomaton.bind(identifiers);
+        S.push(new WordExpression(stringValue.toString(), wordAutomaton, M, quantify));
+        UtilityMethods.logAndPrint(print, prefix + "computed " + stringValue, log);
     }
 }

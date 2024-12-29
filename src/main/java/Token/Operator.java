@@ -24,7 +24,7 @@ import java.util.Stack;
 
 public abstract class Operator extends Token {
     protected boolean leftParenthesis = false;
-    int priority;
+    private int priority;
     protected String op;
 
     public boolean isOperator() {

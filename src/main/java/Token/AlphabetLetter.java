@@ -25,11 +25,10 @@ import Main.Expressions.AlphabetLetterExpression;
 
 
 public class AlphabetLetter extends Token {
-    int value;
+    private final int value;
 
     public AlphabetLetter(int position, int value) {
         setPositionInPredicate(position);
-        setArity(0);
         this.value = value;
     }
 

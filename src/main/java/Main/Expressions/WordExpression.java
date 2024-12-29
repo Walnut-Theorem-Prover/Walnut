@@ -26,9 +26,9 @@ public class WordExpression extends Expression {
   public List<String> list_of_identifiers_to_quantify;
 
   public WordExpression(
-      String expressionInString, Automata.Automaton W, Automaton M, List<String> quantify) {
+      String expressionInString, Automata.Automaton wordAutomaton, Automaton M, List<String> quantify) {
     this.expressionInString = expressionInString;
-    this.W = W;
+    this.wordAutomaton = wordAutomaton;
     this.M = M;
     list_of_identifiers_to_quantify = quantify;
   }

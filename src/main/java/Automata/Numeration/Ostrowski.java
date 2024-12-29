@@ -18,16 +18,10 @@
 
 package Automata.Numeration;
 
-import java.util.ArrayList;
+import java.util.*;
 import java.io.File;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.Queue;
-import java.util.TreeMap;
 
-import Automata.Automaton;
-import Automata.AutomatonWriter;
-import Automata.ParseMethods;
+import Automata.*;
 import Main.Session;
 import it.unimi.dsi.fastutil.ints.Int2ObjectRBTreeMap;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
@@ -157,7 +151,7 @@ public class Ostrowski {
         repr.minimize(null, false, "", null);
         repr.canonize();
 
-        handleZeroState(repr);
+        handleZeroState(repr.getFa());
         return repr;
     }
 
@@ -196,7 +190,7 @@ public class Ostrowski {
         // because the Automaton class does not support an epsilon transition for NFAs.
         adder.canonize();
 
-        handleZeroState(adder);
+        handleZeroState(adder.getFa());
         return adder;
     }
 
@@ -214,29 +208,30 @@ public class Ostrowski {
 
     private Automaton initAutomaton(int inputs) {
         resetAutomaton();
-        Automaton automaton = new Automaton();
 
         // Declare the alphabet.
-        automaton.setAlphabetSize(1);
         IntList list = new IntArrayList(dMax +1);
         for (int i = 0; i <= dMax; i++) {
             list.add(i);
         }
-
         // 3 inputs to the adder, all have the same alphabet and the null NumberSystem.
         int alphabetSize = 1;
+        List<List<Integer>> A = new ArrayList<>(inputs);
+        List<NumberSystem> ns = new ArrayList<>(inputs);
         for(int i=0;i<inputs;i++) {
-            automaton.getA().add(list);
-            automaton.getNS().add(null);
+            A.add(list);
+            ns.add(null);
             alphabetSize *= (dMax + 1);
         }
-        automaton.setD(new ArrayList<>());
+
+        Automaton automaton = new Automaton();
+        automaton.setA(A);
+        automaton.setNS(ns);
         automaton.setAlphabetSize(alphabetSize);
-        automaton.setQ(0);
         return automaton;
     }
 
-    private static void handleZeroState(Automaton adder) {
+    private static void handleZeroState(FA adder) {
         boolean zeroStateNeeded =
             adder.getD().stream().anyMatch(
                 tm -> tm.int2ObjectEntrySet().stream().anyMatch(

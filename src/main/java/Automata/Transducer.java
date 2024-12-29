@@ -126,8 +126,8 @@ public class Transducer extends Automaton {
                                             lineNumber);
                         }
                         UtilityMethods.removeDuplicates(getA().get(i));
-                        setAlphabetSize(getAlphabetSize() * getA().get(i).size());
                     }
+                    determineAlphabetSizeFromA();
                     break;
                 } else {
                     in.close();
@@ -155,7 +155,6 @@ public class Transducer extends Automaton {
              * Then we make sure all these states are declared.
              */
             Set<Integer> setOfDestinationStates = new HashSet<>();
-            setQ(0);
             while((line = in.readLine())!= null) {
                 lineNumber++;
                 if (PATTERN_WHITESPACE.matcher(line).matches()) {
@@ -257,11 +256,7 @@ public class Transducer extends Automaton {
     public Automaton transduceMsdDeterministic(Automaton M, boolean print, String prefix, StringBuilder log) {
         try {
             long timeBefore = System.currentTimeMillis();
-            if(print){
-                String msg = prefix + "transducing: " + M.getQ() + " state automaton - " + getQ() + " state transducer";
-                log.append(msg + System.lineSeparator());
-                System.out.println(msg);
-            }
+            UtilityMethods.logMessage(print, prefix + "transducing: " + M.getQ() + " state automaton - " + getQ() + " state transducer", log);
 
             /**
              * N will be the returned Automaton, just have to build it up.
@@ -539,11 +534,7 @@ public class Transducer extends Automaton {
             N.minimizeSelfWithOutput(print, prefix+" ", log);
 
             long timeAfter = System.currentTimeMillis();
-            if(print){
-                String msg = prefix + "transduced: " + N.getQ() + " states - "+(timeAfter-timeBefore)+"ms";
-                log.append(msg + System.lineSeparator());
-                System.out.println(msg);
-            }
+            UtilityMethods.logMessage(print, prefix + "transduced: " + N.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
 
 
             return N;
@@ -585,11 +576,7 @@ public class Transducer extends Automaton {
         boolean toLsd = false;
 
         if (!M.getNS().get(0).isMsd()) {
-            if(print){
-                String msg = prefix + "Automaton number system is lsd, reversing";
-                log.append(msg + System.lineSeparator());
-                System.out.println(msg);
-            }
+            UtilityMethods.logMessage(print, prefix + "Automaton number system is lsd, reversing", log);
             toLsd = true;
             AutomatonLogicalOps.reverseWithOutput(M, true, print, prefix+" ", log);
         }
@@ -614,7 +601,7 @@ public class Transducer extends Automaton {
         }
         else {
             Automaton Mnew = M.clone();
-            Mnew.addDistinguishedDeadState(print, prefix+" ", log);
+            Mnew.getFa().addDistinguishedDeadState(print, prefix+" ", log);
 
             // after transducing, all states with this minimum output will be removed.
             int minOutput = 0;

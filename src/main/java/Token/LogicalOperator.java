@@ -24,13 +24,15 @@ import java.util.List;
 import java.util.Stack;
 
 import Automata.AutomatonLogicalOps;
+import Main.ExceptionHelper;
 import Main.Expression;
 import Automata.Automaton;
 import Main.Expressions.AutomatonExpression;
 import Main.Expressions.VariableExpression;
+import Main.UtilityMethods;
 
 public class LogicalOperator extends Operator {
-    int number_of_quantified_variables;
+    private int quantifiedVariableCount;
 
     public LogicalOperator(int position, String op) {
         this.op = op;
@@ -41,12 +43,12 @@ public class LogicalOperator extends Operator {
         setPositionInPredicate(position);
     }
 
-    public LogicalOperator(int position, String op, int number_of_quantified_variables) {
-        this.number_of_quantified_variables = number_of_quantified_variables;
+    public LogicalOperator(int position, String op, int quantifiedVariableCount) {
+        this.quantifiedVariableCount = quantifiedVariableCount;
         this.op = op;
 
         setPriority();
-        setArity(number_of_quantified_variables + 1);
+        setArity(quantifiedVariableCount + 1);
         setPositionInPredicate(position);
     }
 
@@ -66,11 +68,7 @@ public class LogicalOperator extends Operator {
         Expression a = S.pop();
 
         if (a instanceof AutomatonExpression && b instanceof AutomatonExpression) {
-            String preStep = prefix + "computing " + a + op + b;
-            log.append(preStep + System.lineSeparator());
-            if (print) {
-                System.out.println(preStep);
-            }
+            UtilityMethods.logAndPrint(print, prefix + "computing " + a + op + b, log);
             String opString = "(" + a + op + b + ")";
             switch (op) {
                 case "&":
@@ -89,38 +87,25 @@ public class LogicalOperator extends Operator {
                     S.push(new AutomatonExpression(opString, AutomatonLogicalOps.iff(a.M, b.M, print, prefix + " ", log)));
                     break;
             }
-            String postStep = prefix + "computed " + a + op + b;
-            log.append(postStep + System.lineSeparator());
-            if (print) {
-                System.out.println(postStep);
-            }
+            UtilityMethods.logAndPrint(print, prefix + "computed " + a + op + b, log);
             return;
         }
-        throw new RuntimeException("operator " + op + " cannot be applied to operands " + a + " and " + b + " of types " + a.getClass().getName() + " and " + b.getClass().getName() + " respectively");
-
+        throw ExceptionHelper.invalidDualOperators(op, a, b);
     }
 
     private void actNegationOrReverse(Stack<Expression> S, boolean print, String prefix, StringBuilder log) {
         Expression a = S.pop();
         if (a instanceof AutomatonExpression) {
-            String preStep = prefix + "computing " + op + a;
-            log.append(preStep + System.lineSeparator());
-            if (print) {
-                System.out.println(preStep);
-            }
+            UtilityMethods.logAndPrint(print, prefix + "computing " + op + a, log);
             if (op.equals("`"))
                 AutomatonLogicalOps.reverse(a.M, print, prefix + " ", log, true);
             if (this.isNegation(op))
                 AutomatonLogicalOps.not(a.M, print, prefix + " ", log);
             S.push(new AutomatonExpression(op + a, a.M));
-            String postStep = prefix + "computed " + op + a;
-            log.append(postStep + System.lineSeparator());
-            if (print) {
-                System.out.println(postStep);
-            }
+            UtilityMethods.logAndPrint(print, prefix + "computed " + op + a, log);
             return;
         }
-        throw new RuntimeException("operator " + op + " cannot be applied to the operand " + a + " of type " + a.getClass().getName());
+        throw ExceptionHelper.invalidOperator(op, a);
     }
 
     private void actQuantifier(Stack<Expression> S, boolean print, String prefix, StringBuilder log) {
@@ -131,11 +116,7 @@ public class LogicalOperator extends Operator {
         for (int i = 0; i < getArity(); i++) {
             temp.push(S.pop());
         }
-        String preStep = prefix + "computing quantifier " + op;
-        log.append(preStep + System.lineSeparator());
-        if (print) {
-            System.out.println(preStep);
-        }
+        UtilityMethods.logAndPrint(print, prefix + "computing quantifier " + op, log);
         List<String> list_of_identifiers_to_quantify = new ArrayList<>();
         for (int i = 0; i < getArity(); i++) {
             operands.add(temp.pop());
@@ -146,7 +127,7 @@ public class LogicalOperator extends Operator {
                 else
                     stringValue.append(", ").append(operand).append(" ");
                 if (!(operand instanceof VariableExpression))
-                    throw new RuntimeException("operator " + op + " requires a list of " + number_of_quantified_variables + " variables");
+                    throw new RuntimeException("operator " + op + " requires a list of " + quantifiedVariableCount + " variables");
 
                 list_of_identifiers_to_quantify.add(operand.identifier);
             } else if (i == getArity() - 1) {
@@ -169,10 +150,6 @@ public class LogicalOperator extends Operator {
         }
         stringValue.append(")");
         S.push(new AutomatonExpression(stringValue.toString(), M));
-        String postStep = prefix + "computed quantifier " + stringValue;
-        log.append(postStep + System.lineSeparator());
-        if (print) {
-            System.out.println(postStep);
-        }
+        UtilityMethods.logAndPrint(print, prefix + "computed quantifier " + stringValue, log);
     }
 }

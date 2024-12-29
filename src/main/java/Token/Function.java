@@ -40,9 +40,9 @@ public class Function extends Token {
     private final NumberSystem ns;
 
 
-    public Function(String number_system, int position, String name, Automaton A, int number_of_arguments) {
+    public Function(String number_system, int position, String name, Automaton A, int argCount) {
         this.name = name;
-        setArity(number_of_arguments);
+        setArity(argCount);
         setPositionInPredicate(position);
         this.A = A;
         this.ns = new NumberSystem(number_system);
@@ -61,11 +61,7 @@ public class Function extends Token {
             temp.push(S.pop());
         }
         String stringValue = this + "(";
-        String preStep = prefix + "computing " + stringValue + "...)";
-        log.append(preStep + System.lineSeparator());
-        if (print) {
-            System.out.println(preStep);
-        }
+        UtilityMethods.logAndPrint(print, prefix + "computing " + stringValue + "...)", log);
         Automaton M = new Automaton(true);
         List<String> identifiers = new ArrayList<>();
         List<String> quantify = new ArrayList<>();
@@ -89,10 +85,6 @@ public class Function extends Token {
         AutomatonLogicalOps.quantify(A, new HashSet<>(quantify), print, prefix + " ", log);
 
         S.push(new AutomatonExpression(stringValue, A));
-        String postStep = prefix + "computed " + stringValue;
-        log.append(postStep + System.lineSeparator());
-        if (print) {
-            System.out.println(postStep);
-        }
+        UtilityMethods.logAndPrint(print, prefix + "computed " + stringValue, log);
     }
 }
