@@ -35,7 +35,7 @@ class AutomatonExpressionTest {
             b = new Automaton(true);
             Assertions.assertTrue(a.equals(b));
             Assertions.assertTrue(a.equals(b.clone()));
-            AutomatonLogicalOps.reverse(b, false, "", null);
+            AutomatonLogicalOps.reverse(b, false, "", null, false);
             Assertions.assertTrue(a.equals(b));
 
             b = new Automaton(false);
@@ -71,10 +71,10 @@ class AutomatonExpressionTest {
             Assertions.assertFalse(a.equals(b));
 
             b = a.clone();
-            AutomatonLogicalOps.reverse(b, false, "", null);
+            AutomatonLogicalOps.reverse(b, false, "", null, false);
             Assertions.assertFalse(a.equals(b));
             Assertions.assertEquals("[{0=>[1], 1=>[0]}, {}]", b.getD().toString());
-            AutomatonLogicalOps.reverse(b, false, "", null);
+            AutomatonLogicalOps.reverse(b, false, "", null, false);
             Assertions.assertTrue(a.equals(b));
 
             b = a.clone();

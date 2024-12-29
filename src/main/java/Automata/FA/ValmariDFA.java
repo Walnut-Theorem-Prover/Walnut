@@ -15,7 +15,7 @@
  *   You should have received a copy of the GNU General Public License
  *   along with Walnut.  If not, see <http://www.gnu.org/licenses/>.
  */
-package Automata;
+package Automata.FA;
 
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectRBTreeMap;
@@ -58,11 +58,10 @@ public class ValmariDFA {
 
         int arrIndex = 0;
         for(int q = 0; q != newMemD.size();++q){
-            for(int l : newMemD.get(q).keySet()) {
-                int p = newMemD.get(q).get(l);
-                H[arrIndex] = p;
+            for(Int2IntMap.Entry entry: newMemD.get(q).int2IntEntrySet()) {
+                H[arrIndex] = entry.getIntValue();
                 T[arrIndex] = q;
-                L[arrIndex] = l;
+                L[arrIndex] = entry.getIntKey();
                 arrIndex++;
             }
         }
@@ -191,10 +190,7 @@ public class ValmariDFA {
                 int q = blocks.S[T[t]];
                 int l = L[t];
                 int p = blocks.S[H[t]];
-                if(!d.get(q).containsKey(l)){
-                    d.get(q).put(l, new IntArrayList());
-                }
-                d.get(q).get(l).add(p);
+                d.get(q).computeIfAbsent(l, key -> new IntArrayList()).add(p);
             }
         }
         return d;

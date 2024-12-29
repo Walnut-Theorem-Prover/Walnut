@@ -17,7 +17,9 @@
  */
 package Automata;
 
+import Automata.FA.FA;
 import Main.UtilityMethods;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectRBTreeMap;
 import it.unimi.dsi.fastutil.ints.IntList;
 
@@ -84,7 +86,7 @@ public class AutomatonWriter {
         Set<Integer> encoded_values = new HashSet<>();
         for (int x = 0; x != automaton.getAlphabetSize(); ++x) {
             List<Integer> decoding = Automaton.decode(automaton.getA(), x);
-            List<Integer> compareList = indices.stream().map(index -> decoding.get(index)).collect(Collectors.toList());
+            List<Integer> compareList = indices.stream().map(decoding::get).toList();
             if (compareList.equals(valueList)) {
                 encoded_values.add(x);
             }
@@ -202,12 +204,12 @@ public class AutomatonWriter {
         out.write(
                 System.lineSeparator() + q + " " +
                         automaton.getO().getInt(q) + System.lineSeparator());
-        for (int n : automaton.getD().get(q).keySet()) {
-            List<Integer> l = Automaton.decode(automaton.getA(), n);
+        for (Int2ObjectMap.Entry<IntList> entry : automaton.getD().get(q).int2ObjectEntrySet()) {
+            List<Integer> l = Automaton.decode(automaton.getA(), entry.getIntKey());
             for (int j = 0; j < l.size(); j++)
                 out.write(l.get(j) + " ");
             out.write("->");
-            for (int dest : automaton.getD().get(q).get(n))
+            for (int dest : entry.getValue())
                 out.write(" " + dest);
             out.write(System.lineSeparator());
         }
@@ -260,19 +262,19 @@ public class AutomatonWriter {
                     new TreeMap<>();
             for (int q = 0; q < automaton.getQ(); q++) {
                 transitions.put(q, new TreeMap<>());
-                for (int x : automaton.getD().get(q).keySet()) {
-                    for (int dest : automaton.getD().get(q).get(x)) {
+                for (Int2ObjectMap.Entry<IntList> entry : automaton.getD().get(q).int2ObjectEntrySet()) {
+                    for (int dest : entry.getValue()) {
                         transitions.get(q).putIfAbsent(dest, new ArrayList<>());
                         transitions.get(q).get(dest).add(
-                                UtilityMethods.toTransitionLabel(Automaton.decode(automaton.getA(), x)));
+                            UtilityMethods.toTransitionLabel(Automaton.decode(automaton.getA(), entry.getIntKey())));
                     }
                 }
             }
 
             for (int q = 0; q < automaton.getQ(); q++) {
-                for (int dest : transitions.get(q).keySet()) {
-                    String transition_label = String.join(", ", transitions.get(q).get(dest));
-                    addln(gv,q + " -> " + dest + "[ label = \"" + transition_label + "\"];");
+                for (Map.Entry<Integer, List<String>> entry : transitions.get(q).entrySet()) {
+                    String transition_label = String.join(", ", entry.getValue());
+                    addln(gv, q + " -> " + entry.getKey() + "[ label = \"" + transition_label + "\"];");
                 }
             }
 

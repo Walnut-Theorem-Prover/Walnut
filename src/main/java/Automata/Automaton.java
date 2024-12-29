@@ -1,6 +1,7 @@
 
 package Automata;
 
+import Automata.FA.FA;
 import Main.ExceptionHelper;
 import Main.Session;
 import Main.UtilityMethods;
@@ -269,9 +270,8 @@ public class Automaton {
             int currentState = -1;
             int currentOutput;
             Int2ObjectRBTreeMap<IntList> currentStateTransitions = new Int2ObjectRBTreeMap<>();
-            TreeMap<Integer, Integer> output = new TreeMap<>();
-            TreeMap<Integer, Int2ObjectRBTreeMap<IntList>> transitions =
-                    new TreeMap<>();
+            Map<Integer, Integer> output = new TreeMap<>();
+            Map<Integer, Int2ObjectRBTreeMap<IntList>> transitions = new TreeMap<>();
             /**
              * This will hold all states that are destination of some transition.
              * Then we make sure all these states are declared.
@@ -361,7 +361,7 @@ public class Automaton {
                 if (M.getEncoder() == null) M.setEncoder(new ArrayList<>());
                 M.getEncoder().add(getEncoder().get(i));
             }
-            if (getLabel() != null && getLabel().size() == getA().size())
+            if (this.isBound())
                 M.getLabel().add(getLabel().get(i));
         }
         return M;
@@ -487,7 +487,7 @@ public class Automaton {
         boolean switchNS = false;
         List<NumberSystem> numberSystems = new ArrayList<>();
         for (int i = 0; i < getNS().size(); i++) {
-            if (getNS().get(i) != null && getNS().get(i).should_we_use_allRepresentations()) {
+            if (getNS().get(i) != null && getNS().get(i).useAllRepresentations()) {
                 switchNS = true;
                 int max = Collections.max(getA().get(i));
                 numberSystems.add(new NumberSystem((getNS().get(i).isMsd() ? "msd_" : "lsd_") + (max + 1)));
@@ -584,19 +584,15 @@ public class Automaton {
 
         long timeBefore = System.currentTimeMillis();
         if (print) {
-            ArrayList<String> nsNames = new ArrayList<>();
+            List<String> nsNames = new ArrayList<>(numberSystems.size());
             for (int i = 0; i < numberSystems.size(); i++) {
-                if (numberSystems.get(i) == null) {
-                    nsNames.add(alphabet.get(i).toString());
-                } else {
-                    nsNames.add(numberSystems.get(i).toString());
-                }
+                NumberSystem ns = numberSystems.get(i);
+                nsNames.add(ns == null ? alphabet.get(i).toString() : ns.toString());
             }
             String msg = prefix + "setting alphabet to " + nsNames;
             log.append(msg + System.lineSeparator());
             System.out.println(msg);
         }
-
 
         Automaton M = clone();
         M.setA(alphabet);
@@ -656,15 +652,16 @@ public class Automaton {
             return "";
         }
         visited.add(state);
-        for (int x : getD().get(state).keySet()) {
-            for (Integer y : getD().get(state).get(x)) {
+        for (Int2ObjectMap.Entry<IntList> entry : getD().get(state).int2ObjectEntrySet()) {
+            for (int y: entry.getValue()) {
                 // this adds brackets even when inputs have arity 1 - this is fine, since we just want a usable infinite regex
-                String cycle = infiniteHelper(visited, started, y, result + decode(getA(), x));
+                String cycle = infiniteHelper(visited, started, y, result + decode(getA(), entry.getIntKey()));
                 if (!cycle.isEmpty()) {
                     return cycle;
                 }
             }
         }
+
         visited.remove(state);
         return "";
     }
@@ -760,11 +757,11 @@ public class Automaton {
         Automaton M = clone();
         Set<String> quantifiers = new HashSet<>();
         // Label M with [b0, b1, ..., b(A.size() - 1)]
-        if (M.getLabel() == null) M.setLabel(new ArrayList<>());
-        else if (!M.getLabel().isEmpty()) M.setLabel(new ArrayList<>());
+        List<String> names = new ArrayList<>(getA().size());
         for (int i = 0; i < getA().size(); i++) {
-            M.getLabel().add("b" + i);
+            names.add("b" + i);
         }
+        M.setLabels(names);
 
         for (int i = 0; i < inputs.size(); i++) {
             if (!inputs.get(i).isEmpty()) {
@@ -856,9 +853,9 @@ public class Automaton {
                 return false;
             }
         }
-        for (int x : getD().get(state).keySet()) {
-            for (Integer y : getD().get(state).get(x)) {
-                List<Integer> decodeAx = decode(getA(), x);
+        for (Int2ObjectMap.Entry<IntList> entry : getD().get(state).int2ObjectEntrySet()) {
+            for (int y : entry.getValue()) {
+                List<Integer> decodeAx = decode(getA(), entry.getIntKey());
                 String input = decodeAx.toString();
 
                 // we remove brackets if we have a single arity input that is between 0 and 9 (and hence unambiguous)
@@ -883,7 +880,7 @@ public class Automaton {
         for (int i = 0; i < getA().size(); i++) {
             if (getNS().get(i) != null) {
                 Automaton N = getNS().get(i).getAllRepresentations();
-                if (N != null && getNS().get(i).should_we_use_allRepresentations()) {
+                if (N != null && getNS().get(i).useAllRepresentations()) {
                     N.bind(List.of(getLabel().get(i)));
                     K = AutomatonLogicalOps.and(K, N, false, null, null);
                 }
@@ -899,9 +896,10 @@ public class Automaton {
         boolean flag = determineRandomLabel();
         Automaton K = this;
         for (int i = 0; i < getA().size(); i++) {
-            if (getNS().get(i) != null) {
-                Automaton N = getNS().get(i).getAllRepresentations();
-                if (N != null && getNS().get(i).should_we_use_allRepresentations()) {
+            NumberSystem ns = getNS().get(i);
+            if (ns != null) {
+                Automaton N = ns.getAllRepresentations();
+                if (N != null && ns.useAllRepresentations()) {
                     N.bind(List.of(getLabel().get(i)));
                     K = AutomatonLogicalOps.crossProduct(this, N, "if_other", print, prefix, log);
                 }
@@ -913,7 +911,7 @@ public class Automaton {
     }
 
     private boolean determineRandomLabel() {
-        if (getLabel() == null || getLabel().size() != getA().size()) {
+        if (!isBound()) {
             randomLabel();
             return true;
         }
@@ -921,11 +919,15 @@ public class Automaton {
     }
 
     public void randomLabel() {
-        if (getLabel() == null) setLabel(new ArrayList<>());
-        else if (!getLabel().isEmpty()) setLabel(new ArrayList<>());
-        for (int i = 0; i < getA().size(); i++) {
-            getLabel().add(Integer.toString(i));
-        }
+        List<String> randomNames = new ArrayList<>(getA().size());
+        for(int i=0;i<getA().size();i++) {
+            randomNames.add(Integer.toString(i));}
+        setLabels(randomNames);
+    }
+
+    private void setLabels(List<String> names) {
+        if (getLabel() == null || !getLabel().isEmpty()) setLabel(new ArrayList<>());
+        this.getLabel().addAll(names);
     }
 
     private void unlabel() {
@@ -1024,21 +1026,15 @@ public class Automaton {
 
     public void minimize(List<Int2IntMap> newMemD, boolean print, String prefix, StringBuilder log) {
         long timeBefore = System.currentTimeMillis();
-        if (print) {
-            String msg = prefix + "Minimizing: " + getQ() + " states.";
-            System.out.println("----- " + msg);
-            log.append(msg + System.lineSeparator());
-        }
+        UtilityMethods.logMessage(
+            print, prefix + "Minimizing: " + getQ() + " states.", log);
 
         this.getFa().minimizeValmari(newMemD, print, prefix + " ", log);
         this.canonized = false;
 
         long timeAfter = System.currentTimeMillis();
-        if (print) {
-            String msg = prefix + "Minimized:" + getQ() + " states - " + (timeAfter - timeBefore) + "ms.";
-            System.out.println("----- " + msg);
-            log.append(msg + System.lineSeparator());
-        }
+        UtilityMethods.logMessage(
+            print, prefix + "Minimized:" + getQ() + " states - " + (timeAfter - timeBefore) + "ms.", log);
     }
 
     /**
@@ -1088,7 +1084,7 @@ public class Automaton {
         if (labelSorted) return;
         labelSorted = true;
         if (isTRUE_FALSE_AUTOMATON()) return;
-        if (getLabel() == null || getLabel().size() != getA().size()) return;
+        if (!isBound()) return;
         if (UtilityMethods.isSorted(this.getLabel())) return;
         List<String> sorted_label = new ArrayList<>(getLabel());
         Collections.sort(sorted_label);
@@ -1138,7 +1134,7 @@ public class Automaton {
      * @param n
      * @return
      */
-    static List<Integer> decode(List<List<Integer>> A, int n) {
+    public static List<Integer> decode(List<List<Integer>> A, int n) {
         List<Integer> l = new ArrayList<>(A.size());
         for (List<Integer> integers : A) {
             l.add(integers.get(n % integers.size()));
@@ -1222,8 +1218,7 @@ public class Automaton {
 
     public void bind(List<String> names) {
         if (isTRUE_FALSE_AUTOMATON() || getA().size() != names.size()) throw ExceptionHelper.invalidBind();
-        if (getLabel() == null || !getLabel().isEmpty()) setLabel(new ArrayList<>());
-        this.getLabel().addAll(names);
+        setLabels(names);
         labelSorted = false;
         setCanonized(false);
         AutomatonLogicalOps.removeSameInputs(this, 0);

@@ -15,7 +15,7 @@
  *   You should have received a copy of the GNU General Public License
  *   along with Walnut.  If not, see <http://www.gnu.org/licenses/>.
  */
-package Automata;
+package Automata.FA;
 
 class ValmariPartition {
     static int[] M, W;

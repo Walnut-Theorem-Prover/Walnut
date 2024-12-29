@@ -33,10 +33,10 @@ import java.util.Map;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.Set;
-import java.util.Iterator;
 
-import Main.ExceptionHelper;
+import Automata.FA.FA;
 import Main.UtilityMethods;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectRBTreeMap;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
@@ -277,20 +277,15 @@ public class Transducer extends Automaton {
                 }
 
                 // Copy the label
-                if (M.getLabel() != null && M.getLabel().size() == M.getA().size()) {
+                if (M.isBound()) {
                     N.getLabel().add(M.getLabel().get(i));
                 }
             }
-
-            // TODO: This probably should be configurable, and should not necessarily be 0.
-            N.setQ0(0);
 
             /*
                 Need to find P and Q so the transition function of the Transducer becomes ultimately periodic with lag Q
                 and period P.
              */
-
-            int p, q;
 
             // Will be used for hashing the iterate maps.
             HashMap<List<Map<Integer, Integer>>, Integer> iterateMapHash = new HashMap<>();
@@ -305,73 +300,33 @@ public class Transducer extends Automaton {
             List<List<Integer>> initStrings = new ArrayList<>();
 
             // start with the empty string.
-            HashMap<Integer, Integer> identity = new HashMap<>();
-
-            // identity will be the identity, so we want to iterate through the states of the transducer.
-            for (int i = 0; i < getQ(); i++) {
-                identity.put(i, i);
-            }
+            Map<Integer, Integer> identity = createIdentityMap(this.getQ());
 
             // will add M.Q maps to initMaps.
             for (int i = 0; i < M.getQ(); i++) {
-
-                HashMap<Integer, Integer> map = new HashMap<>();
-
-                for (int j = 0; j < getQ(); j++) {
-                    map.put(j, getD().get(j).get( encode(List.of(M.getO().getInt(i))) ).getInt(0));
-                }
-
+                Map<Integer, Integer> map = createMap2(M.getFa(), i);
                 initMaps.add(map);
-
                 initStrings.add(List.of(i));
             }
 
             iterateMapHash.put(initMaps, 0);
-
-
             iterateStrings.add(initStrings);
 
             int mFound = -1, nFound = -1;
 
             for (int m = 1; ; m++) {
-
                 List<List<Integer>> prevStrings = iterateStrings.get(iterateStrings.size() - 1);
-
                 List<Map<Integer, Integer>> newMaps = new ArrayList<>();
-
                 List<List<Integer>> newStrings = new ArrayList<>();
 
                 for (int i = 0; i < M.getQ(); i++) {
-
                     // will be h^m(i)
-                    List<Integer> iString = new ArrayList<>();
-
-                    for (int u = 0; u < prevStrings.get(i).size(); u++) {
-
-                        // for every digit in the alphabet of M
-                        for (int l : M.getD().get(prevStrings.get(i).get(u)).keySet()) {
-
-                            // each list of states that this transition goes to.
-                            // we assuming it's a DFA for now, so this has length 1 we're assuming...
-
-                            // get the first index of M.d on state x and edge label l
-
-                            iString.add(M.getD().get(prevStrings.get(i).get(u)).get(l).getInt(0));
-                        }
-                    }
+                    List<Integer> iString = getDestinationForDFA(M, prevStrings.get(i));
 
                     newStrings.add(iString);
 
                     // start off with the identity.
-                    HashMap<Integer, Integer> mapSoFar = new HashMap<>(identity);
-
-                    for (Integer integer : iString) {
-                        HashMap<Integer, Integer> newMap = new HashMap<>();
-                        for (int l = 0; l < getQ(); l++) {
-                            newMap.put(l, getD().get(mapSoFar.get(l)).get(encode(List.of(M.getO().getInt(integer)))).getInt(0));
-                        }
-                        mapSoFar = newMap;
-                    }
+                    Map<Integer, Integer> mapSoFar = createMapSoFar(M.getFa(), identity, iString);
 
                     newMaps.add(mapSoFar);
 
@@ -393,8 +348,8 @@ public class Transducer extends Automaton {
 
             }
 
-            p = mFound - nFound;
-            q = nFound;
+            int p = mFound - nFound;
+            int q = nFound;
 
         /*
             Make the states of the automaton.
@@ -407,17 +362,16 @@ public class Transducer extends Automaton {
             // tuple of the form (a, iters) where iters is a list of p+q maps phi_{M.O(w)}, ..., phi_{h^{p+q-1}(M.O(W))}
             class StateTuple {
                 final int state;
-                final List<Integer> string;
+                final List<Integer> iList;
                 final List<Map<Integer, Integer>> iterates;
-                StateTuple(int state, List<Integer> string, List<Map<Integer, Integer>> iterates) {
+                StateTuple(int state, List<Integer> iList, List<Map<Integer, Integer>> iterates) {
                     this.state = state;
-                    this.string = string;
+                    this.iList = iList;
                     this.iterates = iterates;
                 }
 
                 @Override
                 public boolean equals(Object o) {
-
                     // DO NOT compare the string.
                     if (this == o) {
                         return true;
@@ -443,7 +397,6 @@ public class Transducer extends Automaton {
 
                 @Override
                 public int hashCode() {
-
                     // DO NOT use the string to hash. Only use the state and the iterates.
                     int result = this.state ^ (this.state >>> 32);
                     result = 31 * result + this.iterates.hashCode();
@@ -451,18 +404,12 @@ public class Transducer extends Automaton {
                 }
             }
 
-            ArrayList<StateTuple> states = new ArrayList<>();
-
-            HashMap<StateTuple, Integer> statesHash = new HashMap<>();
-
+            List<StateTuple> states = new ArrayList<>();
+            Map<StateTuple, Integer> statesHash = new HashMap<>();
             Queue<StateTuple> statesQueue = new LinkedList<>();
-
             StateTuple initState = new StateTuple(M.getQ0(), List.of(), createIterates(M, List.of(), p+q));
-
             states.add(initState);
-
             statesHash.put(initState, states.size() - 1);
-
             statesQueue.add(initState);
 
             while (!statesQueue.isEmpty()) {
@@ -475,30 +422,16 @@ public class Transducer extends Automaton {
                 N.getD().add(new Int2ObjectRBTreeMap<>());
 
                 // get h(w) where w = currState.string .
-                List<Integer> newString = new ArrayList<>();
-
-                for (int u = 0; u < currState.string.size(); u++) {
-
-                    // for every digit in the alphabet of M
-                    for (int l : M.getD().get(currState.string.get(u)).keySet()) {
-
-                        // each list of states that this transition goes to.
-                        // we assuming it's a DFA for now, so this has length 1 we're assuming...
-
-                        // get the first index of M.d on state x and edge label l
-
-                        newString.add(M.getD().get(currState.string.get(u)).get(l).getInt(0));
-                    }
-                }
+                List<Integer> newString = getDestinationForDFA(M, currState.iList);
 
                 List<Integer> stateMorphed = new ArrayList<>();
 
                 // relying on the di's to be sorted here...
-                for (int di : M.getD().get(currState.state).keySet()) {
-                    stateMorphed.add(M.getD().get(currState.state).get(di).getInt(0));
+                for (Int2ObjectMap.Entry<IntList> entry : M.getD().get(currState.state).int2ObjectEntrySet()) {
+                    stateMorphed.add(entry.getValue().getInt(0));
                 }
 
-                // look at all of the states that this state transitions to.
+                // look at the states that this state transitions to.
                 for (int di : M.getD().get(currState.state).keySet()) {
                     // make new state string
                     List<Integer> newStateString = new ArrayList<>(newString);
@@ -528,7 +461,6 @@ public class Transducer extends Automaton {
             }
 
             N.setQ(states.size());
-
             N.setAlphabetSize(M.getAlphabetSize());
 
             N.minimizeSelfWithOutput(print, prefix+" ", log);
@@ -536,13 +468,26 @@ public class Transducer extends Automaton {
             long timeAfter = System.currentTimeMillis();
             UtilityMethods.logMessage(print, prefix + "transduced: " + N.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
 
-
             return N;
         } catch (RuntimeException e) {
             e.printStackTrace();
             throw new RuntimeException("Error transducing automaton");
         }
 
+    }
+
+    private static List<Integer> getDestinationForDFA(Automaton M, List<Integer> prevString) {
+        List<Integer> iString = new ArrayList<>();
+        for (Integer integer : prevString) {
+            // for every digit in the alphabet of M
+            for (Int2ObjectMap.Entry<IntList> entry : M.getD().get(integer).int2ObjectEntrySet()) {
+                // each list of states that this transition goes to.
+                // we assuming it's a DFA for now, so this has length 1 we're assuming...
+                // get the first index of M.d on state x and edge label l
+                iString.add(entry.getValue().getInt(0));
+            }
+        }
+        return iString;
     }
 
     /**
@@ -563,10 +508,10 @@ public class Transducer extends Automaton {
             throw new RuntimeException("Automata with only one input can be transduced.");
         }
 
-
         // Check that the output alphabet of the automaton is compatible with the input alphabet of the transducer.
-        for (int i = 0; i < M.getO().size(); i++) {
-            int encoded = encode(List.of(M.getO().getInt(i)));
+        IntList O = M.getO();
+        for (int i = 0; i < O.size(); i++) {
+            int encoded = encode(List.of(O.getInt(i)));
             if (!getD().get(0).containsKey(encoded)) {
                 throw new RuntimeException("Output alphabet of automaton must be compatible with the transducer input alphabet");
             }
@@ -581,19 +526,8 @@ public class Transducer extends Automaton {
             AutomatonLogicalOps.reverseWithOutput(M, true, print, prefix+" ", log);
         }
 
-
         // verify that the automaton is indeed nondeterministic, i.e. it has undefined transitions. If it is not, transduce normally.
-        boolean totalized = true;
-        for(int q = 0; q < M.getQ(); q++){
-            for(int x = 0; x < M.getAlphabetSize(); x++){
-                if(!M.getD().get(q).containsKey(x)) {
-                    totalized = false;
-                }
-                else if (M.getD().get(q).get(x).size() > 1) {
-                    throw new RuntimeException("Automaton must have at most one transition per input per state.");
-                }
-            }
-        }
+        boolean totalized = M.getFa().isTotalized();
         Automaton N;
         if (totalized) {
             // transduce normally
@@ -604,15 +538,7 @@ public class Transducer extends Automaton {
             Mnew.getFa().addDistinguishedDeadState(print, prefix+" ", log);
 
             // after transducing, all states with this minimum output will be removed.
-            int minOutput = 0;
-            if (Mnew.getO().isEmpty()) {
-                throw ExceptionHelper.alphabetIsEmpty();
-            }
-            for (int i = 0; i < Mnew.getO().size(); i++) {
-                if (Mnew.getO().getInt(i) < minOutput) {
-                    minOutput = Mnew.getO().getInt(i);
-                }
-            }
+            int minOutput = Mnew.getFa().determineMinOutput();
 
             Transducer Tnew = clone();
 
@@ -625,30 +551,7 @@ public class Transducer extends Automaton {
 
             N = Tnew.transduceMsdDeterministic(Mnew, print, prefix+" ", log);
 
-            // remove all states that have an output of minOutput
-            HashSet<Integer> statesRemoved = new HashSet<>();
-
-            for (int q = 0; q < N.getQ(); q++) {
-                if (N.getO().getInt(q) == minOutput) {
-                    statesRemoved.add(q);
-                }
-            }
-            for (int q = 0; q < N.getQ(); q++) {
-
-                Iterator<Integer> iter = N.getD().get(q).keySet().iterator();
-
-                while (iter.hasNext()) {
-                    int x = iter.next();
-
-                    if (statesRemoved.contains(N.getD().get(q).get(x).getInt(0))) {
-                        iter.remove();
-                    }
-                }
-            }
-
-            N.setCanonized(false);
-            N.canonize();
-            
+            AutomatonLogicalOps.removeStatesWithMinOutput(N, minOutput);
         }
 
         if (toLsd) {
@@ -657,6 +560,8 @@ public class Transducer extends Automaton {
 
         return N;
     }
+
+
 
     /**
      * Take a string w of states of automaton M, and return the list
@@ -669,50 +574,57 @@ public class Transducer extends Automaton {
      */
     private List<Map<Integer, Integer>> createIterates(Automaton M, List<Integer> string, int size) {
 
-        ArrayList<Map<Integer, Integer>> iterates = new ArrayList<>();
+        List<Map<Integer, Integer>> iterates = new ArrayList<>();
         // start with the empty string.
-        HashMap<Integer, Integer> identity = new HashMap<>();
+        Map<Integer, Integer> identity = createIdentityMap(this.getQ());
 
-        // we want to iterate through the states of the transducer.
-        for (int i = 0; i < getQ(); i++) {
-            identity.put(i, i);
-        }
-
-        ArrayList<Integer> currString = new ArrayList<>(string);
+        List<Integer> dests = new ArrayList<>(string);
 
         for (int i = 0; i < size; i++) {
-
             // make the map associated with currString and add it to the iterates array.
-
             // start off with the identity.
-            HashMap<Integer, Integer> mapSoFar = new HashMap<>(identity);
-
-            for (Integer integer : currString) {
-                HashMap<Integer, Integer> newMap = new HashMap<>();
-                for (int l = 0; l < getQ(); l++) {
-                    newMap.put(l, getD().get(mapSoFar.get(l)).get(encode(List.of(M.getO().getInt(integer)))).getInt(0));
-                }
-                mapSoFar = newMap;
-            }
-
-            iterates.add(mapSoFar);
+            iterates.add(createMapSoFar(M.getFa(), identity, dests));
 
             // make new string currString to be h(currString), where h is the morphism associated with M.
             if (i != size - 1) {
-                ArrayList<Integer> newString = new ArrayList<>();
-                for (Integer integer : currString) {
-                    // for every digit in the alphabet of M
-                    for (int l : M.getD().get(integer).keySet()) {
-                        // each list of states that this transition goes to.
-                        // we assuming it's a DFA for now, so this has length 1 we're assuming...
-                        // get the first index of M.d on state x and edge label l
-                        newString.add(M.getD().get(integer).get(l).getInt(0));
-                    }
-                }
-                currString = newString;
+              dests = getDestinationForDFA(M, dests);
             }
         }
 
         return iterates;
+    }
+
+    private static Map<Integer, Integer> createIdentityMap(int Q) {
+        Map<Integer, Integer> identity = new HashMap<>();
+        for (int i = 0; i < Q; i++) {
+            identity.put(i, i);
+        }
+        return identity;
+    }
+
+    private Map<Integer, Integer> createMapSoFar(FA M, Map<Integer, Integer> identity, List<Integer> iString) {
+        Map<Integer, Integer> mapSoFar = new HashMap<>(identity);
+        for (Integer i : iString) {
+            mapSoFar = createMap(M, i, mapSoFar);
+        }
+        return mapSoFar;
+    }
+
+    private Map<Integer, Integer> createMap2(FA M, int i) {
+        int encoded = encode(List.of(M.getO().getInt(i)));
+        Map<Integer, Integer> map = new HashMap<>();
+        for (int j = 0; j < getQ(); j++) {
+            map.put(j, getD().get(j).get(encoded).getInt(0));
+        }
+        return map;
+    }
+
+    private Map<Integer, Integer> createMap(FA M, Integer i, Map<Integer, Integer> mapSoFar) {
+        int encoded = encode(List.of(M.getO().getInt(i)));
+        Map<Integer, Integer> map = new HashMap<>();
+        for (int j = 0; j < getQ(); j++) {
+            map.put(j, getD().get(mapSoFar.get(j)).get(encoded).getInt(0));
+        }
+        return map;
     }
 }

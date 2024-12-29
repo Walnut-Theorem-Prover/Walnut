@@ -21,6 +21,7 @@ package Automata;
 import java.io.File;
 import java.util.*;
 
+import Automata.FA.FA;
 import Main.ExceptionHelper;
 import Main.Session;
 import Main.UtilityMethods;
@@ -109,7 +110,7 @@ public class NumberSystem {
     private final Map<Integer, Automaton> multiplicationsDynamicTable;
     private final Map<Integer, Automaton> divisionsDynamicTable;
 
-    private boolean flag_should_we_use_allRepresentations = true;
+    private boolean flagUseAllRepresentations = true;
 
     // flip the number system from msd to lsd and vice versa.
     static void flipNS(List<NumberSystem> numberSystems) {
@@ -151,8 +152,8 @@ public class NumberSystem {
         return name;
     }
 
-    public boolean should_we_use_allRepresentations() {
-        return flag_should_we_use_allRepresentations;
+    public boolean useAllRepresentations() {
+        return flagUseAllRepresentations;
     }
 
     public List<Integer> getAlphabet() {
@@ -272,14 +273,13 @@ public class NumberSystem {
             allRepresentations = new Automaton(complement_addressForTheSetOfAllRepresentations);
             AutomatonLogicalOps.reverse(allRepresentations, false, null, null, false);
         } else {
-            flag_should_we_use_allRepresentations = false;
+            flagUseAllRepresentations = false;
         }
 
-        if (flag_should_we_use_allRepresentations) {
+        if (flagUseAllRepresentations) {
             for (int i = 0; i < allRepresentations.getNS().size(); i++) {
                 allRepresentations.getNS().set(i, this);
             }
-
             applyAllRepresentations();
         }
 
@@ -295,8 +295,9 @@ public class NumberSystem {
      */
     private void setEquality(List<Integer> alphabet) {
         equality = initBasicAutomaton(IntList.of(1), 2, alphabet);
+        FA equalityFA = equality.getFa();
         for (int i = 0; i < alphabet.size(); i++) {
-            addTransition(equality, 0, 0, i * alphabet.size() + i);
+            equalityFA.addTransition(0, 0, i * alphabet.size() + i);
         }
     }
 
@@ -310,15 +311,16 @@ public class NumberSystem {
         alphabet = new ArrayList<>(alphabet);
         Collections.sort(alphabet);
         lessThan = initBasicAutomaton(IntList.of(0,1), 2, alphabet);
+        FA lessThanFA = lessThan.getFa();
         for (int i = 0; i < alphabet.size(); i++) {
             for (int j = 0; j < alphabet.size(); j++) {
                 if (i == j) {
-                    addTransition(lessThan, 0, 0, j * alphabet.size() + i);
+                    lessThanFA.addTransition(0, 0, j * alphabet.size() + i);
                 }
                 if (i < j) {
-                    addTransition(lessThan, 0, 1, j * alphabet.size() + i);
+                    lessThanFA.addTransition(0, 1, j * alphabet.size() + i);
                 }
-                addTransition(lessThan, 1, 1, i * alphabet.size() + j);
+                lessThanFA.addTransition(1, 1, i * alphabet.size() + j);
             }
         }
         if (!is_msd) {
@@ -355,7 +357,7 @@ public class NumberSystem {
             baseChange = new Automaton(addressForComparison);
         } else if (new File(complement_addressForComparison).isFile()) {
             baseChange = new Automaton(complement_addressForComparison);
-            AutomatonLogicalOps.reverse(baseChange, false, null, null);
+            AutomatonLogicalOps.reverse(baseChange, false, null, null, false);
         } else if (UtilityMethods.parseNegNumber(base) > 1) {
             base_n_base_change(UtilityMethods.parseNegNumber(base));
         }
@@ -380,21 +382,22 @@ public class NumberSystem {
         List<Integer> alphabet = new ArrayList<>();
         for (int i = 0; i < n; i++) alphabet.add(i);
         addition = initBasicAutomaton(IntList.of(1,0), 3, alphabet);
+        FA additionFA = addition.getFa();
         int l = 0;
         for (int k = 0; k < n; k++) {
             for (int j = 0; j < n; j++) {
                 for (int i = 0; i < n; i++) {
                     if (i + j == k) {
-                        addTransition(addition, 0, 0, l);
+                        additionFA.addTransition(0, 0, l);
                     }
                     if (i + j + 1 == k) {
-                        addTransition(addition, 0, 1, l);
+                        additionFA.addTransition(0, 1, l);
                     }
                     if (i + j + 1 == k + n) {
-                        addTransition(addition, 1, 1, l);
+                        additionFA.addTransition(1, 1, l);
                     }
                     if (i + j == k + n) {
-                        addTransition(addition, 1, 0, l);
+                        additionFA.addTransition(1, 0, l);
                     }
                     l++;
                 }
@@ -416,30 +419,31 @@ public class NumberSystem {
         List<Integer> alphabet = new ArrayList<>(n);
         for (int i = 0; i < n; i++) alphabet.add(i);
         addition =  initBasicAutomaton(IntList.of(1,0,0), 3, alphabet);
+        FA additionFA = addition.getFa();
         int l = 0;
         for (int k = 0; k < n; k++) {
             for (int j = 0; j < n; j++) {
                 for (int i = 0; i < n; i++) {
                     if (i + j == k) {
-                        addTransition(addition, 0, 0, l);
+                        additionFA.addTransition(0, 0, l);
                     }
                     if (i + j + 1 == k) {
-                        addTransition(addition, 0, 1, l);
+                        additionFA.addTransition(0, 1, l);
                     }
                     if (i + j - 1 == k) {
-                        addTransition(addition, 0, 2, l);
+                        additionFA.addTransition(0, 2, l);
                     }
                     if (i + j == k + n) {
-                        addTransition(addition, 2, 0, l);
+                        additionFA.addTransition(2, 0, l);
                     }
                     if (i + j + 1 == k + n) {
-                        addTransition(addition, 2, 1, l);
+                        additionFA.addTransition(2, 1, l);
                     }
                     if (i + j - 1 == k + n) {
-                        addTransition(addition, 2, 2, l);
+                        additionFA.addTransition(2, 2, l);
                     }
                     if (i == 0 && j == 0 && k == n - 1) {
-                        addTransition(addition, 1, 2, l);
+                        additionFA.addTransition(1, 2, l);
                     }
                     l++;
                 }
@@ -449,12 +453,6 @@ public class NumberSystem {
         if (!is_msd) {
             AutomatonLogicalOps.reverse(addition, false, null, null, false);
         }
-    }
-
-    private static void addTransition(Automaton automaton, int src, int dest, int inp) {
-        IntList destStates = new IntArrayList();
-        destStates.add(dest);
-        automaton.getD().get(src).put(inp, destStates);
     }
 
     /**
@@ -467,20 +465,21 @@ public class NumberSystem {
         List<Integer> alphabet = new ArrayList<>();
         for (int i = 0; i < n; i++) alphabet.add(i);
         lessThan = initBasicAutomaton(IntList.of(0,1,0), 2, alphabet);
+        FA lessThanFA = lessThan.getFa();
         int l = 0;
         for (int j = 0; j < n; j++) {
             for (int i = 0; i < n; i++) {
                 if (i == j) {
-                    addTransition(lessThan, 0, 0, l);
+                    lessThanFA.addTransition(0, 0, l);
                 }
                 if (i < j) {
-                    addTransition(lessThan, 0, 1, l);
+                    lessThanFA.addTransition(0, 1, l);
                 }
                 if (j < i) {
-                    addTransition(lessThan, 0, 2, l);
+                    lessThanFA.addTransition(0, 2, l);
                 }
-                addTransition(lessThan, 1, 2, l);
-                addTransition(lessThan, 2, 1, l);
+                lessThanFA.addTransition(1, 2, l);
+                lessThanFA.addTransition(2, 1, l);
                 l++;
             }
         }
@@ -511,33 +510,34 @@ public class NumberSystem {
         baseChange.getA().add(new ArrayList<>(alphabet));
         baseChange.getA().add(alphabet);
         baseChange.determineAlphabetSizeFromA();
+        FA baseChangeFA = baseChange.getFa();
         int l = 0;
         for (int j = 0; j < n; j++) {
             for (int i = 0; i < n; i++) {
                 if (i == 0 && j == 0) {
-                    addTransition(baseChange, 1, 0, l);
+                    baseChangeFA.addTransition(1, 0, l);
                 }
                 if (i == j) {
-                    addTransition(baseChange, 0, 1, l);
+                    baseChangeFA.addTransition(0, 1, l);
                 }
                 if (i + 1 == j) {
-                    addTransition(baseChange, 2, 1, l);
+                    baseChangeFA.addTransition(2, 1, l);
                 }
                 if (i + j == n) {
-                    addTransition(baseChange, 1, 2, l);
+                    baseChangeFA.addTransition(1, 2, l);
                 }
                 if (i + j == n - 1) {
-                    addTransition(baseChange, 3, 2, l);
+                    baseChangeFA.addTransition(3, 2, l);
                 }
                 if (i == n - 1 && j == 0) {
-                    addTransition(baseChange, 2, 3, l);
+                    baseChangeFA.addTransition(2, 3, l);
                 }
                 l++;
             }
         }
 
         if (is_msd) {
-            AutomatonLogicalOps.reverse(baseChange, false, null, null);
+            AutomatonLogicalOps.reverse(baseChange, false, null, null, false);
         }
     }
 

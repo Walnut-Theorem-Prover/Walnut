@@ -17,6 +17,7 @@
  */
 package Automata;
 
+import Automata.FA.FA;
 import Main.ExceptionHelper;
 import Main.UtilityMethods;
 import it.unimi.dsi.fastutil.ints.*;
@@ -123,7 +124,7 @@ public class AutomatonLogicalOps {
     private static void crossProductInternal(
         FA automaton, FA M, FA N, int combineOut, List<Integer> allInputsOfN, String op,
         boolean print, String prefix, StringBuilder log, long timeBefore) {
-        ArrayList<List<Integer>> statesList = new ArrayList<>();
+        List<List<Integer>> statesList = new ArrayList<>();
         Map<List<Integer>, Integer> statesHash = new HashMap<>();
         N.setQ0(0);
         statesList.add(Arrays.asList(automaton.getQ0(), M.getQ0()));
@@ -148,14 +149,14 @@ public class AutomatonLogicalOps {
             N.getD().add(thisStatesTransitions);
             N.getO().add(determineOutput(automaton, M, op, p, q, combineOut));
 
-            for (int x : automaton.getD().get(p).keySet()) {
-                for (int y : M.getD().get(q).keySet()) {
-                    int z = allInputsOfN.get(x * M.getAlphabetSize() + y);
+            for (Int2ObjectMap.Entry<IntList> entry : automaton.getD().get(p).int2ObjectEntrySet()) {
+                for (Int2ObjectMap.Entry<IntList> entry2 : M.getD().get(q).int2ObjectEntrySet()) {
+                    int z = allInputsOfN.get(entry.getIntKey() * M.getAlphabetSize() + entry2.getIntKey());
                     if (z != -1) {
                         IntList dest = new IntArrayList();
                         thisStatesTransitions.put(z, dest);
-                        for (int dest1 : automaton.getD().get(p).get(x)) {
-                            for (int dest2 : M.getD().get(q).get(y)) {
+                        for (int dest1 : entry.getValue()) {
+                            for (int dest2 : entry2.getValue()) {
                                 List<Integer> dest3 = Arrays.asList(dest1, dest2);
                                 if (!statesHash.containsKey(dest3)) {
                                     statesList.add(dest3);
@@ -439,8 +440,8 @@ public class AutomatonLogicalOps {
 
         for (int q = 0; q < otherClone.getQ(); q++) {
             Int2ObjectRBTreeMap<IntList> newMap = new Int2ObjectRBTreeMap<>();
-            for (int x : otherClone.getD().get(q).keySet()) {
-                newMap.put(automaton.encode(Automaton.decode(otherClone.getA(), x)), otherClone.getD().get(q).get(x));
+            for (Int2ObjectMap.Entry<IntList> entry : otherClone.getD().get(q).int2ObjectEntrySet()) {
+                newMap.put(automaton.encode(Automaton.decode(otherClone.getA(), entry.getIntKey())), entry.getValue());
             }
             newOtherD.add(newMap);
         }
@@ -720,14 +721,10 @@ public class AutomatonLogicalOps {
         for (int q = 0; q < automaton.getQ(); q++) {
             Int2ObjectRBTreeMap<IntList> currentStatesTransition = new Int2ObjectRBTreeMap<>();
             new_d.add(currentStatesTransition);
-            for (int n : automaton.getD().get(q).keySet()) {
-                int m = map.get(n);
+            for (Int2ObjectMap.Entry<IntList> entry : automaton.getD().get(q).int2ObjectEntrySet()) {
+                int m = map.get(entry.getIntKey());
                 if (m != -1) {
-                    IntList dest = automaton.getD().get(q).get(n);
-                    if (currentStatesTransition.containsKey(m))
-                        currentStatesTransition.get(m).addAll(dest);
-                    else
-                        currentStatesTransition.put(m, new IntArrayList(dest));
+                    currentStatesTransition.computeIfAbsent(m, key -> new IntArrayList()).addAll(entry.getValue());
                 }
             }
         }
@@ -872,12 +869,12 @@ public class AutomatonLogicalOps {
         for (int q = 0; q < automaton.getQ(); q++) {
             Int2ObjectRBTreeMap<IntList> newMemDransitionFunction = new Int2ObjectRBTreeMap<>();
             new_d.add(newMemDransitionFunction);
-            for (int x : automaton.getD().get(q).keySet()) {
-                int y = permutation.get(x);
+            for (Int2ObjectMap.Entry<IntList> entry : automaton.getD().get(q).int2ObjectEntrySet()) {
+                int y = permutation.get(entry.getIntKey());
                 if (newMemDransitionFunction.containsKey(y))
-                    UtilityMethods.addAllWithoutRepetition(newMemDransitionFunction.get(y), automaton.getD().get(q).get(x));
+                    UtilityMethods.addAllWithoutRepetition(newMemDransitionFunction.get(y), entry.getValue());
                 else
-                    newMemDransitionFunction.put(y, new IntArrayList(automaton.getD().get(q).get(x)));
+                    newMemDransitionFunction.put(y, new IntArrayList(entry.getValue()));
             }
         }
         automaton.setD(new_d);
@@ -895,21 +892,14 @@ public class AutomatonLogicalOps {
      * @return the reverse of this automaton
      */
     public static void reverse(
-        Automaton automaton, boolean print, String prefix, StringBuilder log, boolean reverseMsd, boolean skipMinimize) {
-        if (automaton.isTRUE_FALSE_AUTOMATON()) {
-            return;
-        }
-
+        Automaton automaton, boolean print, String prefix, StringBuilder log, boolean reverseMsd) {
+        if (automaton.isTRUE_FALSE_AUTOMATON()) return;
         long timeBefore = System.currentTimeMillis();
         UtilityMethods.logMessage(print, prefix + "Reversing:" + automaton.getQ() + " states", log);
 
         IntSet setOfFinalStates = automaton.getFa().reverseDFAtoNFAInternal();
-
         List<Int2IntMap> newMemD = automaton.getFa().subsetConstruction(null, setOfFinalStates, print, prefix + " ", log);
-
-        if (!skipMinimize) {
-            automaton.minimize(newMemD, print, prefix + " ", log);
-        }
+        automaton.minimize(newMemD, print, prefix + " ", log);
 
         if (reverseMsd) {
             NumberSystem.flipNS(automaton.getNS());
@@ -917,16 +907,6 @@ public class AutomatonLogicalOps {
 
         long timeAfter = System.currentTimeMillis();
         UtilityMethods.logMessage(print, prefix + "reversed:" + automaton.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
-    }
-
-    public static void reverse(
-        Automaton automaton, boolean print, String prefix, StringBuilder log, boolean reverseMsd) {
-        reverse(automaton, print, prefix, log, reverseMsd, false);
-    }
-
-    public static void reverse(
-        Automaton automaton, boolean print, String prefix, StringBuilder log) {
-        reverse(automaton, print, prefix, log, false);
     }
 
     /**
@@ -947,20 +927,14 @@ public class AutomatonLogicalOps {
             if (addedDeadState) {
                 // get state with smallest output. all states with this output will be removed.
                 // after transducing, all states with this minimum output will be removed.
-
-                for (int i = 0; i < automaton.getO().size(); i++) {
-                    if (automaton.getO().getInt(i) < minOutput) {
-                        minOutput = automaton.getO().getInt(i);
-                    }
-                }
+                minOutput = automaton.getFa().determineMinOutput();
             }
-
 
             // need to define states, an initial state, transitions, and outputs.
 
-            ArrayList<Map<Integer, Integer>> newStates = new ArrayList<>();
+            List<Map<Integer, Integer>> newStates = new ArrayList<>();
 
-            HashMap<Map<Integer, Integer>, Integer> newStatesHash = new HashMap<>();
+            Map<Map<Integer, Integer>, Integer> newStatesHash = new HashMap<>();
 
             Queue<Map<Integer, Integer>> newStatesQueue = new LinkedList<>();
 
@@ -1002,8 +976,8 @@ public class AutomatonLogicalOps {
 
                     if (!newStatesHash.containsKey(toState)) {
                         newStates.add(toState);
-                        newStatesHash.put(toState, newStates.size() - 1);
                         newStatesQueue.add(toState);
+                        newStatesHash.put(toState, newStates.size() - 1);
                     }
 
                     // set up the transition.
@@ -1013,11 +987,7 @@ public class AutomatonLogicalOps {
                 }
             }
 
-            automaton.setQ(newStates.size());
-
-            automaton.setO(newO);
-
-            automaton.setD(newD);
+            automaton.getFa().setFields(newStates.size(), newO, newD);
 
             if (reverseMsd) {
                 NumberSystem.flipNS(automaton.getNS());
@@ -1026,29 +996,7 @@ public class AutomatonLogicalOps {
             automaton.minimizeSelfWithOutput(print, prefix + " ", log);
 
             if (addedDeadState) {
-                // remove all states that have an output of minOutput
-                HashSet<Integer> statesRemoved = new HashSet<>();
-
-                for (int q = 0; q < automaton.getQ(); q++) {
-                    if (automaton.getO().getInt(q) == minOutput) {
-                        statesRemoved.add(q);
-                    }
-                }
-                for (int q = 0; q < automaton.getQ(); q++) {
-
-                    Iterator<Integer> iter = automaton.getD().get(q).keySet().iterator();
-
-                    while (iter.hasNext()) {
-                        int x = iter.next();
-
-                        if (statesRemoved.contains(automaton.getD().get(q).get(x).getInt(0))) {
-                            iter.remove();
-                        }
-                    }
-                }
-
-                automaton.setCanonized(false);
-                automaton.canonize();
+                removeStatesWithMinOutput(automaton, minOutput);
             }
 
             long timeAfter = System.currentTimeMillis();
@@ -1057,6 +1005,27 @@ public class AutomatonLogicalOps {
             e.printStackTrace();
             throw new RuntimeException("Error reversing word automaton");
         }
+    }
+
+    static void removeStatesWithMinOutput(Automaton N, int minOutput) {
+        // remove all states that have an output of minOutput
+        Set<Integer> statesRemoved = new HashSet<>();
+        for (int q = 0; q < N.getQ(); q++) {
+            if (N.getO().getInt(q) == minOutput) {
+                statesRemoved.add(q);
+            }
+        }
+        for (int q = 0; q < N.getQ(); q++) {
+            Iterator<Int2ObjectMap.Entry<IntList>> iter = N.getD().get(q).int2ObjectEntrySet().iterator();
+            while (iter.hasNext()) {
+                Int2ObjectMap.Entry<IntList> entry = iter.next();
+                if (statesRemoved.contains(entry.getValue().getInt(0))) {
+                    iter.remove();
+                }
+            }
+        }
+        N.setCanonized(false);
+        N.canonize();
     }
 
     /**
@@ -1192,11 +1161,11 @@ public class AutomatonLogicalOps {
             // BFS-like approach with StateTuple
             class StateTuple {
                 final int state;
-                final List<Integer> string;
+                final List<Integer> iList;
 
-                StateTuple(int state, List<Integer> string) {
+                StateTuple(int state, List<Integer> iList) {
                     this.state = state;
-                    this.string = string;
+                    this.iList = iList;
                 }
 
                 @Override
@@ -1205,19 +1174,22 @@ public class AutomatonLogicalOps {
                     if (o == null || getClass() != o.getClass()) return false;
                     StateTuple other = (StateTuple) o;
                     // Compare both the state and the string for uniqueness
-                    return this.state == other.state && this.string.equals(other.string);
+                    return this.state == other.state && this.iList.equals(other.iList);
                 }
 
                 @Override
                 public int hashCode() {
                     int result = Integer.hashCode(this.state);
-                    result = 31 * result + this.string.hashCode();
+                    result = 31 * result + this.iList.hashCode();
                     return result;
                 }
             }
 
+            IntList oldO = automaton.getO();
+            List<Int2ObjectRBTreeMap<IntList>> oldD = automaton.getD();
+
             // Prepare BFS structures
-            ArrayList<StateTuple> newStates = new ArrayList<>();
+            List<StateTuple> newStates = new ArrayList<>();
             Queue<StateTuple> queue = new LinkedList<>();
             Map<StateTuple, Integer> stateMap = new HashMap<>();
             List<Int2ObjectRBTreeMap<IntList>> newD = new ArrayList<>();
@@ -1237,28 +1209,28 @@ public class AutomatonLogicalOps {
                 newD.add(new Int2ObjectRBTreeMap<>());
 
                 // Output logic
-                if (curr.string.isEmpty()) {
-                    newO.add(automaton.getO().getInt(curr.state));
+                if (curr.iList.isEmpty()) {
+                    newO.add(oldO.getInt(curr.state));
                 } else {
-                    int stringVal = computeStringValue(curr.string, root);
-                    // The next real state is automaton.getD().get(curr.state).get(stringVal).getInt(0)
-                    int realState = automaton.getD().get(curr.state).get(stringVal).getInt(0);
-                    newO.add(automaton.getO().getInt(realState));
+                    int stringVal = computeStringValue(curr.iList, root);
+                    // The next real state is oldD.get(curr.state).get(stringVal).getInt(0)
+                    int realState = oldD.get(curr.state).get(stringVal).getInt(0);
+                    newO.add(oldO.getInt(realState));
                 }
 
                 // Build transitions for each possible digit di in [0..root-1]
                 for (int di = 0; di < root; di++) {
-                    List<Integer> nextString = new ArrayList<>(curr.string);
+                    List<Integer> nextString = new ArrayList<>(curr.iList);
                     nextString.add(di);
 
                     StateTuple next;
-                    if (curr.string.size() < exponent - 1) {
+                    if (curr.iList.size() < exponent - 1) {
                         // Haven't reached exponent length yet
                         next = new StateTuple(curr.state, nextString);
                     } else {
                         // We have a full 'digit string', so jump to an actual next state
                         int nextStringVal = computeStringValue(nextString, root);
-                        int realState = automaton.getD().get(curr.state).get(nextStringVal).getInt(0);
+                        int realState = oldD.get(curr.state).get(nextStringVal).getInt(0);
                         next = new StateTuple(realState, List.of());
                     }
 
@@ -1270,17 +1242,15 @@ public class AutomatonLogicalOps {
                     }
 
                     // Add transition
-                    int mappedIndex = stateMap.get(next);
                     IntList destList = new IntArrayList();
-                    destList.add(mappedIndex);
+                    destList.add(stateMap.get(next));
                     newD.get(stateMap.get(curr)).put(di, destList);
                 }
             }
 
             // Update automaton
-            automaton.setQ(newStates.size());
-            automaton.setO(newO);
-            automaton.setD(newD);
+            automaton.getFa().setFields(newStates.size(), newO, newD);
+
             automaton.setCanonized(false);
 
             // Update number system to lsd_root

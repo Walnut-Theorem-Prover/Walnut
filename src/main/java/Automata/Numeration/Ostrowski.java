@@ -22,6 +22,7 @@ import java.util.*;
 import java.io.File;
 
 import Automata.*;
+import Automata.FA.FA;
 import Main.Session;
 import it.unimi.dsi.fastutil.ints.Int2ObjectRBTreeMap;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
@@ -71,9 +72,9 @@ public class Ostrowski {
     private int[][][] transition;
 
     // Maps to keep track of states and transitions.
-    private final TreeMap<NodeState, Integer> nodeToIndex;
-    private final TreeMap<Integer, NodeState> indexToNode;
-    private TreeMap<Integer, Int2ObjectRBTreeMap<IntList>> stateTransitions;
+    private final Map<NodeState, Integer> nodeToIndex;
+    private final Map<Integer, NodeState> indexToNode;
+    private Map<Integer, Int2ObjectRBTreeMap<IntList>> stateTransitions;
 
     int totalNodes;
 
@@ -106,16 +107,16 @@ public class Ostrowski {
         assertValues(this.preperiod);
         assertValues(this.period);
 
-        if (this.preperiod.get(0) == 1) {
+        if (this.preperiod.getInt(0) == 1) {
             // We want to restrict alpha < 1/2 because otherwise the first two place values in
             // the number system will be 1, which is troublesome.
             if (this.preperiod.size() > 1) {
-                this.preperiod.set(0, this.preperiod.get(1) + 1);
-                this.preperiod.remove(1);
+                this.preperiod.set(0, this.preperiod.getInt(1) + 1);
+                this.preperiod.removeInt(1);
             } else {
-                this.preperiod.set(0, this.period.get(0) + 1);
-                this.period.add(this.period.get(0));
-                this.period.remove(0);
+                this.preperiod.set(0, this.period.getInt(0) + 1);
+                this.period.add(this.period.getInt(0));
+                this.period.removeInt(0);
             }
         }
 
@@ -126,9 +127,9 @@ public class Ostrowski {
         this.periodIndex = this.preperiod.size() + 1;
         this.sz_alpha = alpha.size();
 
-        dMax = alpha.get(1) - 1;
+        dMax = alpha.getInt(1) - 1;
         for (int i = 2; i < sz_alpha; ++i) {
-            dMax = Math.max(alpha.get(i), dMax);
+            dMax = Math.max(alpha.getInt(i), dMax);
         }
 
         initTransitions();
@@ -268,7 +269,7 @@ public class Ostrowski {
 
     private int alphaI(int i) {
         int index = i < sz_alpha ? i : this.periodIndex + ((i - sz_alpha) % (sz_alpha - this.periodIndex));
-        return alpha.get(index);
+        return alpha.getInt(index);
     }
 
     /** The transition matrix defines the behavior of the "4-input adder" automaton, which is used
@@ -284,8 +285,7 @@ public class Ostrowski {
         transition = new int[NUM_STATES][NUM_STATES][2];
         for (int i = 0; i < NUM_STATES; i++) {
             for (int j = 0; j < NUM_STATES; j++) {
-                transition[i][j][0] = NONE;
-                transition[i][j][1] = NONE;
+                transition[i][j][0] = transition[i][j][1] = NONE;
             }
         }
 
@@ -539,9 +539,8 @@ public class Ostrowski {
             for (int y = 0; y <= d_max; ++y) {
                 for (int z = 0; z <= d_max; ++z) {
                     if (z - x - y == diff) {
-                        int input = inputEncode(d_max+1, x, y, z);
-                        current_state_transitions.putIfAbsent(input, new IntArrayList());
-                        current_state_transitions.get(input).add(encodedDestination);
+                        current_state_transitions.computeIfAbsent(
+                            inputEncode(d_max+1, x, y, z), k -> new IntArrayList()).add(encodedDestination);
                     }
                 }
             }

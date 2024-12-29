@@ -931,7 +931,7 @@ public class IntegrationTest {
 		try{
 			TestCase actual = Prover.dispatchForIntegrationTest(command, String.valueOf(i));
 			Assertions.assertTrue(conformMPL(expected.getMpl().trim(), actual.getMpl().trim()), "MPL does not conform");
-			Assertions.assertTrue(conformDetails(expected.getDetails().trim(), actual.getDetails().trim()), "Details do not conform. \n ----- EXPECTED DETAILS: \n\n" + expected.getDetails().trim() + "\n ----- ACTUAL DETAILS: \n\n" + actual.getDetails().trim());
+			assertEqualMessages(expected.getDetails(), actual.getDetails());
 			Assertions.assertTrue(actual.getResult() == null || expected.getResult() != null);
 			Assertions.assertTrue(actual.getResult() != null || expected.getResult() == null);
 			// We don't use assertEquals here, since equals has been overridden in the Automaton class
@@ -942,21 +942,82 @@ public class IntegrationTest {
 		}
 	}
 
+	private static void assertEqualMessages(String expected, String actual) {
+		String expectedDetails = expected.trim();
+		expectedDetails = expectedDetails.replaceAll(" {2}"," ");
+		String actualDetails = actual.trim();
+		actualDetails = actualDetails.replaceAll(" {2}"," ");
+		if (!conformDetails(expectedDetails, actualDetails)) {
+			int startIndex = findFirstDifferingIndex(expectedDetails, actualDetails);
+			int endIndex = findLastDifferingIndex(expectedDetails, actualDetails);
+			String message = "Details do not conform. \n ----- STARTING SECTION:\n" + expectedDetails.substring(0, startIndex);
+			message += "\n ----- EXPECTED SECTION:\n" + expectedDetails.substring(startIndex, Math.min(startIndex+50, endIndex+1));
+			message += "\n ----- ACTUAL SECTION:\n" + actualDetails.substring(startIndex, Math.min(startIndex+50, endIndex+1));
+			Assertions.fail(message);
+		}
+	}
 
-	private boolean conformMPL(String expected_mpl,String actual_mpl){
+
+	private static boolean conformMPL(String expected_mpl,String actual_mpl){
 		if(expected_mpl == null && actual_mpl == null)return true;
 		if(expected_mpl == null) return false;
 		if(expected_mpl.isEmpty() && actual_mpl.isEmpty()) return true;
     return expected_mpl.equals(actual_mpl);
   }
 
-	private boolean conformDetails(String expected_details,String actual_details){
+	private static boolean conformDetails(String expected_details,String actual_details){
 		if(expected_details == null && actual_details == null)return true;
 		if(expected_details == null) return false;
 		if(expected_details.isEmpty() && actual_details.isEmpty()) return true;
 		expected_details = expected_details.replaceAll("\\d+ms", "");
 		actual_details = actual_details.replaceAll("\\d+ms", "");
 		return expected_details.equals(actual_details);
+	}
+
+	private static int findFirstDifferingIndex(String str1, String str2) {
+		int startDiff = 0;
+		int endDiff1 = str1.length() - 1;
+		int endDiff2 = str2.length() - 1;
+
+		// Find the start of the differing section
+		while (startDiff < str1.length() && startDiff < str2.length()
+				&& str1.charAt(startDiff) == str2.charAt(startDiff)) {
+			startDiff++;
+		}
+
+		// Find the end of the differing section
+		while (endDiff1 >= startDiff && endDiff2 >= startDiff
+				&& str1.charAt(endDiff1) == str2.charAt(endDiff2)) {
+			endDiff1--;
+			endDiff2--;
+		}
+		if (startDiff > endDiff1 && startDiff > endDiff2) {
+			return -1;
+		}
+		return startDiff;
+	}
+
+	private static int findLastDifferingIndex(String str1, String str2) {
+		int startDiff = 0;
+		int endDiff1 = str1.length() - 1;
+		int endDiff2 = str2.length() - 1;
+
+		// Find the start of the differing section
+		while (startDiff < str1.length() && startDiff < str2.length()
+				&& str1.charAt(startDiff) == str2.charAt(startDiff)) {
+			startDiff++;
+		}
+
+		// Find the end of the differing section
+		while (endDiff1 >= startDiff && endDiff2 >= startDiff
+				&& str1.charAt(endDiff1) == str2.charAt(endDiff2)) {
+			endDiff1--;
+			endDiff2--;
+		}
+		if (startDiff > endDiff1 && startDiff > endDiff2) {
+			return -1;
+		}
+		return endDiff1;
 	}
 
 	private static List<TestCase> loadTestCases(List<String> L, String directoryAddress) throws IOException {

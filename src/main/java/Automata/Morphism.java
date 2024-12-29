@@ -27,11 +27,9 @@ import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import java.util.TreeMap;
 
 /**
  * The class Morphism represents a morphism from a finite alphabet to the integers,
@@ -60,8 +58,8 @@ public class Morphism {
       // The name of the morphism
       this.mapping = ParseMethods.parseMorphism(mapString);
         this.range = new HashSet<>();
-        for (Integer key : mapping.keySet()) {
-            range.addAll(mapping.get(key));
+        for(Map.Entry<Integer, List<Integer>> entry: mapping.entrySet()) {
+            range.addAll(entry.getValue());
         }
     }
 
@@ -72,9 +70,9 @@ public class Morphism {
 
     public void write(String address) throws IOException {
         PrintWriter out = new PrintWriter(address, StandardCharsets.UTF_8);
-        for (Integer x : mapping.keySet()) {
-            out.write(x.toString() + " -> ");
-            for (Integer y : mapping.get(x)) {
+        for(Map.Entry<Integer, List<Integer>> entry: mapping.entrySet()) {
+            out.write(entry.getKey().toString() + " -> ");
+            for (Integer y : entry.getValue()) {
                 if ((0 <= y) && (9 >= y)) {
                     out.write(y.toString());
                 } else {
@@ -88,8 +86,8 @@ public class Morphism {
 
     public Automaton toWordAutomaton() {
         int maxImageLength = 0;
-        for (int x : mapping.keySet()) {
-            int length = mapping.get(x).size();
+        for(Map.Entry<Integer, List<Integer>> entry: mapping.entrySet()) {
+            int length = entry.getValue().size();
             if (length > maxImageLength) {
                 maxImageLength = length;
             }
@@ -98,8 +96,8 @@ public class Morphism {
         List<Integer> alphabet = IntStream.rangeClosed(0, maxImageLength - 1).boxed().collect(Collectors.toList());
         promotion.getA().add(alphabet);
         int maxEntry = 0;
-        for (int x : mapping.keySet()) {
-            for (int y : mapping.get(x)) {
+        for(Map.Entry<Integer, List<Integer>> entry: mapping.entrySet()) {
+            for (int y : entry.getValue()) {
                 if (y < 0) {
                     throw new RuntimeException("Cannot promote a morphism with negative values.");
                 } else if (y > maxEntry) {
@@ -107,17 +105,19 @@ public class Morphism {
                 }
             }
         }
-        promotion.setQ(maxEntry + 1);
-        promotion.setO(IntArrayList.toList(IntStream.rangeClosed(0, promotion.getQ() - 1)));
-        for (int x : mapping.keySet()) {
+        List<Int2ObjectRBTreeMap<IntList>> newD = new ArrayList<>();
+        for(Map.Entry<Integer, List<Integer>> entry: mapping.entrySet()) {
             Int2ObjectRBTreeMap<IntList> xmap = new Int2ObjectRBTreeMap<>();
-            for (int i = 0; i < mapping.get(x).size(); i++) {
+            for (int i = 0; i < entry.getValue().size(); i++) {
                 IntList newList = new IntArrayList();
-                newList.add((int) mapping.get(x).get(i));
+                newList.add((int) entry.getValue().get(i));
                 xmap.put(i, newList);
             }
-            promotion.getD().add(xmap);
+            newD.add(xmap);
         }
+        promotion.getFa().setFields(
+            maxEntry + 1, IntArrayList.toList(IntStream.rangeClosed(0, maxEntry)), newD);
+
         // this word automaton is purely symbolic in input and we want it in the exact order given
         promotion.setCanonized(true);
         // the base for the automata is the length of the longest image of any letter under the morphism
@@ -138,11 +138,11 @@ public class Morphism {
     public boolean isUniform() {
         boolean firstElement = true;
         int imageLength = 0;
-        for (int x : mapping.keySet()) {
+        for(Map.Entry<Integer, List<Integer>> entry: mapping.entrySet()) {
             if (firstElement) {
-                imageLength = mapping.get(x).size();
+                imageLength = entry.getValue().size();
                 firstElement = false;
-            } else if (mapping.get(x).size() != imageLength) {
+            } else if (entry.getValue().size() != imageLength) {
                 return false;
             }
         }
@@ -158,14 +158,14 @@ public class Morphism {
         }
         String interCommand = "def " + baseAutomatonName + "_" + i;
         interCommand += " \"" + numSys + " E q, r (n=" + length.toString() + "*q+r & r>=0 & r<" + length;
-        for (Integer key : this.mapping.keySet()) {
+        for(Map.Entry<Integer, List<Integer>> entry: mapping.entrySet()) {
             boolean exists = false;
             String clause = " & (" + baseAutomatonName + "[q]";
-            List<Integer> symbolImage = this.mapping.get(key);
+            List<Integer> symbolImage = entry.getValue();
             for (int j = 0; j < symbolImage.size(); j++) {
                 if (symbolImage.get(j) == i) {
                     if (!exists) {
-                        clause += "= @" + key.toString() + " => (r=" + j;
+                        clause += "= @" + entry.getKey().toString() + " => (r=" + j;
                         exists = true;
                     } else {
                         clause += "|r=" + j;
@@ -175,7 +175,7 @@ public class Morphism {
             if (exists) {
                 clause += "))";
             } else {
-                clause += "!= @" + key.toString() + ")";
+                clause += "!= @" + entry.getKey().toString() + ")";
             }
             interCommand += clause;
         }

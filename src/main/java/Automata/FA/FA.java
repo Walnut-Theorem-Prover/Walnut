@@ -15,8 +15,9 @@
  *   You should have received a copy of the GNU General Public License
  *   along with Walnut.  If not, see <http://www.gnu.org/licenses/>.
  */
-package Automata;
+package Automata.FA;
 
+import Automata.Automaton;
 import Main.ExceptionHelper;
 import Main.UtilityMethods;
 import dk.brics.automaton.State;
@@ -42,6 +43,21 @@ public class FA implements Cloneable {
     d = new ArrayList<>();
   }
 
+  public boolean isTotalized() {
+      boolean totalized = true;
+      for(int q = 0; q < Q; q++){
+          for(int x = 0; x < alphabetSize; x++){
+              if(!d.get(q).containsKey(x)) {
+                  totalized = false;
+              }
+              else if (d.get(q).get(x).size() > 1) {
+                  throw new RuntimeException("Automaton must have at most one transition per input per state.");
+              }
+          }
+      }
+      return totalized;
+  }
+
   /**
    * Build transitions (newD) from the final morphism matrix.
    * (Used in convertMsdBaseToExponent)
@@ -61,7 +77,7 @@ public class FA implements Cloneable {
       return newD;
   }
 
-  void updateTransitionsFromMorphism(int exponent) {
+  public void updateTransitionsFromMorphism(int exponent) {
       List<List<Integer>> prevMorphism = buildInitialMorphism();
       // Repeatedly extend the morphism exponent-1 more times
       for (int i = 2; i <= exponent; i++) {
@@ -90,7 +106,7 @@ public class FA implements Cloneable {
   }
 
 
-  static void starStates(FA automaton, FA N) {
+  public static void starStates(FA automaton, FA N) {
     // We clone the current automaton and add a new state which will be our new initial state.
     // We will then canonize the resulting automaton after.
     int newState = N.Q;
@@ -110,7 +126,7 @@ public class FA implements Cloneable {
     N.setQ0(newState);
   }
 
-  static void concatStates(FA other, FA N, int originalQ) {
+  public static void concatStates(FA other, FA N, int originalQ) {
       // to access the other's states, just do q. To access the other's states in N, do originalQ + q.
       for (int q = 0; q < other.getQ(); q++) {
         N.O.add(other.O.getInt(q)); // add the output
@@ -141,32 +157,31 @@ public class FA implements Cloneable {
       N.setQ(originalQ + other.getQ());
   }
 
-  static void alphabetStates(Automaton automaton, List<List<Integer>> alphabet, Automaton M) {
+  public static void alphabetStates(Automaton automaton, List<List<Integer>> alphabet, Automaton M) {
       List<Int2ObjectRBTreeMap<IntList>> newD = new ArrayList<>();
-
       for (int q = 0; q < M.getQ(); q++) {
           Int2ObjectRBTreeMap<IntList> newMap = new Int2ObjectRBTreeMap<>();
-          for (int x : automaton.getD().get(q).keySet()) {
-              List<Integer> decoded = Automaton.decode(automaton.getA(), x);
-
-              boolean inNewAlphabet = true;
-
-              for (int i = 0; i < decoded.size(); i++) {
-                  if (!alphabet.get(i).contains(decoded.get(i))) {
-                      inNewAlphabet = false;
-                      break;
-                  }
-              }
-              if (inNewAlphabet) {
-                  newMap.put(M.encode(decoded), automaton.getD().get(q).get(x));
-              }
+          for (Int2ObjectMap.Entry<IntList> entry: automaton.getD().get(q).int2ObjectEntrySet()) {
+            List<Integer> decoded = Automaton.decode(automaton.getA(), entry.getIntKey());
+            if (isInNewAlphabet(alphabet, decoded)) {
+              newMap.put(M.encode(decoded), entry.getValue());
+            }
           }
           newD.add(newMap);
       }
       M.getFa().d = newD;
   }
 
-  void canonizeInternal() {
+  private static boolean isInNewAlphabet(List<List<Integer>> alphabet, List<Integer> decoded) {
+    for (int i = 0; i < decoded.size(); i++) {
+      if (!alphabet.get(i).contains(decoded.get(i))) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  public void canonizeInternal() {
       Queue<Integer> state_queue = new LinkedList<>();
       state_queue.add(q0);
 
@@ -189,7 +204,7 @@ public class FA implements Cloneable {
 
       q0 = map.get(q0);
       int newQ = map.size();
-      IntList newO = new IntArrayList();
+      IntList newO = new IntArrayList(newQ);
       for (int q = 0; q < newQ; q++) {
           newO.add(0);
       }
@@ -199,51 +214,51 @@ public class FA implements Cloneable {
           }
       }
 
-      List<Int2ObjectRBTreeMap<IntList>> new_d = new ArrayList<>();
+      List<Int2ObjectRBTreeMap<IntList>> newD = new ArrayList<>(newQ);
       for (int q = 0; q < newQ; q++) {
-          new_d.add(null);
+          newD.add(null);
       }
 
       for (int q = 0; q < Q; q++) {
           if (map.containsKey(q)) {
-              new_d.set(map.get(q), d.get(q));
+              newD.set(map.get(q), d.get(q));
           }
       }
 
       Q = newQ;
       O = newO;
-      d = new_d;
+      d = newD;
 
       for (int q = 0; q < Q; q++) {
-          for (int x : d.get(q).keySet()) {
-              IntList newDestination = new IntArrayList();
-              for (int p : d.get(q).get(x)) {
-                  if (map.containsKey(p)) {
-                      newDestination.add(map.get(p));
-                  }
-              }
-
-              if (!newDestination.isEmpty()) {
-                  d.get(q).put(x, newDestination);
-              } else {
-                  d.get(q).remove(x);
-              }
+        for (Int2ObjectMap.Entry<IntList> entry : d.get(q).int2ObjectEntrySet()) {
+          IntList newDestination = new IntArrayList();
+          for (int p : entry.getValue()) {
+            if (map.containsKey(p)) {
+              newDestination.add(map.get(p));
+            }
           }
+
+          if (!newDestination.isEmpty()) {
+            d.get(q).put(entry.getIntKey(), newDestination);
+          } else {
+            d.get(q).remove(entry.getIntKey());
+          }
+        }
       }
   }
 
-  void addOffsetToInputs(int offset) {
+  public void addOffsetToInputs(int offset) {
       List<Int2ObjectRBTreeMap<IntList>> new_d = new ArrayList<>(Q);
       for (int q = 0; q < Q; q++) new_d.add(new Int2ObjectRBTreeMap<>());
       for (int q = 0; q < Q; q++) {
-          for (int x : d.get(q).keySet()) {
-              new_d.get(q).put(x + offset, d.get(q).get(x));
-          }
+        for (Int2ObjectMap.Entry<IntList> entry : d.get(q).int2ObjectEntrySet()) {
+          new_d.get(q).put(entry.getIntKey() + offset, entry.getValue());
+        }
       }
       d = new_d;
   }
 
-  void convertBrics(List<Integer> alphabet, dk.brics.automaton.Automaton M) {
+  public void convertBrics(List<Integer> alphabet, dk.brics.automaton.Automaton M) {
     alphabetSize = alphabet.size();
     List<State> setOfStates = new ArrayList<>(M.getStates());
     Q = setOfStates.size();
@@ -265,7 +280,7 @@ public class FA implements Cloneable {
     }
   }
 
-  void setFromBricsAutomaton(dk.brics.automaton.Automaton M, List<State> setOfStates) {
+  public void setFromBricsAutomaton(dk.brics.automaton.Automaton M, List<State> setOfStates) {
     Q = setOfStates.size();
     q0 = setOfStates.indexOf(M.getInitialState());
     O = new IntArrayList();
@@ -285,7 +300,7 @@ public class FA implements Cloneable {
     }
   }
 
-  void totalize() {
+  public void totalize() {
       //we first check if the automaton is totalized
       boolean totalized = true;
       for (int q = 0; q < Q; q++) {
@@ -322,7 +337,7 @@ public class FA implements Cloneable {
     long timeBefore = System.currentTimeMillis();
     UtilityMethods.logMessage(print, prefix + "Adding distinguished dead state: " + getQ() + " states", log);
     boolean totalized = this.totalizeIfNecessary();
-    int min = totalized ? 0 : this.obtainMinimumAlphabet();
+    int min = totalized ? 0 : this.obtainMinimumOutput();
 
     long timeAfter = System.currentTimeMillis();
     if (print) {
@@ -337,7 +352,7 @@ public class FA implements Cloneable {
   }
 
   /* Minimization algorithm */
-  void minimizeValmari(List<Int2IntMap> newMemD, boolean print, String prefix, StringBuilder log) {
+  public void minimizeValmari(List<Int2IntMap> newMemD, boolean print, String prefix, StringBuilder log) {
       IntSet qqq = new IntOpenHashSet();
       qqq.add(q0);
       newMemD = subsetConstruction(newMemD, qqq, print, prefix, log);
@@ -350,17 +365,8 @@ public class FA implements Cloneable {
       d = v.determineD();
   }
 
-  int obtainMinimumAlphabet() {
-    int min = 0;
-    // obtain the minimum output
-    if (O.isEmpty()) {
-      throw ExceptionHelper.alphabetIsEmpty();
-    }
-    for (int i = 0; i < O.size(); i++) {
-      if (O.getInt(i) < min) {
-        min = O.getInt(i);
-      }
-    }
+  int obtainMinimumOutput() {
+    int min = determineMinOutput();
     O.add(min - 1);
     Q++;
     d.add(new Int2ObjectRBTreeMap<>());
@@ -372,7 +378,7 @@ public class FA implements Cloneable {
     return min;
   }
 
-  IntSet reverseDFAtoNFAInternal() {
+  public IntSet reverseDFAtoNFAInternal() {
       // We change the direction of transitions first.
       List<Int2ObjectRBTreeMap<IntList>> new_d = new ArrayList<>();
       for (int q = 0; q < Q; q++) new_d.add(new Int2ObjectRBTreeMap<>());
@@ -496,8 +502,8 @@ public class FA implements Cloneable {
     fa.d = new ArrayList<>();
     for (int q = 0; q < fa.Q; q++) {
       fa.d.add(new Int2ObjectRBTreeMap<>());
-      for (int x : d.get(q).keySet()) {
-        fa.d.get(q).put(x, new IntArrayList(d.get(q).get(x)));
+      for (Int2ObjectMap.Entry<IntList> entry : d.get(q).int2ObjectEntrySet()) {
+        fa.d.get(q).put(entry.getIntKey(), new IntArrayList(entry.getValue()));
       }
     }
     return fa;
@@ -518,7 +524,7 @@ public class FA implements Cloneable {
    * @param log
    * @return A memory-efficient representation of a determinized transition function
    */
-  List<Int2IntMap> subsetConstruction(
+  public List<Int2IntMap> subsetConstruction(
       List<Int2IntMap> newMemD, IntSet initial_state, boolean print, String prefix, StringBuilder log) {
     long timeBefore = System.currentTimeMillis();
     UtilityMethods.logMessage(print, prefix + "Determinizing: " + getQ() + " states", log);
@@ -601,11 +607,12 @@ public class FA implements Cloneable {
     return newO;
   }
 
-  void permuteD(int[] encoded_input_permutation) {
+  public void permuteD(int[] encoded_input_permutation) {
     for (int q = 0; q < Q; q++) {
       Int2ObjectRBTreeMap<IntList> permuted_d = new Int2ObjectRBTreeMap<>();
-      for (int x : d.get(q).keySet())
-        permuted_d.put(encoded_input_permutation[x], d.get(q).get(x));
+      for (Int2ObjectMap.Entry<IntList> entry : getD().get(q).int2ObjectEntrySet()) {
+        permuted_d.put(encoded_input_permutation[entry.getIntKey()], entry.getValue());
+      }
       d.set(q, permuted_d);
     }
   }
@@ -615,7 +622,7 @@ public class FA implements Cloneable {
    *
    * @return
    */
-  dk.brics.automaton.Automaton to_dk_brics_automaton() {
+  public dk.brics.automaton.Automaton to_dk_brics_automaton() {
     /**
      * Since the dk.brics.automaton uses char as its input alphabet for an automaton, then in order to transform
      * Automata.Automaton to dk.brics.automaton.Automata we've got to make sure, the input alphabet is less than
@@ -650,7 +657,7 @@ public class FA implements Cloneable {
    * Returns the set of states reachable from the initial state by reading 0*
    *
    */
-  IntSet zeroReachableStates(int zero) {
+  public IntSet zeroReachableStates(int zero) {
     IntList dQ0 = d.get(q0).get(zero);
     if (dQ0 == null) {
       dQ0 = new IntArrayList();
@@ -680,7 +687,7 @@ public class FA implements Cloneable {
    * So for example if f is a final state and f is reachable from q by reading 0*
    * then q will be in the resulting set of this method.
    */
-  void setStatesReachableToFinalStatesByZeros(int zero) {
+  public void setStatesReachableToFinalStatesByZeros(int zero) {
     Set<Integer> result = new HashSet<>();
     Queue<Integer> queue = new LinkedList<>();
     //this is the adjacency matrix of the reverse of the transition graph of this automaton on 0
@@ -707,20 +714,20 @@ public class FA implements Cloneable {
     }
   }
 
-  void setFieldsFromFile(
-      int Q, int q0, Map<Integer, Integer> state_output, Map<Integer, Int2ObjectRBTreeMap<IntList>> state_transition) {
-    setQ(Q);
-    setQ0(q0);
-    for (int q = 0; q < Q; q++) {
-      getO().add((int) state_output.get(q));
-      getD().add(state_transition.get(q));
+  public void setFieldsFromFile(
+      int newQ, int newQ0, Map<Integer, Integer> state_output, Map<Integer, Int2ObjectRBTreeMap<IntList>> state_transition) {
+    Q = newQ;
+    q0 = newQ0;
+    for (int q = 0; q < newQ; q++) {
+      O.add((int) state_output.get(q));
+      d.add(state_transition.get(q));
     }
   }
 
   /**
-   * Check if automaton is deterministic: each state must have exactly alphabetSize transitions
+   * Check if automaton is deterministic (amd total): each state must have exactly alphabetSize transitions
    */
-  boolean isDeterministic() {
+  public boolean isDeterministic() {
     for (int q = 0; q < Q; q++) {
       if (d.get(q).keySet().size() != alphabetSize) {
         return false;
@@ -734,7 +741,7 @@ public class FA implements Cloneable {
    * (Used in convertMsdBaseToExponent)
    */
   private List<List<Integer>> buildInitialMorphism() {
-    List<List<Integer>> result = new ArrayList<>();
+    List<List<Integer>> result = new ArrayList<>(Q);
     for (int q = 0; q < Q; q++) {
       List<Integer> row = new ArrayList<>(alphabetSize);
       for (int di = 0; di < alphabetSize; di++) {
@@ -766,5 +773,30 @@ public class FA implements Cloneable {
       newMorphism.add(extendedRow);
     }
     return newMorphism;
+  }
+
+  public int determineMinOutput() {
+    if (O.isEmpty()) {
+      throw ExceptionHelper.alphabetIsEmpty();
+    }
+    int minOutput = 0;
+    for (int i = 0; i < O.size(); i++) {
+      if (O.getInt(i) < minOutput) {
+        minOutput = O.getInt(i);
+      }
+    }
+    return minOutput;
+  }
+
+  public void setFields(int newStates, IntList newO, List<Int2ObjectRBTreeMap<IntList>> newD) {
+      Q = newStates;
+      O = newO;
+      d = newD;
+  }
+
+  public void addTransition(int src, int dest, int inp) {
+      IntList destStates = new IntArrayList();
+      destStates.add(dest);
+      getD().get(src).put(inp, destStates);
   }
 }
