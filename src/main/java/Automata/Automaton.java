@@ -60,8 +60,6 @@ import static Automata.ParseMethods.PATTERN_WHITESPACE;
  * @author Hamoon
  */
 public class Automaton {
-    private boolean TRUE_FALSE_AUTOMATON;
-    private boolean TRUE_AUTOMATON = false;
 
     private List<List<Integer>> A;
     private List<Integer> encoder;
@@ -69,13 +67,7 @@ public class Automaton {
     private List<String> label;
     private boolean labelSorted;  // hen true, labels are sorted lexicographically. It is used in sortLabel() method.
 
-
-    private boolean canonized;
-
-
-    private FA fa; // abstract FA fields
-
-
+    public FA fa; // abstract FA fields
 
     // for use in the combine command, counts how many products we have taken so far, and hence what to set outputs to
     int combineIndex;
@@ -97,7 +89,7 @@ public class Automaton {
     }
 
     public Automaton() {
-        setFa(new FA());
+        fa = new FA();
         setA(new ArrayList<>());
         setNS(new ArrayList<>());
         setLabel(new ArrayList<>());
@@ -112,9 +104,9 @@ public class Automaton {
      * @param true_automaton
      */
     public Automaton(boolean true_automaton) {
-        setFa(new FA());
-        setTRUE_FALSE_AUTOMATON(true);
-        this.setTRUE_AUTOMATON(true_automaton);
+        fa = new FA();
+        fa.setTRUE_FALSE_AUTOMATON(true);
+        this.fa.setTRUE_AUTOMATON(true_automaton);
     }
 
     /**
@@ -158,7 +150,7 @@ public class Automaton {
          */
         getA().add(alphabet);
         getNS().add(null);
-        this.getFa().convertBrics(alphabet, M);
+        this.fa.convertBrics(alphabet, M);
         long timeAfter = System.currentTimeMillis();
         String msg = "computed ~:" + getQ() + " states - " + (timeAfter - timeBefore) + "ms";
         System.out.println(msg);
@@ -193,7 +185,7 @@ public class Automaton {
         this.setThisAutomatonToRepresent(M);
         // We added 128 to the encoding of every input vector before to avoid reserved characters, now we subtract it again
         // to get back the standard encoding
-        this.getFa().addOffsetToInputs(-128);
+        this.fa.addOffsetToInputs(-128);
         long timeAfter = System.currentTimeMillis();
         String msg = "computed ~:" + getQ() + " states - " + (timeAfter - timeBefore) + "ms";
         System.out.println(msg);
@@ -224,8 +216,8 @@ public class Automaton {
                 }
                 if (ParseMethods.parseTrueFalse(line, singleton)) {
                     // It is a true/false automaton.
-                    setTRUE_FALSE_AUTOMATON(true);
-                    setTRUE_AUTOMATON(singleton[0]);
+                    fa.setTRUE_FALSE_AUTOMATON(true);
+                    fa.setTRUE_AUTOMATON(singleton[0]);
                     in.close();
                     return;
                 }
@@ -330,7 +322,7 @@ public class Automaton {
                 }
             }
 
-            this.getFa().setFieldsFromFile(Q, q0, output, transitions);
+            this.fa.setFieldsFromFile(Q, q0, output, transitions);
         } catch (IOException e) {
             e.printStackTrace();
             throw new RuntimeException("File does not exist: " + address);
@@ -343,16 +335,15 @@ public class Automaton {
      * @return a deep copy of this automaton
      */
     public Automaton clone() {
-        if (isTRUE_FALSE_AUTOMATON()) {
-            return new Automaton(isTRUE_AUTOMATON());
+        if (fa.isTRUE_FALSE_AUTOMATON()) {
+            return new Automaton(fa.isTRUE_AUTOMATON());
         }
         return cloneFields(new Automaton());
     }
 
     Automaton cloneFields(Automaton M) {
-        M.setFa(this.getFa().clone());
+        M.fa = fa.clone();
         M.setAlphabetSize(getAlphabetSize());
-        M.setCanonized(isCanonized());
         M.labelSorted = labelSorted;
         for (int i = 0; i < getA().size(); i++) {
             M.getA().add(new ArrayList<>(getA().get(i)));
@@ -370,12 +361,12 @@ public class Automaton {
 
     public boolean equals(Automaton M) {
         if (M == null) return false;
-        if (isTRUE_FALSE_AUTOMATON() != M.isTRUE_FALSE_AUTOMATON()) return false;
-        if (isTRUE_FALSE_AUTOMATON() && M.isTRUE_FALSE_AUTOMATON()) {
-          return isTRUE_AUTOMATON() == M.isTRUE_AUTOMATON();
+        if (fa.isTRUE_FALSE_AUTOMATON() != M.fa.isTRUE_FALSE_AUTOMATON()) return false;
+        if (fa.isTRUE_FALSE_AUTOMATON() && M.fa.isTRUE_FALSE_AUTOMATON()) {
+          return fa.isTRUE_AUTOMATON() == M.fa.isTRUE_AUTOMATON();
         }
-        dk.brics.automaton.Automaton Y = M.getFa().to_dk_brics_automaton();
-        dk.brics.automaton.Automaton X = this.getFa().to_dk_brics_automaton();
+        dk.brics.automaton.Automaton Y = M.fa.to_dk_brics_automaton();
+        dk.brics.automaton.Automaton X = this.fa.to_dk_brics_automaton();
         return X.equals(Y);
     }
 
@@ -407,7 +398,7 @@ public class Automaton {
             N.setLabel(first.getLabel());
 
             if (op.equals("union")) {
-                first = AutomatonLogicalOps.or(first, N, print, prefix, log);
+                first = AutomatonLogicalOps.or(first, N, print, prefix, log, "|");
             } else if (op.equals("intersect")) {
                 first = AutomatonLogicalOps.and(first, N, print, prefix, log);
             } else {
@@ -437,7 +428,7 @@ public class Automaton {
 
     // For use in the "combine" command.
     public void canonizeAndApplyAllRepresentationsWithOutput(boolean print, String prefix, StringBuilder log) {
-        this.setCanonized(false);
+        this.fa.setCanonized(false);
         this.canonize();
         this.applyAllRepresentationsWithOutput(print, prefix, log);
     }
@@ -452,7 +443,7 @@ public class Automaton {
         List<Automaton> automata = new ArrayList<>();
         for (Integer output : outputs) {
             Automaton M = clone();
-            M.getFa().setOutput(output);
+            M.fa.setOutput(output);
             automata.add(M);
         }
         return automata;
@@ -468,7 +459,7 @@ public class Automaton {
         UtilityMethods.removeDuplicates(outputs);
         List<Automaton> subautomata = uncombine(outputs);
         for (Automaton subautomaton : subautomata) {
-            subautomaton.minimize(null, print, prefix, log);
+            subautomaton.fa.determinizeAndMinimize(null, print, prefix, log);
         }
         Automaton N = subautomata.remove(0);
         List<String> label = new ArrayList<>(N.getLabel()); // We keep the old labels, since they are replaced in the combine
@@ -482,10 +473,10 @@ public class Automaton {
         copy(N);
     }
 
-    public void normalizeNumberSystems(boolean print, String prefix, StringBuilder log) {
+    private void normalizeNumberSystems(boolean print, String prefix, StringBuilder log) {
         // set all the number systems to be null.
         boolean switchNS = false;
-        List<NumberSystem> numberSystems = new ArrayList<>();
+        List<NumberSystem> numberSystems = new ArrayList<>(getNS().size());
         for (int i = 0; i < getNS().size(); i++) {
             if (getNS().get(i) != null && getNS().get(i).useAllRepresentations()) {
                 switchNS = true;
@@ -498,7 +489,6 @@ public class Automaton {
 
         if (switchNS) {
             setAlphabet(false, numberSystems, getA(), print, prefix, log);
-
             // do this whether or not you print!
             String msg = prefix + "WARN: The alphabet of the resulting automaton was changed. Use the alphabet command to change as desired.";
             log.append(msg + System.lineSeparator());
@@ -511,17 +501,12 @@ public class Automaton {
         long timeBefore = System.currentTimeMillis();
         UtilityMethods.logMessage(print, prefix + "star: " + getQ() + " state automaton", log);
 
-        // this will be the returned automaton.
         Automaton N = clone();
-
-        FA.starStates(this.getFa(), N.getFa());
-
+        FA.starStates(this.fa, N.fa);
         N.normalizeNumberSystems(print, prefix, log);
-
-        N.setCanonized(false);
+        N.fa.setCanonized(false);
         N.canonize();
-
-        N.minimize(null, print, prefix, log);
+        N.fa.determinizeAndMinimize(null, print, prefix, log);
         N.applyAllRepresentations();
 
         long timeAfter = System.currentTimeMillis();
@@ -546,7 +531,7 @@ public class Automaton {
         return first;
     }
 
-    public Automaton concat(Automaton other, boolean print, String prefix, StringBuilder log) {
+    private Automaton concat(Automaton other, boolean print, String prefix, StringBuilder log) {
         long timeBefore = System.currentTimeMillis();
         UtilityMethods.logMessage(print, prefix + "concat: " + getQ() + " state automaton with " + other.getQ() + " state automaton", log);
 
@@ -559,11 +544,11 @@ public class Automaton {
 
         int originalQ = this.getQ();
 
-        FA.concatStates(other.getFa(), N.getFa(), originalQ);
+        FA.concatStates(other.fa, N.fa, originalQ);
 
         N.normalizeNumberSystems(print, prefix, log);
 
-        N.minimize(null, print, prefix, log);
+        N.fa.determinizeAndMinimize(null, print, prefix, log);
         N.applyAllRepresentations();
 
         long timeAfter = System.currentTimeMillis();
@@ -605,7 +590,7 @@ public class Automaton {
         if (isDFAO) {
             M.minimizeSelfWithOutput(print, prefix, log);
         } else {
-            M.minimize(null, print, prefix, log);
+            M.fa.determinizeAndMinimize(null, print, prefix, log);
         }
 
         M.canonizeAndApplyAllRepresentationsWithOutput(print, prefix + " ", log);
@@ -621,7 +606,7 @@ public class Automaton {
         for (List<Integer> x : this.getA()) {
             alphabetSize *= x.size();
         }
-        this.getFa().setAlphabetSize(alphabetSize);
+        this.fa.setAlphabetSize(alphabetSize);
     }
 
     // Determines whether an automaton accepts infinitely many values. If it does, a regex of infinitely many accepted values (not all)
@@ -630,13 +615,12 @@ public class Automaton {
     public String infinite() {
         for (int i = 0; i < getQ(); i++) {
             IntSet visited = new IntOpenHashSet(); // states we have visited
-            int started = i; // where we started our DFS to find a cycle
-            String cycle = infiniteHelper(visited, started, i, "");
+            String cycle = infiniteHelper(visited, i, i, "");
             // once a cycle is detected, compute a prefix leading to state i and a suffix from state i to an accepting state
             if (!cycle.isEmpty()) {
                 final int finalI = i;
-                String prefix = findPath(this.getFa(), this.getFa().getQ0(), y -> y == finalI, this.getA());
-                String suffix = findPath(this.getFa(), finalI, y -> getO().getInt(y) != 0, this.getA());
+                String prefix = findPath(this.fa, this.fa.getQ0(), y -> y == finalI, this.getA());
+                String suffix = findPath(this.fa, finalI, y -> getO().getInt(y) != 0, this.getA());
                 return prefix + "(" + cycle + ")*" + suffix;
             }
         }
@@ -691,7 +675,7 @@ public class Automaton {
         while (!queue.isEmpty() && !found) {
             int current = queue.poll();
 
-            for (Int2ObjectMap.Entry<IntList> entry : automaton.getD().get(current).int2ObjectEntrySet()) {
+            for (Int2ObjectMap.Entry<IntList> entry : automaton.getNfaD().get(current).int2ObjectEntrySet()) {
                 int x = entry.getIntKey();
                 IntList transitions = entry.getValue();
 
@@ -823,8 +807,8 @@ public class Automaton {
             UtilityMethods.logMessage(print, prefix + "computing =>:" + first.getQ() + " states - " + next.getQ() + " states", log);
 
             // crossProduct requires both automata to be totalized, otherwise it has no idea which cartesian states to transition to
-            AutomatonLogicalOps.totalize(first.getFa(), print, prefix + " ", log);
-            AutomatonLogicalOps.totalize(next.getFa(), print, prefix + " ", log);
+            AutomatonLogicalOps.totalize(first.fa, print, prefix + " ", log);
+            AutomatonLogicalOps.totalize(next.fa, print, prefix + " ", log);
             first = AutomatonLogicalOps.crossProduct(first, next, "first", print, prefix + " ", log);
             first = first.minimizeWithOutput(print, prefix + " ", log);
 
@@ -878,9 +862,10 @@ public class Automaton {
         boolean flag = determineRandomLabel();
         Automaton K = this;
         for (int i = 0; i < getA().size(); i++) {
-            if (getNS().get(i) != null) {
-                Automaton N = getNS().get(i).getAllRepresentations();
-                if (N != null && getNS().get(i).useAllRepresentations()) {
+            NumberSystem ns = getNS().get(i);
+            if (ns != null) {
+                Automaton N = ns.getAllRepresentations();
+                if (N != null && ns.useAllRepresentations()) {
                     N.bind(List.of(getLabel().get(i)));
                     K = AutomatonLogicalOps.and(K, N, false, null, null);
                 }
@@ -891,7 +876,7 @@ public class Automaton {
         copy(K);
     }
 
-    public void applyAllRepresentationsWithOutput(boolean print, String prefix, StringBuilder log) {
+    private void applyAllRepresentationsWithOutput(boolean print, String prefix, StringBuilder log) {
         // this can be a word automaton
         boolean flag = determineRandomLabel();
         Automaton K = this;
@@ -936,14 +921,13 @@ public class Automaton {
     }
 
     private void copy(Automaton M) {
-        setTRUE_FALSE_AUTOMATON(M.isTRUE_FALSE_AUTOMATON());
-        setTRUE_AUTOMATON(M.isTRUE_AUTOMATON());
-        setFa(M.getFa().clone());
+        fa.setTRUE_FALSE_AUTOMATON(M.fa.isTRUE_FALSE_AUTOMATON());
+        fa.setTRUE_AUTOMATON(M.fa.isTRUE_AUTOMATON());
+        fa = M.fa.clone();
         setA(M.getA());
         setNS(M.getNS());
         setEncoder(M.getEncoder());
         setLabel(M.getLabel());
-        setCanonized(M.isCanonized());
         labelSorted = M.labelSorted;
     }
 
@@ -1024,19 +1008,6 @@ public class Automaton {
         UtilityMethods.logMessage(print, prefix + "applied operator (" + operator + "):" + getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
     }
 
-    public void minimize(List<Int2IntMap> newMemD, boolean print, String prefix, StringBuilder log) {
-        long timeBefore = System.currentTimeMillis();
-        UtilityMethods.logMessage(
-            print, prefix + "Minimizing: " + getQ() + " states.", log);
-
-        this.getFa().minimizeValmari(newMemD, print, prefix + " ", log);
-        this.canonized = false;
-
-        long timeAfter = System.currentTimeMillis();
-        UtilityMethods.logMessage(
-            print, prefix + "Minimized:" + getQ() + " states - " + (timeAfter - timeBefore) + "ms.", log);
-    }
-
     /**
      * Set the fields of this automaton to represent a dk.brics.automaton.Automaton.
      * An automata in our program can be of type Automaton or dk.brics.automaton.Automaton. We use package
@@ -1049,8 +1020,8 @@ public class Automaton {
         if (!M.isDeterministic())
             throw ExceptionHelper.bricsNFA();
         List<State> setOfStates = new ArrayList<>(M.getStates());
-        setCanonized(false);
-        this.getFa().setFromBricsAutomaton(M, setOfStates);
+        fa.setCanonized(false);
+        this.fa.setFromBricsAutomaton(M, setOfStates);
     }
 
     /**
@@ -1062,11 +1033,8 @@ public class Automaton {
      *
      */
     public void canonize() {
-        if (isCanonized()) return;
         sortLabel();
-        if (isTRUE_FALSE_AUTOMATON()) return;
-        this.getFa().canonizeInternal();
-        setCanonized(true);
+        this.fa.canonizeInternal();
     }
 
     /**
@@ -1083,7 +1051,7 @@ public class Automaton {
     protected void sortLabel() {
         if (labelSorted) return;
         labelSorted = true;
-        if (isTRUE_FALSE_AUTOMATON()) return;
+        if (fa.isTRUE_FALSE_AUTOMATON()) return;
         if (!isBound()) return;
         if (UtilityMethods.isSorted(this.getLabel())) return;
         List<String> sorted_label = new ArrayList<>(getLabel());
@@ -1115,7 +1083,7 @@ public class Automaton {
         setEncoder(permuted_encoder);
         setNS(UtilityMethods.permute(getNS(), label_permutation));
 
-        this.getFa().permuteD(encoded_input_permutation);
+        this.fa.permuteD(encoded_input_permutation);
     }
 
 
@@ -1217,10 +1185,10 @@ public class Automaton {
     }
 
     public void bind(List<String> names) {
-        if (isTRUE_FALSE_AUTOMATON() || getA().size() != names.size()) throw ExceptionHelper.invalidBind();
+        if (fa.isTRUE_FALSE_AUTOMATON() || getA().size() != names.size()) throw ExceptionHelper.invalidBind();
         setLabels(names);
         labelSorted = false;
-        setCanonized(false);
+        fa.setCanonized(false);
         AutomatonLogicalOps.removeSameInputs(this, 0);
     }
 
@@ -1229,7 +1197,7 @@ public class Automaton {
     }
 
     public int getArity() {
-        if (isTRUE_FALSE_AUTOMATON()) return 0;
+        if (fa.isTRUE_FALSE_AUTOMATON()) return 0;
         return getA().size();
     }
 
@@ -1237,20 +1205,19 @@ public class Automaton {
      * clears this automaton
      */
     void clear() {
-        this.getFa().clear();
+        this.fa.clear();
         setA(null);
         setNS(null);
         setEncoder(null);
         setLabel(null);
-        setCanonized(false);
         labelSorted = false;
     }
 
     protected boolean isEmpty() {
-        if (isTRUE_FALSE_AUTOMATON()) {
-            return !isTRUE_AUTOMATON();
+        if (fa.isTRUE_FALSE_AUTOMATON()) {
+            return !fa.isTRUE_AUTOMATON();
         }
-        return this.getFa().to_dk_brics_automaton().isEmpty();
+        return this.fa.to_dk_brics_automaton().isEmpty();
     }
 
 
@@ -1277,18 +1244,18 @@ public class Automaton {
     }
 
     public void setQ0(int q0) {
-        this.getFa().setQ0(q0);
+        this.fa.setQ0(q0);
     }
 
     /**
      * Number of States. For example when Q = 3, the set of states is {0,1,2}
      */
     public int getQ() {
-        return this.getFa().getQ();
+        return this.fa.getQ();
     }
 
     public void setQ(int q) {
-        this.getFa().setQ(q);
+        this.fa.setQ(q);
     }
 
     /**
@@ -1297,11 +1264,7 @@ public class Automaton {
      * Example: O = [-1,2,...] then state 0 and 1 have outputs -1 and 2 respectively.
      */
     public IntList getO() {
-        return this.getFa().getO();
-    }
-
-    public void setO(IntList o) {
-        this.getFa().setO(o);
+        return this.fa.getO();
     }
 
     /**
@@ -1323,23 +1286,11 @@ public class Automaton {
      * The transition function d is then regenerated during the minimize_valmari method, once the states are minimized.
      */
     public List<Int2ObjectRBTreeMap<IntList>> getD() {
-        return this.getFa().getD();
+        return this.fa.getNfaD();
     }
 
     public void setD(List<Int2ObjectRBTreeMap<IntList>> d) {
-        this.getFa().setD(d);
-    }
-
-    /**
-     * When true, states are sorted in breadth-first order and labels are sorted lexicographically.
-     * It is used in canonize method. For more information read about canonize() method.
-     */
-    private boolean isCanonized() {
-        return canonized;
-    }
-
-    public void setCanonized(boolean canonized) {
-        this.canonized = canonized;
+        this.fa.setNfaD(d);
     }
 
     public void setLabel(List<String> label) {
@@ -1386,11 +1337,11 @@ public class Automaton {
      * Alphabet Size. For example, if A = [[-1,1],[2,3]], then alphabetSize = 4 and if A = [[-1,1],[0,1,2]], then alphabetSize = 6
      */
     public int getAlphabetSize() {
-        return this.getFa().getAlphabetSize();
+        return this.fa.getAlphabetSize();
     }
 
     public void setAlphabetSize(int alphabetSize) {
-        this.getFa().setAlphabetSize(alphabetSize);
+        this.fa.setAlphabetSize(alphabetSize);
     }
 
     /**
@@ -1411,33 +1362,7 @@ public class Automaton {
         A = a;
     }
 
-    /**
-     * When TRUE_FALSE_AUTOMATON = false, it means that this automaton is
-     * an actual automaton and not one of the special automata: true or false
-     * When TRUE_FALSE_AUTOMATON = true and TRUE_AUTOMATON = false then this is a false automaton.
-     * When TRUE_FALSE_AUTOMATON = true and TRUE_AUTOMATON = true then this is a true automaton.
-     */
-    public boolean isTRUE_FALSE_AUTOMATON() {
-        return TRUE_FALSE_AUTOMATON;
-    }
-
-    public void setTRUE_FALSE_AUTOMATON(boolean TRUE_FALSE_AUTOMATON) {
-        this.TRUE_FALSE_AUTOMATON = TRUE_FALSE_AUTOMATON;
-    }
-
-    public boolean isTRUE_AUTOMATON() {
-        return TRUE_AUTOMATON;
-    }
-
-    public void setTRUE_AUTOMATON(boolean TRUE_AUTOMATON) {
-        this.TRUE_AUTOMATON = TRUE_AUTOMATON;
-    }
-
     public FA getFa() {
         return fa;
-    }
-
-    private void setFa(FA fa) {
-        this.fa = fa;
     }
 }

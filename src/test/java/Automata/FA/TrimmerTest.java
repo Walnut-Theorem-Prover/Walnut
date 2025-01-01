@@ -4,7 +4,6 @@ import it.unimi.dsi.fastutil.ints.*;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class TrimmerTest {
@@ -31,13 +30,13 @@ public class TrimmerTest {
         s2.put(0, new IntArrayList(List.of(3))); // 2: a -> 3
         s2.put(1, new IntArrayList(List.of(3))); // 2: b -> 3
 
-        a.getD().add(s0);
-        a.getD().add(s1);
-        a.getD().add(s2);
-        a.getD().add(new Int2ObjectRBTreeMap<>()); // s3
+        a.getNfaD().add(s0);
+        a.getNfaD().add(s1);
+        a.getNfaD().add(s2);
+        a.getNfaD().add(new Int2ObjectRBTreeMap<>()); // s3
 
         a.setQ(a.getO().size());
-        Assertions.assertEquals(a.getQ(), a.getD().size());
+        Assertions.assertEquals(a.getQ(), a.getNfaD().size());
 
         a.canonizeInternal();
         int oldQ = a.getQ();
@@ -68,13 +67,13 @@ public class TrimmerTest {
         Int2ObjectRBTreeMap<IntList> s2 = new Int2ObjectRBTreeMap<>();
         Int2ObjectRBTreeMap<IntList> s3 = new Int2ObjectRBTreeMap<>();
 
-        a.getD().add(s0);
-        a.getD().add(s1);
-        a.getD().add(s2);
-        a.getD().add(s3);
+        a.getNfaD().add(s0);
+        a.getNfaD().add(s1);
+        a.getNfaD().add(s2);
+        a.getNfaD().add(s3);
 
         IntSet initialStates = new IntOpenHashSet(IntSet.of(0));
-        IntSet rTrim = Trimmer.rightTrim(1, a.getD(), initialStates);
+        IntSet rTrim = Trimmer.rightTrim(1, a.getNfaD(), initialStates);
         Assertions.assertEquals(IntSet.of(0,1,2), rTrim);
 
         IntSet lTrim = Trimmer.leftTrim(a);
@@ -83,7 +82,7 @@ public class TrimmerTest {
         Trimmer.trimAutomaton(a);
         Assertions.assertEquals(3, a.getQ());
         Assertions.assertEquals(0, a.getQ0());
-        Assertions.assertEquals(IntList.of(1,2),a.getD().get(0).get(0));
+        Assertions.assertEquals(IntList.of(1,2),a.getNfaD().get(0).get(0));
     }
 
     @Test
@@ -104,13 +103,13 @@ public class TrimmerTest {
         Int2ObjectRBTreeMap<IntList> s2 = new Int2ObjectRBTreeMap<>();
         Int2ObjectRBTreeMap<IntList> s3 = new Int2ObjectRBTreeMap<>();
 
-        a.getD().add(s0);
-        a.getD().add(s1);
-        a.getD().add(s2);
-        a.getD().add(s3);
+        a.getNfaD().add(s0);
+        a.getNfaD().add(s1);
+        a.getNfaD().add(s2);
+        a.getNfaD().add(s3);
 
         IntSet initialStates = new IntOpenHashSet(IntSet.of(0));
-        IntSet rTrim = Trimmer.rightTrim(1, a.getD(), initialStates);
+        IntSet rTrim = Trimmer.rightTrim(1, a.getNfaD(), initialStates);
         Assertions.assertEquals(IntSet.of(0,2,3), rTrim);
 
         IntSet lTrim = Trimmer.leftTrim(a);
@@ -119,7 +118,7 @@ public class TrimmerTest {
         Trimmer.trimAutomaton(a);
         Assertions.assertEquals(3, a.getQ());
         Assertions.assertEquals(0, a.getQ0());
-        Assertions.assertEquals(IntList.of(1,2),a.getD().get(0).get(0)); // renumbered
+        Assertions.assertEquals(IntList.of(1,2),a.getNfaD().get(0).get(0)); // renumbered
     }
 
     @Test
@@ -138,13 +137,13 @@ public class TrimmerTest {
         Int2ObjectRBTreeMap<IntList> s2 = new Int2ObjectRBTreeMap<>();
         Int2ObjectRBTreeMap<IntList> s3 = new Int2ObjectRBTreeMap<>();
 
-        a.getD().add(s0);
-        a.getD().add(s1);
-        a.getD().add(s2);
-        a.getD().add(s3);
+        a.getNfaD().add(s0);
+        a.getNfaD().add(s1);
+        a.getNfaD().add(s2);
+        a.getNfaD().add(s3);
         Trimmer.trimAutomaton(a);
         Assertions.assertEquals(1, a.getQ());
-        Assertions.assertTrue(a.getD().get(0).get(0).isEmpty());
+        Assertions.assertTrue(a.getNfaD().get(0).get(0).isEmpty());
     }
 
     @Test
@@ -162,8 +161,8 @@ public class TrimmerTest {
         a.setQ(2);
         Int2ObjectRBTreeMap<IntList> s0 = new Int2ObjectRBTreeMap<>();
         Int2ObjectRBTreeMap<IntList> s1 = new Int2ObjectRBTreeMap<>();
-        a.getD().add(s0);
-        a.getD().add(s1);
+        a.getNfaD().add(s0);
+        a.getNfaD().add(s1);
 
         Trimmer.trimAutomaton(a);
         Assertions.assertEquals(1, a.getQ());

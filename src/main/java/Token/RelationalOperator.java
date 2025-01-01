@@ -85,7 +85,7 @@ public class RelationalOperator extends Operator {
                 } else {
                     C = ns.comparison(o, arithmetic.identifier, op);
                 }
-                N = AutomatonLogicalOps.imply(N, C, print, prefix + " ", log);
+                N = AutomatonLogicalOps.imply(N, C, print, prefix + " ", log, "=>");
                 M = AutomatonLogicalOps.and(M, N, print, prefix + " ", log);
             }
             M = AutomatonLogicalOps.and(M, word.M, print, prefix + " ", log);
@@ -146,7 +146,7 @@ public class RelationalOperator extends Operator {
         UtilityMethods.logAndPrint(print, prefix + "computed " + a + op + b, log);
     }
 
-    private static boolean compare(String op, int a, int b) {
+    public static boolean compare(String op, int a, int b) {
         return switch (op) {
             case "=" -> a == b;
             case "!=" -> a != b;

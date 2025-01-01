@@ -149,7 +149,7 @@ public class Ostrowski {
             repr.getD().add(this.stateTransitions.get(q));
         }
 
-        repr.minimize(null, false, "", null);
+        repr.fa.determinizeAndMinimize(null, false, "", null);
         repr.canonize();
 
         handleZeroState(repr.getFa());
@@ -184,7 +184,7 @@ public class Ostrowski {
             adder.getD().add(this.stateTransitions.get(q));
         }
 
-        adder.minimize(null, false, "", null);
+        adder.fa.determinizeAndMinimize(null, false, "", null);
 
         // We need to canonize and remove the first state.
         // The automaton will work with this state as well, but it is useless. This happens
@@ -234,15 +234,15 @@ public class Ostrowski {
 
     private static void handleZeroState(FA adder) {
         boolean zeroStateNeeded =
-            adder.getD().stream().anyMatch(
+            adder.getNfaD().stream().anyMatch(
                 tm -> tm.int2ObjectEntrySet().stream().anyMatch(
                     es -> es.getValue().getInt(0) == 0));
 
         if (!zeroStateNeeded) {
-            adder.getD().remove(0);
+            adder.getNfaD().remove(0);
             adder.getO().removeInt(0);
             adder.setQ(adder.getQ() - 1);
-            adder.getD().forEach(tm -> {
+            adder.getNfaD().forEach(tm -> {
                 tm.forEach((k, v) -> {
                     int dest = v.getInt(0) - 1;
                     v.set(0, dest);

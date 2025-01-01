@@ -577,8 +577,8 @@ public class Prover {
         }
 
         M = c.result.M;
-        if (M.isTRUE_FALSE_AUTOMATON()) {
-            if (M.isTRUE_AUTOMATON()) {
+        if (M.fa.isTRUE_FALSE_AUTOMATON()) {
+            if (M.fa.isTRUE_AUTOMATON()) {
                 System.out.println("____\nTRUE");
             } else {
                 System.out.println("_____\nFALSE");

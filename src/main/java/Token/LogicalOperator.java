@@ -70,23 +70,20 @@ public class LogicalOperator extends Operator {
         if (a instanceof AutomatonExpression && b instanceof AutomatonExpression) {
             UtilityMethods.logAndPrint(print, prefix + "computing " + a + op + b, log);
             String opString = "(" + a + op + b + ")";
-            switch (op) {
-                case "&":
-                    S.push(new AutomatonExpression(opString, AutomatonLogicalOps.and(a.M, b.M, print, prefix + " ", log)));
-                    break;
-                case "|":
-                    S.push(new AutomatonExpression(opString, AutomatonLogicalOps.or(a.M, b.M, print, prefix + " ", log)));
-                    break;
-                case "^":
-                    S.push(new AutomatonExpression(opString, AutomatonLogicalOps.xor(a.M, b.M, print, prefix + " ", log)));
-                    break;
-                case "=>":
-                    S.push(new AutomatonExpression(opString, AutomatonLogicalOps.imply(a.M, b.M, print, prefix + " ", log)));
-                    break;
-                case "<=>":
-                    S.push(new AutomatonExpression(opString, AutomatonLogicalOps.iff(a.M, b.M, print, prefix + " ", log)));
-                    break;
-            }
+            AutomatonExpression ae = switch (op) {
+              case "&" ->
+                  new AutomatonExpression(opString, AutomatonLogicalOps.and(a.M, b.M, print, prefix + " ", log, op));
+              case "|" -> new AutomatonExpression(opString, AutomatonLogicalOps.or(a.M, b.M, print, prefix + " ", log, op));
+              case "^" ->
+                  new AutomatonExpression(opString, AutomatonLogicalOps.xor(a.M, b.M, print, prefix + " ", log, op));
+              case "=>" ->
+                  new AutomatonExpression(opString, AutomatonLogicalOps.imply(a.M, b.M, print, prefix + " ", log, op));
+              case "<=>" ->
+                  new AutomatonExpression(opString, AutomatonLogicalOps.iff(a.M, b.M, print, prefix + " ", log, op));
+              default -> throw new RuntimeException("Unexpected logical operator: " + op);
+            };
+          S.push(ae);
+
             UtilityMethods.logAndPrint(print, prefix + "computed " + a + op + b, log);
             return;
         }

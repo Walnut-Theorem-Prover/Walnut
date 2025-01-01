@@ -144,7 +144,21 @@ public class NumberSystem {
         return false;
     }
 
-    public boolean isMsd() {
+  static Boolean determineMsd(List<NumberSystem> numberSystems) {
+        boolean isMsd = true;
+        boolean flag = false;
+        for (NumberSystem ns : numberSystems) {
+            if (ns == null)
+                return null;
+            if (flag && (ns.isMsd() != isMsd))
+                return null;
+            isMsd = ns.isMsd();
+            flag = true;
+        }
+        return isMsd;
+    }
+
+  public boolean isMsd() {
         return is_msd;
     }
 
@@ -545,7 +559,7 @@ public class NumberSystem {
         Automaton a = new Automaton();
         a.getFa().setQ(Q);
         for(int i=0;i<Q;i++) {
-            a.getFa().getD().add(new Int2ObjectRBTreeMap<>());
+            a.getFa().getNfaD().add(new Int2ObjectRBTreeMap<>());
         }
         return a;
     }
@@ -866,7 +880,7 @@ public class NumberSystem {
             P = arithmetic(a, b, c, "+");
             P = AutomatonLogicalOps.and(P, M, false, null, null);
             P = AutomatonLogicalOps.and(P, N, false, null, null);
-            AutomatonLogicalOps.quantify(P, a, b, is_msd, false, null, null);
+            AutomatonLogicalOps.quantify(P, a, b, false, null, null);
         }
         constantsDynamicTable.put(n, P);
         return P;
@@ -916,7 +930,7 @@ public class NumberSystem {
                 P = arithmetic(c, a, d, "+");
                 P = AutomatonLogicalOps.and(P, M, false, null, null);
                 P = AutomatonLogicalOps.and(P, D, false, null, null);
-                AutomatonLogicalOps.quantify(P, b, c, is_msd, false, null, null);
+                AutomatonLogicalOps.quantify(P, b, c, false, null, null);
             }
 
             P.sortLabel();
@@ -950,7 +964,7 @@ public class NumberSystem {
         Automaton P = AutomatonLogicalOps.and(P1, P2, false, null, null);
         Automaton R = AutomatonLogicalOps.and(M, N, false, null, null);
         R = AutomatonLogicalOps.and(R, P, false, null, null);
-        AutomatonLogicalOps.quantify(R, q, r, is_msd, false, null, null);
+        AutomatonLogicalOps.quantify(R, q, r, false, null, null);
         R.sortLabel();
         divisionsDynamicTable.put(n, R);
         return R;

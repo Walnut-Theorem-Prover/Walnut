@@ -38,7 +38,7 @@ public class AutomatonWriter {
      */
     public static String writeMatrices(Automaton automaton, String address, List<String> free_variables) {
         System.out.println("Writing to:" + address);
-        if (automaton.isTRUE_FALSE_AUTOMATON()) {
+        if (automaton.fa.isTRUE_FALSE_AUTOMATON()) {
             throw new RuntimeException("incidence matrices cannot be calculated, because the automaton does not have a free variable.");
         }
         automaton.canonize();
@@ -172,8 +172,8 @@ public class AutomatonWriter {
     }
 
     public static void writeToStream(Automaton automaton, PrintWriter out) {
-        if (automaton.isTRUE_FALSE_AUTOMATON()) {
-            out.write(automaton.isTRUE_AUTOMATON() ? "true" : "false");
+        if (automaton.fa.isTRUE_FALSE_AUTOMATON()) {
+            out.write(automaton.fa.isTRUE_AUTOMATON() ? "true" : "false");
         } else {
             automaton.canonize();
             writeAlphabet(automaton, out);
@@ -228,17 +228,17 @@ public class AutomatonWriter {
     public static void draw(Automaton automaton, String address, String predicate, boolean isDFAO) {
         System.out.println("Writing to:" + address);
         StringBuilder gv = new StringBuilder();
-        if (automaton.isTRUE_FALSE_AUTOMATON()) {
+        if (automaton.fa.isTRUE_FALSE_AUTOMATON()) {
             addln(gv,"digraph G {");
             addln(gv,"label = \"(): " + predicate + "\";");
             addln(gv,"rankdir = LR;");
-            if (automaton.isTRUE_AUTOMATON())
+            if (automaton.fa.isTRUE_AUTOMATON())
                 addln(gv,"node [shape = doublecircle, label=\"" + 0 + "\", fontsize=12]" + 0 + ";");
             else
                 addln(gv,"node [shape = circle, label=\"" + 0 + "\", fontsize=12]" + 0 + ";");
             addln(gv,"node [shape = point ]; qi");
             addln(gv,"qi ->" + 0 + ";");
-            if (automaton.isTRUE_AUTOMATON())
+            if (automaton.fa.isTRUE_AUTOMATON())
                 addln(gv,0 + " -> " + 0 + "[ label = \"*\"];");
             addln(gv,"}");
         } else {

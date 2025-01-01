@@ -152,7 +152,7 @@ public class ArithmeticOperator extends Operator {
                 } else {
                     C = ns.arithmetic(o, arithmetic.identifier, c, op);
                 }
-                N = AutomatonLogicalOps.imply(N, C, print, prefix + " ", log);
+                N = AutomatonLogicalOps.imply(N, C, print, prefix + " ", log, "=>");
                 M = AutomatonLogicalOps.and(M, N, print, prefix + " ", log);
             }
             M = AutomatonLogicalOps.and(M, word.M, print, prefix + " ", log);

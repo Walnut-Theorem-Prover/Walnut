@@ -59,7 +59,7 @@ public class Predicate {
     private Matcher MATCHER_FOR_ARITHMETIC_OPERATORS;
     private Matcher MATCHER_FOR_NUMBER_SYSTEM;
     private Matcher MATCHER_FOR_WORD;
-    private  Matcher MATCHER_FOR_WORD_WITH_DELIMITER;
+    private Matcher MATCHER_FOR_WORD_WITH_DELIMITER;
     private Matcher MATCHER_FOR_FUNCTION;
     private Matcher MATCHER_FOR_MACRO;
     private Matcher MATCHER_FOR_VARIABLE;
@@ -75,30 +75,47 @@ public class Predicate {
         return numberSystemHash;
     }
 
+    // Alphanumeric, but not starting with reserved letters A,E,I
+    private static final String ALPHANUMERIC = "([a-zA-Z&&[^AEI]]\\w*)";
+    private static final String ANCHOR = "\\G";
+    private static final String WHITESPACE = "\\s*";
+    private static final String LEFT_PAREN = "\\(";
+    private static final String RIGHT_PAREN = "\\)";
+    private static final String LEFT_BRACKET = "\\[";
+    private static final String RELATIONAL_OPERATORS = "(>=|<=|<|>|=|!=)"; // Relational operators
+    private static final String ARITHMETIC_OPERATORS = "(_|/|\\*|\\+|\\-)"; // Arithmetic operators
+    private static final String LOGICAL_OPERATORS = "(?<!\\.)(`|\\^|\\&|\\~|\\||=>|<=>|E|A|I|\\u02DC|\\u0303)";
+    // Matches number systems like msd_5, lsd_fib, msd5, lsd, or standalone numbers/words like 42, fib
+    private static final String NUMBER_SYSTEM =
+        "\\?((" +
+            "(msd|lsd)(_?(\\d+|\\w+))" + // Matches msd_5, lsd_10, msd5, or lsd_fib
+            "|" + "(\\d+|\\w+)))";       // Matches standalone numbers (e.g., 42) or words (e.g., fib)
+
+
     // allow automata names that start with A, E, I, for stuff like .AUTOMATON[..] or .EVEN[..], etc.
     static Pattern PATTERN_FOR_LOGICAL_OPERATORS =
-        Pattern.compile("\\G\\s*(?<!\\.)(`|\\^|\\&|\\~|\\||=>|<=>|E|A|I|\\u02DC|\\u0303)");
+        Pattern.compile(ANCHOR + WHITESPACE + LOGICAL_OPERATORS);
     static Pattern PATTERN_FOR_LIST_OF_QUANTIFIED_VARIABLES =
-        Pattern.compile("\\G\\s*((\\s*([a-zA-Z&&[^AEI]]\\w*)\\s*)(\\s*,\\s*([a-zA-Z&&[^AEI]]\\w*)\\s*)*)");
-    static Pattern PATTERN_FOR_RELATIONAL_OPERATORS = Pattern.compile("\\G\\s*(>=|<=|<|>|=|!=)");
-    static Pattern PATTERN_FOR_ARITHMETIC_OPERATORS = Pattern.compile("\\G\\s*(_|/|\\*|\\+|\\-)");
-    static Pattern PATTERN_FOR_NUMBER_SYSTEM =
-        Pattern.compile("\\G\\s*\\?(((msd|lsd)_(\\d+|\\w+))|((msd|lsd)(\\d+|\\w+))|(msd|lsd)|(\\d+|\\w+))");
+        Pattern.compile(ANCHOR + WHITESPACE + "((" + WHITESPACE + ALPHANUMERIC + WHITESPACE + ")(\\s*,\\s*" + ALPHANUMERIC + WHITESPACE + ")*)");
+    static Pattern PATTERN_FOR_RELATIONAL_OPERATORS = Pattern.compile(ANCHOR + WHITESPACE + RELATIONAL_OPERATORS);
+    static Pattern PATTERN_FOR_ARITHMETIC_OPERATORS = Pattern.compile(ANCHOR + WHITESPACE  + ARITHMETIC_OPERATORS);
+
+    static Pattern PATTERN_FOR_NUMBER_SYSTEM = Pattern.compile(ANCHOR + WHITESPACE + NUMBER_SYSTEM);
     // 2, 5, 8, 9
     static int R_NS_AND_BASE = 2, R_BASE_ONLY = 5, R_NS_ONLY = 8, R_BASE_ONLY_2 = 9;
 
-    static Pattern PATTERN_FOR_WORD = Pattern.compile("\\G\\s*([a-zA-Z&&[^AEI]]\\w*)\\s*\\[");
-    static Pattern PATTERN_FOR_WORD_WITH_DELIMITER = Pattern.compile("\\G\\s*\\.([a-zA-Z]\\w*)\\s*\\[");
-    static Pattern PATTERN_FOR_FUNCTION = Pattern.compile("\\G\\s*\\$([a-zA-Z&&[^AEI]]\\w*)\\s*\\(");
-    static Pattern PATTERN_FOR_MACRO = Pattern.compile("\\G(\\s*)\\#([a-zA-Z&&[^AEI]]\\w*)\\s*\\(");
-    static Pattern PATTERN_FOR_VARIABLE = Pattern.compile("\\G\\s*([a-zA-Z&&[^AEI]]\\w*)");
-    static Pattern PATTERN_FOR_NUMBER_LITERAL = Pattern.compile("\\G\\s*(\\d+)");
-    static Pattern PATTERN_FOR_ALPHABET_LETTER = Pattern.compile("\\G\\s*@(\\s*(\\+|\\-)?\\s*\\d+)");
-    static Pattern PATTERN_FOR_LEFT_PARENTHESIS = Pattern.compile("\\G\\s*\\(");
-    static Pattern PATTERN_FOR_RIGHT_PARENTHESIS = Pattern.compile("\\G\\s*\\)");
-    static Pattern PATTERN_FOR_WHITESPACE = Pattern.compile("\\G\\s+");
+    static Pattern PATTERN_FOR_WORD = Pattern.compile(ANCHOR + WHITESPACE + ALPHANUMERIC + WHITESPACE + LEFT_BRACKET);
+    static Pattern PATTERN_FOR_WORD_WITH_DELIMITER = Pattern.compile(ANCHOR + WHITESPACE + "\\.([a-zA-Z]\\w*)" + WHITESPACE + LEFT_BRACKET);
+    static Pattern PATTERN_FOR_FUNCTION = Pattern.compile(ANCHOR + WHITESPACE + "\\$" + ALPHANUMERIC + WHITESPACE + LEFT_PAREN);
+    static Pattern PATTERN_FOR_MACRO = Pattern.compile(ANCHOR + "(\\s*)\\#" + ALPHANUMERIC + WHITESPACE + LEFT_PAREN);
+    static Pattern PATTERN_FOR_VARIABLE = Pattern.compile(ANCHOR + WHITESPACE + ALPHANUMERIC);
+    static Pattern PATTERN_FOR_NUMBER_LITERAL = Pattern.compile(ANCHOR + WHITESPACE + "(\\d+)");
+    static Pattern PATTERN_FOR_ALPHABET_LETTER = Pattern.compile(ANCHOR + WHITESPACE + "@(\\s*(\\+|\\-)?\\s*\\d+)");
+    static Pattern PATTERN_FOR_LEFT_PARENTHESIS = Pattern.compile(ANCHOR + WHITESPACE + LEFT_PAREN);
+    static Pattern PATTERN_FOR_RIGHT_PARENTHESIS = Pattern.compile(ANCHOR + WHITESPACE + RIGHT_PAREN);
+    static Pattern PATTERN_FOR_WHITESPACE = Pattern.compile(ANCHOR + "\\s+");
 
-    private static final Pattern PATTERN_LEFT_BRACKET = Pattern.compile("\\G\\s*\\[");
+    private static final Pattern PATTERN_LEFT_BRACKET = Pattern.compile(ANCHOR + WHITESPACE + LEFT_BRACKET);
 
     public Predicate(String predicate) {
         this("msd_2", predicate, 0);

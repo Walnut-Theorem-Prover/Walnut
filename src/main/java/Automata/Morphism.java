@@ -119,7 +119,7 @@ public class Morphism {
             maxEntry + 1, IntArrayList.toList(IntStream.rangeClosed(0, maxEntry)), newD);
 
         // this word automaton is purely symbolic in input and we want it in the exact order given
-        promotion.setCanonized(true);
+        promotion.fa.setCanonized(true);
         // the base for the automata is the length of the longest image of any letter under the morphism
         promotion.getNS().add(new NumberSystem("msd_" + maxImageLength));
 
