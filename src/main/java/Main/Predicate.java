@@ -360,37 +360,69 @@ public class Predicate {
         return i + 1;
     }
 
-    private int putFunction(String defaultNumberSystem) {
-        Matcher matcher = MATCHER_FOR_FUNCTION;
-        Automaton A = new Automaton(Session.getReadFileForAutomataLibrary(matcher.group(1) + ".txt"));
+    private static class ParsedArgument {
+        final String text;
+        final int startPos; // The position in the original string where this argument began
+
+        ParsedArgument(String text, int startPos) {
+            this.text = text;
+            this.startPos = startPos;
+        }
+    }
+
+    /**
+     * Parses comma-separated arguments enclosed in parentheses starting at {@code startIndex}.
+     * Returns a list of ParsedArgument (text + start offset) and the final index.
+     */
+    private ParseResult parseParenthesizedArguments(int startIndex) {
+        ParseResult result = new ParseResult();
+        result.arguments = new ArrayList<>();
 
         Stack<Character> parenthesisStack = new Stack<>();
         parenthesisStack.push('(');
-        int i = matcher.end();
-        List<Predicate> arguments = new ArrayList<>();
+
         StringBuilder buf = new StringBuilder();
-        int startingPosition = i;
+        int currentArgStart = startIndex; // Track where the current argument starts
+
+        int i = startIndex;
         while (i < predicate.length()) {
             char ch = predicate.charAt(i);
+
+            // Check for invalid macro characters
             if (ch == '#' || ch == '$') {
                 throw ExceptionHelper.internalMacro(realStartingPosition + i);
             }
+
+            // Closing parenthesis
             if (ch == ')') {
-                if (parenthesisStack.isEmpty())
-                    throw ExceptionHelper.unbalancedParen(realStartingPosition + i);
-                parenthesisStack.pop();
                 if (parenthesisStack.isEmpty()) {
-                    arguments.add(new Predicate(defaultNumberSystem, buf.toString(), realStartingPosition + startingPosition));
+                    throw ExceptionHelper.unbalancedParen(realStartingPosition + i);
+                }
+                parenthesisStack.pop();
+
+                // If the stack is empty, we've closed the top-level '('
+                if (parenthesisStack.isEmpty()) {
+                    // Add whatever we have in buf as the last argument
+                    result.arguments.add(new ParsedArgument(buf.toString(), currentArgStart));
+                    result.endIndex = i; // We'll use i outside to know where to substring
                     break;
                 }
-                buf.append(')');
+                // If it's not empty, this ) belongs to a nested parenthesis
+                buf.append(ch);
+
+                // Comma at top level => end of one argument, start of next
             } else if (ch == ',') {
-                if (parenthesisStack.size() != 1)
-                    throw ExceptionHelper.unbalancedParen(realStartingPosition + i);
-                arguments.add(new Predicate(defaultNumberSystem, buf.toString(), realStartingPosition + startingPosition));
-                buf = new StringBuilder();
-                startingPosition = i + 1;
+                if (parenthesisStack.size() == 1) {
+                    // Top-level comma => finalize one argument
+                    result.arguments.add(new ParsedArgument(buf.toString(), currentArgStart));
+                    buf = new StringBuilder();
+                    currentArgStart = i + 1;
+                } else {
+                    // Nested comma, just text
+                    buf.append(ch);
+                }
             } else {
+                // Normal character
                 buf.append(ch);
                 if (ch == '(') {
                     parenthesisStack.push('(');
@@ -398,64 +430,96 @@ public class Predicate {
             }
             i++;
         }
-        if (arguments.size() == 1 && arguments.get(0).getPostOrder().isEmpty()) {
-            arguments.remove(0);
+
+        // If we exit the loop but the stack isn't empty, we have unbalanced parentheses
+        if (!parenthesisStack.isEmpty()) {
+            throw ExceptionHelper.unbalancedParen(realStartingPosition + i);
         }
-        for (Predicate p : arguments) {
-            List<Token> tmp = p.getPostOrder();
-            if (tmp.isEmpty() && arguments.size() > 1)
-                throw new RuntimeException("argument " + (arguments.indexOf(p) + 1) + " of the function " + matcher.group(1) + " cannot be empty: char at " + matcher.start(1));
-            postOrder.addAll(tmp);
-        }
-        Function f = new Function(defaultNumberSystem, realStartingPosition + matcher.start(1), matcher.group(1), A, arguments.size());
-        f.put(postOrder);
-        return i + 1;
+
+        return result;
+    }
+
+    /** Simple data holder for parseParenthesizedArguments(...) results. */
+    private static class ParseResult {
+        List<ParsedArgument> arguments;
+        int endIndex;
     }
 
     private int putMacro() {
         Matcher matcher = MATCHER_FOR_MACRO;
 
-        String filename = matcher.group(2);
-        StringBuilder macro = readMacroFile(filename);
-        Stack<Character> parenthesisStack = new Stack<>();
-        parenthesisStack.push('(');
-        int i = matcher.end();
-        List<String> arguments = new ArrayList<>();
-        StringBuilder buf = new StringBuilder();
-        while (i < predicate.length()) {
-            char ch = predicate.charAt(i);
-            if (ch == '#' || ch == '$') {
-                throw ExceptionHelper.internalMacro(realStartingPosition + i);
-            }
-            if (ch == ')') {
-                if (parenthesisStack.isEmpty())
-                    throw ExceptionHelper.unbalancedParen(realStartingPosition + i);
-                parenthesisStack.pop();
-                if (parenthesisStack.isEmpty()) {
-                    arguments.add(buf.toString());
-                    break;
-                }
-                buf.append(')');
-            } else if (ch == ',') {
-                if (parenthesisStack.size() != 1)
-                    throw ExceptionHelper.unbalancedParen(realStartingPosition + i);
-                arguments.add(buf.toString());
-                buf = new StringBuilder();
-            } else {
-                buf.append(ch);
-                if (ch == '(') {
-                    parenthesisStack.push('(');
-                }
-            }
-            i++;
+        StringBuilder macro = readMacroFile(matcher.group(2));
+
+        // Parse arguments starting just after the matched macro syntax
+        ParseResult parseResult = parseParenthesizedArguments(matcher.end());
+        List<ParsedArgument> parsedArguments = parseResult.arguments;
+
+        // Convert them to a simple List<String> to do replacements
+        List<String> arguments = new ArrayList<>(parsedArguments.size());
+        for (ParsedArgument argData : parsedArguments) {
+            arguments.add(argData.text);
         }
+
+        // Replace in reverse order: "%0", "%1", etc.
         for (int arg = arguments.size() - 1; arg >= 0; arg--) {
             macro = new StringBuilder(macro.toString().replaceAll("%" + arg, arguments.get(arg)));
         }
-        predicate = predicate.substring(0, matcher.start()) + matcher.group(1) + macro + predicate.substring(i + 1);
+
+        // Insert the expanded macro back into predicate
+        // parseResult.endIndex is where the closing parenthesis was
+        predicate = predicate.substring(
+            0, matcher.start()) + matcher.group(1) + macro + predicate.substring(parseResult.endIndex + 1);
+
         initializeMatchers();
         return matcher.start();
     }
+
+    private int putFunction(String defaultNumberSystem) {
+        Matcher matcher = MATCHER_FOR_FUNCTION;
+
+        // Construct the Automaton
+        String functionName = matcher.group(1);
+        Automaton A = new Automaton(Session.getReadFileForAutomataLibrary(functionName + ".txt"));
+
+        // Parse parentheses for function arguments
+        ParseResult parseResult = parseParenthesizedArguments(matcher.end());
+        List<ParsedArgument> parsedArgs = parseResult.arguments;
+
+        // Convert the parsed strings to Predicate objects
+        List<Predicate> arguments = new ArrayList<>(parsedArgs.size());
+        for (ParsedArgument argData : parsedArgs) {
+            arguments.add(new Predicate(
+                defaultNumberSystem, argData.text, realStartingPosition + argData.startPos));
+        }
+
+        // If there's a single empty argument, remove it
+        if (arguments.size() == 1 && arguments.get(0).getPostOrder().isEmpty()) {
+            arguments.remove(0);
+        }
+
+        // Collect postOrder from each argument, throwing an error if any are empty (except the single-arg case above)
+        for (Predicate p : arguments) {
+            List<Token> tmp = p.getPostOrder();
+            if (tmp.isEmpty() && arguments.size() > 1) {
+                throw new RuntimeException(
+                    "argument " + (arguments.indexOf(p) + 1)
+                        + " of the function " + functionName + " cannot be empty: char at " + matcher.start(1)
+                );
+            }
+            postOrder.addAll(tmp);
+        }
+
+        // Create and populate the Function
+        Function f = new Function(
+            defaultNumberSystem, realStartingPosition + matcher.start(1), matcher.group(1),
+            A, arguments.size());
+        f.put(postOrder);
+
+        // Return one past the closing parenthesis
+        return parseResult.endIndex + 1;
+    }
+
+
 
     private static StringBuilder readMacroFile(String filename) {
         StringBuilder macro = new StringBuilder();

@@ -23,13 +23,13 @@ import Main.Expression;
 import java.util.List;
 
 public class WordExpression extends Expression {
-  public List<String> list_of_identifiers_to_quantify;
+  public List<String> identifiersToQuantify;
 
   public WordExpression(
       String expressionInString, Automata.Automaton wordAutomaton, Automaton M, List<String> quantify) {
     this.expressionInString = expressionInString;
     this.wordAutomaton = wordAutomaton;
     this.M = M;
-    list_of_identifiers_to_quantify = quantify;
+    identifiersToQuantify = quantify;
   }
 }

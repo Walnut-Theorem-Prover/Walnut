@@ -1,1 +1,1 @@
-Error converting automaton.
+New and old number systems must have bases k^i and k^j for some integer k.

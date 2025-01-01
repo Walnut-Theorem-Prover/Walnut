@@ -1,1 +1,1 @@
-Error transducing automaton
+Output alphabet of automaton must be compatible with the transducer input alphabet

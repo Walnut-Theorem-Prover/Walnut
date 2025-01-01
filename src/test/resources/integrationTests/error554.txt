@@ -1,1 +1,1 @@
-Error converting automaton.
+Base of automaton's number system must be > 1 and int, found: fib

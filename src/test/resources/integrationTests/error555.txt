@@ -1,1 +1,1 @@
-Error converting automaton.
+New and old number systems are identical: msd_2

@@ -18,7 +18,6 @@
 
 package Token;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Stack;
 
@@ -85,7 +84,7 @@ public class ArithmeticOperator extends Operator {
         if (a instanceof WordExpression && b instanceof WordExpression) {
             a.wordAutomaton = AutomatonLogicalOps.applyOperator(a.wordAutomaton, b.wordAutomaton, op, print, prefix, log);
             a.M = AutomatonLogicalOps.and(a.M, b.M, print, prefix + " ", log);
-            ((WordExpression)a).list_of_identifiers_to_quantify.addAll(((WordExpression)b).list_of_identifiers_to_quantify);
+            ((WordExpression)a).identifiersToQuantify.addAll(((WordExpression)b).identifiersToQuantify);
             S.push(a);
             return;
         }
@@ -102,21 +101,9 @@ public class ArithmeticOperator extends Operator {
 
         if (
             (a instanceof NumberLiteralExpression || a instanceof AlphabetLetterExpression) && (b instanceof NumberLiteralExpression)) {
-            switch (op) {
-                case "+":
-                    S.push(new NumberLiteralExpression(Integer.toString(a.constant + b.constant), a.constant + b.constant, ns));
-                    return;
-                case "*":
-                    S.push(new NumberLiteralExpression(Integer.toString(a.constant * b.constant), a.constant * b.constant, ns));
-                    return;
-                case "/":
-                    int c = Math.floorDiv(a.constant, b.constant);
-                    S.push(new NumberLiteralExpression(Integer.toString(c), c, ns));
-                    return;
-                case "-":
-                    S.push(new NumberLiteralExpression(Integer.toString(a.constant - b.constant), a.constant - b.constant, ns));
-                    return;
-            }
+            int value = ArithmeticOperator.arith(op, a.constant, b.constant);
+            S.push(new NumberLiteralExpression(Integer.toString(value), value, ns));
+            return;
         }
         String c = getUniqueString();
         Automaton M;
@@ -156,7 +143,7 @@ public class ArithmeticOperator extends Operator {
                 M = AutomatonLogicalOps.and(M, N, print, prefix + " ", log);
             }
             M = AutomatonLogicalOps.and(M, word.M, print, prefix + " ", log);
-            AutomatonLogicalOps.quantify(M, new HashSet<>(word.list_of_identifiers_to_quantify), print, prefix + " ", log);
+            AutomatonLogicalOps.quantify(M, word.identifiersToQuantify, print, prefix + " ", log);
             if (arithmetic instanceof ArithmeticExpression) {
                 M = AutomatonLogicalOps.and(M, arithmetic.M, print, prefix + " ", log);
                 AutomatonLogicalOps.quantify(M, arithmetic.identifier, print, prefix + " ", log);
@@ -189,6 +176,25 @@ public class ArithmeticOperator extends Operator {
         }
         S.push(new ArithmeticExpression("(" + a + op + b + ")", M, c));
         UtilityMethods.logAndPrint(print, prefix + "computed " + a + op + b, log);
+    }
+
+    public static int arith(String op, int a, int b) {
+        switch (op) {
+            case "+" -> {
+                return a + b;
+            }
+            case "-" -> {
+                return a - b;
+            }
+            case "/" -> {
+                if (b == 0) throw ExceptionHelper.divisionByZero();
+                return Math.floorDiv(a, b);
+            }
+            case "*" -> {
+                return a * b;
+            }
+            default -> throw ExceptionHelper.unexpectedOperator(op);
+        }
     }
 
     public static boolean isValidArithmeticOperator(Expression a) {

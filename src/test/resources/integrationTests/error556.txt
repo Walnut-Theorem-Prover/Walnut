@@ -1,1 +1,1 @@
-Error converting automaton.
+Automaton must have exactly one input to be converted.

@@ -114,7 +114,7 @@ public class LogicalOperator extends Operator {
             temp.push(S.pop());
         }
         UtilityMethods.logAndPrint(print, prefix + "computing quantifier " + op, log);
-        List<String> list_of_identifiers_to_quantify = new ArrayList<>();
+        List<String> identifiersToQuantify = new ArrayList<>();
         for (int i = 0; i < getArity(); i++) {
             operands.add(temp.pop());
             Expression operand = operands.get(i);
@@ -126,20 +126,20 @@ public class LogicalOperator extends Operator {
                 if (!(operand instanceof VariableExpression))
                     throw new RuntimeException("operator " + op + " requires a list of " + quantifiedVariableCount + " variables");
 
-                list_of_identifiers_to_quantify.add(operand.identifier);
+                identifiersToQuantify.add(operand.identifier);
             } else if (i == getArity() - 1) {
                 stringValue.append(operand);
                 if (!(operand instanceof AutomatonExpression))
                     throw new RuntimeException("the last operand of " + op + " can only be of type automaton");
                 M = operand.M;
                 if (op.equals("E")) {
-                    AutomatonLogicalOps.quantify(M, new HashSet<>(list_of_identifiers_to_quantify), print, prefix + " ", log);
+                    AutomatonLogicalOps.quantify(M, identifiersToQuantify, print, prefix + " ", log);
                 } else if (op.equals("A")) {
                     AutomatonLogicalOps.not(M, print, prefix + " ", log);
-                    AutomatonLogicalOps.quantify(M, new HashSet<>(list_of_identifiers_to_quantify), print, prefix + " ", log);
+                    AutomatonLogicalOps.quantify(M, identifiersToQuantify, print, prefix + " ", log);
                     AutomatonLogicalOps.not(M, print, prefix + " ", log);
                 } else {
-                    M = AutomatonLogicalOps.removeLeadingZeroes(M, list_of_identifiers_to_quantify, print, prefix + " ", log);
+                    M = AutomatonLogicalOps.removeLeadingZeroes(M, identifiersToQuantify, print, prefix + " ", log);
                     String infReg = M.infinite();
                     M = infReg.isEmpty() ? new Automaton(false) : new Automaton(true);
                 }

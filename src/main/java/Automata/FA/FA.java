@@ -644,28 +644,31 @@ public class FA implements Cloneable {
    *
    */
   public IntSet zeroReachableStates(int zero) {
-    IntList dQ0 = nfaD.get(q0).get(zero);
-    if (dQ0 == null) {
-      dQ0 = new IntArrayList();
-      nfaD.get(q0).put(zero, dQ0);
-    }
+    // Ensure q0 is initialized in nfaD
+    IntList dQ0 = nfaD.get(q0).computeIfAbsent(zero, k -> new IntArrayList());
     if (!dQ0.contains(q0)) {
       dQ0.add(q0);
     }
+
+    // Perform BFS to find zero-reachable states
     IntSet result = new IntOpenHashSet();
     Queue<Integer> queue = new LinkedList<>();
     queue.add(q0);
+
     while (!queue.isEmpty()) {
       int q = queue.poll();
-      result.add(q);
-      dQ0 = nfaD.get(q).get(zero);
-      if (dQ0 != null) {
-        for (int p: dQ0) {
-          if (!result.contains(p))
-            queue.add(p);
+      if (result.add(q)) { // Add q to result; skip if already processed
+        IntList transitions = nfaD.get(q).get(zero);
+        if (transitions != null) {
+          for (int p : transitions) {
+            if (!result.contains(p)) {
+              queue.add(p);
+            }
+          }
         }
       }
     }
+
     return result;
   }
 
@@ -796,10 +799,10 @@ public class FA implements Cloneable {
       return finalStates;
   }
 
-  public void determinizeAndMinimize(List<Int2IntMap> newMemD, boolean print, String prefix, StringBuilder log) {
-      IntSet qqq = new IntOpenHashSet();
-      qqq.add(q0);
-      determinizeAndMinimize(newMemD, qqq, print, prefix, log);
+  public void determinizeAndMinimize(boolean print, String prefix, StringBuilder log) {
+    IntSet qqq = new IntOpenHashSet();
+    qqq.add(q0);
+    determinizeAndMinimize(null, qqq, print, prefix, log);
   }
   public void determinizeAndMinimize(List<Int2IntMap> newMemD, IntSet qqq, boolean print, String prefix, StringBuilder log) {
     long timeBefore = System.currentTimeMillis();

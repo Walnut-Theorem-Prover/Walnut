@@ -149,7 +149,7 @@ public class Ostrowski {
             repr.getD().add(this.stateTransitions.get(q));
         }
 
-        repr.fa.determinizeAndMinimize(null, false, "", null);
+        repr.fa.determinizeAndMinimize(false, "", null);
         repr.canonize();
 
         handleZeroState(repr.getFa());
@@ -161,16 +161,15 @@ public class Ostrowski {
         return node != null && node.getState() == 0 && node.getSeenIndex() == 1;
     }
 
-    public static void writeRepresentation(String name, Automaton repr) {
+    public static void writeAutomaton(String name, String fullName, Automaton a) {
         String repr_file_name =
-                Session.getWriteAddressForCustomBases() + "msd_" + name + ".txt";
+            Session.getWriteAddressForCustomBases() + fullName;
         System.out.println("Writing to: " + repr_file_name);
         File f = new File(repr_file_name);
         if (f.exists() && !f.isDirectory()) {
             throw new RuntimeException("Error: number system " + name + " already exists.");
         }
-        AutomatonWriter.write(repr, repr_file_name);
-        System.out.println("Ostrowski representation automaton created and written to file " + repr_file_name);
+        AutomatonWriter.write(a, repr_file_name);
     }
 
     public Automaton createAdderAutomaton() {
@@ -184,7 +183,7 @@ public class Ostrowski {
             adder.getD().add(this.stateTransitions.get(q));
         }
 
-        adder.fa.determinizeAndMinimize(null, false, "", null);
+        adder.fa.determinizeAndMinimize(false, "", null);
 
         // We need to canonize and remove the first state.
         // The automaton will work with this state as well, but it is useless. This happens
@@ -195,17 +194,6 @@ public class Ostrowski {
         return adder;
     }
 
-
-    public static void writeAdder(String name, Automaton adder) {
-        String adder_file_name =
-                Session.getWriteAddressForCustomBases() + "msd_" + name + "_addition.txt";
-        File f = new File(adder_file_name);
-        if (f.exists() && !f.isDirectory()) {
-            System.out.println("Warning: number system " + name + "was previously defined and is being overwritten.");
-        }
-        AutomatonWriter.write(adder, adder_file_name);
-        System.out.println("Ostrowski adder automaton created and written to file " + adder_file_name);
-    }
 
     private Automaton initAutomaton(int inputs) {
         resetAutomaton();

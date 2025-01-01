@@ -20,6 +20,10 @@ public class ExceptionHelper {
         return new RuntimeException("division by zero");
     }
 
+    public static RuntimeException errorCommand(String cmd) {
+        return new RuntimeException("Error using the " + cmd + " command.");
+    }
+
     public static RuntimeException internalMacro(int index) {
         return new RuntimeException("a function/macro cannot be called from inside another function/macro's argument list: char at " + index);
     }
@@ -70,5 +74,9 @@ public class ExceptionHelper {
 
     public static RuntimeException undefinedToken(int position) {
         return new RuntimeException("Undefined token: char at " + position);
+    }
+
+    public static RuntimeException unexpectedOperator(String op) {
+        return new RuntimeException("Unexpected operator:" + op);
     }
 }

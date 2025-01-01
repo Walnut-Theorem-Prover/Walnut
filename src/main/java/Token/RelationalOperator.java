@@ -1,4 +1,4 @@
-/*	 Copyright 2016 Hamoon Mousavi
+/*	 Copyright 2016 Hamoon Mousavi, 2025 John Nicol
  *
  * 	 This file is part of Walnut.
  *
@@ -89,7 +89,7 @@ public class RelationalOperator extends Operator {
                 M = AutomatonLogicalOps.and(M, N, print, prefix + " ", log);
             }
             M = AutomatonLogicalOps.and(M, word.M, print, prefix + " ", log);
-            AutomatonLogicalOps.quantify(M, new HashSet<>(word.list_of_identifiers_to_quantify), print, prefix + " ", log);
+            AutomatonLogicalOps.quantify(M, word.identifiersToQuantify, print, prefix + " ", log);
             if (arithmetic instanceof ArithmeticExpression) {
                 M = AutomatonLogicalOps.and(M, arithmetic.M, print, prefix + " ", log);
                 AutomatonLogicalOps.quantify(M, arithmetic.identifier, print, prefix + " ", log);
@@ -125,20 +125,20 @@ public class RelationalOperator extends Operator {
             Automaton M = AutomatonLogicalOps.compare(a.wordAutomaton, b.wordAutomaton, op, print, prefix + " ", log);
             M = AutomatonLogicalOps.and(M, a.M, print, prefix + " ", log);
             M = AutomatonLogicalOps.and(M, b.M, print, prefix + " ", log);
-            AutomatonLogicalOps.quantify(M, new HashSet<>(((WordExpression)a).list_of_identifiers_to_quantify), print, prefix + " ", log);
-            AutomatonLogicalOps.quantify(M, new HashSet<>(((WordExpression)b).list_of_identifiers_to_quantify), print, prefix + " ", log);
+            AutomatonLogicalOps.quantify(M, ((WordExpression)a).identifiersToQuantify, print, prefix + " ", log);
+            AutomatonLogicalOps.quantify(M, ((WordExpression)b).identifiersToQuantify, print, prefix + " ", log);
             S.push(new AutomatonExpression(a + op + b, M));
         } else if (a instanceof WordExpression && (b instanceof NumberLiteralExpression|| b instanceof AlphabetLetterExpression)) {
             AutomatonLogicalOps.compare(a.wordAutomaton, b.constant, op, print, prefix + " ", log);
             Automaton M = a.wordAutomaton;
             M = AutomatonLogicalOps.and(M, a.M, print, prefix + " ", log);
-            AutomatonLogicalOps.quantify(M, new HashSet<>(((WordExpression)a).list_of_identifiers_to_quantify), print, prefix + " ", log);
+            AutomatonLogicalOps.quantify(M, ((WordExpression)a).identifiersToQuantify, print, prefix + " ", log);
             S.push(new AutomatonExpression(a + op + b, M));
         } else if ((a instanceof NumberLiteralExpression || a instanceof AlphabetLetterExpression) && b instanceof WordExpression) {
             AutomatonLogicalOps.compare(b.wordAutomaton, a.constant, reverseOperator(op), print, prefix + " ", log);
             Automaton M = b.wordAutomaton;
             M = AutomatonLogicalOps.and(M, b.M, print, prefix + " ", log);
-            AutomatonLogicalOps.quantify(M, new HashSet<>(((WordExpression)b).list_of_identifiers_to_quantify), print, prefix + " ", log);
+            AutomatonLogicalOps.quantify(M, ((WordExpression)b).identifiersToQuantify, print, prefix + " ", log);
             S.push(new AutomatonExpression(a + op + b, M));
         } else {
             throw ExceptionHelper.invalidDualOperators(op, a, b);
@@ -154,7 +154,7 @@ public class RelationalOperator extends Operator {
             case ">" -> a > b;
             case "<=" -> a <= b;
             case ">=" -> a >= b;
-            default -> false;
+            default -> throw ExceptionHelper.unexpectedOperator(op);
         };
     }
 
@@ -166,7 +166,7 @@ public class RelationalOperator extends Operator {
             case ">" -> "<";
             case "<=" -> ">=";
             case ">=" -> "<=";
-            default -> "";
+            default -> throw ExceptionHelper.unexpectedOperator(op);
         };
     }
 }

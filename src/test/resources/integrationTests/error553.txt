@@ -1,1 +1,1 @@
-Error transducing automaton
+Automata with only one input can be transduced.

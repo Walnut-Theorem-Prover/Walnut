@@ -20,6 +20,7 @@ package Automata;
 import Automata.FA.FA;
 import Main.ExceptionHelper;
 import Main.UtilityMethods;
+import Token.ArithmeticOperator;
 import Token.RelationalOperator;
 import it.unimi.dsi.fastutil.ints.*;
 
@@ -189,13 +190,7 @@ public class AutomatonLogicalOps {
             case "=>" -> (aP == 0 || mQ != 0) ? 1 : 0;
             case "<=>" -> ((aP == 0 && mQ == 0) || (aP != 0 && mQ != 0)) ? 1 : 0;
             case "<", ">", "=", "!=", "<=", ">=" -> RelationalOperator.compare(op, aP, mQ) ? 1 : 0;
-            case "+" -> aP + mQ;
-            case "-" -> aP - mQ;
-            case "*" -> aP * mQ;
-            case "/" -> {
-                if (mQ == 0) throw ExceptionHelper.divisionByZero();
-                yield Math.floorDiv(aP, mQ);
-            }
+            case "+", "-", "*", "/" -> ArithmeticOperator.arith(op, aP, mQ);
             case "combine" -> (mQ == 1) ? combineOut : aP;
             case "first" -> aP == 0 ? mQ : aP;
             default -> mQ != 0 ? aP : 0;
@@ -232,7 +227,7 @@ public class AutomatonLogicalOps {
         UtilityMethods.logMessage(print, prefix + "computing " + friendlyOp + ":" + A.getQ() + " states - " + B.getQ() + " states", log);
 
         Automaton N = crossProduct(A, B, friendlyOp, print, prefix, log);
-        N.fa.determinizeAndMinimize(null, print, prefix + " ", log);
+        N.fa.determinizeAndMinimize(print, prefix + " ", log);
 
         long timeAfter = System.currentTimeMillis();
         UtilityMethods.logMessage(print, prefix + "computed " + friendlyOp + ":" + N.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
@@ -261,7 +256,7 @@ public class AutomatonLogicalOps {
         totalize(B.fa, print, prefix + " ", log);
         Automaton N = crossProduct(A, B, friendlyOp, print, prefix, log);
 
-        N.fa.determinizeAndMinimize(null, print, prefix + " ", log);
+        N.fa.determinizeAndMinimize(print, prefix + " ", log);
         N.applyAllRepresentations();
 
         long timeAfter = System.currentTimeMillis();
@@ -320,7 +315,7 @@ public class AutomatonLogicalOps {
         totalize(A.fa, print, prefix + " ", log);
         totalize(B.fa, print, prefix + " ", log);
         Automaton N = crossProduct(A, B, friendlyOp, print, prefix + " ", log);
-        N.fa.determinizeAndMinimize(null, print, prefix + " ", log);
+        N.fa.determinizeAndMinimize(print, prefix + " ", log);
         N.applyAllRepresentations();
 
         long timeAfter = System.currentTimeMillis();
@@ -364,7 +359,7 @@ public class AutomatonLogicalOps {
         for (int q = 0; q < A.getQ(); q++)
             A.getO().set(q, A.getO().getInt(q) != 0 ? 0 : 1);
 
-        A.fa.determinizeAndMinimize(null, print, prefix + " ", log);
+        A.fa.determinizeAndMinimize(print, prefix + " ", log);
         A.applyAllRepresentations();
 
         long timeAfter = System.currentTimeMillis();
@@ -434,7 +429,7 @@ public class AutomatonLogicalOps {
             M.getO().set(i, I.isEmpty() ? 0 : 1);
         }
 
-        M.fa.determinizeAndMinimize(null, print, prefix, log);
+        M.fa.determinizeAndMinimize(print, prefix, log);
         M.applyAllRepresentations();
         M.fa.setCanonized(false);
         M.canonize();
@@ -524,6 +519,9 @@ public class AutomatonLogicalOps {
         return R;
     }
 
+    /**
+     * Make Automaton accept 0*x, iff it used to accept x.
+     */
     public static void fixLeadingZerosProblem(Automaton A, boolean print, String prefix, StringBuilder log) {
         if (A.fa.isTRUE_FALSE_AUTOMATON()) return;
         long timeBefore = System.currentTimeMillis();
@@ -531,9 +529,15 @@ public class AutomatonLogicalOps {
         A.fa.setCanonized(false);
         int zero = determineZero(A);
 
+        // Subset Construction with different initial state
         IntSet initial_state = A.fa.zeroReachableStates(zero);
         List<Int2IntMap> newMemD = A.fa.subsetConstruction(null, initial_state, print, prefix + " ", log);
-        A.fa.determinizeAndMinimize(newMemD, print, prefix + " ", log);
+
+        // Subset Construction with usual initial state
+        IntSet qqq = new IntOpenHashSet();
+        qqq.add(A.fa.getQ0());
+        A.fa.determinizeAndMinimize(newMemD, qqq, print, prefix + " ", log);
+
         long timeAfter = System.currentTimeMillis();
         UtilityMethods.logMessage(print, prefix + "fixed leading zeros:" + A.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
     }
@@ -544,6 +548,9 @@ public class AutomatonLogicalOps {
         return A.encode(ZERO);
     }
 
+    /**
+     * Make Automaton accept x0*, iff it used to accept x.
+     */
     public static void fixTrailingZerosProblem(Automaton A, boolean print, String prefix, StringBuilder log) {
         long timeBefore = System.currentTimeMillis();
         UtilityMethods.logMessage(print, prefix + "fixing trailing zeros:" + A.getQ() + " states", log);
@@ -551,7 +558,7 @@ public class AutomatonLogicalOps {
 
         A.fa.setStatesReachableToFinalStatesByZeros(determineZero(A));
 
-        A.fa.determinizeAndMinimize(null, print, prefix + " ", log);
+        A.fa.determinizeAndMinimize(print, prefix + " ", log);
 
         long timeAfter = System.currentTimeMillis();
         UtilityMethods.logMessage(print, prefix + "fixed trailing zeros:" + A.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
@@ -723,32 +730,26 @@ public class AutomatonLogicalOps {
     }
 
     public static void quantify(Automaton A, String labelToQuantify, boolean print, String prefix, StringBuilder log) {
-        Set<String> listOfLabelsToQuantify = new HashSet<>();
-        listOfLabelsToQuantify.add(labelToQuantify);
-        quantify(A, listOfLabelsToQuantify, print, prefix, log);
+        quantify(A, List.of(labelToQuantify), print, prefix, log);
+    }
+    public static void quantify(Automaton A, List<String> labelsToQuantify, boolean print, String prefix, StringBuilder log) {
+        quantify(A, new HashSet<>(labelsToQuantify), print, prefix, log);
     }
 
-    public static void quantify(Automaton A, String labelToQuantify1, String labelToQuantify2, boolean print, String prefix, StringBuilder log) {
-        Set<String> listOfLabelsToQuantify = new HashSet<>();
-        listOfLabelsToQuantify.add(labelToQuantify1);
-        listOfLabelsToQuantify.add(labelToQuantify2);
-        quantify(A, listOfLabelsToQuantify, print, prefix, log);
-    }
-
-    /**
-     * This method computes the existential quantification of this A.
-     * Takes a list of labels and performs the existential quantifier over
-     * the inputs with labels in listOfLabelsToQuantify. It simply eliminates inputs in listOfLabelsToQuantify.
-     * After the quantification is done, we address the issue of
-     * leadingZeros or trailingZeros (depending on the value of leadingZeros), if all of the inputs
-     * of the resulting A are of type arithmetic.
-     * This is why we mandate that an input of type arithmetic must have 0 in its alphabet, also that
-     * every number system must use 0 to denote its additive identity.
-     *
-     * @param A
-     * @param listOfLabelsToQuantify must contain at least one element. listOfLabelsToQuantify must be a subset of this.label.
-     * @return
-     */
+        /**
+         * This method computes the existential quantification of this A.
+         * Takes a list of labels and performs the existential quantifier over
+         * the inputs with labels in listOfLabelsToQuantify. It simply eliminates inputs in listOfLabelsToQuantify.
+         * After the quantification is done, we address the issue of
+         * leadingZeros or trailingZeros (depending on the value of leadingZeros), if all of the inputs
+         * of the resulting A are of type arithmetic.
+         * This is why we mandate that an input of type arithmetic must have 0 in its alphabet, also that
+         * every number system must use 0 to denote its additive identity.
+         *
+         * @param A
+         * @param listOfLabelsToQuantify must contain at least one element. listOfLabelsToQuantify must be a subset of this.label.
+         * @return
+         */
     public static void quantify(Automaton A, Set<String> listOfLabelsToQuantify, boolean print, String prefix, StringBuilder log) {
         quantifyHelper(A, listOfLabelsToQuantify, print, prefix, log);
         if (A.fa.isTRUE_FALSE_AUTOMATON()) return;
@@ -836,7 +837,7 @@ public class AutomatonLogicalOps {
             }
         }
         A.setD(new_d);
-        A.fa.determinizeAndMinimize(null, print, prefix + " ", log);
+        A.fa.determinizeAndMinimize(print, prefix + " ", log);
         long timeAfter = System.currentTimeMillis();
         UtilityMethods.logMessage(print, prefix + "quantified:" + A.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
     }
@@ -978,70 +979,64 @@ public class AutomatonLogicalOps {
      */
     public static void convertNS(Automaton A, boolean toMsd, int toBase,
                                  boolean print, String prefix, StringBuilder log) {
-        try {
-            if (A.getNS().size() != 1) {
-                throw new RuntimeException("Automaton must have exactly one input to be converted.");
-            }
+        if (A.getNS().size() != 1) {
+            throw new RuntimeException("Automaton must have exactly one input to be converted.");
+        }
 
-            // 1) Parse the base from the A’s NS
-            int fromBase = parseBase(A.getNS().get(0).getName());
+        // 1) Parse the base from the A’s NS
+        int fromBase = parseBase(A.getNS().get(0).getName());
 
-            // If the old and new bases are the same, check if only MSD/LSD is changing
-            if (fromBase == toBase) {
-                if (A.getNS().get(0).isMsd() == toMsd) {
-                    throw new RuntimeException("New and old number systems are identical: " +
-                        A.getNS().get(0).getName());
-                } else {
-                    // If only msd <-> lsd differs, just reverse the A
-                    reverseWithOutput(A, true, print, prefix + " ", log);
-                    return;
-                }
-            }
-
-            // 2) Check if fromBase and toBase are powers of the same root
-            int commonRoot = UtilityMethods.commonRoot(fromBase, toBase);
-            if (commonRoot == -1) {
-                throw new RuntimeException("New and old number systems must have bases k^i and k^j for some integer k.");
-            }
-
-            // If originally LSD, we need to reverse to treat it as MSD for the conversions
-            if (!A.getNS().get(0).isMsd()) {
+        // If the old and new bases are the same, check if only MSD/LSD is changing
+        if (fromBase == toBase) {
+            if (A.getNS().get(0).isMsd() == toMsd) {
+                throw new RuntimeException("New and old number systems are identical: " +
+                    A.getNS().get(0).getName());
+            } else {
+                // If only msd <-> lsd differs, just reverse the A
                 reverseWithOutput(A, true, print, prefix + " ", log);
+                return;
             }
+        }
 
-            // We'll track if the A is reversed relative to original
-            boolean currentlyReversed = false;
+        // 2) Check if fromBase and toBase are powers of the same root
+        int commonRoot = UtilityMethods.commonRoot(fromBase, toBase);
+        if (commonRoot == -1) {
+            throw new RuntimeException("New and old number systems must have bases k^i and k^j for some integer k.");
+        }
 
-            // 3) Convert from k^i -> k if needed
-            if (fromBase != commonRoot) {
-                int exponent = (int) (Math.log(fromBase) / Math.log(commonRoot));
+        // If originally LSD, we need to reverse to treat it as MSD for the conversions
+        if (!A.getNS().get(0).isMsd()) {
+            reverseWithOutput(A, true, print, prefix + " ", log);
+        }
+
+        // We'll track if the A is reversed relative to original
+        boolean currentlyReversed = false;
+
+        // 3) Convert from k^i -> k if needed
+        if (fromBase != commonRoot) {
+            int exponent = (int) (Math.log(fromBase) / Math.log(commonRoot));
+            reverseWithOutput(A, true, print, prefix + " ", log);
+            currentlyReversed = true;
+
+            convertLsdBaseToRoot(A, commonRoot, exponent, print, prefix + " ", log);
+            A.minimizeSelfWithOutput(print, prefix + " ", log);
+        }
+
+        // 4) Convert from k -> k^j if needed
+        if (toBase != commonRoot) {
+            if (currentlyReversed) {
+                // Undo reversal from the previous step
                 reverseWithOutput(A, true, print, prefix + " ", log);
-                currentlyReversed = true;
-
-                convertLsdBaseToRoot(A, commonRoot, exponent, print, prefix + " ", log);
-                A.minimizeSelfWithOutput(print, prefix + " ", log);
+                currentlyReversed = false;
             }
+            int exponent = (int) (Math.log(toBase) / Math.log(commonRoot));
+            convertMsdBaseToExponent(A, exponent, print, prefix + " ", log);
+            A.minimizeSelfWithOutput(print, prefix + " ", log);
+        }
 
-            // 4) Convert from k -> k^j if needed
-            if (toBase != commonRoot) {
-                if (currentlyReversed) {
-                    // Undo reversal from the previous step
-                    reverseWithOutput(A, true, print, prefix + " ", log);
-                    currentlyReversed = false;
-                }
-                int exponent = (int) (Math.log(toBase) / Math.log(commonRoot));
-                convertMsdBaseToExponent(A, exponent, print, prefix + " ", log);
-                A.minimizeSelfWithOutput(print, prefix + " ", log);
-            }
-
-            // 5) If final desired base is LSD but we are still in MSD form, reverse again
-            if (toMsd == currentlyReversed) {
-                reverseWithOutput(A, true, print, prefix + " ", log);
-            }
-
-        } catch (RuntimeException e) {
-            e.printStackTrace();
-            throw new RuntimeException("Error converting the number system of an A", e);
+        // 5) If final desired base is LSD but we are still in MSD form, reverse again
+        if (toMsd == currentlyReversed) {
+            reverseWithOutput(A, true, print, prefix + " ", log);
         }
     }
 
@@ -1220,7 +1215,7 @@ public class AutomatonLogicalOps {
     private static int parseBase(String nsName) {
         String baseStr = nsName.substring(nsName.indexOf("_") + 1);
         if (!UtilityMethods.isNumber(baseStr) || Integer.parseInt(baseStr) <= 1) {
-            throw new RuntimeException("Base of A's number system must be > 1, found: " + baseStr);
+            throw new RuntimeException("Base of automaton's number system must be > 1 and int, found: " + baseStr);
         }
         return Integer.parseInt(baseStr);
     }
@@ -1309,7 +1304,7 @@ public class AutomatonLogicalOps {
         long timeBefore = System.currentTimeMillis();
         UtilityMethods.logMessage(print, prefix + "comparing (" + operator + "):" + A.getQ() + " states - " + W.getQ() + " states", log);
         Automaton M = crossProduct(A, W, operator, print, prefix + " ", log);
-        M.fa.determinizeAndMinimize(null, print, prefix + " ", log);
+        M.fa.determinizeAndMinimize(print, prefix + " ", log);
         long timeAfter = System.currentTimeMillis();
         UtilityMethods.logMessage(print, prefix + "compared (" + operator + "):" + A.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
         return M;
@@ -1333,7 +1328,7 @@ public class AutomatonLogicalOps {
         for (int p = 0; p < A.getQ(); p++) {
             aO.set(p, RelationalOperator.compare(operator, aO.getInt(p), o) ? 1 : 0);
         }
-        A.fa.determinizeAndMinimize(null, print, prefix + " ", log);
+        A.fa.determinizeAndMinimize(print, prefix + " ", log);
         long timeAfter = System.currentTimeMillis();
         UtilityMethods.logMessage(print, prefix + "compared (" + operator + ") against " + o + ":" + A.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
     }

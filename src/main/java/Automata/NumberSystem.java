@@ -880,7 +880,7 @@ public class NumberSystem {
             P = arithmetic(a, b, c, "+");
             P = AutomatonLogicalOps.and(P, M, false, null, null);
             P = AutomatonLogicalOps.and(P, N, false, null, null);
-            AutomatonLogicalOps.quantify(P, a, b, false, null, null);
+            AutomatonLogicalOps.quantify(P, List.of(a, b), false, null, null);
         }
         constantsDynamicTable.put(n, P);
         return P;
@@ -930,7 +930,7 @@ public class NumberSystem {
                 P = arithmetic(c, a, d, "+");
                 P = AutomatonLogicalOps.and(P, M, false, null, null);
                 P = AutomatonLogicalOps.and(P, D, false, null, null);
-                AutomatonLogicalOps.quantify(P, b, c, false, null, null);
+                AutomatonLogicalOps.quantify(P, List.of(b, c), false, null, null);
             }
 
             P.sortLabel();
@@ -964,7 +964,7 @@ public class NumberSystem {
         Automaton P = AutomatonLogicalOps.and(P1, P2, false, null, null);
         Automaton R = AutomatonLogicalOps.and(M, N, false, null, null);
         R = AutomatonLogicalOps.and(R, P, false, null, null);
-        AutomatonLogicalOps.quantify(R, q, r, false, null, null);
+        AutomatonLogicalOps.quantify(R, List.of(q, r), false, null, null);
         R.sortLabel();
         divisionsDynamicTable.put(n, R);
         return R;

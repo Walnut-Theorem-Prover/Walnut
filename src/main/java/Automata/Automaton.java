@@ -459,7 +459,7 @@ public class Automaton {
         UtilityMethods.removeDuplicates(outputs);
         List<Automaton> subautomata = uncombine(outputs);
         for (Automaton subautomaton : subautomata) {
-            subautomaton.fa.determinizeAndMinimize(null, print, prefix, log);
+            subautomaton.fa.determinizeAndMinimize(print, prefix, log);
         }
         Automaton N = subautomata.remove(0);
         List<String> label = new ArrayList<>(N.getLabel()); // We keep the old labels, since they are replaced in the combine
@@ -506,7 +506,7 @@ public class Automaton {
         N.normalizeNumberSystems(print, prefix, log);
         N.fa.setCanonized(false);
         N.canonize();
-        N.fa.determinizeAndMinimize(null, print, prefix, log);
+        N.fa.determinizeAndMinimize(print, prefix, log);
         N.applyAllRepresentations();
 
         long timeAfter = System.currentTimeMillis();
@@ -548,7 +548,7 @@ public class Automaton {
 
         N.normalizeNumberSystems(print, prefix, log);
 
-        N.fa.determinizeAndMinimize(null, print, prefix, log);
+        N.fa.determinizeAndMinimize(print, prefix, log);
         N.applyAllRepresentations();
 
         long timeAfter = System.currentTimeMillis();
@@ -590,7 +590,7 @@ public class Automaton {
         if (isDFAO) {
             M.minimizeSelfWithOutput(print, prefix, log);
         } else {
-            M.fa.determinizeAndMinimize(null, print, prefix, log);
+            M.fa.determinizeAndMinimize(print, prefix, log);
         }
 
         M.canonizeAndApplyAllRepresentationsWithOutput(print, prefix + " ", log);
