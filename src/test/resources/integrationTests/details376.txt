@@ -33,10 +33,11 @@ j<i:6 states - 0ms
    Computing cross product:32 states - 16 states
      Progress: Added 100 states - 59 states left in queue - 159 reachable states - 0ms
    computed cross product:166 states - 0ms
-    Minimizing: 166 states.
-     Determinizing: 166 states
-       Progress: Added 100 states - 59 states left in queue - 159 reachable states - 1ms
-     Determinized: 166 states - 1ms
+    Trimmed to: 158 states.
+    Minimizing: 158 states.
+     Determinizing: 158 states
+       Progress: Added 100 states - 54 states left in queue - 154 reachable states - 1ms
+     Determinized: 158 states - 1ms
     Minimized:126 states - 1ms.
    computed &:126 states - 1ms
    quantifying:126 states

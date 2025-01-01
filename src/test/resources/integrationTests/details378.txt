@@ -6,12 +6,11 @@ j>=1:3 states - 0ms
  Computing i+(2*j)
   computing &:16 states - 16 states
   Computing cross product:16 states - 16 states
-    Progress: Added 100 states - 4 states left in queue - 104 reachable states - 1ms
   computed cross product:104 states - 1ms
-   Minimizing: 104 states.
-    Determinizing: 104 states
-      Progress: Added 100 states - 4 states left in queue - 104 reachable states - 0ms
-    Determinized: 104 states - 0ms
+   Trimmed to: 97 states.
+   Minimizing: 97 states.
+    Determinizing: 97 states
+    Determinized: 97 states - 0ms
    Minimized:83 states - 0ms.
   computed &:83 states - 1ms
   quantifying:83 states
@@ -32,18 +31,15 @@ j>=1:3 states - 0ms
  computing (i+(2*j))<=n
   computing &:6 states - 40 states
   Computing cross product:6 states - 40 states
-    Progress: Added 100 states - 14 states left in queue - 114 reachable states - 0ms
   computed cross product:129 states - 0ms
    Minimizing: 129 states.
     Determinizing: 129 states
-      Progress: Added 100 states - 14 states left in queue - 114 reachable states - 1ms
     Determinized: 129 states - 1ms
    Minimized:123 states - 1ms.
   computed &:123 states - 1ms
   quantifying:123 states
    Minimizing: 123 states.
     Determinizing: 123 states
-      Progress: Added 100 states - 15 states left in queue - 115 reachable states - 0ms
     Determinized: 120 states - 0ms
    Minimized:51 states - 1ms.
   quantified:51 states - 1ms
@@ -80,18 +76,16 @@ j>=1:3 states - 0ms
     Computing (i+j)+k
      computing &:16 states - 16 states
      Computing cross product:16 states - 16 states
-       Progress: Added 100 states - 32 states left in queue - 132 reachable states - 0ms
      computed cross product:164 states - 0ms
-      Minimizing: 164 states.
-       Determinizing: 164 states
-         Progress: Added 100 states - 32 states left in queue - 132 reachable states - 1ms
-       Determinized: 164 states - 1ms
+      Trimmed to: 157 states.
+      Minimizing: 157 states.
+       Determinizing: 157 states
+       Determinized: 157 states - 1ms
       Minimized:139 states - 1ms.
      computed &:139 states - 1ms
      quantifying:139 states
       Minimizing: 139 states.
        Determinizing: 139 states
-         Progress: Added 100 states - 10 states left in queue - 110 reachable states - 0ms
        Determinized: 115 states - 0ms
       Minimized:78 states - 1ms.
      quantified:78 states - 1ms
@@ -125,28 +119,24 @@ j>=1:3 states - 0ms
      computed &:32 states - 0ms
      computing &:32 states - 78 states
      Computing cross product:32 states - 78 states
-       Progress: Added 100 states - 81 states left in queue - 181 reachable states - 0ms
      computed cross product:312 states - 1ms
-      Minimizing: 312 states.
-       Determinizing: 312 states
-         Progress: Added 100 states - 82 states left in queue - 182 reachable states - 0ms
-       Determinized: 312 states - 1ms
+      Trimmed to: 196 states.
+      Minimizing: 196 states.
+       Determinizing: 196 states
+       Determinized: 196 states - 1ms
       Minimized:141 states - 1ms.
      computed &:141 states - 2ms
      quantifying:141 states
       Minimizing: 141 states.
        Determinizing: 141 states
-         Progress: Added 100 states - 9 states left in queue - 109 reachable states - 0ms
        Determinized: 117 states - 0ms
       Minimized:112 states - 0ms.
      quantified:112 states - 1ms
      fixing leading zeros:112 states
       Determinizing: 112 states
-        Progress: Added 100 states - 11 states left in queue - 111 reachable states - 1ms
       Determinized: 112 states - 1ms
       Minimizing: 112 states.
        Determinizing: 112 states
-         Progress: Added 100 states - 11 states left in queue - 111 reachable states - 0ms
        Determinized: 112 states - 0ms
       Minimized:112 states - 0ms.
      fixed leading zeros:112 states - 1ms

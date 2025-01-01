@@ -946,15 +946,18 @@ public class IntegrationTest {
 		String expectedDetails = expected.trim();
 		expectedDetails = expectedDetails.replaceAll(" {2}"," ");
 		expectedDetails = expectedDetails.replaceAll("\\d+ms", "");
+		expectedDetails = expectedDetails.replaceAll("\\s*Progress:.*", "");
 		String actualDetails = actual.trim();
 		actualDetails = actualDetails.replaceAll(" {2}"," ");
 		actualDetails = actualDetails.replaceAll("\\d+ms", "");
+		actualDetails = actualDetails.replaceAll("\\s*Progress:.*", "");
+
 		if (!expectedDetails.equals(actualDetails)) {
 			int startIndex = findFirstDifferingIndex(expectedDetails, actualDetails);
 			int endIndex = findLastDifferingIndex(expectedDetails, actualDetails);
 			String message = "Details do not conform. \n ----- STARTING SECTION:\n" + expectedDetails.substring(0, startIndex);
-			message += "\n ----- EXPECTED SECTION:\n" + expectedDetails.substring(startIndex, Math.min(startIndex+50, endIndex+1));
-			message += "\n ----- ACTUAL SECTION:\n" + actualDetails.substring(startIndex, Math.min(startIndex+50, endIndex+1));
+			message += "\n ----- EXPECTED SECTION:\n" + expectedDetails.substring(startIndex);
+			message += "\n ----- ACTUAL SECTION:\n" + actualDetails.substring(startIndex);
 			Assertions.fail(message);
 		}
 	}

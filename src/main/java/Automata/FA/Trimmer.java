@@ -11,7 +11,7 @@ public class Trimmer {
      * Forward- and backward- trim unconnected states from the finite automaton
      */
     public static void trimAutomaton(FA a) {
-        if (a.getQ() <= 1) {
+        if (a.isTRUE_FALSE_AUTOMATON() || a.getQ() <= 1) {
             return;
         }
         IntSet initialStates = new IntOpenHashSet();
@@ -38,9 +38,6 @@ public class Trimmer {
         }
         int oldQ = a.getQ();
         int newQ = statesToKeep.size();
-        if (oldQ != newQ) {
-            System.out.println("Trimmed to " + newQ + " states");
-        }
 
         // determine mapping of old states to new ones
         int[] oldToNewMap = new int[oldQ];

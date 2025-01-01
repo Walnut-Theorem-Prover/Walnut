@@ -800,6 +800,12 @@ public class FA implements Cloneable {
   }
 
   public void determinizeAndMinimize(boolean print, String prefix, StringBuilder log) {
+    // Working with NFA. Let's trim.
+    int oldQ = this.Q;
+    Trimmer.trimAutomaton(this);
+    if (oldQ != this.Q) {
+      UtilityMethods.logMessage(print, prefix + "Trimmed to: " + getQ() + " states.", log);
+    }
     IntSet qqq = new IntOpenHashSet();
     qqq.add(q0);
     determinizeAndMinimize(null, qqq, print, prefix, log);
