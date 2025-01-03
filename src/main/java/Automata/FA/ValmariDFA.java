@@ -17,14 +17,10 @@
  */
 package Automata.FA;
 
-import it.unimi.dsi.fastutil.ints.Int2IntMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectRBTreeMap;
-import it.unimi.dsi.fastutil.ints.IntArrayList;
-import it.unimi.dsi.fastutil.ints.IntList;
+import it.unimi.dsi.fastutil.ints.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.List;
 
 // Adapted from Antti Valmari
@@ -89,7 +85,7 @@ public class ValmariDFA {
         /* Make transition partition */
         cords.init(numTransitions);
         if( numTransitions != 0 ){
-            Arrays.sort(cords.E, Comparator.comparingInt(a -> L[a]));
+            IntArrays.quickSort(cords.E, (a, b) -> Integer.compare(L[a], L[b]));
             cords.z = ValmariPartition.M[0] = 0; int a = L[cords.E[0]];
             for(int i = 0; i < numTransitions; ++i ){
                 int t = cords.E[i];
@@ -122,20 +118,14 @@ public class ValmariDFA {
     }
 
     void make_adjacent(int[] K) {
-        int q, t;
-        for(q = 0; q <= numStates; ++q ) {
-            _F[q] = 0;
-        }
-
-        for(t = 0; t < numTransitions; ++t ) {
+        Arrays.fill(_F, 0);
+        for(int t = 0; t < numTransitions; ++t ) {
             ++_F[K[t]];
         }
-
-        for(q = 0; q < numStates; ++q ) {
+        for(int q = 0; q < numStates; ++q ) {
             _F[q+1] += _F[q];
         }
-
-        for(t = numTransitions; t-- != 0; ) {
+        for(int t = numTransitions; t-- != 0; ) {
             _A[--_F[K[t]]] = t;
         }
     }

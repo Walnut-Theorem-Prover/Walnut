@@ -22,23 +22,19 @@ class ValmariPartition {
     static int w = 0;
 
     int z;
-    Integer[] E;
-    int[] L, S, F, P;
+    int[] E, L, S, F, P;
 
     void init(int n) {
         z = n == 0 ? 0 : 1;
-        E = new Integer[n];
+        E = new int[n];
         L = new int[n];
         S = new int[n];
         F = new int[n];
         P = new int[n];
         for (int i = 0; i < n; ++i) {
             E[i] = L[i] = i;
-            S[i] = 0;
-            F[i] = P[i] = 0;
         }
         if (z != 0) {
-            F[0] = 0;
             P[0] = n;
         }
     }

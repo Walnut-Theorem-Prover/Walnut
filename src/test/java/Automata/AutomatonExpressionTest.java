@@ -11,20 +11,14 @@ class AutomatonExpressionTest {
     @Test
     void testBaseAutomatonConstructor() {
         Automaton a = new Automaton();
-        Automaton b = new Automaton();
 
         try {
             Assertions.assertFalse(a.equals(null));
-            //Assertions.assertTrue(a.equals(a));
-            //Assertions.assertTrue(a.equals(a.clone()));
-
         }
         catch (RuntimeException ex) {
             // Hack because everything s
             Assertions.fail(ex);
         }
-
-
     }
 
     @Test
@@ -33,13 +27,13 @@ class AutomatonExpressionTest {
         try {
             a = new Automaton(true);
             b = new Automaton(true);
-            Assertions.assertTrue(a.equals(b));
+            Assertions.assertTrue(a.equals(b), a.fa + " != " + b.fa);
             Assertions.assertTrue(a.equals(b.clone()));
             AutomatonLogicalOps.reverse(b, false, "", null, false);
-            Assertions.assertTrue(a.equals(b));
+            Assertions.assertTrue(a.equals(b), a.fa + " != " + b.fa);
 
             b = new Automaton(false);
-            Assertions.assertFalse(a.equals(b));
+            Assertions.assertFalse(a.equals(b), a.fa + " == " + b.fa);
             Assertions.assertFalse(a.equals(b.clone()));
 
         }
@@ -68,22 +62,20 @@ class AutomatonExpressionTest {
             Assertions.assertEquals(labels.toString(), a.getLabel().toString());
 
             b = new Automaton("10*", alphabet);
-            Assertions.assertFalse(a.equals(b));
+            Assertions.assertFalse(a.equals(b), a.fa + " == " + b.fa);
 
             b = a.clone();
             AutomatonLogicalOps.reverse(b, false, "", null, false);
-            Assertions.assertFalse(a.equals(b));
+            Assertions.assertFalse(a.equals(b), a.fa + " == " + b.fa);
             Assertions.assertEquals("[{0=>[1], 1=>[0]}, {}]", b.getD().toString());
             AutomatonLogicalOps.reverse(b, false, "", null, false);
-            Assertions.assertTrue(a.equals(b));
+            Assertions.assertTrue(a.equals(b), a.fa + " != " + b.fa);
 
             b = a.clone();
             AutomatonLogicalOps.not(b, false, "", null);
-            Assertions.assertFalse(a.equals(b));
+            Assertions.assertFalse(a.equals(b), a.fa + " == " + b.fa);
             AutomatonLogicalOps.not(b, false, "", null);
-            Assertions.assertTrue(a.equals(b));
-
-
+            Assertions.assertTrue(a.equals(b), a.fa + " != " + b.fa);
         }
         catch (RuntimeException ex) {
             // Hack because everything s
@@ -93,13 +85,11 @@ class AutomatonExpressionTest {
 
     @Test
     void testAddressAutomatonConstructor() {
-        Automaton a, b;
         try {
-            a = new Automaton(Session.getAddressForTestResources() + "LUCAS.txt");
+            new Automaton(Session.getAddressForTestResources() + "LUCAS.txt");
         } catch (RuntimeException ex) {
             // Hack because everything s
             Assertions.fail(ex);
         }
     }
-
 }

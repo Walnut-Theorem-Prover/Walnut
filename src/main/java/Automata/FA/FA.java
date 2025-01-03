@@ -20,11 +20,12 @@ package Automata.FA;
 import Automata.Automaton;
 import Main.ExceptionHelper;
 import Main.UtilityMethods;
+import Token.RelationalOperator;
 import dk.brics.automaton.State;
 import dk.brics.automaton.Transition;
 import it.unimi.dsi.fastutil.ints.*;
-import it.unimi.dsi.fastutil.objects.Object2IntMap;
-import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
+import net.automatalib.alphabet.Alphabets;
+import net.automatalib.automaton.fsa.CompactNFA;
 
 import java.util.*;
 
@@ -32,12 +33,13 @@ import java.util.*;
  * Abstraction of NFA/DFA/DFAO code from Automaton.
  */
 public class FA implements Cloneable {
+  private static int AutomataIndex = 0; // Indicates the index of the automata in a particular run
   private int q0;
   private int Q;
   private int alphabetSize;
   private IntList O;
   private List<Int2ObjectRBTreeMap<IntList>> nfaD; // transitions when this is an NFA -- null if this is a known DFA
-  private List<Int2IntMap> dfaD; // memory-efficient transitions when this is a known DFA
+  private List<Int2IntMap> dfaD; // memory-efficient transitions when this is a known DFA -- usually null
   private boolean canonized; // When true, states are sorted in breadth-first order
 
   private boolean TRUE_FALSE_AUTOMATON;
@@ -50,7 +52,53 @@ public class FA implements Cloneable {
     nfaD = new ArrayList<>();
   }
 
-  public boolean isTotalized() {
+  /**
+   * Used when we're done with a particular run.
+   */
+  public static void resetIndex() {
+      AutomataIndex = 0;
+  }
+  public static int IncrementIndex() {
+    return AutomataIndex++;
+  }
+
+  public boolean equals(FA M) {
+    if (isTRUE_FALSE_AUTOMATON() != M.isTRUE_FALSE_AUTOMATON()) return false;
+    if (isTRUE_FALSE_AUTOMATON() && M.isTRUE_FALSE_AUTOMATON()) {
+      return isTRUE_AUTOMATON() == M.isTRUE_AUTOMATON();
+    }
+    dk.brics.automaton.Automaton Y = M.to_dk_brics_automaton();
+    dk.brics.automaton.Automaton X = this.to_dk_brics_automaton();
+    return X.equals(Y);
+  }
+
+  @Override
+  public String toString() {
+    return "T/F:(" + TRUE_FALSE_AUTOMATON + "," + TRUE_AUTOMATON + ")" +
+            "Q:" + Q + ", q0:" + q0 + ", canon: " + canonized + ", O:" + O + ", dfaD:" + dfaD + ", nfaD:" + nfaD;
+  }
+
+    /**
+     * The operator can be one of "<" ">" "=" "!=" "<=" ">=".
+     * For example if operator = "<" then this method changes the word A
+     * to a DFA that accepts x iff this[x] < o lexicographically.
+     * To be used only when this A is a DFAO (word).
+     *
+     * @param operator
+     */
+    public void compare(
+            int o, String operator, boolean print, String prefix, StringBuilder log) {
+        long timeBefore = System.currentTimeMillis();
+        UtilityMethods.logMessage(print, prefix + "comparing (" + operator + ") against " + o + ":" + Q + " states", log);
+        for (int p = 0; p < getQ(); p++) {
+            O.set(p, RelationalOperator.compare(operator, O.getInt(p), o) ? 1 : 0);
+        }
+        determinizeAndMinimize(print, prefix + " ", log);
+        long timeAfter = System.currentTimeMillis();
+        UtilityMethods.logMessage(print, prefix + "compared (" + operator + ") against " + o + ":" + Q + " states - " + (timeAfter - timeBefore) + "ms", log);
+    }
+
+    public boolean isTotalized() {
       boolean totalized = true;
       for(int q = 0; q < Q; q++){
           for(int x = 0; x < alphabetSize; x++){
@@ -407,32 +455,6 @@ public class FA implements Cloneable {
       return totalized;
   }
 
-  /**
-   * Build up a new subset of states in the subset construction algorithm.
-   *
-   * @param state   -
-   * @param in      - index into alphabet
-   * @return Subset of states used in Subset Construction
-   */
-  private IntOpenHashSet determineMetastate(IntSet state, int in) {
-      IntOpenHashSet dest = new IntOpenHashSet();
-      for (int q : state) {
-          if (this.dfaD == null) {
-              IntList values = this.nfaD.get(q).get(in);
-              if (values != null) {
-                  dest.addAll(values);
-              }
-          } else {
-              Int2IntMap iMap = dfaD.get(q);
-              int key = iMap.getOrDefault(in, -1);
-              if (key != -1) {
-                  dest.add(key);
-              }
-          }
-      }
-      return dest;
-  }
-
   public int getQ0() {
     return q0;
   }
@@ -496,102 +518,7 @@ public class FA implements Cloneable {
     }
   }
 
-  /**
-   * Subset Construction (Determinizing).
-   *
-   * @param initial_state
-   * @param print
-   * @param prefix
-   * @param log
-   * @return A memory-efficient representation of a determinized transition function
-   */
-  public List<Int2IntMap> subsetConstruction(
-      List<Int2IntMap> newMemD, IntSet initial_state, boolean print, String prefix, StringBuilder log) {
-    this.dfaD = newMemD;
-    if (dfaD != null) {
-      this.nfaD = null;
-    }
-    long timeBefore = System.currentTimeMillis();
-    UtilityMethods.logMessage(print, prefix + "Determinizing: " + getQ() + " states", log);
 
-    int number_of_states = 0, current_state = 0;
-    Object2IntMap<IntSet> statesHash = new Object2IntOpenHashMap<>();
-    List<IntSet> statesList = new ArrayList<>();
-    statesList.add(initial_state);
-    statesHash.put(initial_state, 0);
-    number_of_states++;
-
-    List<Int2IntMap> new_d = new ArrayList<>();
-
-    while (current_state < number_of_states) {
-
-      if (print) {
-        int statesSoFar = current_state + 1;
-        long timeAfter = System.currentTimeMillis();
-        UtilityMethods.logMessage(statesSoFar == 1e2 || statesSoFar == 1e3 || statesSoFar % 1e4 == 0, prefix + "  Progress: Added " + statesSoFar + " states - "
-            + (number_of_states - statesSoFar) + " states left in queue - "
-            + number_of_states + " reachable states - " + (timeAfter - timeBefore) + "ms", log);
-      }
-
-      IntSet state = statesList.get(current_state);
-      new_d.add(new Int2IntOpenHashMap());
-      Int2IntMap currentStateMap = new_d.get(current_state);
-      for (int in = 0; in != alphabetSize; ++in) {
-        IntOpenHashSet stateSubset = this.determineMetastate(state, in);
-        if (!stateSubset.isEmpty()) {
-          int new_dValue;
-          int key = statesHash.getOrDefault(stateSubset, -1);
-          if (key != -1) {
-            new_dValue = key;
-          } else {
-            stateSubset.trim(); // reduce memory footprint of set before storing
-            statesList.add(stateSubset);
-            statesHash.put(stateSubset, number_of_states);
-            new_dValue = number_of_states;
-            number_of_states++;
-          }
-          currentStateMap.put(in, new_dValue);
-        }
-      }
-      current_state++;
-    }
-    // NOTE: d is now null! This is to save peak memory
-    // It's recomputed in minimize_valmari via the memory-efficient newMemD
-    Q = number_of_states;
-    q0 = 0;
-    O = calculateNewStateOutput(O, statesList);
-
-    long timeAfter = System.currentTimeMillis();
-    UtilityMethods.logMessage(print, prefix + "Determinized: " + getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
-    nfaD = null;
-    dfaD = new_d;
-    return new_d;
-  }
-
-  /**
-   * Calculate new state output (O), from previous O and statesList.
-   *
-   * @param O          - previous O
-   * @param statesList
-   * @return new O
-   */
-  private static IntList calculateNewStateOutput(IntList O, List<IntSet> statesList) {
-    IntList newO = new IntArrayList();
-    for (IntSet state : statesList) {
-      boolean flag = false;
-      for (int q : state) {
-        if (O.getInt(q) != 0) {
-          newO.add(1);
-          flag = true;
-          break;
-        }
-      }
-      if (!flag) {
-        newO.add(0);
-      }
-    }
-    return newO;
-  }
 
   public void permuteD(int[] encoded_input_permutation) {
     for (int q = 0; q < Q; q++) {
@@ -810,23 +737,49 @@ public class FA implements Cloneable {
     qqq.add(q0);
     determinizeAndMinimize(null, qqq, print, prefix, log);
   }
-  public void determinizeAndMinimize(List<Int2IntMap> newMemD, IntSet qqq, boolean print, String prefix, StringBuilder log) {
+
+  /**
+   * Determinize and minimize. Technically, the logging is backwards.
+   */
+  public void determinizeAndMinimize(List<Int2IntMap> dfaD, IntSet qqq, boolean print, String prefix, StringBuilder log) {
     long timeBefore = System.currentTimeMillis();
     UtilityMethods.logMessage(
         print, prefix + "Minimizing: " + Q + " states.", log);
-    subsetConstruction(newMemD, qqq, print, prefix + " ", log);
 
-    ValmariDFA v = new ValmariDFA(dfaD, Q);
+    DeterminizationStrategies.determinize(
+            this, dfaD, qqq, print, prefix + " ", log, DeterminizationStrategies.Strategy.SC);
+
+    minimize();
+
+    long timeAfter = System.currentTimeMillis();
+    UtilityMethods.logMessage(
+        print, prefix + "Minimized:" + Q + " states - " + (timeAfter - timeBefore) + "ms.", log);
+  }
+
+  /**
+   * We don't need to determinize here; just minimize.
+   */
+  public void justMinimize(boolean print, String prefix, StringBuilder log) {
+    long timeBefore = System.currentTimeMillis();
+    UtilityMethods.logMessage(
+            print, prefix + "Minimizing: " + Q + " states.", log);
+
+    minimize();
+
+    long timeAfter = System.currentTimeMillis();
+    UtilityMethods.logMessage(
+            print, prefix + "Minimized:" + Q + " states - " + (timeAfter - timeBefore) + "ms.", log);
+  }
+
+  public void minimize() {
+    ValmariDFA v = new ValmariDFA(this.dfaD, Q);
     v.minValmari(O);
     Q = v.blocks.z;
     q0 = v.blocks.S[q0];
     O = v.determineO();
     nfaD = v.determineD();
+    this.dfaD = null; // TODO: we're using NFA representation, even though we know this is a DFA
     this.canonized = false;
-
-    long timeAfter = System.currentTimeMillis();
-    UtilityMethods.logMessage(
-        print, prefix + "Minimized:" + Q + " states - " + (timeAfter - timeBefore) + "ms.", log);
   }
 
   public void setCanonized(boolean canonized) {
@@ -853,4 +806,30 @@ public class FA implements Cloneable {
   public void setTRUE_AUTOMATON(boolean TRUE_AUTOMATON) {
     this.TRUE_AUTOMATON = TRUE_AUTOMATON;
   }
+
+  public CompactNFA<Integer> convertToMyNFA() {
+      CompactNFA<Integer> myNFA = new CompactNFA<>(Alphabets.integers(0, this.alphabetSize - 1));
+      for (int i = 0; i < this.Q; i++) {
+          myNFA.addState(this.O.getInt(i) != 0);
+      }
+      myNFA.setInitial(this.q0, true);
+      for (int i = 0; i < this.Q; i++) {
+          Int2ObjectRBTreeMap<IntList> iMap = nfaD.get(i);
+          for (int in = 0; in < this.alphabetSize; in++) {
+              IntList iList = iMap.get(in);
+              if (iList != null) {
+                  myNFA.addTransitions(i, in, iList);
+              }
+          }
+      }
+      return myNFA;
+  }
+
+    public List<Int2IntMap> getDfaD() {
+        return dfaD;
+    }
+
+    public void setDfaD(List<Int2IntMap> dfaD) {
+        this.dfaD = dfaD;
+    }
 }

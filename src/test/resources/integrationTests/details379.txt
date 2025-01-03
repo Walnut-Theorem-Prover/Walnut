@@ -4,26 +4,23 @@ computing fibmr(...)
  computing &:59 states - 4 states
  Computing cross product:59 states - 4 states
  computed cross product:37 states - 0ms
-  Trimmed to: 30 states.
-  Minimizing: 30 states.
-   Determinizing: 30 states
-   Determinized: 30 states - 0ms
-  Minimized:22 states - 0ms.
+ Minimizing: 37 states.
+ Minimized:22 states - 0ms.
  computed &:22 states - 0ms
  quantifying:22 states
   Minimizing: 22 states.
-   Determinizing: 22 states
+   Determinizing [#3, strategy: SC]: 22 states
    Determinized: 26 states - 0ms
   Minimized:26 states - 0ms.
  quantified:26 states - 0ms
  fixing leading zeros:26 states
-  Determinizing: 26 states
+  Determinizing [#4, strategy: SC]: 26 states
   Determinized: 26 states - 0ms
   Minimizing: 26 states.
-   Determinizing: 26 states
+   Determinizing [#5, strategy: SC]: 26 states
    Determinized: 26 states - 0ms
   Minimized:19 states - 0ms.
- fixed leading zeros:19 states - 1ms
+ fixed leading zeros:19 states - 0ms
 computed fibmr(i,n,(n+1)))
 Computing n-1
 computed n-1
@@ -31,23 +28,20 @@ computing fibmr(...)
  computing &:59 states - 4 states
  Computing cross product:59 states - 4 states
  computed cross product:37 states - 0ms
-  Trimmed to: 30 states.
-  Minimizing: 30 states.
-   Determinizing: 30 states
-   Determinized: 30 states - 0ms
-  Minimized:22 states - 0ms.
+ Minimizing: 37 states.
+ Minimized:22 states - 0ms.
  computed &:22 states - 0ms
  quantifying:22 states
   Minimizing: 22 states.
-   Determinizing: 22 states
+   Determinizing [#9, strategy: SC]: 22 states
    Determinized: 16 states - 0ms
   Minimized:15 states - 0ms.
- quantified:15 states - 0ms
+ quantified:15 states - 1ms
  fixing leading zeros:15 states
-  Determinizing: 15 states
+  Determinizing [#10, strategy: SC]: 15 states
   Determinized: 15 states - 0ms
   Minimizing: 15 states.
-   Determinizing: 15 states
+   Determinizing [#11, strategy: SC]: 15 states
    Determinized: 15 states - 0ms
   Minimized:15 states - 0ms.
  fixed leading zeros:15 states - 0ms
@@ -57,7 +51,7 @@ computing ~fibmr(i,(n-1),n))
   totalizing:15 states
   totalized:16 states - 0ms
   Minimizing: 16 states.
-   Determinizing: 16 states
+   Determinizing [#12, strategy: SC]: 16 states
    Determinized: 16 states - 0ms
   Minimized:16 states - 0ms.
  computed ~:21 states - 0ms
@@ -67,11 +61,8 @@ computed ~fibmr(i,(n-1),n))
   computing &:19 states - 21 states
   Computing cross product:19 states - 21 states
   computed cross product:21 states - 0ms
-   Trimmed to: 12 states.
-   Minimizing: 12 states.
-    Determinizing: 12 states
-    Determinized: 12 states - 0ms
-   Minimized:12 states - 0ms.
+  Minimizing: 21 states.
+  Minimized:12 states - 0ms.
   computed &:12 states - 0ms
  computed fibmr(i,n,(n+1)))&~fibmr(i,(n-1),n))
  (fibmr(i,n,(n+1)))&~fibmr(i,(n-1),n))):12 states - 0ms

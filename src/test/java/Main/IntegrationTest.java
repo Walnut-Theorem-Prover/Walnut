@@ -24,8 +24,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import Automata.Automaton;
+import Automata.AutomatonWriter;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DynamicTest;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestFactory;
 
 public class IntegrationTest {
@@ -954,7 +956,6 @@ public class IntegrationTest {
 
 		if (!expectedDetails.equals(actualDetails)) {
 			int startIndex = findFirstDifferingIndex(expectedDetails, actualDetails);
-			int endIndex = findLastDifferingIndex(expectedDetails, actualDetails);
 			String message = "Details do not conform. \n ----- STARTING SECTION:\n" + expectedDetails.substring(0, startIndex);
 			message += "\n ----- EXPECTED SECTION:\n" + expectedDetails.substring(startIndex);
 			message += "\n ----- ACTUAL SECTION:\n" + actualDetails.substring(startIndex);
@@ -993,29 +994,6 @@ public class IntegrationTest {
 		return startDiff;
 	}
 
-	private static int findLastDifferingIndex(String str1, String str2) {
-		int startDiff = 0;
-		int endDiff1 = str1.length() - 1;
-		int endDiff2 = str2.length() - 1;
-
-		// Find the start of the differing section
-		while (startDiff < str1.length() && startDiff < str2.length()
-				&& str1.charAt(startDiff) == str2.charAt(startDiff)) {
-			startDiff++;
-		}
-
-		// Find the end of the differing section
-		while (endDiff1 >= startDiff && endDiff2 >= startDiff
-				&& str1.charAt(endDiff1) == str2.charAt(endDiff2)) {
-			endDiff1--;
-			endDiff2--;
-		}
-		if (startDiff > endDiff1 && startDiff > endDiff2) {
-			return -1;
-		}
-		return endDiff1;
-	}
-
 	private static List<TestCase> loadTestCases(List<String> L, String directoryAddress) throws IOException {
 		List<TestCase> testCases = new ArrayList<>();
 		for(int i = 0 ; i < L.size();i++) {
@@ -1048,12 +1026,12 @@ public class IntegrationTest {
 	}
 
 	//@Test // uncomment this line if you want to regenerate test cases
-	/*public void createTestCases() throws IOException {
+	public void createTestCases() throws IOException {
     for (String command : L) {
       System.out.println(command);
       TestCase test_case;
       try {
-        test_case = Prover.dispatchForIntegrationTest(command);
+        test_case = Prover.dispatchForIntegrationTest(command, "integ:" + command);
       } catch (Exception e) {
         test_case = new TestCase(null, e.getMessage(), "", "");
       }
@@ -1084,5 +1062,5 @@ public class IntegrationTest {
 		PrintWriter errorWriter = new PrintWriter(directory + error + i + x, StandardCharsets.UTF_8);
 		errorWriter.println(t);
 		errorWriter.close();
-	}*/
+	}
 }

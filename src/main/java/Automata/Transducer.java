@@ -64,7 +64,7 @@ public class Transducer extends Automaton {
      * (1, -1) we output 2
      * (1, 2) we output -1
      * (1, 3) we output 3
-     *
+     * <p>
      * Just like in an Automaton's transition function d, we store the encoded values of inputs in sigma, so instead of
      * saying that "on (0, -1) we output 1", we really store "on 0, output 1".
      */
@@ -72,7 +72,7 @@ public class Transducer extends Automaton {
 
     /**
      * Default constructor for Transducer. Calls the default constructor for Automaton.
-      */
+     */
     public Transducer() {
         super();
 
@@ -81,6 +81,7 @@ public class Transducer extends Automaton {
 
     /**
      * Takes an address and constructs the transducer represented by the file referred to by the address.
+     *
      * @param address
      * @throws Exception
      */
@@ -104,15 +105,7 @@ public class Transducer extends Automaton {
                     continue;
                 }
 
-                boolean flag;
-                try {
-                    flag = ParseMethods.parseAlphabetDeclaration(line, getA(), getNS());
-                } catch (RuntimeException e) {
-                    in.close();
-                    throw new RuntimeException(
-                            e.getMessage() + System.lineSeparator() +
-                                    "\t:line " + lineNumber + " of file " + address);
-                }
+                boolean flag = ParseMethods.parseAlphabetDeclaration(line, getA(), getNS());
 
                 if (flag) {
                     for (int i = 0; i < getA().size(); i++) {
@@ -145,7 +138,7 @@ public class Transducer extends Automaton {
             int currentStateOutput;
             Int2ObjectRBTreeMap<IntList> currentStateTransitions = new Int2ObjectRBTreeMap<>();
             TreeMap<Integer, Integer> currentStateTransitionOutputs = new TreeMap<>();
-            TreeMap<Integer,Integer> state_output = new TreeMap<>();
+            TreeMap<Integer, Integer> state_output = new TreeMap<>();
             TreeMap<Integer, Int2ObjectRBTreeMap<IntList>> state_transition =
                     new TreeMap<>();
             TreeMap<Integer, TreeMap<Integer, Integer>> state_transition_output =
@@ -155,15 +148,15 @@ public class Transducer extends Automaton {
              * Then we make sure all these states are declared.
              */
             Set<Integer> setOfDestinationStates = new HashSet<>();
-            while((line = in.readLine())!= null) {
+            while ((line = in.readLine()) != null) {
                 lineNumber++;
                 if (PATTERN_WHITESPACE.matcher(line).matches()) {
                     continue;
                 }
 
-                if(ParseMethods.parseTransducerStateDeclaration(line, singleton)) {
+                if (ParseMethods.parseTransducerStateDeclaration(line, singleton)) {
                     setQ(getQ() + 1);
-                    if(currentState == -1) {
+                    if (currentState == -1) {
                         setQ0(singleton[0]);
                     }
 
@@ -174,28 +167,27 @@ public class Transducer extends Automaton {
                     state_transition.put(currentState, currentStateTransitions);
                     currentStateTransitionOutputs = new TreeMap<>();
                     state_transition_output.put(currentState, currentStateTransitionOutputs);
-                } else if(ParseMethods.parseTransducerTransition(line, input, dest, output)) {
+                } else if (ParseMethods.parseTransducerTransition(line, input, dest, output)) {
                     setOfDestinationStates.addAll(dest);
 
-                    if(currentState == -1){
+                    if (currentState == -1) {
                         in.close();
                         throw new RuntimeException(
                                 "Must declare a state before declaring a list of transitions: line " +
                                         lineNumber + " of file " + address);
                     }
 
-                    if(input.size() != getA().size()) {
+                    if (input.size() != getA().size()) {
                         in.close();
                         throw new RuntimeException("This automaton requires a " + getA().size() +
                                 "-tuple as input: line " + lineNumber + " of file " + address);
                     }
                     List<List<Integer>> inputs = expandWildcard(this.getA(), input);
-                    for(List<Integer> i : inputs) {
+                    for (List<Integer> i : inputs) {
                         currentStateTransitions.put(encode(i), dest);
                         if (output.size() == 1) {
                             currentStateTransitionOutputs.put(encode(i), output.get(0));
-                        }
-                        else {
+                        } else {
                             in.close();
                             throw new RuntimeException("Transducers must have one output for each transition: line "
                                     + lineNumber + " of file " + address);
@@ -205,22 +197,21 @@ public class Transducer extends Automaton {
                     input = new ArrayList<>();
                     dest = new IntArrayList();
                     output = new ArrayList<>();
-                }
-                else{
+                } else {
                     in.close();
-                    throw new RuntimeException("Undefined statement: line "+ lineNumber + " of file " + address);
+                    throw new RuntimeException("Undefined statement: line " + lineNumber + " of file " + address);
                 }
             }
             in.close();
-            for(int q:setOfDestinationStates) {
-                if(!state_output.containsKey(q)) {
+            for (int q : setOfDestinationStates) {
+                if (!state_output.containsKey(q)) {
                     throw new RuntimeException(
                             "State " + q + " is used but never declared anywhere in file: " + address);
                 }
             }
 
-            for(int q = 0; q < getQ(); q++) {
-                getO().add((int)state_output.get(q));
+            for (int q = 0; q < getQ(); q++) {
+                getO().add((int) state_output.get(q));
                 getD().add(state_transition.get(q));
                 sigma.add(state_transition_output.get(q));
             }
@@ -246,235 +237,230 @@ public class Transducer extends Automaton {
     /**
      * Transduce an msd-k Automaton M as in Dekking (1994).
      *
-     * @param M - automaton to transduce
-     * @param print - whether to print details
+     * @param M      - automaton to transduce
+     * @param print  - whether to print details
      * @param prefix - prefix for printing details
-     * @param log - log to write the details to
+     * @param log    - log to write the details to
      * @return The transduced Automaton after applying this Transducer to M.
      * @throws Exception
      */
     public Automaton transduceMsdDeterministic(Automaton M, boolean print, String prefix, StringBuilder log) {
-        try {
-            long timeBefore = System.currentTimeMillis();
-            UtilityMethods.logMessage(print, prefix + "transducing: " + M.getQ() + " state automaton - " + getQ() + " state transducer", log);
+        long timeBefore = System.currentTimeMillis();
+        UtilityMethods.logMessage(print, prefix + "transducing: " + M.getQ() + " state automaton - " + getQ() + " state transducer", log);
 
-            /**
-             * N will be the returned Automaton, just have to build it up.
-             */
-            Automaton N = new Automaton();
+        /**
+         * N will be the returned Automaton, just have to build it up.
+         */
+        Automaton N = new Automaton();
 
-            // build up the automaton.
-            for (int i = 0; i < M.getA().size(); i++) {
-                N.getA().add(M.getA().get(i));
-                N.getNS().add(M.getNS().get(i));
+        // build up the automaton.
+        for (int i = 0; i < M.getA().size(); i++) {
+            N.getA().add(M.getA().get(i));
+            N.getNS().add(M.getNS().get(i));
 
-                // Copy the encoder
-                if (M.getEncoder() != null && !M.getEncoder().isEmpty()) {
-                    if (N.getEncoder() == null) {
-                        N.setEncoder(new ArrayList<>());
-                    }
-                    N.getEncoder().add(M.getEncoder().get(i));
+            // Copy the encoder
+            if (M.getEncoder() != null && !M.getEncoder().isEmpty()) {
+                if (N.getEncoder() == null) {
+                    N.setEncoder(new ArrayList<>());
                 }
-
-                // Copy the label
-                if (M.isBound()) {
-                    N.getLabel().add(M.getLabel().get(i));
-                }
+                N.getEncoder().add(M.getEncoder().get(i));
             }
+
+            // Copy the label
+            if (M.isBound()) {
+                N.getLabel().add(M.getLabel().get(i));
+            }
+        }
 
             /*
                 Need to find P and Q so the transition function of the Transducer becomes ultimately periodic with lag Q
                 and period P.
              */
 
-            // Will be used for hashing the iterate maps.
-            HashMap<List<Map<Integer, Integer>>, Integer> iterateMapHash = new HashMap<>();
+        // Will be used for hashing the iterate maps.
+        HashMap<List<Map<Integer, Integer>>, Integer> iterateMapHash = new HashMap<>();
 
-            // iterateStrings[i] will be a map from a state q of M to h^i(q).
-            List<List<List<Integer>>> iterateStrings = new ArrayList<>();
+        // iterateStrings[i] will be a map from a state q of M to h^i(q).
+        List<List<List<Integer>>> iterateStrings = new ArrayList<>();
 
-            // initMaps.get(i) will be the map phi_{M.O(i)}
-            List<Map<Integer, Integer>> initMaps = new ArrayList<>();
+        // initMaps.get(i) will be the map phi_{M.O(i)}
+        List<Map<Integer, Integer>> initMaps = new ArrayList<>();
 
-            // initStrings.get(j) = [j];
-            List<List<Integer>> initStrings = new ArrayList<>();
+        // initStrings.get(j) = [j];
+        List<List<Integer>> initStrings = new ArrayList<>();
 
-            // start with the empty string.
-            Map<Integer, Integer> identity = createIdentityMap(this.getQ());
+        // start with the empty string.
+        Map<Integer, Integer> identity = createIdentityMap(this.getQ());
 
-            // will add M.Q maps to initMaps.
+        // will add M.Q maps to initMaps.
+        for (int i = 0; i < M.getQ(); i++) {
+            Map<Integer, Integer> map = createMap2(M.getFa(), i);
+            initMaps.add(map);
+            initStrings.add(List.of(i));
+        }
+
+        iterateMapHash.put(initMaps, 0);
+        iterateStrings.add(initStrings);
+
+        int mFound = -1, nFound = -1;
+
+        for (int m = 1; ; m++) {
+            List<List<Integer>> prevStrings = iterateStrings.get(iterateStrings.size() - 1);
+            List<Map<Integer, Integer>> newMaps = new ArrayList<>();
+            List<List<Integer>> newStrings = new ArrayList<>();
+
             for (int i = 0; i < M.getQ(); i++) {
-                Map<Integer, Integer> map = createMap2(M.getFa(), i);
-                initMaps.add(map);
-                initStrings.add(List.of(i));
-            }
+                // will be h^m(i)
+                List<Integer> iString = getDestinationForDFA(M, prevStrings.get(i));
 
-            iterateMapHash.put(initMaps, 0);
-            iterateStrings.add(initStrings);
+                newStrings.add(iString);
 
-            int mFound = -1, nFound = -1;
+                // start off with the identity.
+                Map<Integer, Integer> mapSoFar = createMapSoFar(M.getFa(), identity, iString);
 
-            for (int m = 1; ; m++) {
-                List<List<Integer>> prevStrings = iterateStrings.get(iterateStrings.size() - 1);
-                List<Map<Integer, Integer>> newMaps = new ArrayList<>();
-                List<List<Integer>> newStrings = new ArrayList<>();
-
-                for (int i = 0; i < M.getQ(); i++) {
-                    // will be h^m(i)
-                    List<Integer> iString = getDestinationForDFA(M, prevStrings.get(i));
-
-                    newStrings.add(iString);
-
-                    // start off with the identity.
-                    Map<Integer, Integer> mapSoFar = createMapSoFar(M.getFa(), identity, iString);
-
-                    newMaps.add(mapSoFar);
-
-                }
-
-                iterateStrings.add(newStrings);
-
-                if (iterateMapHash.containsKey(newMaps)) {
-                    nFound = iterateMapHash.get(newMaps);
-                    mFound = m;
-                }
-                else {
-                    iterateMapHash.put(newMaps, m);
-                }
-
-                if (mFound != -1) {
-                    break;
-                }
+                newMaps.add(mapSoFar);
 
             }
 
-            int p = mFound - nFound;
-            int q = nFound;
+            iterateStrings.add(newStrings);
+
+            if (iterateMapHash.containsKey(newMaps)) {
+                nFound = iterateMapHash.get(newMaps);
+                mFound = m;
+            } else {
+                iterateMapHash.put(newMaps, m);
+            }
+
+            if (mFound != -1) {
+                break;
+            }
+
+        }
+
+        int p = mFound - nFound;
+        int q = nFound;
 
         /*
             Make the states of the automaton.
          */
 
-            // now to generate the actual states.
+        // now to generate the actual states.
 
-            N.setQ0(0);
+        N.setQ0(0);
 
-            // tuple of the form (a, iters) where iters is a list of p+q maps phi_{M.O(w)}, ..., phi_{h^{p+q-1}(M.O(W))}
-            class StateTuple {
-                final int state;
-                final List<Integer> iList;
-                final List<Map<Integer, Integer>> iterates;
-                StateTuple(int state, List<Integer> iList, List<Map<Integer, Integer>> iterates) {
-                    this.state = state;
-                    this.iList = iList;
-                    this.iterates = iterates;
-                }
+        // tuple of the form (a, iters) where iters is a list of p+q maps phi_{M.O(w)}, ..., phi_{h^{p+q-1}(M.O(W))}
+        class StateTuple {
+            final int state;
+            final List<Integer> iList;
+            final List<Map<Integer, Integer>> iterates;
 
-                @Override
-                public boolean equals(Object o) {
-                    // DO NOT compare the string.
-                    if (this == o) {
-                        return true;
-                    }
-                    if (o == null || this.getClass() != o.getClass()) {
-                        return false;
-                    }
-                    StateTuple other = (StateTuple) o;
-                    if (this.state != other.state) {
-                        return false;
-                    }
+            StateTuple(int state, List<Integer> iList, List<Map<Integer, Integer>> iterates) {
+                this.state = state;
+                this.iList = iList;
+                this.iterates = iterates;
+            }
 
-                    if (this.iterates.size() != other.iterates.size()) {
-                        return false;
-                    }
-                    for (int i = 0; i < this.iterates.size(); i++) {
-                        if (!this.iterates.get(i).equals(other.iterates.get(i))) {
-                            return false;
-                        }
-                    }
+            @Override
+            public boolean equals(Object o) {
+                // DO NOT compare the string.
+                if (this == o) {
                     return true;
                 }
-
-                @Override
-                public int hashCode() {
-                    // DO NOT use the string to hash. Only use the state and the iterates.
-                    int result = this.state ^ (this.state >>> 32);
-                    result = 31 * result + this.iterates.hashCode();
-                    return result;
+                if (o == null || this.getClass() != o.getClass()) {
+                    return false;
                 }
+                StateTuple other = (StateTuple) o;
+                if (this.state != other.state) {
+                    return false;
+                }
+
+                if (this.iterates.size() != other.iterates.size()) {
+                    return false;
+                }
+                for (int i = 0; i < this.iterates.size(); i++) {
+                    if (!this.iterates.get(i).equals(other.iterates.get(i))) {
+                        return false;
+                    }
+                }
+                return true;
             }
 
-            List<StateTuple> states = new ArrayList<>();
-            Map<StateTuple, Integer> statesHash = new HashMap<>();
-            Queue<StateTuple> statesQueue = new LinkedList<>();
-            StateTuple initState = new StateTuple(M.getQ0(), List.of(), createIterates(M, List.of(), p+q));
-            states.add(initState);
-            statesHash.put(initState, states.size() - 1);
-            statesQueue.add(initState);
-
-            while (!statesQueue.isEmpty()) {
-                StateTuple currState = statesQueue.remove();
-
-                // set up the output of this state.
-
-                N.getO().add((int)sigma.get(currState.iterates.get(0).get(getQ0())).get( encode(List.of(M.getO().getInt(currState.state))) ));
-
-                N.getD().add(new Int2ObjectRBTreeMap<>());
-
-                // get h(w) where w = currState.string .
-                List<Integer> newString = getDestinationForDFA(M, currState.iList);
-
-                List<Integer> stateMorphed = new ArrayList<>();
-
-                // relying on the di's to be sorted here...
-                for (Int2ObjectMap.Entry<IntList> entry : M.getD().get(currState.state).int2ObjectEntrySet()) {
-                    stateMorphed.add(entry.getValue().getInt(0));
-                }
-
-                // look at the states that this state transitions to.
-                for (int di : M.getD().get(currState.state).keySet()) {
-                    // make new state string
-                    List<Integer> newStateString = new ArrayList<>(newString);
-                    for (int u = 0; u < di; u++) {
-                        newStateString.add(stateMorphed.get(u));
-                    }
-
-                    // new state
-                    StateTuple newState = new StateTuple(
-                            stateMorphed.get(di),
-                            newStateString,
-                            createIterates(M, newStateString, p+q)
-                    );
-
-                    // check if the state is already hashed.
-                    if (!statesHash.containsKey(newState)) {
-                        states.add(newState);
-                        statesHash.put(newState, states.size() - 1);
-                        statesQueue.add(newState);
-                    }
-
-                    // set up the transition.
-                    IntList newList = new IntArrayList();
-                    newList.add((int)statesHash.get(newState));
-                    N.getD().get(N.getD().size() - 1).put(di, newList);
-                }
+            @Override
+            public int hashCode() {
+                // DO NOT use the string to hash. Only use the state and the iterates.
+                int result = this.state ^ (this.state >>> 32);
+                result = 31 * result + this.iterates.hashCode();
+                return result;
             }
-
-            N.setQ(states.size());
-            N.setAlphabetSize(M.getAlphabetSize());
-
-            N.minimizeSelfWithOutput(print, prefix+" ", log);
-
-            long timeAfter = System.currentTimeMillis();
-            UtilityMethods.logMessage(print, prefix + "transduced: " + N.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
-
-            return N;
-        } catch (RuntimeException e) {
-            e.printStackTrace();
-            throw new RuntimeException("Error transducing automaton");
         }
 
+        List<StateTuple> states = new ArrayList<>();
+        Map<StateTuple, Integer> statesHash = new HashMap<>();
+        Queue<StateTuple> statesQueue = new LinkedList<>();
+        StateTuple initState = new StateTuple(M.getQ0(), List.of(), createIterates(M, List.of(), p + q));
+        states.add(initState);
+        statesHash.put(initState, states.size() - 1);
+        statesQueue.add(initState);
+
+        while (!statesQueue.isEmpty()) {
+            StateTuple currState = statesQueue.remove();
+
+            // set up the output of this state.
+
+            N.getO().add((int) sigma.get(currState.iterates.get(0).get(getQ0())).get(encode(List.of(M.getO().getInt(currState.state)))));
+
+            N.getD().add(new Int2ObjectRBTreeMap<>());
+
+            // get h(w) where w = currState.string .
+            List<Integer> newString = getDestinationForDFA(M, currState.iList);
+
+            List<Integer> stateMorphed = new ArrayList<>();
+
+            // relying on the di's to be sorted here...
+            for (Int2ObjectMap.Entry<IntList> entry : M.getD().get(currState.state).int2ObjectEntrySet()) {
+                stateMorphed.add(entry.getValue().getInt(0));
+            }
+
+            // look at the states that this state transitions to.
+            for (int di : M.getD().get(currState.state).keySet()) {
+                // make new state string
+                List<Integer> newStateString = new ArrayList<>(newString);
+                for (int u = 0; u < di; u++) {
+                    newStateString.add(stateMorphed.get(u));
+                }
+
+                // new state
+                StateTuple newState = new StateTuple(
+                        stateMorphed.get(di),
+                        newStateString,
+                        createIterates(M, newStateString, p + q)
+                );
+
+                // check if the state is already hashed.
+                if (!statesHash.containsKey(newState)) {
+                    states.add(newState);
+                    statesHash.put(newState, states.size() - 1);
+                    statesQueue.add(newState);
+                }
+
+                // set up the transition.
+                IntList newList = new IntArrayList();
+                newList.add((int) statesHash.get(newState));
+                N.getD().get(N.getD().size() - 1).put(di, newList);
+            }
+        }
+
+        N.setQ(states.size());
+        N.setAlphabetSize(M.getAlphabetSize());
+
+        N.minimizeSelfWithOutput(print, prefix + " ", log);
+
+        long timeAfter = System.currentTimeMillis();
+        UtilityMethods.logMessage(print, prefix + "transduced: " + N.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
+
+        return N;
     }
+
 
     private static List<Integer> getDestinationForDFA(Automaton M, List<Integer> prevString) {
         List<Integer> iString = new ArrayList<>();

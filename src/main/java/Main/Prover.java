@@ -27,6 +27,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import Automata.*;
+import Automata.FA.FA;
 import Automata.Numeration.Ostrowski;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
@@ -354,6 +355,7 @@ public class Prover {
   }
 
   public static boolean dispatch(String s) throws IOException {
+    FA.resetIndex();
     if (s.matches(REGEXP_FOR_EMPTY_COMMAND)) {
       // If the command is just ; or : do nothing.
       return true;
@@ -414,6 +416,7 @@ public class Prover {
   }
 
   public static TestCase dispatchForIntegrationTest(String s, String msg) throws IOException {
+    FA.resetIndex();
     System.out.println("Running integration test: " + msg);
     if (s.matches(REGEXP_FOR_EMPTY_COMMAND)) {//if the command is just ; or : do nothing
       return null;

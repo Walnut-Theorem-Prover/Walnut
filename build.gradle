@@ -53,6 +53,9 @@ jacocoTestReport {
 dependencies {
     implementation 'it.unimi.dsi:fastutil:8.5.12'
     implementation 'dk.brics:automaton:1.12-4'
+    implementation 'net.automatalib:automata-brics:0.11.0'
+    implementation 'net.automatalib:automata-serialization-dot:0.11.0'
+    implementation 'net.automatalib:automata-util:0.11.0'
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.10.2'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.10.2'
     //   compileOnly "com.github.spotbugs:spotbugs-annotations:${spotbugs.toolVersion.get()}"

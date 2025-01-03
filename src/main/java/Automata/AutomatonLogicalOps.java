@@ -17,8 +17,9 @@
  */
 package Automata;
 
+import Automata.FA.DeterminizationStrategies;
 import Automata.FA.FA;
-import Main.ExceptionHelper;
+import Automata.FA.ProductStrategies;
 import Main.UtilityMethods;
 import Token.ArithmeticOperator;
 import Token.RelationalOperator;
@@ -50,7 +51,35 @@ public class AutomatonLogicalOps {
                                   boolean print,
                                   String prefix,
                                   StringBuilder log) {
+        Automaton AxB = new Automaton();
+        long timeBefore = System.currentTimeMillis();
+        List<Integer> allInputsOfN = createBasicAutomaton(A, B, print, prefix, log, AxB);
+        int combineOut = op.equals("combine") ? A.combineOutputs.getInt(A.combineIndex) : -1;
+        ProductStrategies.crossProductInternal(
+            A.fa, B.fa, AxB.fa, combineOut, allInputsOfN, op, print, prefix, log, timeBefore);
+        return AxB;
+    }
+    static Automaton crossProductAndMinimize(Automaton A,
+                                  Automaton B,
+                                  String op,
+                                  boolean print,
+                                  String prefix,
+                                  StringBuilder log) {
+        Automaton AxB = new Automaton();
+        long timeBefore = System.currentTimeMillis();
+        List<Integer> allInputsOfN = createBasicAutomaton(A, B, print, prefix, log, AxB);
+        int combineOut = op.equals("combine") ? A.combineOutputs.getInt(A.combineIndex) : -1;
+        ProductStrategies.crossProductInternalDFA(
+                A.fa, B.fa, AxB.fa, combineOut, allInputsOfN, op, print, prefix, log, timeBefore);
+        AxB.fa.justMinimize(print, prefix, log);
+        if (AxB.fa.getNfaD() == null) {
+            throw new RuntimeException("Unexpected null");
+        }
+        return AxB;
+    }
 
+    private static List<Integer> createBasicAutomaton(
+            Automaton A, Automaton B, boolean print, String prefix, StringBuilder log, Automaton AxB) {
         if (A.fa.isTRUE_FALSE_AUTOMATON() || B.fa.isTRUE_FALSE_AUTOMATON()) {
             throw new RuntimeException("Invalid use of the crossProduct method: " +
                     "the automata for this method cannot be true or false automata.");
@@ -65,10 +94,6 @@ public class AutomatonLogicalOps {
                     "the automata for this method must have labeled inputs.");
         }
 
-        /**N is going to hold the cross product*/
-        Automaton N = new Automaton();
-
-        long timeBefore = System.currentTimeMillis();
         UtilityMethods.logMessage(print, prefix + "Computing cross product:" + A.getQ() + " states - " + B.getQ() + " states", log);
 
         /**
@@ -88,23 +113,23 @@ public class AutomatonLogicalOps {
             }
         }
         for (int i = 0; i < A.getA().size(); i++) {
-            N.getA().add(A.getA().get(i));
-            N.getLabel().add(A.getLabel().get(i));
-            N.getNS().add(A.getNS().get(i));
+            AxB.getA().add(A.getA().get(i));
+            AxB.getLabel().add(A.getLabel().get(i));
+            AxB.getNS().add(A.getNS().get(i));
         }
         for (int i = 0; i < B.getA().size(); i++) {
             if (sameInputsInMAndThis[i] == -1) {
-                N.getA().add(new ArrayList<>(B.getA().get(i)));
-                N.getLabel().add(B.getLabel().get(i));
-                N.getNS().add(B.getNS().get(i));
+                AxB.getA().add(new ArrayList<>(B.getA().get(i)));
+                AxB.getLabel().add(B.getLabel().get(i));
+                AxB.getNS().add(B.getNS().get(i));
             } else {
                 int j = sameInputsInMAndThis[i];
-                if (B.getNS().get(i) != null && N.getNS().get(j) == null) {
-                    N.getNS().set(j, B.getNS().get(i));
+                if (B.getNS().get(i) != null && AxB.getNS().get(j) == null) {
+                    AxB.getNS().set(j, B.getNS().get(i));
                 }
             }
         }
-        N.determineAlphabetSizeFromA();
+        AxB.determineAlphabetSizeFromA();
 
         List<Integer> allInputsOfN = new ArrayList<>();
         for (int i = 0; i < A.getAlphabetSize(); i++) {
@@ -114,87 +139,10 @@ public class AutomatonLogicalOps {
                 if (inputForN == null)
                     allInputsOfN.add(-1);
                 else
-                    allInputsOfN.add(N.encode(inputForN));
+                    allInputsOfN.add(AxB.encode(inputForN));
             }
         }
-        int combineOut = op.equals("combine") ? A.combineOutputs.getInt(A.combineIndex) : -1;
-        crossProductInternal(
-            A.fa, B.fa, N.fa, combineOut, allInputsOfN, op, print, prefix, log, timeBefore);
-        return N;
-    }
-
-    /**
-     * Cross-product of two DFAs.
-     */
-    private static void crossProductInternal(
-        FA A, FA B, FA AxB, int combineOut, List<Integer> allInputsOfAxB, String op,
-        boolean print, String prefix, StringBuilder log, long timeBefore) {
-        List<List<Integer>> statesList = new ArrayList<>();
-        Map<List<Integer>, Integer> statesHash = new HashMap<>();
-        AxB.setQ0(0);
-        statesList.add(Arrays.asList(A.getQ0(), B.getQ0()));
-        statesHash.put(Arrays.asList(A.getQ0(), B.getQ0()), 0);
-        int currentState = 0;
-        while (currentState < statesList.size()) {
-            if (print) {
-                int statesSoFar = currentState + 1;
-                long timeAfter = System.currentTimeMillis();
-                UtilityMethods.logMessage(statesSoFar == 1e2 || statesSoFar == 1e3 || statesSoFar % 1e4 == 0, prefix + "  Progress: Added " + statesSoFar + " states - "
-                    + (statesList.size() - statesSoFar) + " states left in queue - "
-                    + statesList.size() + " reachable states - " + (timeAfter - timeBefore) + "ms", log);
-            }
-
-            List<Integer> s = statesList.get(currentState);
-
-            // s must be an array of length 2, where the first element is a state in this, and the second element is a
-            // state in the other Automaton.
-            int p = s.get(0);
-            int q = s.get(1);
-            Int2ObjectRBTreeMap<IntList> thisStatesTransitions = new Int2ObjectRBTreeMap<>();
-            AxB.getNfaD().add(thisStatesTransitions);
-            AxB.getO().add(determineOutput(A, B, op, p, q, combineOut));
-
-            for (Int2ObjectMap.Entry<IntList> entryA : A.getNfaD().get(p).int2ObjectEntrySet()) {
-                for (Int2ObjectMap.Entry<IntList> entryB : B.getNfaD().get(q).int2ObjectEntrySet()) {
-                    int z = allInputsOfAxB.get(entryA.getIntKey() * B.getAlphabetSize() + entryB.getIntKey());
-                    if (z != -1) {
-                        IntList dest = new IntArrayList();
-                        thisStatesTransitions.put(z, dest);
-                        for (int destA : entryA.getValue()) {
-                            for (int destB : entryB.getValue()) {
-                                List<Integer> dest3 = Arrays.asList(destA, destB);
-                                if (!statesHash.containsKey(dest3)) {
-                                    statesList.add(dest3);
-                                    statesHash.put(dest3, statesList.size() - 1);
-                                }
-                                dest.add((int) statesHash.get(dest3));
-                            }
-                        }
-                    }
-                }
-            }
-            currentState++;
-        }
-        AxB.setQ(statesList.size());
-        long timeAfter = System.currentTimeMillis();
-        UtilityMethods.logMessage(print, prefix + "computed cross product:" + AxB.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
-    }
-
-    private static int determineOutput(FA A, FA M, String op, int p, int q, int combineOut) {
-        int aP = A.getO().getInt(p);
-        int mQ = M.getO().getInt(q);
-        return switch (op) {
-            case "&" -> (aP != 0 && mQ != 0) ? 1 : 0;
-            case "|" -> (aP != 0 || mQ != 0) ? 1 : 0;
-            case "^" -> ((aP != 0 && mQ == 0) || (aP == 0 && mQ != 0)) ? 1 : 0;
-            case "=>" -> (aP == 0 || mQ != 0) ? 1 : 0;
-            case "<=>" -> ((aP == 0 && mQ == 0) || (aP != 0 && mQ != 0)) ? 1 : 0;
-            case "<", ">", "=", "!=", "<=", ">=" -> RelationalOperator.compare(op, aP, mQ) ? 1 : 0;
-            case "+", "-", "*", "/" -> ArithmeticOperator.arith(op, aP, mQ);
-            case "combine" -> (mQ == 1) ? combineOut : aP;
-            case "first" -> aP == 0 ? mQ : aP;
-            default -> mQ != 0 ? aP : 0;
-        };
+        return allInputsOfN;
     }
 
     /**
@@ -226,9 +174,7 @@ public class AutomatonLogicalOps {
         long timeBefore = System.currentTimeMillis();
         UtilityMethods.logMessage(print, prefix + "computing " + friendlyOp + ":" + A.getQ() + " states - " + B.getQ() + " states", log);
 
-        Automaton N = crossProduct(A, B, friendlyOp, print, prefix, log);
-        N.fa.determinizeAndMinimize(print, prefix + " ", log);
-
+        Automaton N = crossProductAndMinimize(A, B, friendlyOp, print, prefix, log);
         long timeAfter = System.currentTimeMillis();
         UtilityMethods.logMessage(print, prefix + "computed " + friendlyOp + ":" + N.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
 
@@ -254,9 +200,7 @@ public class AutomatonLogicalOps {
 
         totalize(A.fa, print, prefix + " ", log);
         totalize(B.fa, print, prefix + " ", log);
-        Automaton N = crossProduct(A, B, friendlyOp, print, prefix, log);
-
-        N.fa.determinizeAndMinimize(print, prefix + " ", log);
+        Automaton N = crossProductAndMinimize(A, B, friendlyOp, print, prefix, log);
         N.applyAllRepresentations();
 
         long timeAfter = System.currentTimeMillis();
@@ -314,8 +258,7 @@ public class AutomatonLogicalOps {
 
         totalize(A.fa, print, prefix + " ", log);
         totalize(B.fa, print, prefix + " ", log);
-        Automaton N = crossProduct(A, B, friendlyOp, print, prefix + " ", log);
-        N.fa.determinizeAndMinimize(print, prefix + " ", log);
+        Automaton N = crossProductAndMinimize(A, B, friendlyOp, print, prefix + " ", log);
         N.applyAllRepresentations();
 
         long timeAfter = System.currentTimeMillis();
@@ -531,7 +474,8 @@ public class AutomatonLogicalOps {
 
         // Subset Construction with different initial state
         IntSet initial_state = A.fa.zeroReachableStates(zero);
-        List<Int2IntMap> newMemD = A.fa.subsetConstruction(null, initial_state, print, prefix + " ", log);
+        List<Int2IntMap> newMemD = DeterminizationStrategies.determinize(
+                A.fa, null, initial_state, print, prefix + " ", log, DeterminizationStrategies.Strategy.SC);
 
         // Subset Construction with usual initial state
         IntSet qqq = new IntOpenHashSet();
@@ -875,88 +819,83 @@ public class AutomatonLogicalOps {
         if (A.fa.isTRUE_FALSE_AUTOMATON()) {
             return;
         }
-        try {
-            long timeBefore = System.currentTimeMillis();
-            UtilityMethods.logMessage(print, prefix + "reversing: " + A.getQ() + " states", log);
+        long timeBefore = System.currentTimeMillis();
+        UtilityMethods.logMessage(print, prefix + "reversing: " + A.getQ() + " states", log);
 
-            boolean addedDeadState = A.fa.addDistinguishedDeadState(print, prefix, log);
+        boolean addedDeadState = A.fa.addDistinguishedDeadState(print, prefix, log);
 
-            int minOutput = 0;
-            if (addedDeadState) {
-                // get state with smallest output. all states with this output will be removed.
-                // after transducing, all states with this minimum output will be removed.
-                minOutput = A.fa.determineMinOutput();
-            }
-
-            // need to define states, an initial state, transitions, and outputs.
-            Map<Integer, Integer> newInitState = new HashMap<>();
-            for (int i = 0; i < A.getQ(); i++) {
-                newInitState.put(i, A.getO().getInt(i));
-            }
-
-            IntList newO = new IntArrayList();
-            List<Int2ObjectRBTreeMap<IntList>> newD = new ArrayList<>();
-
-            List<Map<Integer, Integer>> newStates = new ArrayList<>();
-            newStates.add(newInitState);
-
-            Map<Map<Integer, Integer>, Integer> newStatesHash = new HashMap<>();
-            newStatesHash.put(newInitState, newStates.size() - 1);
-
-            Queue<Map<Integer, Integer>> newStatesQueue = new LinkedList<>();
-            newStatesQueue.add(newInitState);
-
-            while (!newStatesQueue.isEmpty()) {
-                Map<Integer, Integer> currState = newStatesQueue.remove();
-
-                // set up the output of this state to be g(q0), where g = currState.
-                newO.add((int) currState.get(A.getQ0()));
-
-                newD.add(new Int2ObjectRBTreeMap<>());
-
-                // assume that the
-                // System.out.println("alphabet: " + d.get(q0) + ", " + d + ", " + alphabetSize);
-                if (A.getD().get(A.getQ0()).keySet().size() != A.getAlphabetSize()) {
-                    throw new RuntimeException("Automaton should be deterministic!");
-                }
-                for (int l : A.getD().get(A.getQ0()).keySet()) {
-                    Map<Integer, Integer> toState = new HashMap<>();
-
-                    for (int i = 0; i < A.getQ(); i++) {
-                        toState.put(i, currState.get(A.getD().get(i).get(l).getInt(0)));
-                    }
-
-                    if (!newStatesHash.containsKey(toState)) {
-                        newStates.add(toState);
-                        newStatesQueue.add(toState);
-                        newStatesHash.put(toState, newStates.size() - 1);
-                    }
-
-                    // set up the transition.
-                    IntList newList = new IntArrayList();
-                    newList.add((int) newStatesHash.get(toState));
-                    newD.get(newD.size() - 1).put(l, newList);
-                }
-            }
-
-            A.fa.setFields(newStates.size(), newO, newD);
-
-            if (reverseMsd) {
-                NumberSystem.flipNS(A.getNS());
-            }
-
-            A.minimizeSelfWithOutput(print, prefix + " ", log);
-
-            if (addedDeadState) {
-                removeStatesWithMinOutput(A, minOutput);
-            }
-
-            long timeAfter = System.currentTimeMillis();
-            UtilityMethods.logMessage(print, prefix + "reversed: " + A.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
-        } catch (RuntimeException e) {
-            e.printStackTrace();
-            throw new RuntimeException("Error reversing word A");
+        int minOutput = 0;
+        if (addedDeadState) {
+            // get state with smallest output. all states with this output will be removed.
+            // after transducing, all states with this minimum output will be removed.
+            minOutput = A.fa.determineMinOutput();
         }
+
+        // need to define states, an initial state, transitions, and outputs.
+        Map<Integer, Integer> newInitState = new HashMap<>();
+        for (int i = 0; i < A.getQ(); i++) {
+            newInitState.put(i, A.getO().getInt(i));
+        }
+
+        IntList newO = new IntArrayList();
+        List<Int2ObjectRBTreeMap<IntList>> newD = new ArrayList<>();
+
+        List<Map<Integer, Integer>> newStates = new ArrayList<>();
+        newStates.add(newInitState);
+
+        Map<Map<Integer, Integer>, Integer> newStatesHash = new HashMap<>();
+        newStatesHash.put(newInitState, newStates.size() - 1);
+
+        Queue<Map<Integer, Integer>> newStatesQueue = new LinkedList<>();
+        newStatesQueue.add(newInitState);
+
+        while (!newStatesQueue.isEmpty()) {
+            Map<Integer, Integer> currState = newStatesQueue.remove();
+
+            // set up the output of this state to be g(q0), where g = currState.
+            newO.add((int) currState.get(A.getQ0()));
+
+            newD.add(new Int2ObjectRBTreeMap<>());
+
+            // assume that the
+            // System.out.println("alphabet: " + d.get(q0) + ", " + d + ", " + alphabetSize);
+            if (A.getD().get(A.getQ0()).keySet().size() != A.getAlphabetSize()) {
+                throw new RuntimeException("Automaton should be deterministic!");
+            }
+            for (int l : A.getD().get(A.getQ0()).keySet()) {
+                Map<Integer, Integer> toState = new HashMap<>();
+
+                for (int i = 0; i < A.getQ(); i++) {
+                    toState.put(i, currState.get(A.getD().get(i).get(l).getInt(0)));
+                }
+
+                if (!newStatesHash.containsKey(toState)) {
+                    newStates.add(toState);
+                    newStatesQueue.add(toState);
+                    newStatesHash.put(toState, newStates.size() - 1);
+                }
+
+                // set up the transition.
+                IntList newList = new IntArrayList();
+                newList.add((int) newStatesHash.get(toState));
+                newD.get(newD.size() - 1).put(l, newList);
+            }
+        }
+
+        A.fa.setFields(newStates.size(), newO, newD);
+
+        if (reverseMsd) {
+            NumberSystem.flipNS(A.getNS());
+        }
+
+        A.minimizeSelfWithOutput(print, prefix + " ", log);
+
+        if (addedDeadState) {
+            removeStatesWithMinOutput(A, minOutput);
+        }
+
+        long timeAfter = System.currentTimeMillis();
+        UtilityMethods.logMessage(print, prefix + "reversed: " + A.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
     }
 
     static void removeStatesWithMinOutput(Automaton N, int minOutput) {
@@ -1046,34 +985,29 @@ public class AutomatonLogicalOps {
      */
     private static void convertMsdBaseToExponent(Automaton A, int exponent,
                                                  boolean print, String prefix, StringBuilder log) {
-        try {
-            int base = parseBase(A.getNS().get(0).getName());
+        int base = parseBase(A.getNS().get(0).getName());
 
-            long timeBefore = System.currentTimeMillis();
-            UtilityMethods.logMessage(
+        long timeBefore = System.currentTimeMillis();
+        UtilityMethods.logMessage(
                 print,
                 prefix + "Converting: msd_" + base + " to msd_" + (int) Math.pow(base, exponent)
-                    + ", " + A.getQ() + " states",
+                        + ", " + A.getQ() + " states",
                 log
-            );
+        );
 
-            if (!A.fa.isDeterministic()) {
-                throw new RuntimeException("Automaton must be deterministic for msd_k^j conversion");
-            }
-
-            A.fa.updateTransitionsFromMorphism(exponent);
-
-            // Update number system: msd_{base^exponent}
-            int newBase = (int) Math.pow(base, exponent);
-            A.getNS().set(0, new NumberSystem("msd_" + newBase));
-            setAutomatonAlphabet(A, newBase);
-
-            UtilityMethods.logMessage(print, prefix + "Converted: msd_" + base + " to msd_" + newBase
-                + ", " + A.getQ() + " states - " + (System.currentTimeMillis() - timeBefore) + "ms", log);
-        } catch (RuntimeException e) {
-            e.printStackTrace();
-            throw new RuntimeException("Error converting msd_k to msd_k^j", e);
+        if (!A.fa.isDeterministic()) {
+            throw new RuntimeException("Automaton must be deterministic for msd_k^j conversion");
         }
+
+        A.fa.updateTransitionsFromMorphism(exponent);
+
+        // Update number system: msd_{base^exponent}
+        int newBase = (int) Math.pow(base, exponent);
+        A.getNS().set(0, new NumberSystem("msd_" + newBase));
+        setAutomatonAlphabet(A, newBase);
+
+        UtilityMethods.logMessage(print, prefix + "Converted: msd_" + base + " to msd_" + newBase
+                + ", " + A.getQ() + " states - " + (System.currentTimeMillis() - timeBefore) + "ms", log);
     }
 
     /**
@@ -1082,130 +1016,125 @@ public class AutomatonLogicalOps {
      */
     private static void convertLsdBaseToRoot(Automaton A, int root, int exponent,
                                              boolean print, String prefix, StringBuilder log) {
-        try {
-            // Parse base and validate
-            int base = parseBase(A.getNS().get(0).getName());
-            double expected = Math.pow(root, exponent);
-            if (base != (int) expected) {
-                throw new RuntimeException("Base mismatch: expected " + (int) expected + ", found " + base);
-            }
+        // Parse base and validate
+        int base = parseBase(A.getNS().get(0).getName());
+        double expected = Math.pow(root, exponent);
+        if (base != (int) expected) {
+            throw new RuntimeException("Base mismatch: expected " + (int) expected + ", found " + base);
+        }
 
-            long timeBefore = System.currentTimeMillis();
-            UtilityMethods.logMessage(
+        long timeBefore = System.currentTimeMillis();
+        UtilityMethods.logMessage(
                 print,
                 prefix + "Converting: lsd_" + base + " to lsd_" + (int) expected
-                    + ", " + A.getQ() + " states",
+                        + ", " + A.getQ() + " states",
                 log
-            );
+        );
 
-            // BFS-like approach with StateTuple
-            class StateTuple {
-                final int state;
-                final List<Integer> iList;
+        // BFS-like approach with StateTuple
+        class StateTuple {
+            final int state;
+            final List<Integer> iList;
 
-                StateTuple(int state, List<Integer> iList) {
-                    this.state = state;
-                    this.iList = iList;
-                }
-
-                @Override
-                public boolean equals(Object o) {
-                    if (this == o) return true;
-                    if (o == null || getClass() != o.getClass()) return false;
-                    StateTuple other = (StateTuple) o;
-                    // Compare both the state and the string for uniqueness
-                    return this.state == other.state && this.iList.equals(other.iList);
-                }
-
-                @Override
-                public int hashCode() {
-                    int result = Integer.hashCode(this.state);
-                    result = 31 * result + this.iList.hashCode();
-                    return result;
-                }
+            StateTuple(int state, List<Integer> iList) {
+                this.state = state;
+                this.iList = iList;
             }
 
-            IntList oldO = A.getO();
-            List<Int2ObjectRBTreeMap<IntList>> oldD = A.getD();
+            @Override
+            public boolean equals(Object o) {
+                if (this == o) return true;
+                if (o == null || getClass() != o.getClass()) return false;
+                StateTuple other = (StateTuple) o;
+                // Compare both the state and the string for uniqueness
+                return this.state == other.state && this.iList.equals(other.iList);
+            }
 
-            // Prepare BFS structures
-            List<StateTuple> newStates = new ArrayList<>();
-            Queue<StateTuple> queue = new LinkedList<>();
-            Map<StateTuple, Integer> stateMap = new HashMap<>();
-            List<Int2ObjectRBTreeMap<IntList>> newD = new ArrayList<>();
-            IntList newO = new IntArrayList();
+            @Override
+            public int hashCode() {
+                int result = Integer.hashCode(this.state);
+                result = 31 * result + this.iList.hashCode();
+                return result;
+            }
+        }
 
-            // Initialize BFS with the A's Q0
-            StateTuple init = new StateTuple(A.getQ0(), List.of());
-            newStates.add(init);
-            queue.add(init);
-            stateMap.put(init, newStates.size() - 1);
+        IntList oldO = A.getO();
+        List<Int2ObjectRBTreeMap<IntList>> oldD = A.getD();
 
-            // BFS
-            while (!queue.isEmpty()) {
-                StateTuple curr = queue.remove();
+        // Prepare BFS structures
+        List<StateTuple> newStates = new ArrayList<>();
+        Queue<StateTuple> queue = new LinkedList<>();
+        Map<StateTuple, Integer> stateMap = new HashMap<>();
+        List<Int2ObjectRBTreeMap<IntList>> newD = new ArrayList<>();
+        IntList newO = new IntArrayList();
 
-                // Create a new transition map in newD
-                newD.add(new Int2ObjectRBTreeMap<>());
+        // Initialize BFS with the A's Q0
+        StateTuple init = new StateTuple(A.getQ0(), List.of());
+        newStates.add(init);
+        queue.add(init);
+        stateMap.put(init, newStates.size() - 1);
 
-                // Output logic
-                if (curr.iList.isEmpty()) {
-                    newO.add(oldO.getInt(curr.state));
+        // BFS
+        while (!queue.isEmpty()) {
+            StateTuple curr = queue.remove();
+
+            // Create a new transition map in newD
+            newD.add(new Int2ObjectRBTreeMap<>());
+
+            // Output logic
+            if (curr.iList.isEmpty()) {
+                newO.add(oldO.getInt(curr.state));
+            } else {
+                int stringVal = computeStringValue(curr.iList, root);
+                // The next real state is oldD.get(curr.state).get(stringVal).getInt(0)
+                int realState = oldD.get(curr.state).get(stringVal).getInt(0);
+                newO.add(oldO.getInt(realState));
+            }
+
+            // Build transitions for each possible digit di in [0..root-1]
+            for (int di = 0; di < root; di++) {
+                List<Integer> nextString = new ArrayList<>(curr.iList);
+                nextString.add(di);
+
+                StateTuple next;
+                if (curr.iList.size() < exponent - 1) {
+                    // Haven't reached exponent length yet
+                    next = new StateTuple(curr.state, nextString);
                 } else {
-                    int stringVal = computeStringValue(curr.iList, root);
-                    // The next real state is oldD.get(curr.state).get(stringVal).getInt(0)
-                    int realState = oldD.get(curr.state).get(stringVal).getInt(0);
-                    newO.add(oldO.getInt(realState));
+                    // We have a full 'digit string', so jump to an actual next state
+                    int nextStringVal = computeStringValue(nextString, root);
+                    int realState = oldD.get(curr.state).get(nextStringVal).getInt(0);
+                    next = new StateTuple(realState, List.of());
                 }
 
-                // Build transitions for each possible digit di in [0..root-1]
-                for (int di = 0; di < root; di++) {
-                    List<Integer> nextString = new ArrayList<>(curr.iList);
-                    nextString.add(di);
-
-                    StateTuple next;
-                    if (curr.iList.size() < exponent - 1) {
-                        // Haven't reached exponent length yet
-                        next = new StateTuple(curr.state, nextString);
-                    } else {
-                        // We have a full 'digit string', so jump to an actual next state
-                        int nextStringVal = computeStringValue(nextString, root);
-                        int realState = oldD.get(curr.state).get(nextStringVal).getInt(0);
-                        next = new StateTuple(realState, List.of());
-                    }
-
-                    // If this state is new, register it
-                    if (!stateMap.containsKey(next)) {
-                        newStates.add(next);
-                        queue.add(next);
-                        stateMap.put(next, newStates.size() - 1);
-                    }
-
-                    // Add transition
-                    IntList destList = new IntArrayList();
-                    destList.add(stateMap.get(next));
-                    newD.get(stateMap.get(curr)).put(di, destList);
+                // If this state is new, register it
+                if (!stateMap.containsKey(next)) {
+                    newStates.add(next);
+                    queue.add(next);
+                    stateMap.put(next, newStates.size() - 1);
                 }
+
+                // Add transition
+                IntList destList = new IntArrayList();
+                destList.add(stateMap.get(next));
+                newD.get(stateMap.get(curr)).put(di, destList);
             }
+        }
 
-            // Update A
-            A.fa.setFields(newStates.size(), newO, newD);
+        // Update A
+        A.fa.setFields(newStates.size(), newO, newD);
 
-            A.fa.setCanonized(false);
+        A.fa.setCanonized(false);
 
-            // Update number system to lsd_root
-            A.getNS().set(0, new NumberSystem("lsd_" + root));
-            setAutomatonAlphabet(A, root);
+        // Update number system to lsd_root
+        A.getNS().set(0, new NumberSystem("lsd_" + root));
+        setAutomatonAlphabet(A, root);
 
-            UtilityMethods.logMessage(
+        UtilityMethods.logMessage(
                 print,
                 prefix + prefix + "Converted: lsd_" + base + " to lsd_" + (int) expected
-                    + ", " + A.getQ() + " states - " + (System.currentTimeMillis() - timeBefore) + "ms",
-            log);
-        } catch (RuntimeException e) {
-            e.printStackTrace();
-            throw new RuntimeException("Error converting lsd_{k^j} to lsd_k", e);
-        }
+                        + ", " + A.getQ() + " states - " + (System.currentTimeMillis() - timeBefore) + "ms",
+                log);
     }
 
     /**
@@ -1245,10 +1174,8 @@ public class AutomatonLogicalOps {
         return value;
     }
 
-
-
-    public static Automaton combine(Automaton A, Queue<Automaton> subautomata, IntList outputs, boolean print, String prefix, StringBuilder log) {
-
+    public static Automaton combine(
+            Automaton A, Queue<Automaton> subautomata, IntList outputs, boolean print, String prefix, StringBuilder log) {
         Automaton first = A.clone();
 
         // In an A without output, every non-zero output value represents an accepting state
@@ -1295,61 +1222,17 @@ public class AutomatonLogicalOps {
      * To be used only when this A and M are DFAOs (words).
      *
      * @param A
-     * @param W
+     * @param B
      * @param operator
      * @return
      */
     public static Automaton compare(
-            Automaton A, Automaton W, String operator, boolean print, String prefix, StringBuilder log) {
+            Automaton A, Automaton B, String operator, boolean print, String prefix, StringBuilder log) {
         long timeBefore = System.currentTimeMillis();
-        UtilityMethods.logMessage(print, prefix + "comparing (" + operator + "):" + A.getQ() + " states - " + W.getQ() + " states", log);
-        Automaton M = crossProduct(A, W, operator, print, prefix + " ", log);
-        M.fa.determinizeAndMinimize(print, prefix + " ", log);
+        UtilityMethods.logMessage(print, prefix + "comparing (" + operator + "):" + A.getQ() + " states - " + B.getQ() + " states", log);
+        Automaton M = crossProductAndMinimize(A, B, operator, print, prefix + " ", log);
         long timeAfter = System.currentTimeMillis();
         UtilityMethods.logMessage(print, prefix + "compared (" + operator + "):" + A.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
         return M;
-    }
-
-    /**
-     * The operator can be one of "<" ">" "=" "!=" "<=" ">=".
-     * For example if operator = "<" then this method changes the word A
-     * to a DFA that accepts x iff this[x] < o lexicographically.
-     * To be used only when this A is a DFAO (word).
-     *
-     * @param A
-     * @param operator
-     * @return
-     */
-    public static void compare(
-            Automaton A, int o, String operator, boolean print, String prefix, StringBuilder log) {
-        long timeBefore = System.currentTimeMillis();
-        UtilityMethods.logMessage(print, prefix + "comparing (" + operator + ") against " + o + ":" + A.getQ() + " states", log);
-        IntList aO = A.getO();
-        for (int p = 0; p < A.getQ(); p++) {
-            aO.set(p, RelationalOperator.compare(operator, aO.getInt(p), o) ? 1 : 0);
-        }
-        A.fa.determinizeAndMinimize(print, prefix + " ", log);
-        long timeAfter = System.currentTimeMillis();
-        UtilityMethods.logMessage(print, prefix + "compared (" + operator + ") against " + o + ":" + A.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
-    }
-
-    static <T> List<List<T>> cartesianProduct(List<List<T>> lists) {
-        List<List<T>> resultLists = new ArrayList<>();
-        if (lists.isEmpty()) {
-            resultLists.add(new ArrayList<>());
-            return resultLists;
-        } else {
-            List<T> firstList = lists.get(0);
-            List<List<T>> remainingLists = cartesianProduct(lists.subList(1, lists.size()));
-            for (T condition : firstList) {
-                for (List<T> remainingList : remainingLists) {
-                    ArrayList<T> resultList = new ArrayList<>();
-                    resultList.add(condition);
-                    resultList.addAll(remainingList);
-                    resultLists.add(resultList);
-                }
-            }
-        }
-        return resultLists;
     }
 }

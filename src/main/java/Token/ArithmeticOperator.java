@@ -129,7 +129,7 @@ public class ArithmeticOperator extends Operator {
             M = new Automaton(true);
             for (int o : word.wordAutomaton.getO()) {
                 Automaton N = word.wordAutomaton.clone();
-                AutomatonLogicalOps.compare(N, o, "=", print, prefix + " ", log);
+                N.fa.compare(o, "=", print, prefix + " ", log);
                 Automaton C;
                 if (o == 0 && op.equals("*")) {
                     C = ns.get(0);

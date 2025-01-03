@@ -109,14 +109,7 @@ public class ParseMethods {
 
                 HashMap<String, NumberSystem> H = Predicate.getNumberSystemHash();
                 if (!H.containsKey(ns)) {
-                    try {
                         H.put(ns, new NumberSystem(ns));
-                    } catch (RuntimeException e) {
-                        // TODO Auto-generated catch block
-                        throw new RuntimeException(
-                                e.getMessage() + System.lineSeparator() +
-                                        "\tNumber system " + ns + " does not exist.");
-                    }
                 }
 
                 A.add(H.get(ns).getAlphabet());

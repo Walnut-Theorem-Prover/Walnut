@@ -57,7 +57,7 @@ public class AutomatonWriter {
         }
         List<Integer> indices = free_variables.stream().map(variable -> automaton.getLabel().indexOf(variable)).collect(Collectors.toList());
         List<List<Integer>> indexValueLists = indices.stream().map(index -> automaton.getA().get(index)).collect(Collectors.toList());
-        List<List<Integer>> valueLists = AutomatonLogicalOps.cartesianProduct(indexValueLists);
+        List<List<Integer>> valueLists = cartesianProduct(indexValueLists);
         for (List<Integer> valueList : valueLists) {
             writeMatrixForAVariableListValuePair(automaton, free_variables, valueList, indices, s);
         }
@@ -291,5 +291,25 @@ public class AutomatonWriter {
     
     private static void addln(StringBuilder gv, String line) {
         gv.append(line).append(System.lineSeparator());
+    }
+
+    private static <T> List<List<T>> cartesianProduct(List<List<T>> lists) {
+        List<List<T>> resultLists = new ArrayList<>();
+        if (lists.isEmpty()) {
+            resultLists.add(new ArrayList<>());
+            return resultLists;
+        } else {
+            List<T> firstList = lists.get(0);
+            List<List<T>> remainingLists = cartesianProduct(lists.subList(1, lists.size()));
+            for (T condition : firstList) {
+                for (List<T> remainingList : remainingLists) {
+                    ArrayList<T> resultList = new ArrayList<>();
+                    resultList.add(condition);
+                    resultList.addAll(remainingList);
+                    resultLists.add(resultList);
+                }
+            }
+        }
+        return resultLists;
     }
 }

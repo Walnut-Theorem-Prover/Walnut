@@ -221,18 +221,7 @@ public class Automaton {
                     in.close();
                     return;
                 }
-
-                boolean flag;
-                try {
-                    flag = ParseMethods.parseAlphabetDeclaration(line, getA(), getNS());
-                } catch (RuntimeException e) {
-                    in.close();
-                    throw new RuntimeException(
-                        e.getMessage() + System.lineSeparator() +
-                            "\t:line " + lineNumber + " of file " + address);
-                }
-
-                if (flag) {
+                if (ParseMethods.parseAlphabetDeclaration(line, getA(), getNS())) {
                     for (int i = 0; i < getA().size(); i++) {
                         if (getNS().get(i) != null &&
                             (!getA().get(i).contains(0) || !getA().get(i).contains(1))) {
@@ -246,7 +235,6 @@ public class Automaton {
                         UtilityMethods.removeDuplicates(getA().get(i));
                     }
                     this.determineAlphabetSizeFromA();
-
                     break;
                 } else {
                     in.close();
@@ -361,13 +349,7 @@ public class Automaton {
 
     public boolean equals(Automaton M) {
         if (M == null) return false;
-        if (fa.isTRUE_FALSE_AUTOMATON() != M.fa.isTRUE_FALSE_AUTOMATON()) return false;
-        if (fa.isTRUE_FALSE_AUTOMATON() && M.fa.isTRUE_FALSE_AUTOMATON()) {
-          return fa.isTRUE_AUTOMATON() == M.fa.isTRUE_AUTOMATON();
-        }
-        dk.brics.automaton.Automaton Y = M.fa.to_dk_brics_automaton();
-        dk.brics.automaton.Automaton X = this.fa.to_dk_brics_automaton();
-        return X.equals(Y);
+        return this.fa.equals(M.fa);
     }
 
     /**
@@ -404,7 +386,6 @@ public class Automaton {
             } else {
                 throw new RuntimeException("Internal union/intersect error");
             }
-
 
             long timeAfter = System.currentTimeMillis();
             UtilityMethods.logMessage(print, prefix + "computed =>:" + first.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
@@ -494,7 +475,6 @@ public class Automaton {
             log.append(msg + System.lineSeparator());
             System.out.println(msg);
         }
-
     }
 
     public Automaton star(boolean print, String prefix, StringBuilder log) {
