@@ -21,8 +21,6 @@ import Automata.FA.DeterminizationStrategies;
 import Automata.FA.FA;
 import Automata.FA.ProductStrategies;
 import Main.UtilityMethods;
-import Token.ArithmeticOperator;
-import Token.RelationalOperator;
 import it.unimi.dsi.fastutil.ints.*;
 
 import java.util.*;
@@ -174,7 +172,7 @@ public class AutomatonLogicalOps {
         long timeBefore = System.currentTimeMillis();
         UtilityMethods.logMessage(print, prefix + "computing " + friendlyOp + ":" + A.getQ() + " states - " + B.getQ() + " states", log);
 
-        Automaton N = crossProductAndMinimize(A, B, friendlyOp, print, prefix, log);
+        Automaton N = crossProductAndMinimize(A, B, friendlyOp, print, prefix + " ", log);
         long timeAfter = System.currentTimeMillis();
         UtilityMethods.logMessage(print, prefix + "computed " + friendlyOp + ":" + N.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
 
@@ -200,7 +198,7 @@ public class AutomatonLogicalOps {
 
         totalize(A.fa, print, prefix + " ", log);
         totalize(B.fa, print, prefix + " ", log);
-        Automaton N = crossProductAndMinimize(A, B, friendlyOp, print, prefix, log);
+        Automaton N = crossProductAndMinimize(A, B, friendlyOp, print, prefix + " ", log);
         N.applyAllRepresentations();
 
         long timeAfter = System.currentTimeMillis();
@@ -474,13 +472,13 @@ public class AutomatonLogicalOps {
 
         // Subset Construction with different initial state
         IntSet initial_state = A.fa.zeroReachableStates(zero);
-        List<Int2IntMap> newMemD = DeterminizationStrategies.determinize(
+        DeterminizationStrategies.determinize(
                 A.fa, null, initial_state, print, prefix + " ", log, DeterminizationStrategies.Strategy.SC);
 
         // Subset Construction with usual initial state
         IntSet qqq = new IntOpenHashSet();
         qqq.add(A.fa.getQ0());
-        A.fa.determinizeAndMinimize(newMemD, qqq, print, prefix + " ", log);
+        A.fa.determinizeAndMinimize(A.fa.getDfaD(), qqq, print, prefix + " ", log);
 
         long timeAfter = System.currentTimeMillis();
         UtilityMethods.logMessage(print, prefix + "fixed leading zeros:" + A.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
@@ -496,16 +494,16 @@ public class AutomatonLogicalOps {
      * Make Automaton accept x0*, iff it used to accept x.
      */
     public static void fixTrailingZerosProblem(Automaton A, boolean print, String prefix, StringBuilder log) {
-        long timeBefore = System.currentTimeMillis();
-        UtilityMethods.logMessage(print, prefix + "fixing trailing zeros:" + A.getQ() + " states", log);
-        A.fa.setCanonized(false);
-
-        A.fa.setStatesReachableToFinalStatesByZeros(determineZero(A));
-
-        A.fa.determinizeAndMinimize(print, prefix + " ", log);
-
-        long timeAfter = System.currentTimeMillis();
-        UtilityMethods.logMessage(print, prefix + "fixed trailing zeros:" + A.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
+        if (A.fa.setStatesReachableToFinalStatesByZeros(determineZero(A))) {
+            long timeBefore = System.currentTimeMillis();
+            UtilityMethods.logMessage(print, prefix + "fixing trailing zeros:" + A.getQ() + " states", log);
+            A.fa.setCanonized(false);
+            A.fa.determinizeAndMinimize(print, prefix + " ", log);
+            long timeAfter = System.currentTimeMillis();
+            UtilityMethods.logMessage(print, prefix + "fixed trailing zeros:" + A.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
+        } else {
+            UtilityMethods.logMessage(print, prefix + "fixing trailing zeros: no change necessary.", log);
+        }
     }
 
     /**
@@ -692,7 +690,6 @@ public class AutomatonLogicalOps {
          *
          * @param A
          * @param listOfLabelsToQuantify must contain at least one element. listOfLabelsToQuantify must be a subset of this.label.
-         * @return
          */
     public static void quantify(Automaton A, Set<String> listOfLabelsToQuantify, boolean print, String prefix, StringBuilder log) {
         quantifyHelper(A, listOfLabelsToQuantify, print, prefix, log);
@@ -713,11 +710,8 @@ public class AutomatonLogicalOps {
      * @param A
      * @param listOfLabelsToQuantify
      */
-    private static void quantifyHelper(Automaton A,
-                                       Set<String> listOfLabelsToQuantify,
-                                       boolean print,
-                                       String prefix,
-                                       StringBuilder log) {
+    private static void quantifyHelper(
+        Automaton A, Set<String> listOfLabelsToQuantify, boolean print, String prefix, StringBuilder log) {
         if (listOfLabelsToQuantify.isEmpty() || A.getLabel() == null) {
             return;
         }
@@ -738,8 +732,8 @@ public class AutomatonLogicalOps {
         UtilityMethods.logMessage(print, prefix + "quantifying:" + A.getQ() + " states", log);
 
         /**
-         * If this is the case, then the quantified A is either the true or false A.
-         * It is true if this's language is not empty.
+         * If this is the case, then the quantified automaton is either the true or false automaton.
+         * It is true if the language is not empty.
          */
         if (listOfLabelsToQuantify.size() == A.getA().size()) {
             A.fa.setTRUE_AUTOMATON(!A.isEmpty());
@@ -787,12 +781,12 @@ public class AutomatonLogicalOps {
     }
 
     /**
-     * this A should not be a word A (A with output). However, it can be non deterministic.
+     * This automaton should not be a word Automaton (i.e., with output). However, it can be NFA.
      * Enabling the reverseMsd flag will flip the number system of the A from msd to lsd, and vice versa.
-     * Note that reversing the Msd will also call this function as reversals are done in the NumberSystem class upon
+     * Reversing the Msd will also call this function as reversals are done in the NumberSystem class upon
      * initializing.
      *
-     * @return the reverse of this A
+     * @return the reverse of this automaton
      */
     public static void reverse(
         Automaton A, boolean print, String prefix, StringBuilder log, boolean reverseMsd) {
@@ -800,7 +794,7 @@ public class AutomatonLogicalOps {
         long timeBefore = System.currentTimeMillis();
         UtilityMethods.logMessage(print, prefix + "Reversing:" + A.getQ() + " states", log);
 
-        IntSet setOfFinalStates = A.fa.reverseDFAtoNFAInternal();
+        IntSet setOfFinalStates = A.fa.reverseToNFAInternal(IntSet.of(A.fa.getQ0()));
         A.fa.determinizeAndMinimize(null, setOfFinalStates, print, prefix + " ", log);
 
         if (reverseMsd) {

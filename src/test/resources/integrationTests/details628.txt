@@ -1,0 +1,51 @@
+computing j<=i
+computed j<=i
+j<=i:2 states - 0ms
+ Computing i+m
+ computed i+m
+ Computing j+n
+ computed j+n
+ computing (i+m)<=(j+n)
+  computing &:2 states - 2 states
+   Computing cross product:2 states - 2 states
+   computed cross product:4 states - 0ms
+   Minimizing: 4 states.
+   Minimized:4 states - 0ms.
+  computed &:4 states - 0ms
+  quantifying:4 states
+    Determinizing [#2, strategy: SC]: 4 states
+    Determinized: 4 states - 0ms
+    Minimizing: 4 states.
+    Minimized:3 states - 0ms.
+  quantified:3 states - 0ms
+  fixing trailing zeros: no change necessary.
+  computing &:3 states - 2 states
+   Computing cross product:3 states - 2 states
+   computed cross product:6 states - 0ms
+   Minimizing: 6 states.
+   Minimized:6 states - 0ms.
+  computed &:6 states - 0ms
+  quantifying:6 states
+    Determinizing [#3, strategy: SC]: 6 states
+    Determinized: 6 states - 1ms
+    Minimizing: 6 states.
+    Minimized:6 states - 0ms.
+  quantified:6 states - 1ms
+  fixing trailing zeros:6 states
+    Determinizing [#4, strategy: SC]: 6 states
+    Determinized: 6 states - 0ms
+    Minimizing: 6 states.
+    Minimized:4 states - 0ms.
+  fixed trailing zeros:4 states - 0ms
+ computed (i+m)<=(j+n)
+ (i+m)<=(j+n):4 states - 1ms
+  computing j<=i&(i+m)<=(j+n)
+   computing &:2 states - 4 states
+    Computing cross product:2 states - 4 states
+    computed cross product:6 states - 0ms
+    Minimizing: 6 states.
+    Minimized:6 states - 0ms.
+   computed &:6 states - 0ms
+  computed j<=i&(i+m)<=(j+n)
+  (j<=i&(i+m)<=(j+n)):6 states - 0ms
+Total computation time: 1ms.

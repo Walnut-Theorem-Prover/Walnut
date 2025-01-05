@@ -407,36 +407,55 @@ public class FA implements Cloneable {
     return min;
   }
 
-  public IntSet reverseDFAtoNFAInternal() {
+  /**
+   * Reverse NFA (or DFA), replacing with NFA.
+   * Note that this returns initial state(s), since Walnut can't handle multiple initial states.
+   * @return new initial state(s).
+   */
+  public IntSet reverseToNFAInternal(IntSet oldInitialStates) {
       // We change the direction of transitions first.
-      List<Int2ObjectRBTreeMap<IntList>> new_d = new ArrayList<>();
-      for (int q = 0; q < Q; q++) new_d.add(new Int2ObjectRBTreeMap<>());
-      for (int q = 0; q < Q; q++) {
-        for (Int2ObjectMap.Entry<IntList> entry : nfaD.get(q).int2ObjectEntrySet()) {
-          int symbol = entry.getIntKey();
-          IntList dests = entry.getValue();
-          for (int dest : dests) {
-            if (new_d.get(dest).containsKey(symbol))
-              new_d.get(dest).get(symbol).add(q);
-            else {
-              IntList destinationSet = new IntArrayList();
-              destinationSet.add(q);
-              new_d.get(dest).put(symbol, destinationSet);
+      List<Int2ObjectRBTreeMap<IntList>> newNfaD = new ArrayList<>(Q);
+      for (int q = 0; q < Q; q++) newNfaD.add(new Int2ObjectRBTreeMap<>());
+      if (nfaD != null) {
+        // reverse NFA transitions
+        for (int q = 0; q < Q; q++) {
+          for (Int2ObjectMap.Entry<IntList> entry : nfaD.get(q).int2ObjectEntrySet()) {
+            for (int dest : entry.getValue()) {
+              addTransition(newNfaD, dest, entry.getIntKey(), q);
             }
           }
         }
+      } else {
+        // reverse DFA transitions
+        for (int q = 0; q < Q; q++) {
+          for (Int2IntMap.Entry entry : dfaD.get(q).int2IntEntrySet()) {
+            addTransition(newNfaD, entry.getIntValue(), entry.getIntKey(), q);
+          }
+        }
       }
-      nfaD = new_d;
-      IntSet setOfFinalStates = new IntOpenHashSet();
-      // final states become non-final
+      nfaD = newNfaD;
+      IntSet newInitialStates = new IntOpenHashSet();
+      // final states become initial states
       for (int q = 0; q < Q; q++) {
           if (O.getInt(q) != 0) {
-              setOfFinalStates.add(q);
+              newInitialStates.add(q);
               O.set(q, 0);
           }
       }
-      O.set(q0, 1); // initial state becomes the final state.
-      return setOfFinalStates;
+      for(int initState: oldInitialStates) {
+        O.set(initState, 1); // initial states become final.
+      }
+      return newInitialStates;
+  }
+
+  private static void addTransition(List<Int2ObjectRBTreeMap<IntList>> newNfaD, int dest, int symbol, int q) {
+    if (newNfaD.get(dest).containsKey(symbol))
+      newNfaD.get(dest).get(symbol).add(q);
+    else {
+      IntList destinationSet = new IntArrayList();
+      destinationSet.add(q);
+      newNfaD.get(dest).put(symbol, destinationSet);
+    }
   }
 
   boolean totalizeIfNecessary() {
@@ -602,8 +621,10 @@ public class FA implements Cloneable {
   /**
    * So for example if f is a final state and f is reachable from q by reading 0*
    * then q will be in the resulting set of this method.
+   * Side effect: this may alter O.
+   * @return true if this altered O.
    */
-  public void setStatesReachableToFinalStatesByZeros(int zero) {
+  public boolean setStatesReachableToFinalStatesByZeros(int zero) {
     Set<Integer> result = new HashSet<>();
     Queue<Integer> queue = new LinkedList<>();
     //this is the adjacency matrix of the reverse of the transition graph of this automaton on 0
@@ -625,9 +646,12 @@ public class FA implements Cloneable {
         if (!result.contains(p))
           queue.add(p);
     }
+    boolean altered = false;
     for (int q : result) {
+      altered = altered || (O.getInt(q) != 1);
       O.set(q, 1);
     }
+    return altered;
   }
 
   public void setFieldsFromFile(int newQ, int newQ0, Map<Integer, Integer> state_output,
@@ -742,18 +766,9 @@ public class FA implements Cloneable {
    * Determinize and minimize. Technically, the logging is backwards.
    */
   public void determinizeAndMinimize(List<Int2IntMap> dfaD, IntSet qqq, boolean print, String prefix, StringBuilder log) {
-    long timeBefore = System.currentTimeMillis();
-    UtilityMethods.logMessage(
-        print, prefix + "Minimizing: " + Q + " states.", log);
-
     DeterminizationStrategies.determinize(
             this, dfaD, qqq, print, prefix + " ", log, DeterminizationStrategies.Strategy.SC);
-
-    minimize();
-
-    long timeAfter = System.currentTimeMillis();
-    UtilityMethods.logMessage(
-        print, prefix + "Minimized:" + Q + " states - " + (timeAfter - timeBefore) + "ms.", log);
+    justMinimize(print, prefix + " ", log);
   }
 
   /**

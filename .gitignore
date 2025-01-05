@@ -34,15 +34,15 @@ Walnut.iml
 hs_err_pid*
 
 # Result files
-Result/
-Session/
-Automata Library/
-Custom Bases/
-Macro Library/
-Morphism Library/
-Word Automata Library/
-Transducer Library/
-Test Results/
+#Result/
+#Session/
+#Automata Library/
+#Custom Bases/
+#Macro Library/
+#Morphism Library/
+#Word Automata Library/
+#Transducer Library/
+#Test Results/
 
 *.swp
 *.swo

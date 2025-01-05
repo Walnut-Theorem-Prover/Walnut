@@ -838,6 +838,7 @@ public class IntegrationTest {
 		L.add("eval test626 \"0 * 3 = 0\";");
 		L.add("eval test627 \"3 * 0 = 0\";");
 
+		L.add("eval test628 \"?lsd_2 (j<=i) & (i+m<=j+n)\"::");
 	}
 
 	/*public long runTestCases() throws IOException {

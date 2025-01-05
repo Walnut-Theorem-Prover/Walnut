@@ -32,6 +32,9 @@ public class TestCase {
         this.mpl = mpl;
         this.details = details;
     }
+    public TestCase(Automaton result) {
+        this(result, "", "", "");
+    }
 
     public Automaton getResult() {
         return result;

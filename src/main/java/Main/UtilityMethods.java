@@ -273,7 +273,7 @@ public class UtilityMethods {
     }
 
     public static void logAndPrint(boolean print, String msg, StringBuilder log) {
-        log.append(msg + System.lineSeparator());
+        log.append(msg).append(System.lineSeparator());
         if (print) {
             System.out.println(msg);
         }
