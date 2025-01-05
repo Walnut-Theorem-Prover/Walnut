@@ -839,83 +839,10 @@ public class IntegrationTest {
 		L.add("eval test627 \"3 * 0 = 0\";");
 
 		L.add("eval test628 \"?lsd_2 (j<=i) & (i+m<=j+n)\"::");
-	}
 
-	/*public long runTestCases() throws IOException {
-		return runTestCases(0,L.size());
+		L.add("fixtrailzero test629 shift;");
+		L.add("fixleadzero test630 shift;");
 	}
-	public long runTestCases(int begin) throws IOException {
-		return runTestCases(begin,L.size());
-	}
-	public long runTestCases(int begin, int end) throws IOException {
-		String directoryAddress = Session.getAddressForIntegrationTestResults();
-		testCases = loadTestCases(L, directoryAddress);
-		int failedTestsCount = 0;
-		int mplFailedTestsCount = 0;
-		int detailsFailedTestsCount = 0;
-		int errorFailedTestsCount = 0;
-		int automataFailedTestsCount = 0;
-		long before;
-		long after;
-		long total = 0;
-		if(testCases == null || testCases.isEmpty())return total;
-		System.out.println("Running test cases from test case " + begin +" to test case " + end);
-		for(int i = begin; i < end;i++){
-			TestCase expected = testCases.get(i);
-			String command = L.get(i);
-			System.out.println("\t\t"+command);
-			try{
-				before = System.currentTimeMillis();
-				TestCase actual = Prover.dispatchForIntegrationTest(command);
-				after = System.currentTimeMillis();
-				total += (after-before);
-
-				if(!conformMPL(expected.getMpl().trim(), actual.getMpl().trim())){
-					failedTestsCount++;
-					mplFailedTestsCount++;
-					System.out.println("Test " + i + " failed! Actual and expected .mpl files do not conform.\n");
-					continue;
-				}
-
-				if(!conformDetails(expected.getDetails().trim(), actual.getDetails().trim())){
-					failedTestsCount++;
-					detailsFailedTestsCount++;
-					System.out.println("Test " + i + " failed! Actual and expected detailed logs do not conform.\n");
-					continue;
-				}
-
-				if((actual.getResult() == null && expected.getResult() != null) ||
-						(actual.getResult() != null && expected.getResult() == null) ||
-						!actual.getResult().equals(expected.getResult())){
-					failedTestsCount++;
-					automataFailedTestsCount++;
-					System.out.println("Test " + i + " failed! Actual and expected automata do not conform.\n");
-				}
-			}
-			catch(Exception e){
-				if(!e.getMessage().equals(expected.getError())){
-					errorFailedTestsCount++;
-					failedTestsCount++;
-					System.out.flush();
-					System.out.println("Test " + i + " failed! Actual and expected error messages do not conform.\n");
-					System.out.println("Expected error: " + expected.getError());
-					System.out.println("Actual error: " + e.getMessage());
-				}
-			}
-		}
-		if(failedTestsCount == 0){
-			System.out.println("All tests passed!\n");
-		}
-		else{
-			System.out.println(failedTestsCount + " test cases failed!");
-			System.out.println(automataFailedTestsCount + " test cases failed because of resulting automata mistmach!");
-			System.out.println(errorFailedTestsCount + " test cases failed because of error messages mistmach!");
-			System.out.println(mplFailedTestsCount + " test cases failed because of mpl mistmach!");
-			System.out.println(detailsFailedTestsCount + " test cases failed because of detailed logs mistmach!");
-		}
-		return total;
-	}
-*/
 
 	@TestFactory
 	List<DynamicTest> runAllIntegrationTests() throws IOException {

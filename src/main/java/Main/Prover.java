@@ -27,10 +27,15 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import Automata.*;
+import Automata.FA.DeterminizationStrategies;
 import Automata.FA.FA;
 import Automata.Numeration.Ostrowski;
+import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
+import it.unimi.dsi.fastutil.objects.ObjectIntImmutablePair;
+import it.unimi.dsi.fastutil.objects.ObjectIntPair;
+import it.unimi.dsi.fastutil.objects.ObjectObjectImmutablePair;
 
 /**
  * This class contains the main method. It is responsible to get a command from user
@@ -38,8 +43,8 @@ import it.unimi.dsi.fastutil.ints.IntList;
  */
 public class Prover {
   static String RE_FOR_THE_LIST_OF_CMDS = "(eval|def|macro|reg|load|ost|exit|quit|cls|clear|combine|morphism|promote|image|inf|split|rsplit|join|test|transduce|reverse|minimize|convert|fixleadzero|fixtrailzero|alphabet|union|intersect|star|concat|rightquo|leftquo|draw|help)";
-  static String RE_END_CMD = "(;|::|:)\\s*((\\d+:\\s+)*)$";
-  static String RE_START = "^\\s*";
+  static String RE_END_CMD = "(;|::|:)$";
+  static String RE_START = "^";
   static String RE_WORD_OF_CMD_NO_SPC = "([a-zA-Z]\\w*)";
 
   static String RE_WORD_OF_CMD = "\\s+" + RE_WORD_OF_CMD_NO_SPC;
@@ -207,6 +212,9 @@ public class Prover {
   static Pattern PAT_FOR_draw_CMD = Pattern.compile(RE_FOR_draw_CMD);
   static int GROUP_draw_DOLLAR_SIGN = 1, GROUP_draw_NAME = 2;
 
+  static String STRATEGY_CMD = "^\\[(?:([A-Za-z]+)\\s+(\\d+)(?:,\\s*)?)*\\]";
+  static Pattern PAT_STRATEGY = Pattern.compile(STRATEGY_CMD);
+
   public static String prefix = ""; // Declare here instead of passing around everywhere
   public static StringBuilder log = new StringBuilder(); // Declare here instead of passing around everywhere
 
@@ -338,9 +346,7 @@ public class Prover {
   }
 
   public static boolean dispatch(String s) throws IOException {
-    FA.resetIndex();
-    prefix = ""; // reset prefix
-    log = new StringBuilder(); // reset log
+    s = parseSetup(s);
     if (s.matches(RE_FOR_EMPTY_CMD)) {
       // If the command is just ; or : do nothing.
       return true;
@@ -366,47 +372,50 @@ public class Prover {
       case "load" -> {
         if (!loadCommand(s)) return false;
       }
-      case "eval", "def" -> eval_def_commands(s);
-      case "macro" -> macroCommand(s);
-      case "reg" -> regCommand(s);
-      case "ost" -> ostCommand(s);
-      case "cls", "clear" -> clearScreen();
-      case "combine" -> combineCommand(s);
-      case "morphism" -> morphismCommand(s);
-      case "promote" -> promoteCommand(s);
-      case "image" -> imageCommand(s);
-      case "inf" -> infCommand(s);
-      case "split" -> splitCommand(s);
-      case "rsplit" -> rsplitCommand(s);
-      case "join" -> joinCommand(s);
-      case "test" -> testCommand(s);
-      case "transduce" -> transduceCommand(s);
-      case "reverse" -> reverseCommand(s);
-      case "minimize" -> minimizeCommand(s);
-      case "convert" -> convertCommand(s);
-      case "fixleadzero" -> fixLeadZeroCommand(s);
-      case "fixtrailzero" -> fixTrailZeroCommand(s);
-      case "alphabet" -> alphabetCommand(s);
-      case "union" -> unionCommand(s);
-      case "intersect" -> intersectCommand(s);
-      case "star" -> starCommand(s);
-      case "concat" -> concatCommand(s);
-      case "rightquo" -> rightquoCommand(s);
-      case "leftquo" -> leftquoCommand(s);
-      case "draw" -> drawCommand(s);
-      case "help" -> HelpMessages.helpCommand(s);
-      default -> throw ExceptionHelper.invalidCommand(commandName);
     }
+    processCommand(s, commandName);
     return true;
   }
 
-  public static TestCase dispatchForIntegrationTest(String s, String msg) throws IOException {
+  private static String parseSetup(String s) {
     FA.resetIndex();
     prefix = ""; // reset prefix
     log = new StringBuilder(); // reset log
 
+    s = s.trim(); // remove start and end whitespace
+
+    Matcher m = PAT_STRATEGY.matcher(s);
+    if (m.find()) {
+      // Extract the full matched strategy
+      String strategy = m.group();
+      // Remove brackets and split into individual pairs
+      String content = strategy.substring(1, strategy.length() - 1); // Remove '[' and ']'
+      List<ObjectIntPair<String>> pairs = new ArrayList<>();
+
+      // Split by commas and process each key-value pair
+      String[] entries = content.split("\\s*,\\s*"); // Split by ", " or ","
+      for (String entry : entries) {
+        String[] keyValue = entry.split("\\s+"); // Split by space between key and value
+        String key = keyValue[0];
+        int value = Integer.parseInt(keyValue[1]);
+
+        DeterminizationStrategies.getStrategyMap().put(value, DeterminizationStrategies.Strategy.valueOf(key));
+      }
+
+      System.out.println("Parsed strategy: " + DeterminizationStrategies.getStrategyMap());
+
+      // Remove the matched strategy from the string
+      s = m.replaceFirst("").trim();
+    }
+    return s;
+  }
+
+  public static TestCase dispatchForIntegrationTest(String s, String msg) throws IOException {
+    s = parseSetup(s);
+
     System.out.println("Running integration test: " + msg);
-    if (s.matches(RE_FOR_EMPTY_CMD)) {//if the command is just ; or : do nothing
+    if (s.matches(RE_FOR_EMPTY_CMD)) {
+      //if the command is just ; or : do nothing
       return null;
     }
 
@@ -418,6 +427,10 @@ public class Prover {
       throw ExceptionHelper.noSuchCommand();
     }
 
+    return processCommand(s, commandName);
+  }
+
+  private static TestCase processCommand(String s, String commandName) throws IOException {
     switch (commandName) {
       case "exit", "quit" -> {
         if (s.matches(RE_FOR_exit_CMD)) return null;
@@ -438,15 +451,24 @@ public class Prover {
       case "ost" -> {
         return ostCommand(s);
       }
-
+      case "cls", "clear" -> {
+        clearScreen();
+        return null;
+      }
       case "combine" -> {
         return combineCommand(s);
+      }
+      case "morphism" -> {
+        morphismCommand(s);
       }
       case "promote" -> {
         return promoteCommand(s);
       }
       case "image" -> {
         return imageCommand(s);
+      }
+      case "inf" -> {
+        infCommand(s);
       }
       case "split" -> {
         return splitCommand(s);
@@ -456,6 +478,9 @@ public class Prover {
       }
       case "join" -> {
         return joinCommand(s);
+      }
+      case "test" -> {
+        testCommand(s);
       }
       case "transduce" -> {
         return transduceCommand(s);
