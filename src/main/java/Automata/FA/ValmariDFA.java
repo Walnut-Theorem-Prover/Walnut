@@ -36,11 +36,11 @@ public class ValmariDFA {
     private int[] _A; // Adjacent transitions
     private int[] _F; // Adjacent states
 
-    private final int[] T;
+    private int[] T;
     // labels of transitions
-    private final int[] L;
+    private int[] L;
     // heads of transitions
-    private final int[] H;
+    private int[] H;
 
     public ValmariDFA(List<Int2IntMap> newMemD, int numStates) {
         // Pre-size the arrays.
@@ -117,7 +117,7 @@ public class ValmariDFA {
         }
     }
 
-    void make_adjacent(int[] K) {
+    private void make_adjacent(int[] K) {
         Arrays.fill(_F, 0);
         for(int t = 0; t < numTransitions; ++t ) {
             ++_F[K[t]];
@@ -157,20 +157,20 @@ public class ValmariDFA {
         numTransitions = j; blocks.P[0] = rr; rr = 0;
     }
 
-    IntList determineO() {
-        IntList O = new IntArrayList(blocks.z);
-        for(int q = 0; q < blocks.z; ++q ){
-            if( blocks.F[q] < numFinalstates){
-                O.add(1);
-            }
-            else {
-                O.add(0);
-            }
-        }
-        return O;
+    /**
+     * Replace fields of FA in a memory-efficient way.
+     */
+    void replaceFields(FA f) {
+        f.setQ(blocks.z);
+        f.setQ0(blocks.S[f.getQ0()]);
+        f.setO(null);
+        _A = _F = null;
+        f.setNfaD(determineD()); // needs blocks, L
+        L = T = H = null;
+        f.setO(determineO()); // needs blocks
     }
 
-    List<Int2ObjectRBTreeMap<IntList>> determineD() {
+    private List<Int2ObjectRBTreeMap<IntList>> determineD() {
         List<Int2ObjectRBTreeMap<IntList>> d = new ArrayList<>(blocks.z);
         for(int q = 0; q < blocks.z; ++q){
             d.add(new Int2ObjectRBTreeMap<>());
@@ -185,4 +185,18 @@ public class ValmariDFA {
         }
         return d;
     }
+
+    private IntList determineO() {
+        IntList O = new IntArrayList(blocks.z);
+        for(int q = 0; q < blocks.z; ++q ){
+            if( blocks.F[q] < numFinalstates){
+                O.add(1);
+            }
+            else {
+                O.add(0);
+            }
+        }
+        return O;
+    }
+
 }

@@ -1,4 +1,4 @@
-The "def" command is identical to the "eval" command, except the resulting automaton is also saved in "Automata Library/" for later use. The syntax for the "def" command is as follows:
+The "def" command is identical to the "eval" command. The syntax for the "def" command is as follows:
 
 	def <name> <predicate>
 	
@@ -12,4 +12,4 @@ In previous versions of Walnut, word automata names in eval/def commands could n
 
 	def test ".AUTOMATON[n] = @1";
 	
-Please refer to section 7 of "Manual.pdf" saved in "Help Directory/" for a more detailed description of the "eval", "def", and "macro" commands and what one can do with them.
+Please refer to section 7 of "Manual.pdf" saved in "Help Directory/" for a more detailed description of the "def"/"eval" and "macro" commands and what one can do with them.

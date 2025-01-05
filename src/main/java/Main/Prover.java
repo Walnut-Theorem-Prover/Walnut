@@ -30,12 +30,9 @@ import Automata.*;
 import Automata.FA.DeterminizationStrategies;
 import Automata.FA.FA;
 import Automata.Numeration.Ostrowski;
-import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
-import it.unimi.dsi.fastutil.objects.ObjectIntImmutablePair;
 import it.unimi.dsi.fastutil.objects.ObjectIntPair;
-import it.unimi.dsi.fastutil.objects.ObjectObjectImmutablePair;
 
 /**
  * This class contains the main method. It is responsible to get a command from user
@@ -560,8 +557,13 @@ public class Prover {
 
     Automaton M;
     List<String> free_variables = new ArrayList<>();
-    if (m.group(ED_FREE_VARIABLES) != null) {
-      determineMatricesToCompute(m.group(ED_FREE_VARIABLES), free_variables);
+    String freeVarString = m.group(ED_FREE_VARIABLES);
+    if (freeVarString != null) {
+      Matcher m1 = PAT_FOR_A_FREE_VARIABLE_IN_eval_def_CMDS.matcher(freeVarString);
+      while (m1.find()) {
+        String t = m1.group();
+        free_variables.add(t);
+      }
     }
 
     boolean printSteps = m.group(ED_ENDING).equals(":");
@@ -580,18 +582,13 @@ public class Prover {
 
     c.writeLogs(resultName, c, printDetails);
 
-    if (m.group(ED_TYPE).equals("def")) {
-      AutomatonWriter.write(
-          c.result.M, Session.getWriteAddressForAutomataLibrary() + m.group(ED_NAME) + ".txt");
-    }
+    // We do this for both eval and def -- they're now the same command
+    AutomatonWriter.write(
+        c.result.M, Session.getWriteAddressForAutomataLibrary() + m.group(ED_NAME) + ".txt");
 
     M = c.result.M;
     if (M.fa.isTRUE_FALSE_AUTOMATON()) {
-      if (M.fa.isTRUE_AUTOMATON()) {
-        System.out.println("____\nTRUE");
-      } else {
-        System.out.println("_____\nFALSE");
-      }
+      System.out.println("____\n" + (M.fa.isTRUE_AUTOMATON() ? "TRUE" : "FALSE"));
     }
 
     return new TestCase(M, "", c.mpl, printDetails ? c.logDetails.toString() : "");
@@ -1362,14 +1359,6 @@ public class Prover {
   public static void clearScreen() {
     System.out.print("\033[H\033[2J");
     System.out.flush();
-  }
-
-  private static void determineMatricesToCompute(String s, List<String> L) {
-    Matcher m1 = PAT_FOR_A_FREE_VARIABLE_IN_eval_def_CMDS.matcher(s);
-    while (m1.find()) {
-      String t = m1.group();
-      L.add(t);
-    }
   }
 
   private static List<Integer> determineAlphabet(String s) {

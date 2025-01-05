@@ -434,6 +434,7 @@ public class FA implements Cloneable {
         }
       }
       nfaD = newNfaD;
+      dfaD = null; // this is explicitly an NFA now
       IntSet newInitialStates = new IntOpenHashSet();
       // final states become initial states
       for (int q = 0; q < Q; q++) {
@@ -767,7 +768,7 @@ public class FA implements Cloneable {
    */
   public void determinizeAndMinimize(List<Int2IntMap> dfaD, IntSet qqq, boolean print, String prefix, StringBuilder log) {
     DeterminizationStrategies.determinize(
-            this, dfaD, qqq, print, prefix + " ", log, DeterminizationStrategies.Strategy.SC);
+            this, dfaD, qqq, print, prefix + " ", log, null);
     justMinimize(print, prefix + " ", log);
   }
 
@@ -788,12 +789,9 @@ public class FA implements Cloneable {
 
   public void minimize() {
     ValmariDFA v = new ValmariDFA(this.dfaD, Q);
+    this.setDfaD(null); // save memory
     v.minValmari(O);
-    Q = v.blocks.z;
-    q0 = v.blocks.S[q0];
-    O = v.determineO();
-    nfaD = v.determineD();
-    this.dfaD = null; // TODO: we're using NFA representation, even though we know this is a DFA
+    v.replaceFields(this); // TODO: we're using NFA representation, even though we know this is a DFA
     this.canonized = false;
   }
 
