@@ -18,6 +18,7 @@
 
 package Main;
 
+import java.io.File;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
@@ -31,7 +32,6 @@ import java.util.regex.Pattern;
 public class UtilityMethods {
     static String ADDRESS_FOR_UNIT_TEST_INTEGRATION_TEST_RESULTS = "src/test/resources/integrationTests/";
 
-    private static final Pattern WHITESPACE_SPLIT = Pattern.compile("\\s+");
     private static final Pattern PATTERN_NUMBER = Pattern.compile("^\\d+$");
     private static final Pattern PATTERN_NEG_NUMBER = Pattern.compile("^neg_\\d+$");
 
@@ -184,20 +184,15 @@ public class UtilityMethods {
     }
 
     /**
-     * @param s
-     * @return
+     * Parse integer from String. The string may have spaces, which are removed.
      */
     public static int parseInt(String s) {
-        String[] part = WHITESPACE_SPLIT.split(s);
-        StringBuilder b = new StringBuilder();
-        for (String x : part) {
-            b.append(x);
-        }
-        BigInteger val = new BigInteger(b.toString());
-        BigInteger min = BigInteger.valueOf(Integer.MIN_VALUE);
-        BigInteger max = BigInteger.valueOf(Integer.MAX_VALUE);
-        if (val.compareTo(min) < 0 || val.compareTo(max) > 0) {
-            throw new RuntimeException("Trying to parse the number " + b + ", which is outside of the integer limit [" + Integer.MIN_VALUE + ", " + Integer.MAX_VALUE + "].");
+        StringBuilder b = new StringBuilder(s.length());
+        for (int i = 0; i < s.length(); i++) {
+            char c = s.charAt(i);
+            if (!Character.isWhitespace(c)) {
+                b.append(c);
+            }
         }
         return Integer.parseInt(b.toString());
     }
@@ -277,5 +272,13 @@ public class UtilityMethods {
         if (print) {
             System.out.println(msg);
         }
+    }
+
+    public static File validateFile(String path) {
+        File file = new File(path);
+        if (!file.exists() || !file.isFile()) {
+            throw new IllegalArgumentException("File does not exist or is not a valid file: " + path);
+        }
+        return file;
     }
 }

@@ -1,4 +1,4 @@
-/*   Copyright 2021 Laindon Burnett
+/*   Copyright 2021 Laindon Burnett, 2025 John Nicol
  *
  *   This file is part of Walnut.
  *
@@ -18,10 +18,12 @@
 
 package Automata;
 
+import Main.UtilityMethods;
 import it.unimi.dsi.fastutil.ints.Int2ObjectRBTreeMap;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
@@ -52,36 +54,38 @@ public class Morphism {
     // The set of values in the image of the morphism
     public HashSet<Integer> range;
 
-    // The syntax for declaring a morphism in the command line is identical to that
-    // of a saved morphism file, so we reuse this constructor
-    public Morphism(String name, String mapString) {
-      // The name of the morphism
-      this.mapping = ParseMethods.parseMorphism(mapString);
+    public Morphism() {}
+    /**
+     * Create morphism from file.
+     */
+    public Morphism(String address) throws IOException {
+        File f = UtilityMethods.validateFile(address);
+        String mapString = Files.readString(Paths.get(f.toURI()));
+        parseMap(mapString);
+    }
+
+    public void parseMap(String mapString) {
+        this.mapping = ParseMethods.parseMorphism(mapString);
         this.range = new HashSet<>();
         for(Map.Entry<Integer, List<Integer>> entry: mapping.entrySet()) {
             range.addAll(entry.getValue());
         }
     }
 
-    // Reads the entirety of a file and passes this into the more general constructor
-    public Morphism(String address) throws IOException {
-        this("", Files.readString(Paths.get(address)));
-    }
-
     public void write(String address) throws IOException {
-        PrintWriter out = new PrintWriter(address, StandardCharsets.UTF_8);
-        for(Map.Entry<Integer, List<Integer>> entry: mapping.entrySet()) {
-            out.write(entry.getKey().toString() + " -> ");
-            for (Integer y : entry.getValue()) {
-                if ((0 <= y) && (9 >= y)) {
-                    out.write(y.toString());
-                } else {
-                    out.write("[" + y + "]");
+        try (PrintWriter out = new PrintWriter(address, StandardCharsets.UTF_8)) {
+            for (Map.Entry<Integer, List<Integer>> entry : mapping.entrySet()) {
+                out.write(entry.getKey().toString() + " -> ");
+                for (Integer y : entry.getValue()) {
+                    if ((0 <= y) && (9 >= y)) {
+                        out.write(y.toString());
+                    } else {
+                        out.write("[" + y + "]");
+                    }
                 }
+                out.write(System.lineSeparator());
             }
-            out.write(System.lineSeparator());
         }
-        out.close();
     }
 
     public Automaton toWordAutomaton() {
@@ -153,33 +157,33 @@ public class Morphism {
     // Generates a command to define an intermediary word automaton given an integer i that accepts iff an i appears in position n of a word
     // These can then be combined efficiently with a combine command as they have disjoint domains
     public String makeInterCommand(int i, String baseAutomatonName, String numSys) {
-        if (numSys != "") {
+        if (!numSys.isEmpty()) {
             numSys = "?" + numSys;
         }
-        String interCommand = "def " + baseAutomatonName + "_" + i;
-        interCommand += " \"" + numSys + " E q, r (n=" + length.toString() + "*q+r & r>=0 & r<" + length;
+        StringBuilder interCommand = new StringBuilder("def " + baseAutomatonName + "_" + i);
+        interCommand.append(" \"").append(numSys).append(" E q, r (n=").append(length.toString()).append("*q+r & r>=0 & r<").append(length);
         for(Map.Entry<Integer, List<Integer>> entry: mapping.entrySet()) {
             boolean exists = false;
-            String clause = " & (" + baseAutomatonName + "[q]";
+            StringBuilder clause = new StringBuilder(" & (" + baseAutomatonName + "[q]");
             List<Integer> symbolImage = entry.getValue();
             for (int j = 0; j < symbolImage.size(); j++) {
                 if (symbolImage.get(j) == i) {
                     if (!exists) {
-                        clause += "= @" + entry.getKey().toString() + " => (r=" + j;
+                        clause.append("= @").append(entry.getKey().toString()).append(" => (r=").append(j);
                         exists = true;
                     } else {
-                        clause += "|r=" + j;
+                        clause.append("|r=").append(j);
                     }
                 }
             }
             if (exists) {
-                clause += "))";
+                clause.append("))");
             } else {
-                clause += "!= @" + entry.getKey().toString() + ")";
+                clause.append("!= @").append(entry.getKey().toString()).append(")");
             }
-            interCommand += clause;
+            interCommand.append(clause);
         }
-        interCommand += ")\":";
-        return interCommand;
+        interCommand.append(")\":");
+        return interCommand.toString();
     }
 }

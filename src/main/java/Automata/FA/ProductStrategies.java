@@ -15,7 +15,7 @@ public class ProductStrategies {
      * Cross-product of two DFAs. Output is an NFA (for now).
      */
     public static void crossProductInternal(
-            FA A, FA B, FA AxB, int combineOut, List<Integer> allInputsOfAxB, String op,
+            FA A, FA B, FA AxB, int combineOut, int[] allInputsOfAxB, String op,
             boolean print, String prefix, StringBuilder log, long timeBefore) {
         List<IntIntPair> statesList = new ArrayList<>();
         Object2IntMap<IntIntPair> statesHash = new Object2IntOpenHashMap<>();
@@ -44,9 +44,11 @@ public class ProductStrategies {
             AxB.getNfaD().add(stateTransitions);
             AxB.getO().add(determineOutput(A.getO().getInt(p), B.getO().getInt(q), op, combineOut));
 
+            Set<Int2ObjectMap.Entry<IntList>> Bset = B.getNfaD().get(q).int2ObjectEntrySet();
             for (Int2ObjectMap.Entry<IntList> entryA : A.getNfaD().get(p).int2ObjectEntrySet()) {
-                for (Int2ObjectMap.Entry<IntList> entryB : B.getNfaD().get(q).int2ObjectEntrySet()) {
-                    int z = allInputsOfAxB.get(entryA.getIntKey() * B.getAlphabetSize() + entryB.getIntKey());
+                final int AxBalphabet = entryA.getIntKey() * B.getAlphabetSize();
+                for (Int2ObjectMap.Entry<IntList> entryB : Bset) {
+                    int z = allInputsOfAxB[AxBalphabet + entryB.getIntKey()];
                     if (z == -1) {
                         continue;
                     }
@@ -77,7 +79,7 @@ public class ProductStrategies {
      * Cross-product of two DFAs. Output is a DFA.
      */
     public static void crossProductInternalDFA(
-            FA A, FA B, FA AxB, int combineOut, List<Integer> allInputsOfAxB, String op,
+            FA A, FA B, FA AxB, int combineOut, int[] allInputsOfAxB, String op,
             boolean print, String prefix, StringBuilder log, long timeBefore) {
         List<IntIntPair> statesList = new ArrayList<>();
         Object2IntMap<IntIntPair> statesHash = new Object2IntOpenHashMap<>();
@@ -107,9 +109,11 @@ public class ProductStrategies {
             AxB.getDfaD().add(stateTransitions);
             AxB.getO().add(determineOutput(A.getO().getInt(p), B.getO().getInt(q), op, combineOut));
 
+            Set<Int2ObjectMap.Entry<IntList>> Bset = B.getNfaD().get(q).int2ObjectEntrySet();
             for (Int2ObjectMap.Entry<IntList> entryA : A.getNfaD().get(p).int2ObjectEntrySet()) {
-                for (Int2ObjectMap.Entry<IntList> entryB : B.getNfaD().get(q).int2ObjectEntrySet()) {
-                    int z = allInputsOfAxB.get(entryA.getIntKey() * B.getAlphabetSize() + entryB.getIntKey());
+                final int AxBalphabet = entryA.getIntKey() * B.getAlphabetSize();
+                for (Int2ObjectMap.Entry<IntList> entryB : Bset) {
+                    int z = allInputsOfAxB[AxBalphabet + entryB.getIntKey()];
                     if (z == -1) {
                         continue;
                     }
@@ -129,6 +133,9 @@ public class ProductStrategies {
             currentState++;
         }
         AxB.setQ(statesList.size());
+        statesList.clear(); // save memory
+        AxB.reduceDfaDMemory();
+
         long timeAfter = System.currentTimeMillis();
         UtilityMethods.logMessage(print,
                 prefix + "computed cross product:" + AxB.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);

@@ -124,7 +124,7 @@ public class FA implements Cloneable {
           List<Integer> row = morphism.get(q);
           for (int di = 0; di < row.size(); di++) {
               IntList list = new IntArrayList();
-              list.add(row.get(di));
+              list.add((int)row.get(di));
               transitionMap.put(di, list);
           }
           newD.add(transitionMap);
@@ -663,6 +663,7 @@ public class FA implements Cloneable {
       O.add((int) state_output.get(q));
       nfaD.add(state_transition.get(q));
     }
+    this.reduceNfaDMemory();
   }
 
   /**
@@ -845,4 +846,24 @@ public class FA implements Cloneable {
     public void setDfaD(List<Int2IntMap> dfaD) {
         this.dfaD = dfaD;
     }
+
+  /**
+   * Reduce memory in DfaD by trimming all maps.
+   */
+  public void reduceDfaDMemory() {
+    for (Int2IntMap int2IntMap : this.dfaD) {
+      ((Int2IntOpenHashMap) int2IntMap).trim();
+    }
+  }
+
+  /**
+   * Reduce memory in DfaD by trimming all maps.
+   */
+  public void reduceNfaDMemory() {
+    for (Int2ObjectRBTreeMap<IntList> iMap : this.nfaD) {
+      for(IntList iList: iMap.values()) {
+        ((IntArrayList)iList).trim();
+      }
+    }
+  }
 }

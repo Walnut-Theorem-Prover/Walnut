@@ -228,28 +228,13 @@ public class Prover {
   }
 
   public static void run(String[] args) {
-    BufferedReader in = null;
     if (args.length >= 1) {
+      File f = UtilityMethods.validateFile(Session.getReadAddressForCommandFiles(args[0]));
       //reading commands from the file with address args[0]
-      try {
-        in = new BufferedReader(
-            new InputStreamReader(
-                new FileInputStream(
-                    Session.getReadAddressForCommandFiles(args[0])),
-                StandardCharsets.UTF_8));
+      try (BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(f)))) {
         if (!readBuffer(in, false)) return;
       } catch (IOException e) {
-        System.out.flush();
-        System.err.println(e.getMessage());
-      } finally {
-        try {
-          if (in != null) {
-            in.close();
-          }
-        } catch (IOException ex) {
-          System.out.flush();
-          System.err.println(ex.getMessage());
-        }
+        e.printStackTrace();
       }
     }
 
@@ -257,8 +242,11 @@ public class Prover {
     System.out.println("Welcome to Walnut v" + Session.WALNUT_VERSION +
         "! Type \"help;\" to see all available commands.");
     System.out.println("Starting Walnut session: " + Session.getName());
-    in = new BufferedReader(new InputStreamReader(System.in));
-    readBuffer(in, true);
+    try (BufferedReader in = new BufferedReader(new InputStreamReader(System.in))) {
+      readBuffer(in, true);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
   }
 
   /**
@@ -293,9 +281,7 @@ public class Prover {
               return false;
             }
           } catch (RuntimeException e) {
-            System.out.flush();
-            System.err.println(e.getMessage() + System.lineSeparator() + "\t: " + s);
-            System.err.flush();
+            e.printStackTrace();
           }
 
           buffer = new StringBuilder();
@@ -304,9 +290,7 @@ public class Prover {
         }
       }
     } catch (IOException e) {
-      System.out.flush();
-      System.err.println(e.getMessage());
-      System.err.flush();
+      e.printStackTrace();
     }
 
     return true;
@@ -535,19 +519,14 @@ public class Prover {
   public static boolean loadCommand(String s) {
     Matcher m = matchOrFail(PAT_FOR_load_CMD, s, "load");
 
-    try {
-      BufferedReader in = new BufferedReader(
-          new InputStreamReader(
-              new FileInputStream(
-                  Session.getReadAddressForCommandFiles(m.group(L_FILENAME))),
-              StandardCharsets.UTF_8));
+    File f = UtilityMethods.validateFile(Session.getReadAddressForCommandFiles(m.group(L_FILENAME)));
+
+    try (BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(f)))) {
       if (!readBuffer(in, false)) {
         return false;
       }
     } catch (IOException e) {
-      System.out.flush();
-      System.err.println(e.getMessage());
-      System.err.flush();
+      e.printStackTrace();
     }
     return true;
   }
@@ -597,15 +576,9 @@ public class Prover {
 
   public static TestCase macroCommand(String s) {
     Matcher m = matchOrFail(PAT_FOR_macro_CMD, s, "macro");
-
-    try {
-      BufferedWriter out =
-          new BufferedWriter(
-              new OutputStreamWriter(
-                  new FileOutputStream(
-                      Session.getWriteAddressForMacroLibrary() + m.group(M_NAME) + ".txt"), StandardCharsets.UTF_8));
+    File f = new File(Session.getWriteAddressForMacroLibrary() + m.group(M_NAME) + ".txt");
+    try (BufferedWriter out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(f)))) {
       out.write(m.group(M_DEFINITION));
-      out.close();
     } catch (IOException o) {
       System.out.println("Could not write the macro " + m.group(M_NAME));
     }
@@ -765,7 +738,8 @@ public class Prover {
 
     String name = m.group(GROUP_MORPHISM_NAME);
 
-    Morphism M = new Morphism(name, m.group(GROUP_MORPHISM_DEFINITION));
+    Morphism M = new Morphism();
+    M.parseMap(m.group(GROUP_MORPHISM_DEFINITION));
     System.out.print("Defined with domain ");
     System.out.print(M.mapping.keySet());
     System.out.print(" and range ");

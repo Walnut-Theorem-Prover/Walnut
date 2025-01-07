@@ -6,10 +6,7 @@ import Main.ExceptionHelper;
 import Main.Session;
 import Main.UtilityMethods;
 
-import java.io.BufferedReader;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.function.Predicate;
@@ -198,14 +195,13 @@ public class Automaton {
      */
     public Automaton(String address) {
         this();
+        File f = UtilityMethods.validateFile(address);
 
         //lineNumber will be used in error messages
-        int lineNumber = 0;
+        long lineNumber = 0;
         setAlphabetSize(1);
 
-        try {
-            BufferedReader in = new BufferedReader(
-                new InputStreamReader(new FileInputStream(address), StandardCharsets.UTF_8));
+        try (BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(f)))) {
             String line;
             boolean[] singleton = new boolean[1];
             while ((line = in.readLine()) != null) {
@@ -218,14 +214,12 @@ public class Automaton {
                     // It is a true/false automaton.
                     fa.setTRUE_FALSE_AUTOMATON(true);
                     fa.setTRUE_AUTOMATON(singleton[0]);
-                    in.close();
                     return;
                 }
                 if (ParseMethods.parseAlphabetDeclaration(line, getA(), getNS())) {
                     for (int i = 0; i < getA().size(); i++) {
                         if (getNS().get(i) != null &&
                             (!getA().get(i).contains(0) || !getA().get(i).contains(1))) {
-                            in.close();
                             throw new RuntimeException(
                                 "The " + (i + 1) + "th input of type arithmetic " +
                                     "of the automaton declared in file " + address +
@@ -237,7 +231,6 @@ public class Automaton {
                     this.determineAlphabetSizeFromA();
                     break;
                 } else {
-                    in.close();
                     throw new RuntimeException(
                         "Undefined statement: line " +
                             lineNumber + " of file " + address);
@@ -258,8 +251,16 @@ public class Automaton {
              */
             int Q = 0, q0=0;
             Set<Integer> setOfDestinationStates = new HashSet<>();
+            boolean outputLongFile = false;
             while ((line = in.readLine()) != null) {
                 lineNumber++;
+                if (lineNumber % 1000000 == 0) {
+                    if (!outputLongFile) {
+                        outputLongFile = true;
+                        System.out.print("Parsing " + address + " ...");
+                    }
+                    System.out.print("line " + lineNumber + "...");
+                }
                 if (PATTERN_WHITESPACE.matcher(line).matches()) {
                     continue;
                 }
@@ -278,14 +279,12 @@ public class Automaton {
                 } else if (ParseMethods.parseTransition(line, input, dest)) {
                     setOfDestinationStates.addAll(dest);
                     if (currentState == -1) {
-                        in.close();
                         throw new RuntimeException(
                                 "Must declare a state before declaring a list of transitions: line " +
                                         lineNumber + " of file " + address);
                     }
 
                     if (input.size() != getA().size()) {
-                        in.close();
                         throw new RuntimeException("This automaton requires a " + getA().size() +
                                 "-tuple as input: line " + lineNumber + " of file " + address);
                     }
@@ -298,11 +297,12 @@ public class Automaton {
                     input = new ArrayList<>();
                     dest = new IntArrayList();
                 } else {
-                    in.close();
                     throw new RuntimeException("Undefined statement: line " + lineNumber + " of file " + address);
                 }
             }
-            in.close();
+            if (outputLongFile) {
+                System.out.println("...finished");
+            }
             for (int q : setOfDestinationStates) {
                 if (!output.containsKey(q)) {
                     throw new RuntimeException(
@@ -421,7 +421,7 @@ public class Automaton {
      * which accepts if the output in our automaton is 0,1 or 2 respectively.
      */
     public List<Automaton> uncombine(List<Integer> outputs) {
-        List<Automaton> automata = new ArrayList<>();
+        List<Automaton> automata = new ArrayList<>(outputs.size());
         for (Integer output : outputs) {
             Automaton M = clone();
             M.fa.setOutput(output);

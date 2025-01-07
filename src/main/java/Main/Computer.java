@@ -54,13 +54,13 @@ public class Computer {
     }
 
     void writeLogs(String resultName, Computer c, boolean printDetails) throws IOException {
-        PrintWriter out = new PrintWriter(resultName + "_log.txt", StandardCharsets.UTF_8);
-        out.write(c.log.toString());
-        out.close();
+        try (PrintWriter out = new PrintWriter(resultName + "_log.txt", StandardCharsets.UTF_8)) {
+            out.write(c.log.toString());
+        }
         if (printDetails) {
-            out = new PrintWriter(resultName + "_detailed_log.txt", StandardCharsets.UTF_8);
-            out.write(c.logDetails.toString());
-            out.close();
+            try (PrintWriter out = new PrintWriter(resultName + "_detailed_log.txt", StandardCharsets.UTF_8)) {
+                out.write(c.logDetails.toString());
+            }
         }
     }
 

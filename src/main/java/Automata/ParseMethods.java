@@ -176,8 +176,9 @@ public class ParseMethods {
         int index = 0;
         Matcher m = PATTERN_ELEMENT.matcher(s);
         while (m.find(index)) {
-            if (m.group(1).equals("*")) list.add(null);
-            else list.add(UtilityMethods.parseInt(m.group(1)));
+            String group1 = m.group(1);
+            if (group1.equals("*")) list.add(null);
+            else list.add(UtilityMethods.parseInt(group1));
             index = m.end();
         }
     }

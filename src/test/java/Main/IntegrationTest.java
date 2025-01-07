@@ -940,15 +940,16 @@ public class IntegrationTest {
 
 	private static String readFromFile(String filePath) throws IOException {
 		StringBuilder output = new StringBuilder();
-		if((new File(filePath).isFile())) {
-			BufferedReader mplReader = new BufferedReader(new InputStreamReader(new FileInputStream(filePath), StandardCharsets.UTF_8));
-			String temp;
-			boolean flag = false;
-			while ((temp = mplReader.readLine()) != null) {
-				output.append(flag ? System.lineSeparator() : "").append(temp);
-				flag = true;
+		File f = new File(filePath);
+		if(f.isFile()) {
+			try (BufferedReader mplReader = new BufferedReader(new InputStreamReader(new FileInputStream(f)))) {
+				String temp;
+				boolean flag = false;
+				while ((temp = mplReader.readLine()) != null) {
+					output.append(flag ? System.lineSeparator() : "").append(temp);
+					flag = true;
+				}
 			}
-			mplReader.close();
 		}
 		return output.toString();
 	}

@@ -51,7 +51,7 @@ public class AutomatonLogicalOps {
                                   StringBuilder log) {
         Automaton AxB = new Automaton();
         long timeBefore = System.currentTimeMillis();
-        List<Integer> allInputsOfN = createBasicAutomaton(A, B, print, prefix, log, AxB);
+        int[] allInputsOfN = createBasicAutomaton(A, B, print, prefix, log, AxB);
         int combineOut = op.equals("combine") ? A.combineOutputs.getInt(A.combineIndex) : -1;
         ProductStrategies.crossProductInternal(
             A.fa, B.fa, AxB.fa, combineOut, allInputsOfN, op, print, prefix, log, timeBefore);
@@ -65,7 +65,7 @@ public class AutomatonLogicalOps {
                                   StringBuilder log) {
         Automaton AxB = new Automaton();
         long timeBefore = System.currentTimeMillis();
-        List<Integer> allInputsOfN = createBasicAutomaton(A, B, print, prefix, log, AxB);
+        int[] allInputsOfN = createBasicAutomaton(A, B, print, prefix, log, AxB);
         int combineOut = op.equals("combine") ? A.combineOutputs.getInt(A.combineIndex) : -1;
         ProductStrategies.crossProductInternalDFA(
                 A.fa, B.fa, AxB.fa, combineOut, allInputsOfN, op, print, prefix, log, timeBefore);
@@ -76,7 +76,7 @@ public class AutomatonLogicalOps {
         return AxB;
     }
 
-    private static List<Integer> createBasicAutomaton(
+    private static int[] createBasicAutomaton(
             Automaton A, Automaton B, boolean print, String prefix, StringBuilder log, Automaton AxB) {
         if (A.fa.isTRUE_FALSE_AUTOMATON() || B.fa.isTRUE_FALSE_AUTOMATON()) {
             throw new RuntimeException("Invalid use of the crossProduct method: " +
@@ -129,7 +129,7 @@ public class AutomatonLogicalOps {
         }
         AxB.determineAlphabetSizeFromA();
 
-        List<Integer> allInputsOfN = new ArrayList<>();
+        IntList allInputsOfN = new IntArrayList();
         for (int i = 0; i < A.getAlphabetSize(); i++) {
             for (int j = 0; j < B.getAlphabetSize(); j++) {
                 List<Integer> inputForN = joinTwoInputsForCrossProduct(
@@ -140,7 +140,7 @@ public class AutomatonLogicalOps {
                     allInputsOfN.add(AxB.encode(inputForN));
             }
         }
-        return allInputsOfN;
+        return allInputsOfN.toArray(new int[0]);
     }
 
     /**
@@ -336,7 +336,7 @@ public class AutomatonLogicalOps {
 
         Automaton otherClone = B.clone();
 
-        List<Int2ObjectRBTreeMap<IntList>> newOtherD = new ArrayList<>();
+        List<Int2ObjectRBTreeMap<IntList>> newOtherD = new ArrayList<>(otherClone.getQ());
 
         for (int q = 0; q < otherClone.getQ(); q++) {
             Int2ObjectRBTreeMap<IntList> newMap = new Int2ObjectRBTreeMap<>();
@@ -448,8 +448,7 @@ public class AutomatonLogicalOps {
      */
     private static List<Integer> joinTwoInputsForCrossProduct(
             List<Integer> first, List<Integer> second, int[] equalIndices) {
-        List<Integer> R = new ArrayList<>();
-        R.addAll(first);
+      List<Integer> R = new ArrayList<>(first);
         for (int i = 0; i < second.size(); i++)
             if (equalIndices[i] == -1)
                 R.add(second.get(i));
@@ -528,7 +527,8 @@ public class AutomatonLogicalOps {
         long timeBefore = System.currentTimeMillis();
         UtilityMethods.logMessage(print, prefix + "removing leading zeroes for:" + A.getQ() + " states", log);
 
-        List<Integer> listOfInputs = new ArrayList<>();//extract the list of indices of inputs from the list of labels
+        List<Integer> listOfInputs = new ArrayList<>(listOfLabels.size());
+        //extract the list of indices of inputs from the list of labels
         for (String l : listOfLabels) {
             listOfInputs.add(A.getLabel().indexOf(l));
         }
@@ -627,10 +627,10 @@ public class AutomatonLogicalOps {
                 newAlphabet.add(new ArrayList<>(A.getA().get(i)));
         for (int i = 0; i < newAlphabet.size() - 1; i++)
             newEncoder.add(newEncoder.get(i) * newAlphabet.get(i).size());
-        List<Integer> map = new ArrayList<>();
+        List<Integer> map = new ArrayList<>(A.getAlphabetSize());
         for (int n = 0; n < A.getAlphabetSize(); n++)
-            map.add(A.mapToReducedEncodedInput(n, I, newEncoder, A.getA(), newAlphabet));
-        List<Int2ObjectRBTreeMap<IntList>> new_d = new ArrayList<>();
+            map.add(Automaton.mapToReducedEncodedInput(n, I, newEncoder, A.getA(), newAlphabet));
+        List<Int2ObjectRBTreeMap<IntList>> new_d = new ArrayList<>(A.getQ());
         for (int q = 0; q < A.getQ(); q++) {
             Int2ObjectRBTreeMap<IntList> currentStatesTransition = new Int2ObjectRBTreeMap<>();
             new_d.add(currentStatesTransition);
@@ -742,7 +742,8 @@ public class AutomatonLogicalOps {
             return;
         }
 
-        List<Integer> listOfInputsToQuantify = new ArrayList<>();//extract the list of indices of inputs we would like to quantify
+        List<Integer> listOfInputsToQuantify = new ArrayList<>(listOfLabelsToQuantify.size());
+        //extract the list of indices of inputs we would like to quantify
         for (String l : listOfLabelsToQuantify)
             listOfInputsToQuantify.add(A.getLabel().indexOf(l));
         List<List<Integer>> allInputs = new ArrayList<>(A.getAlphabetSize());
@@ -1110,7 +1111,7 @@ public class AutomatonLogicalOps {
 
                 // Add transition
                 IntList destList = new IntArrayList();
-                destList.add(stateMap.get(next));
+                destList.add((int)stateMap.get(next));
                 newD.get(stateMap.get(curr)).put(di, destList);
             }
         }
@@ -1148,7 +1149,7 @@ public class AutomatonLogicalOps {
      * Updates the A's alphabet to [0..newBase-1] and sets alphabetSize accordingly.
      */
     private static void setAutomatonAlphabet(Automaton A, int newBase) {
-        ArrayList<Integer> ints = new ArrayList<>(newBase);
+        List<Integer> ints = new ArrayList<>(newBase);
         for (int i = 0; i < newBase; i++) {
             ints.add(i);
         }

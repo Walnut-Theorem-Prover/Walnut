@@ -69,10 +69,8 @@ public class AutomatonWriter {
 
         String res = s.toString();
 
-        try {
-            PrintWriter out = new PrintWriter(address, StandardCharsets.UTF_8);
+        try (PrintWriter out = new PrintWriter(address, StandardCharsets.UTF_8)) {
             out.write(res);
-            out.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -162,10 +160,8 @@ public class AutomatonWriter {
      */
     public static void write(Automaton automaton, String address) {
         System.out.println("Writing to:" + address);
-        try {
-            PrintWriter out = new PrintWriter(address, StandardCharsets.UTF_8);
+        try (PrintWriter out = new PrintWriter(address, StandardCharsets.UTF_8)) {
             writeToStream(automaton, out);
-            out.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -280,10 +276,8 @@ public class AutomatonWriter {
 
             addln(gv,"}");
         }
-        try {
-            PrintWriter out = new PrintWriter(address, StandardCharsets.UTF_8);
+        try (PrintWriter out = new PrintWriter(address, StandardCharsets.UTF_8)) {
             out.write(gv.toString());
-            out.close();
         } catch (IOException e) {
             e.printStackTrace();
         }

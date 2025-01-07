@@ -121,6 +121,7 @@ public class DeterminizationStrategies {
           if (key != -1) {
             new_dValue = key;
           } else {
+            // TODO: BitSet may be a better choice, but it's not clear when NFA size is, say, >> 20000.
             metastate.trim(); // reduce memory footprint of set before storing
             metastateList.add(metastate);
             metastateToId.put(metastate, number_of_states);
@@ -172,7 +173,7 @@ public class DeterminizationStrategies {
      * @return new O
      */
     private static IntList calculateNewStateOutput(IntList O, List<IntSet> metastates) {
-        IntList newO = new IntArrayList();
+        IntList newO = new IntArrayList(metastates.size());
         for (IntSet metastate : metastates) {
             boolean flag = false;
             for (int q : metastate) {

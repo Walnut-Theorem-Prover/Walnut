@@ -27,7 +27,7 @@ import java.util.List;
 // "Fast brief practical DFA minimization." Information Processing Letters 112.6 (2012): 213-217
 public class ValmariDFA {
     ValmariPartition blocks;
-    private final ValmariPartition cords;
+    private ValmariPartition cords;
 
     private final int numStates;
     private int numTransitions;
@@ -66,15 +66,21 @@ public class ValmariDFA {
         cords = new ValmariPartition();
     }
 
+    /**
+     * Minimize. Clear O for additional space (it's rebuilt later).
+     * @param O - output
+     */
     void minValmari(IntList O) {
         blocks.init(numStates);
-        _A = new int[numTransitions]; _F = new int[ numStates +1 ];
 
         for(int q = 0; q < numStates; ++q ){
             if(O.getInt(q) != 0){
                 reach( q );
             }
         }
+        O.clear();
+        _A = new int[numTransitions]; _F = new int[ numStates +1 ];
+
         numFinalstates = rr; rem_unreachable();
 
         /* Make initial partition */
@@ -164,10 +170,13 @@ public class ValmariDFA {
         f.setQ(blocks.z);
         f.setQ0(blocks.S[f.getQ0()]);
         f.setO(null);
-        _A = _F = null;
-        f.setNfaD(determineD()); // needs blocks, L
-        L = T = H = null;
-        f.setO(determineO()); // needs blocks
+        _A = _F = blocks.E = blocks.P = null;
+        ValmariPartition.M = ValmariPartition.W = null; // this fixes an actual leak
+        cords = null;
+        f.setNfaD(determineD()); // needs blocks.(L,F,S), L, T, H
+        f.reduceNfaDMemory();
+        L = T = H = blocks.L = blocks.S = null;
+        f.setO(determineO()); // needs blocks.F
     }
 
     private List<Int2ObjectRBTreeMap<IntList>> determineD() {

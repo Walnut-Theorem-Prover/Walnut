@@ -18,10 +18,7 @@
 
 package Automata;
 
-import java.io.BufferedReader;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -87,15 +84,14 @@ public class Transducer extends Automaton {
      */
     public Transducer(String address) {
         this();
+        File f = UtilityMethods.validateFile(address);
 
         // lineNumber will be used in error messages
         int lineNumber = 0;
 
         setAlphabetSize(1);
 
-        try {
-            BufferedReader in = new BufferedReader(
-                    new InputStreamReader(new FileInputStream(address), StandardCharsets.UTF_8));
+        try (BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(f)))) {
             String line;
             while ((line = in.readLine()) != null) {
                 lineNumber++;
@@ -111,7 +107,6 @@ public class Transducer extends Automaton {
                     for (int i = 0; i < getA().size(); i++) {
                         if (getNS().get(i) != null &&
                                 (!getA().get(i).contains(0) || !getA().get(i).contains(1))) {
-                            in.close();
                             throw new RuntimeException(
                                     "The " + (i + 1) + "th input of type arithmetic " +
                                             "of the automaton declared in file " + address +
@@ -123,7 +118,6 @@ public class Transducer extends Automaton {
                     determineAlphabetSizeFromA();
                     break;
                 } else {
-                    in.close();
                     throw new RuntimeException(
                             "Undefined statement: line " +
                                     lineNumber + " of file " + address);
@@ -171,14 +165,12 @@ public class Transducer extends Automaton {
                     setOfDestinationStates.addAll(dest);
 
                     if (currentState == -1) {
-                        in.close();
                         throw new RuntimeException(
                                 "Must declare a state before declaring a list of transitions: line " +
                                         lineNumber + " of file " + address);
                     }
 
                     if (input.size() != getA().size()) {
-                        in.close();
                         throw new RuntimeException("This automaton requires a " + getA().size() +
                                 "-tuple as input: line " + lineNumber + " of file " + address);
                     }
@@ -188,7 +180,6 @@ public class Transducer extends Automaton {
                         if (output.size() == 1) {
                             currentStateTransitionOutputs.put(encode(i), output.get(0));
                         } else {
-                            in.close();
                             throw new RuntimeException("Transducers must have one output for each transition: line "
                                     + lineNumber + " of file " + address);
                         }
@@ -198,11 +189,9 @@ public class Transducer extends Automaton {
                     dest = new IntArrayList();
                     output = new ArrayList<>();
                 } else {
-                    in.close();
                     throw new RuntimeException("Undefined statement: line " + lineNumber + " of file " + address);
                 }
             }
-            in.close();
             for (int q : setOfDestinationStates) {
                 if (!state_output.containsKey(q)) {
                     throw new RuntimeException(
