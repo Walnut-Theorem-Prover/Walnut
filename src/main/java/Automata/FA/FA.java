@@ -18,6 +18,8 @@
 package Automata.FA;
 
 import Automata.Automaton;
+import MRC.Model.MyDFA;
+import MRC.Model.MyNFA;
 import Main.ExceptionHelper;
 import Main.UtilityMethods;
 import Token.RelationalOperator;
@@ -821,22 +823,88 @@ public class FA implements Cloneable {
     this.TRUE_AUTOMATON = TRUE_AUTOMATON;
   }
 
-  public CompactNFA<Integer> convertToMyNFA() {
-      CompactNFA<Integer> myNFA = new CompactNFA<>(Alphabets.integers(0, this.alphabetSize - 1));
+  public CompactNFA<Integer> FAtoCompactNFA() {
+      CompactNFA<Integer> nfa = new CompactNFA<>(Alphabets.integers(0, this.alphabetSize - 1), this.Q);
       for (int i = 0; i < this.Q; i++) {
-          myNFA.addState(this.O.getInt(i) != 0);
+          nfa.addState(this.O.getInt(i) != 0);
       }
-      myNFA.setInitial(this.q0, true);
+      nfa.setInitial(this.q0, true);
       for (int i = 0; i < this.Q; i++) {
           Int2ObjectRBTreeMap<IntList> iMap = nfaD.get(i);
           for (int in = 0; in < this.alphabetSize; in++) {
               IntList iList = iMap.get(in);
               if (iList != null) {
-                  myNFA.addTransitions(i, in, iList);
+                  nfa.addTransitions(i, in, iList);
               }
           }
       }
-      return myNFA;
+      return nfa;
+  }
+
+  public MyNFA<Integer> FAtoMyNFA() {
+    MyNFA<Integer> nfa = new MyNFA<>(Alphabets.integers(0, this.alphabetSize - 1), this.Q);
+    for (int i = 0; i < this.Q; i++) {
+      nfa.addState(this.O.getInt(i) != 0);
+    }
+    nfa.setInitial(this.q0, true);
+    for (int i = 0; i < this.Q; i++) {
+      Int2ObjectRBTreeMap<IntList> iMap = nfaD.get(i);
+      for (int in = 0; in < this.alphabetSize; in++) {
+        IntList iList = iMap.get(in);
+        if (iList != null) {
+          nfa.addTransitions(i, in, iList);
+        }
+      }
+    }
+    return nfa;
+  }
+
+  public static FA compactNFAToFA(CompactNFA<Integer> cNFA) {
+    FA fa = new FA();
+    fa.Q = cNFA.size();
+    Set<Integer> initialStates = cNFA.getInitialStates();
+    if (initialStates.size() > 1) {
+      throw new RuntimeException("Unexpected initial states from CompactNFA:" + initialStates);
+    }
+    fa.setQ0(initialStates.iterator().next());
+    for(int i=0;i<fa.Q;i++) {
+      fa.O.add(cNFA.isAccepting(i) ? 1 : 0);
+    }
+    fa.alphabetSize = cNFA.getInputAlphabet().size();
+    for(int i=0;i<fa.Q;i++) {
+      Int2ObjectRBTreeMap<IntList> iMap = new Int2ObjectRBTreeMap<>();
+      fa.nfaD.add(iMap);
+      for(int in=0;in<fa.alphabetSize;in++) {
+        Set<Integer> transDest = cNFA.getTransitions(i, in);
+        if (transDest != null && !transDest.isEmpty()) {
+          IntList iList = new IntArrayList(transDest);
+          iMap.put(in, iList);
+        }
+      }
+    }
+    return fa;
+  }
+
+  public void setFromMyDFA(MyDFA<Integer> myDFA) {
+    Q = myDFA.size();
+    q0 = myDFA.getInitialState();
+    O.clear();
+    for(int i=0;i<Q;i++) {
+      O.add(myDFA.isAccepting(i) ? 1 : 0);
+    }
+    alphabetSize = myDFA.getInputAlphabet().size();
+    nfaD = null;
+    dfaD = new ArrayList<>();
+    for(int i=0;i<Q;i++) {
+      Int2IntMap iMap = new Int2IntOpenHashMap();
+      dfaD.add(iMap);
+      for(int in=0;in<alphabetSize;in++) {
+        Integer dest = myDFA.getTransition(i, in);
+        if (dest != null) {
+          iMap.put(in, (int)dest);
+        }
+      }
+    }
   }
 
     public List<Int2IntMap> getDfaD() {

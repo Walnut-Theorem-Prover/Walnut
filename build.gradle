@@ -56,6 +56,7 @@ dependencies {
     implementation 'net.automatalib:automata-brics:0.11.0'
     implementation 'net.automatalib:automata-serialization-dot:0.11.0'
     implementation 'net.automatalib:automata-util:0.11.0'
+    implementation(files("libs/OTF.jar"))
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.11.4'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.11.4'
     //   compileOnly "com.github.spotbugs:spotbugs-annotations:${spotbugs.toolVersion.get()}"

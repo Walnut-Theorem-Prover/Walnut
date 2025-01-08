@@ -1,13 +1,21 @@
 package Automata.FA;
 
+import MRC.Index.AntichainForestIndex;
+import MRC.Index.OTFIndex;
+import MRC.Model.DeterminizeRecord;
+import MRC.Model.MyDFA;
+import MRC.Model.MyNFA;
+import MRC.Model.Threshold;
+import MRC.NFATrim;
 import Main.UtilityMethods;
+import MRC.OnTheFlyDeterminization;
 import it.unimi.dsi.fastutil.ints.*;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
+import net.automatalib.alphabet.Alphabet;
+import simpleRABIT.algorithms.ParallelSimulation;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 
 public class DeterminizationStrategies {
   private static final Int2ObjectMap<Strategy> strategyMap = new Int2ObjectOpenHashMap<>();
@@ -57,8 +65,8 @@ public class DeterminizationStrategies {
 
       switch (strategy) {
         case SC -> SC(fa, initialState, print, prefix, log, timeBefore);
-        case BRZ -> Brz(fa, initialState, print, prefix, log, timeBefore);
-        default -> throw new RuntimeException("Unexpected strategy: " + strategy.name());
+        case BRZ, OTF_BRZ -> Brz(fa, initialState, strategy, print, prefix, log, timeBefore);
+        case OTF -> OTF(fa, initialState, print, prefix, log, timeBefore);
       }
 
       long timeAfter = System.currentTimeMillis();
@@ -66,13 +74,22 @@ public class DeterminizationStrategies {
           print, prefix + "Determinized: " + fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
     }
 
+  /**
+   * Brzozowski's strategy for SC (or OTF).
+   * @param fa - finite automaton
+   * @param origInitialStates - original initial states
+   * @param strategy - BRZ or OTF_BRZ
+   */
   private static void Brz(
-      FA fa, IntSet origInitialStates, boolean print, String prefix, StringBuilder log, long timeBefore) {
+      FA fa, IntSet origInitialStates, Strategy strategy, boolean print, String prefix, StringBuilder log, long timeBefore) {
       // Reverse
     IntSet newInitialStates = fa.reverseToNFAInternal(origInitialStates);
     UtilityMethods.logMessage(print, prefix + "Reversed -- Determinizing.", log);
-    SC(fa, newInitialStates, print, prefix, log, timeBefore);
-
+    if (strategy.equals(Strategy.BRZ)) {
+      SC(fa, newInitialStates, print, prefix, log, timeBefore);
+    } else {
+      OTF(fa, newInitialStates, print, prefix, log, timeBefore);
+    }
     long timeAfter = System.currentTimeMillis();
     UtilityMethods.logMessage(
         print, prefix + "Reversed: " + fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
@@ -82,7 +99,11 @@ public class DeterminizationStrategies {
     newInitialStates = fa.reverseToNFAInternal(IntSet.of(fa.getQ0()));
     UtilityMethods.logMessage(print, prefix + "Reverse of reverse -- Determinizing.", log);
     timeBefore = System.currentTimeMillis();
-    SC(fa, newInitialStates, print, prefix, log, timeBefore);
+    if (strategy.equals(Strategy.BRZ)) {
+      SC(fa, newInitialStates, print, prefix, log, timeBefore);
+    } else {
+      OTF(fa, newInitialStates, print, prefix, log, timeBefore);
+    }
     timeAfter = System.currentTimeMillis();
     UtilityMethods.logMessage(
         print, prefix + "Reverse of reverse: " + fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
@@ -139,6 +160,83 @@ public class DeterminizationStrategies {
     fa.setNfaD(null);
     fa.setDfaD(dfaD);
   }
+
+  private static void OTF(
+      FA fa, IntSet initialState, boolean print, String prefix, StringBuilder log, long timeBefore) {
+    MyNFA<Integer> myNFA = fa.FAtoMyNFA();
+    MyNFA<Integer> reduced = NFATrim.bisim(myNFA);
+    if (reduced.size() < fa.getQ()) {
+      System.out.println("Bisimulation reduced to " + reduced.size() + " states");
+    }
+    int prevSize = reduced.size();
+    ArrayList<BitSet> simRels = new ArrayList<>();
+    reduced = ParallelSimulation.fullyComputeRels(reduced, simRels);
+    if (reduced.size() != prevSize) {
+      System.out.println("Sim altered to: " + reduced.size());
+    }
+    final Threshold threshold = Threshold.adaptiveSteps(4000);
+    OTFIndex index = new AntichainForestIndex<>(reduced, simRels.toArray(new BitSet[0]));
+    Alphabet<Integer> inputs = reduced.getInputAlphabet();
+    MyNFA<Integer>.CompactPowersetView nfa = reduced.powersetView();
+    Deque<DeterminizeRecord<BitSet>> stack = new ArrayDeque<>();
+    //BitSet init = nfa.getInitialState();
+    BitSet init = new BitSet();
+    for(int i: initialState) {
+      init.set(i);
+    }
+    boolean initAcc = nfa.isAccepting(init);
+    MyDFA<Integer> out = new MyDFA<>(reduced.getInputAlphabet());
+    int initOut = out.addInitialState(initAcc);
+    index.put(init, initOut);
+    stack.push(new DeterminizeRecord<>(init, initOut));
+    BitSet finishedStates = new BitSet();
+    Deque<Integer> stateBuffer = new ArrayDeque<>();
+    int numInputs = inputs.size();
+
+    int totalPrints = 0;
+    while (!stack.isEmpty()) {
+      if (print) {
+        int statesSoFar = out.size();
+        if (statesSoFar / 1000 > totalPrints) {
+          totalPrints++;
+          int queueSize = stack.size();
+          long timeAfter = System.currentTimeMillis();
+          UtilityMethods.logMessage(true,
+              prefix + "  Progress: Added " + statesSoFar + " states - "
+                  + queueSize + " states left in queue - " + (timeAfter - timeBefore) + "ms", log);
+        }
+      }
+      DeterminizeRecord<BitSet> curr = stack.pop();
+      BitSet inState = curr.inputState;
+      int outState = curr.outputAddress;
+      boolean complete = true;
+      for (int i = 0; i < numInputs; ++i) {
+        BitSet prune = index.prune(nfa.getTransition(inState, i, numInputs));
+        int outSucc = index.get(prune);
+        if (outSucc == -1) {
+          complete = false;
+          boolean succAcc = nfa.isAccepting(prune);
+          if (stateBuffer.isEmpty()) {
+            outSucc = out.addState(succAcc);
+          } else {
+            outSucc = stateBuffer.pop();
+            out.setAccepting(outSucc, succAcc);
+          }
+          index.put(prune, outSucc);
+          stack.push(new DeterminizeRecord<>(prune, outSucc));
+        }
+        out.setTransition(outState, i, outSucc);
+      }
+
+      finishedStates.set(outState);
+      if (complete && threshold.test(out)) {
+        OnTheFlyDeterminization.minimizeReuse(inputs, out, finishedStates, stateBuffer, index);
+        threshold.update(out.size() - stateBuffer.size());
+      }
+    }
+    fa.setFromMyDFA(out);
+  }
+
 
     /**
      * Build up a new subset of states in the subset construction algorithm.
