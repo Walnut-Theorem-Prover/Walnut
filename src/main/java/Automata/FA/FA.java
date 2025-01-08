@@ -204,7 +204,7 @@ public class FA implements Cloneable {
       List<Int2ObjectRBTreeMap<IntList>> newD = new ArrayList<>();
       for (int q = 0; q < M.getQ(); q++) {
           Int2ObjectRBTreeMap<IntList> newMap = new Int2ObjectRBTreeMap<>();
-          for (Int2ObjectMap.Entry<IntList> entry: automaton.getD().get(q).int2ObjectEntrySet()) {
+          for (Int2ObjectMap.Entry<IntList> entry: automaton.getFa().getEntriesNfaD(q)) {
             List<Integer> decoded = Automaton.decode(automaton.getA(), entry.getIntKey());
             if (isInNewAlphabet(alphabet, decoded)) {
               newMap.put(M.encode(decoded), entry.getValue());
@@ -513,6 +513,10 @@ public class FA implements Cloneable {
     return nfaD;
   }
 
+  public Set<Int2ObjectMap.Entry<IntList>> getEntriesNfaD(int state) {
+    return nfaD.get(state).int2ObjectEntrySet();
+  }
+
   public void setNfaD(List<Int2ObjectRBTreeMap<IntList>> nfaD) {
     this.nfaD = nfaD;
   }
@@ -545,7 +549,7 @@ public class FA implements Cloneable {
   public void permuteD(int[] encoded_input_permutation) {
     for (int q = 0; q < Q; q++) {
       Int2ObjectRBTreeMap<IntList> permuted_d = new Int2ObjectRBTreeMap<>();
-      for (Int2ObjectMap.Entry<IntList> entry : getNfaD().get(q).int2ObjectEntrySet()) {
+      for (Int2ObjectMap.Entry<IntList> entry : getEntriesNfaD(q)) {
         permuted_d.put(encoded_input_permutation[entry.getIntKey()], entry.getValue());
       }
       nfaD.set(q, permuted_d);

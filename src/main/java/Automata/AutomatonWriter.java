@@ -200,7 +200,7 @@ public class AutomatonWriter {
         out.write(
                 System.lineSeparator() + q + " " +
                         automaton.getO().getInt(q) + System.lineSeparator());
-        for (Int2ObjectMap.Entry<IntList> entry : automaton.getD().get(q).int2ObjectEntrySet()) {
+        for (Int2ObjectMap.Entry<IntList> entry : automaton.getFa().getEntriesNfaD(q)) {
             List<Integer> l = Automaton.decode(automaton.getA(), entry.getIntKey());
             for (int j = 0; j < l.size(); j++)
                 out.write(l.get(j) + " ");
@@ -258,7 +258,7 @@ public class AutomatonWriter {
                     new TreeMap<>();
             for (int q = 0; q < automaton.getQ(); q++) {
                 transitions.put(q, new TreeMap<>());
-                for (Int2ObjectMap.Entry<IntList> entry : automaton.getD().get(q).int2ObjectEntrySet()) {
+                for (Int2ObjectMap.Entry<IntList> entry : automaton.getFa().getEntriesNfaD(q)) {
                     for (int dest : entry.getValue()) {
                         transitions.get(q).putIfAbsent(dest, new ArrayList<>());
                         transitions.get(q).get(dest).add(

@@ -340,7 +340,7 @@ public class AutomatonLogicalOps {
 
         for (int q = 0; q < otherClone.getQ(); q++) {
             Int2ObjectRBTreeMap<IntList> newMap = new Int2ObjectRBTreeMap<>();
-            for (Int2ObjectMap.Entry<IntList> entry : otherClone.getD().get(q).int2ObjectEntrySet()) {
+            for (Int2ObjectMap.Entry<IntList> entry : otherClone.getFa().getEntriesNfaD(q)) {
                 newMap.put(A.encode(Automaton.decode(otherClone.getA(), entry.getIntKey())), entry.getValue());
             }
             newOtherD.add(newMap);
@@ -634,7 +634,7 @@ public class AutomatonLogicalOps {
         for (int q = 0; q < A.getQ(); q++) {
             Int2ObjectRBTreeMap<IntList> currentStatesTransition = new Int2ObjectRBTreeMap<>();
             new_d.add(currentStatesTransition);
-            for (Int2ObjectMap.Entry<IntList> entry : A.getD().get(q).int2ObjectEntrySet()) {
+            for (Int2ObjectMap.Entry<IntList> entry : A.getFa().getEntriesNfaD(q)) {
                 int m = map.get(entry.getIntKey());
                 if (m != -1) {
                     currentStatesTransition.computeIfAbsent(m, key -> new IntArrayList()).addAll(entry.getValue());
@@ -765,7 +765,7 @@ public class AutomatonLogicalOps {
         for (int q = 0; q < A.getQ(); q++) {
             Int2ObjectRBTreeMap<IntList> newMemDTransitionFunction = new Int2ObjectRBTreeMap<>();
             new_d.add(newMemDTransitionFunction);
-            for (Int2ObjectMap.Entry<IntList> transition : A.getD().get(q).int2ObjectEntrySet()) {
+            for (Int2ObjectMap.Entry<IntList> transition : A.getFa().getEntriesNfaD(q)) {
                 int mappedKey = permutation.get(transition.getIntKey());
                 IntList existingTransitions = newMemDTransitionFunction.get(mappedKey);
                 if (existingTransitions != null) {
@@ -902,7 +902,7 @@ public class AutomatonLogicalOps {
             }
         }
         for (int q = 0; q < N.getQ(); q++) {
-          N.getD().get(q).int2ObjectEntrySet().removeIf(entry -> statesToRemove.contains(entry.getValue().getInt(0)));
+          N.getFa().getEntriesNfaD(q).removeIf(entry -> statesToRemove.contains(entry.getValue().getInt(0)));
         }
         N.fa.setCanonized(false);
         N.canonize();

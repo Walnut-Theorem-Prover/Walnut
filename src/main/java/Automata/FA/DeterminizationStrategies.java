@@ -7,12 +7,15 @@ import MRC.Model.MyDFA;
 import MRC.Model.MyNFA;
 import MRC.Model.Threshold;
 import MRC.NFATrim;
+import MRC.PT.PT2WithBlockArr;
+import MRC.PTInitializers;
 import Main.UtilityMethods;
 import MRC.OnTheFlyDeterminization;
 import it.unimi.dsi.fastutil.ints.*;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import net.automatalib.alphabet.Alphabet;
+import net.automatalib.automaton.MutableDeterministic;
 import simpleRABIT.algorithms.ParallelSimulation;
 
 import java.util.*;
@@ -164,6 +167,13 @@ public class DeterminizationStrategies {
   private static void OTF(
       FA fa, IntSet initialState, boolean print, String prefix, StringBuilder log, long timeBefore) {
     MyNFA<Integer> myNFA = fa.FAtoMyNFA();
+    // Replace initial states
+    for(int i: myNFA.getInitialStates()) {
+      myNFA.setInitial(i, false);
+    }
+    for(int i: initialState) {
+      myNFA.setInitial(i, true);
+    }
     MyNFA<Integer> reduced = NFATrim.bisim(myNFA);
     if (reduced.size() < fa.getQ()) {
       System.out.println("Bisimulation reduced to " + reduced.size() + " states");
@@ -179,11 +189,7 @@ public class DeterminizationStrategies {
     Alphabet<Integer> inputs = reduced.getInputAlphabet();
     MyNFA<Integer>.CompactPowersetView nfa = reduced.powersetView();
     Deque<DeterminizeRecord<BitSet>> stack = new ArrayDeque<>();
-    //BitSet init = nfa.getInitialState();
-    BitSet init = new BitSet();
-    for(int i: initialState) {
-      init.set(i);
-    }
+    BitSet init = nfa.getInitialState();
     boolean initAcc = nfa.isAccepting(init);
     MyDFA<Integer> out = new MyDFA<>(reduced.getInputAlphabet());
     int initOut = out.addInitialState(initAcc);
@@ -234,6 +240,8 @@ public class DeterminizationStrategies {
         threshold.update(out.size() - stateBuffer.size());
       }
     }
+    // Final minimization
+    OnTheFlyDeterminization.minimizeReuse(inputs, out, finishedStates, stateBuffer, index);
     fa.setFromMyDFA(out);
   }
 

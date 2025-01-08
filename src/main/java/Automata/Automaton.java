@@ -615,7 +615,7 @@ public class Automaton {
             return "";
         }
         visited.add(state);
-        for (Int2ObjectMap.Entry<IntList> entry : getD().get(state).int2ObjectEntrySet()) {
+        for (Int2ObjectMap.Entry<IntList> entry : getFa().getEntriesNfaD(state)) {
             for (int y: entry.getValue()) {
                 // this adds brackets even when inputs have arity 1 - this is fine, since we just want a usable infinite regex
                 String cycle = infiniteHelper(visited, started, y, result + decode(getA(), entry.getIntKey()));
@@ -654,7 +654,7 @@ public class Automaton {
         while (!queue.isEmpty() && !found) {
             int current = queue.poll();
 
-            for (Int2ObjectMap.Entry<IntList> entry : automaton.getNfaD().get(current).int2ObjectEntrySet()) {
+            for (Int2ObjectMap.Entry<IntList> entry : automaton.getEntriesNfaD(current)) {
                 int x = entry.getIntKey();
                 IntList transitions = entry.getValue();
 
@@ -816,7 +816,7 @@ public class Automaton {
                 return false;
             }
         }
-        for (Int2ObjectMap.Entry<IntList> entry : getD().get(state).int2ObjectEntrySet()) {
+        for (Int2ObjectMap.Entry<IntList> entry : getFa().getEntriesNfaD(state)) {
             for (int y : entry.getValue()) {
                 List<Integer> decodeAx = decode(getA(), entry.getIntKey());
                 String input = decodeAx.toString();

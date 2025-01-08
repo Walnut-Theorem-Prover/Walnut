@@ -44,8 +44,8 @@ public class ProductStrategies {
             AxB.getNfaD().add(stateTransitions);
             AxB.getO().add(determineOutput(A.getO().getInt(p), B.getO().getInt(q), op, combineOut));
 
-            Set<Int2ObjectMap.Entry<IntList>> Bset = B.getNfaD().get(q).int2ObjectEntrySet();
-            for (Int2ObjectMap.Entry<IntList> entryA : A.getNfaD().get(p).int2ObjectEntrySet()) {
+            Set<Int2ObjectMap.Entry<IntList>> Bset = B.getEntriesNfaD(q);
+            for (Int2ObjectMap.Entry<IntList> entryA : A.getEntriesNfaD(p)) {
                 final int AxBalphabet = entryA.getIntKey() * B.getAlphabetSize();
                 for (Int2ObjectMap.Entry<IntList> entryB : Bset) {
                     int z = allInputsOfAxB[AxBalphabet + entryB.getIntKey()];
@@ -109,8 +109,8 @@ public class ProductStrategies {
             AxB.getDfaD().add(stateTransitions);
             AxB.getO().add(determineOutput(A.getO().getInt(p), B.getO().getInt(q), op, combineOut));
 
-            Set<Int2ObjectMap.Entry<IntList>> Bset = B.getNfaD().get(q).int2ObjectEntrySet();
-            for (Int2ObjectMap.Entry<IntList> entryA : A.getNfaD().get(p).int2ObjectEntrySet()) {
+            Set<Int2ObjectMap.Entry<IntList>> Bset = B.getEntriesNfaD(q);
+            for (Int2ObjectMap.Entry<IntList> entryA : A.getEntriesNfaD(p)) {
                 final int AxBalphabet = entryA.getIntKey() * B.getAlphabetSize();
                 for (Int2ObjectMap.Entry<IntList> entryB : Bset) {
                     int z = allInputsOfAxB[AxBalphabet + entryB.getIntKey()];
