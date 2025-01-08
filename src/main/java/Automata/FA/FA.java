@@ -851,12 +851,20 @@ public class FA implements Cloneable {
       nfa.addState(this.O.getInt(i) != 0);
     }
     nfa.setInitial(this.q0, true);
-    for (int i = 0; i < this.Q; i++) {
-      Int2ObjectRBTreeMap<IntList> iMap = nfaD.get(i);
-      for (int in = 0; in < this.alphabetSize; in++) {
-        IntList iList = iMap.get(in);
-        if (iList != null) {
-          nfa.addTransitions(i, in, iList);
+    if (nfaD != null) {
+      for (int i = 0; i < this.Q; i++) {
+        Int2ObjectRBTreeMap<IntList> iMap = nfaD.get(i);
+        for (int in = 0; in < this.alphabetSize; in++) {
+          IntList iList = iMap.get(in);
+          if (iList != null) {
+            nfa.addTransitions(i, in, iList);
+          }
+        }
+      }
+    } else {
+      for (int i = 0; i < this.Q; i++) {
+        for (Int2IntMap.Entry entry : dfaD.get(i).int2IntEntrySet()) {
+          nfa.addTransition(i, entry.getIntKey(), entry.getIntValue());
         }
       }
     }

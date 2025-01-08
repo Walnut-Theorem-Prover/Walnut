@@ -18,11 +18,15 @@
 package Automata;
 
 import Automata.FA.FA;
+import MRC.BAFormat;
+import MRC.Model.MyNFA;
 import Main.UtilityMethods;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectRBTreeMap;
 import it.unimi.dsi.fastutil.ints.IntList;
 
+import java.io.BufferedOutputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
@@ -305,5 +309,19 @@ public class AutomatonWriter {
             }
         }
         return resultLists;
+    }
+
+    public static void exportToBA(FA a, String address, boolean isDFAO) {
+        if (isDFAO) {
+            throw new RuntimeException("Can't export DFAO to BA format");
+        }
+        System.out.println("Exporting to:" + address);
+        MyNFA<Integer> myNFA = a.FAtoMyNFA();
+        BAWriter<Integer> baWriter = new BAWriter<>();
+        try (BufferedOutputStream os = new BufferedOutputStream(new FileOutputStream(address))) {
+            baWriter.writeModel(os, myNFA, myNFA.getInputAlphabet());
+        } catch (IOException e) {
+          e.printStackTrace();
+        }
     }
 }
