@@ -101,7 +101,7 @@ public class HelpMessages {
    */
   private static boolean isGroup(String helpRoot, String groupName) {
     File groupDir = new File(helpRoot, groupName);
-    return groupDir.exists() && groupDir.isDirectory();
+    return groupDir.isDirectory();
   }
 
   /**
@@ -165,7 +165,7 @@ public class HelpMessages {
    */
   private static void showCommandHelpAcrossAllGroups(String helpRoot, String commandName) throws IOException {
     File rootDir = new File(helpRoot);
-    if (!rootDir.exists() || !rootDir.isDirectory()) {
+    if (!rootDir.isDirectory()) {
       return;
     }
 
@@ -178,7 +178,7 @@ public class HelpMessages {
     File foundFile = null;
     for (File groupDir : groups) {
       File candidate = new File(groupDir, commandName + ".txt");
-      if (candidate.exists() && candidate.isFile()) {
+      if (candidate.isFile()) {
         foundFile = candidate;
         break;
       }
@@ -199,7 +199,7 @@ public class HelpMessages {
    */
   private static void showCommandHelp(String groupPath, String command) throws IOException {
     File file = new File(groupPath + command + ".txt");
-    if (!file.exists()) {
+    if (!file.isFile()) {
       System.out.println("No documentation found for command \"" + command + "\" in this group.");
       return;
     }

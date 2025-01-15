@@ -26,8 +26,6 @@ import Main.ExceptionHelper;
 import Main.Session;
 import Main.UtilityMethods;
 import Token.RelationalOperator;
-import it.unimi.dsi.fastutil.ints.Int2ObjectRBTreeMap;
-import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 
 /**
@@ -72,14 +70,14 @@ public class NumberSystem {
 
     /**
      * is_msd is used to determine which of first or last digit is the most significant digit. It'll be used when we
-     * call Automaton.quantify method, and also in many other places.
+     * call quantify method, and also in many other places.
      */
-    private final boolean is_msd;
+    private final boolean isMsd;
 
     /**
      * is_neg is used to determine whether the base is negative.
      */
-    boolean is_neg;
+    private boolean is_neg;
 
     /**
      * Automata for addition, lessThan, and equal<br>
@@ -100,7 +98,7 @@ public class NumberSystem {
 
     /**
      * Used to compute constant(n),multiplication(n),division(n) with dynamic programming.
-     * Because these three methods are time consuming, we would like to cache their results in three HashMaps.
+     * Because these three methods are time-consuming, we would like to cache their results in three HashMaps.
      * For example:<br>
      * constantsDynamicTable.get(4) is the automaton that has a single input, and accepts if that input equals 4.<br>
      * multiplicationsDynamicTable(3) is the automaton that gets two inputs, and accepts if the second is 3 times the first. So the input is ordered!<br>
@@ -158,8 +156,21 @@ public class NumberSystem {
         return isMsd;
     }
 
-  public boolean isMsd() {
-        return is_msd;
+    NumberSystem determineNegativeNS() {
+        NumberSystem negativeNumberSystem;
+        if (is_neg) {
+            negativeNumberSystem = this;
+        } else {
+            String msd_or_lsd = name.substring(0, name.indexOf("_"));
+            String base = name.substring(name.indexOf("_") + 1);
+            negativeNumberSystem = new NumberSystem(msd_or_lsd + "_neg_" + base);
+        }
+        negativeNumberSystem.setBaseChangeAutomaton();
+        return negativeNumberSystem;
+    }
+
+    public boolean isMsd() {
+        return isMsd;
     }
 
     public String getName() {
@@ -181,36 +192,57 @@ public class NumberSystem {
     public NumberSystem(String name) {
         this.name = name;
         String msd_or_lsd = name.substring(0, name.indexOf("_"));
-        is_msd = msd_or_lsd.equals("msd");
+        isMsd = msd_or_lsd.equals("msd");
         is_neg = name.contains("neg");
         String base = name.substring(name.indexOf("_") + 1);
 
-        /**
-         * When the number system does not exist, we try to see whether its complement exists or not.
-         * For example lsd_2 is the complement of msd_2.
-         */
-        String complementName = (is_msd ? "lsd" : "msd") + "_" + base;
-        String basePath = Session.getReadAddressForCustomBases();
-        String addressForTheSetOfAllRepresentations = basePath + name + ".txt";
-        String complement_addressForTheSetOfAllRepresentations = basePath + complementName + ".txt";
-        String addressForAddition = basePath + name + "_addition.txt";
-        String complement_addressForAddition = basePath + complementName + "_addition.txt";
-        String addressForLessThan = basePath + name + "_less_than.txt";
-        String complement_addressForLessThan = basePath + complementName + "_less_than.txt";
+        setAdditionAutomaton(name, base);
+        setLessThanAutomaton(name, base);
+        setEqualityAutomaton(addition.getA().get(0));
+        setAllRepAutomaton(name, base);
 
-        //addition
-        if (new File(addressForAddition).isFile()) {
-            addition = new Automaton(addressForAddition);
-        } else if (new File(complement_addressForAddition).isFile()) {
-            addition = new Automaton(complement_addressForAddition);
-            AutomatonLogicalOps.reverse(addition, false, null, null, false);
-        } else {
+        constantsDynamicTable = new HashMap<>();
+        multiplicationsDynamicTable = new HashMap<>();
+        divisionsDynamicTable = new HashMap<>();
+    }
+
+
+    /**
+     * Tries to create an Automaton from the main file path.
+     * If it does not exist, tries the complement file path and reverses.
+     * Otherwise, returns null
+     */
+    private Automaton loadAutomatonOrNull(String name, String extension, String base) {
+        // When the number system does not exist, we try to see whether its complement exists or not.
+        // For example lsd_2 is the complement of msd_2.
+        String mainName = Session.getReadAddressForCustomBases(name + extension);
+        String complementName = Session.getReadAddressForCustomBases((isMsd ? "lsd" : "msd") + "_" + base + extension);
+        File fMain = new File(mainName);
+        File fComplement = new File(complementName);
+        if (fMain.isFile()) {
+            return new Automaton(mainName);
+        } else if (fComplement.isFile()) {
+            Automaton A = new Automaton(complementName);
+            AutomatonLogicalOps.reverse(A, false, null, null, false);
+            return A;
+        }
+        return null;
+    }
+
+
+    private void setAdditionAutomaton(
+        String name, String base) {
+        addition = loadAutomatonOrNull(name, "_addition.txt", base);
+        if (addition == null) {
             if (UtilityMethods.isNumber(base) && Integer.parseInt(base) > 1) {
-                base_n_addition(Integer.parseInt(base));
+                addition = baseNadditionAutomaton(Integer.parseInt(base));
             } else if (UtilityMethods.parseNegNumber(base) > 1) {
-                base_neg_n_addition(UtilityMethods.parseNegNumber(base));
+                addition = baseNegNAddition(UtilityMethods.parseNegNumber(base));
             } else {
                 throw new RuntimeException("Number system " + name + " is not defined.");
+            }
+            if (!isMsd) {
+                AutomatonLogicalOps.reverse(addition, false, null, null, false);
             }
         }
 
@@ -245,19 +277,21 @@ public class NumberSystem {
         for (int i = 0; i < addition.getA().size(); i++) {
             addition.getNS().set(i, this);
         }
+    }
 
-        //lessThan
-        if (new File(addressForLessThan).isFile()) {
-            lessThan = new Automaton(addressForLessThan);
-        } else if (new File(complement_addressForLessThan).isFile()) {
-            lessThan = new Automaton(complement_addressForLessThan);
-            AutomatonLogicalOps.reverse(lessThan, false, null, null, false);
-        } else if (UtilityMethods.parseNegNumber(base) > 1) {
-            base_neg_n_less_than(UtilityMethods.parseNegNumber(base));
-        } else {
-            lexicographicLessThan(addition.getA().get(0));
+    private void setLessThanAutomaton(
+        String name, String base) {
+        lessThan = loadAutomatonOrNull(name, "_less_than.txt", base);
+        if (lessThan == null) {
+            if (UtilityMethods.parseNegNumber(base) > 1) {
+                lessThan = baseNegNLessThan(UtilityMethods.parseNegNumber(base));
+            } else {
+                lessThan = lexicographicLessThan(addition.getA().get(0));
+            }
+            if (!isMsd) {
+                AutomatonLogicalOps.reverse(lessThan, false, null, null, false);
+            }
         }
-
         /**
          * The lessThan automata must have 2 inputs.
          * All 2 inputs must be of type arithmetic.
@@ -265,41 +299,32 @@ public class NumberSystem {
          */
         if (lessThan.getA() == null || lessThan.getA().size() != 2) {
             throw new RuntimeException(
-                    "The less_than automaton must have exactly 2 inputs: base " + name);
+                "The less_than automaton must have exactly 2 inputs: base " + name);
         }
 
         for (int i = 0; i < lessThan.getA().size(); i++) {
             if (!UtilityMethods.areEqual(lessThan.getA().get(i), addition.getA().get(0))) {
                 throw new RuntimeException(
-                        "Inputs of the less_than automaton must have the same alphabet " +
-                                "as the alphabet of inputs of addition automaton: base " + name);
+                    "Inputs of the less_than automaton must have the same alphabet " +
+                        "as the alphabet of inputs of addition automaton: base " + name);
             }
 
             lessThan.getNS().set(i, this);
         }
+    }
 
-        setEquality(addition.getA().get(0));
-
+    private void setAllRepAutomaton(
+        String name, String base) {
         //the set of all representations
-        if (new File(addressForTheSetOfAllRepresentations).isFile()) {
-            allRepresentations = new Automaton(addressForTheSetOfAllRepresentations);
-        } else if (new File(complement_addressForTheSetOfAllRepresentations).isFile()) {
-            allRepresentations = new Automaton(complement_addressForTheSetOfAllRepresentations);
-            AutomatonLogicalOps.reverse(allRepresentations, false, null, null, false);
-        } else {
+        allRepresentations = loadAutomatonOrNull(name, ".txt", base);
+        if (allRepresentations == null) {
             flagUseAllRepresentations = false;
-        }
-
-        if (flagUseAllRepresentations) {
+        } else {
             for (int i = 0; i < allRepresentations.getNS().size(); i++) {
                 allRepresentations.getNS().set(i, this);
             }
             applyAllRepresentations();
         }
-
-        constantsDynamicTable = new HashMap<>();
-        multiplicationsDynamicTable = new HashMap<>();
-        divisionsDynamicTable = new HashMap<>();
     }
 
     /**
@@ -307,7 +332,7 @@ public class NumberSystem {
      *
      * @param alphabet
      */
-    private void setEquality(List<Integer> alphabet) {
+    private void setEqualityAutomaton(List<Integer> alphabet) {
         equality = initBasicAutomaton(IntList.of(1), 2, alphabet);
         FA equalityFA = equality.getFa();
         for (int i = 0; i < alphabet.size(); i++) {
@@ -321,10 +346,10 @@ public class NumberSystem {
      *
      * @param alphabet
      */
-    private void lexicographicLessThan(List<Integer> alphabet) {
+    private Automaton lexicographicLessThan(List<Integer> alphabet) {
         alphabet = new ArrayList<>(alphabet);
         Collections.sort(alphabet);
-        lessThan = initBasicAutomaton(IntList.of(0,1), 2, alphabet);
+        Automaton lessThan = initBasicAutomaton(IntList.of(0,1), 2, alphabet);
         FA lessThanFA = lessThan.getFa();
         for (int i = 0; i < alphabet.size(); i++) {
             for (int j = 0; j < alphabet.size(); j++) {
@@ -337,9 +362,7 @@ public class NumberSystem {
                 lessThanFA.addTransition(1, 1, i * alphabet.size() + j);
             }
         }
-        if (!is_msd) {
-            AutomatonLogicalOps.reverse(lessThan, false, null, null, false);
-        }
+        return lessThan;
     }
 
     /**
@@ -350,34 +373,23 @@ public class NumberSystem {
      * automaton unset.
      *
      */
-    public void setBaseChange() {
+    private void setBaseChangeAutomaton() {
         if (baseChange != null) return;
-
         String base = name.substring(name.indexOf("_") + 1);
-        String addressForComparison, complement_addressForComparison;
-        String readAddressForCustomBases = Session.getReadAddressForCustomBases();
-        if (is_neg) {
-            addressForComparison = readAddressForCustomBases + name + "_base_change.txt";
-            String complementName = (is_msd ? "lsd" : "msd") + "_" + base;
-            complement_addressForComparison = readAddressForCustomBases + complementName + "_base_change.txt";
-        } else {
-            String msd_or_lsd = name.substring(0, name.indexOf("_"));
-            addressForComparison = readAddressForCustomBases + msd_or_lsd + "_neg_" + base + "_base_change.txt";
-            String complementName = (is_msd ? "lsd" : "msd") + "_neg_" + base;
-            complement_addressForComparison = readAddressForCustomBases + complementName + "_base_change.txt";
+        baseChange = loadAutomatonOrNull(
+            is_neg ? name : name.substring(0, name.indexOf("_")), "_base_change.txt", base);
+        if (baseChange == null) {
+            if (UtilityMethods.parseNegNumber(base) > 1) {
+                baseChange = baseNBaseChange(UtilityMethods.parseNegNumber(base));
+                if (isMsd) {
+                    AutomatonLogicalOps.reverse(baseChange, false, null, null, false);
+                }
+            }
+            if (baseChange == null) {
+                throw new RuntimeException("Number system cannot be compared.");
+            }
         }
-
-        if (new File(addressForComparison).isFile()) {
-            baseChange = new Automaton(addressForComparison);
-        } else if (new File(complement_addressForComparison).isFile()) {
-            baseChange = new Automaton(complement_addressForComparison);
-            AutomatonLogicalOps.reverse(baseChange, false, null, null, false);
-        } else if (UtilityMethods.parseNegNumber(base) > 1) {
-            base_n_base_change(UtilityMethods.parseNegNumber(base));
-        }
-        if (baseChange != null) {
-            baseChange.applyAllRepresentations();
-        }
+        baseChange.applyAllRepresentations();
     }
 
     private void applyAllRepresentations() {
@@ -392,10 +404,10 @@ public class NumberSystem {
      *
      * @param n
      */
-    private void base_n_addition(int n) {
+    private Automaton baseNadditionAutomaton(int n) {
         List<Integer> alphabet = new ArrayList<>();
         for (int i = 0; i < n; i++) alphabet.add(i);
-        addition = initBasicAutomaton(IntList.of(1,0), 3, alphabet);
+        Automaton addition = initBasicAutomaton(IntList.of(1,0), 3, alphabet);
         FA additionFA = addition.getFa();
         int l = 0;
         for (int k = 0; k < n; k++) {
@@ -417,10 +429,7 @@ public class NumberSystem {
                 }
             }
         }
-
-        if (!is_msd) {
-            AutomatonLogicalOps.reverse(addition, false, null, null, false);
-        }
+        return addition;
     }
 
     /**
@@ -429,10 +438,10 @@ public class NumberSystem {
      *
      * @param n
      */
-    private void base_neg_n_addition(int n) {
+    private Automaton baseNegNAddition(int n) {
         List<Integer> alphabet = new ArrayList<>(n);
         for (int i = 0; i < n; i++) alphabet.add(i);
-        addition =  initBasicAutomaton(IntList.of(1,0,0), 3, alphabet);
+        Automaton addition =  initBasicAutomaton(IntList.of(1,0,0), 3, alphabet);
         FA additionFA = addition.getFa();
         int l = 0;
         for (int k = 0; k < n; k++) {
@@ -463,10 +472,7 @@ public class NumberSystem {
                 }
             }
         }
-
-        if (!is_msd) {
-            AutomatonLogicalOps.reverse(addition, false, null, null, false);
-        }
+        return addition;
     }
 
     /**
@@ -475,10 +481,10 @@ public class NumberSystem {
      *
      * @param n
      */
-    private void base_neg_n_less_than(int n) {
+    private Automaton baseNegNLessThan(int n) {
         List<Integer> alphabet = new ArrayList<>();
         for (int i = 0; i < n; i++) alphabet.add(i);
-        lessThan = initBasicAutomaton(IntList.of(0,1,0), 2, alphabet);
+        Automaton lessThan = initBasicAutomaton(IntList.of(0,1,0), 2, alphabet);
         FA lessThanFA = lessThan.getFa();
         int l = 0;
         for (int j = 0; j < n; j++) {
@@ -497,10 +503,7 @@ public class NumberSystem {
                 l++;
             }
         }
-
-        if (!is_msd) {
-            AutomatonLogicalOps.reverse(lessThan, false, null, null, false);
-        }
+        return lessThan;
     }
 
     /**
@@ -510,11 +513,11 @@ public class NumberSystem {
      *
      * @param n
      */
-    private void base_n_base_change(int n) {
+    private Automaton baseNBaseChange(int n) {
         List<Integer> alphabet = new ArrayList<>();
         for (int i = 0; i < n; i++) alphabet.add(i);
-        baseChange = initBasicAutomaton(IntList.of(1,1,0,0));
-        if (is_msd) {
+        Automaton baseChange = initBasicAutomaton(IntList.of(1,1,0,0));
+        if (isMsd) {
             baseChange.getNS().add(new NumberSystem("msd_" + n));
             baseChange.getNS().add(new NumberSystem("msd_neg_" + n));
         } else {
@@ -549,23 +552,12 @@ public class NumberSystem {
                 l++;
             }
         }
-
-        if (is_msd) {
-            AutomatonLogicalOps.reverse(baseChange, false, null, null, false);
-        }
+        return baseChange;
     }
 
-    private static Automaton initBasicAutomaton(int Q) {
-        Automaton a = new Automaton();
-        a.getFa().setQ(Q);
-        for(int i=0;i<Q;i++) {
-            a.getFa().getNfaD().add(new Int2ObjectRBTreeMap<>());
-        }
-        return a;
-    }
     private static Automaton initBasicAutomaton(IntList O) {
-        Automaton a = initBasicAutomaton(O.size());
-        a.getFa().setO(new IntArrayList(O)); // IntList.of() is immutable
+        Automaton a = new Automaton();
+        a.getFa().initBasicFA(O);
         return a;
     }
     private Automaton initBasicAutomaton(IntList O, int inputSize, List<Integer> alphabet) {
@@ -576,15 +568,6 @@ public class NumberSystem {
         }
         a.determineAlphabetSizeFromA();
         return a;
-    }
-
-        /**
-         * Gives the corresponding negative number system if one is defined. Throws an exception otherwise.
-         */
-    public NumberSystem negative_number_system() {
-        String msd_or_lsd = name.substring(0, name.indexOf("_"));
-        String base = name.substring(name.indexOf("_") + 1);
-        return new NumberSystem(msd_or_lsd + "_neg_" + base);
     }
 
     /**
@@ -643,7 +626,7 @@ public class NumberSystem {
      * @return an Automaton with single input, with label = [a]. It accepts iff a comparisonOperator b.
      */
     public Automaton comparison(String a, int b, String comparisonOperator) {
-        if (!is_neg && b < 0) throw ExceptionHelper.negativeConstant(b);
+        validateNeg(b);
         String B = "new " + a;//this way, we make sure B != a.
         Automaton N, M;
         if (b < 0) {
@@ -674,12 +657,8 @@ public class NumberSystem {
      * @return an Automaton with single input, with label = [b]. It accepts iff a comparisonOperator b.
      */
     public Automaton comparison(int a, String b, String comparisonOperator) {
-        if (!is_neg && a < 0) throw ExceptionHelper.negativeConstant(a);
-        String revOp = RelationalOperator.reverseOperator(comparisonOperator);
-        if (revOp.isEmpty()) {
-            throw new RuntimeException("undefined comparison operator:" + comparisonOperator);
-        }
-        return comparison(b, a, revOp);
+        validateNeg(a);
+        return comparison(b, a, RelationalOperator.reverseOperator(comparisonOperator));
     }
 
     /**
@@ -730,7 +709,7 @@ public class NumberSystem {
             int b,
             String c,
             String arithmeticOperator) {
-        if (!is_neg && b < 0) throw ExceptionHelper.negativeConstant(b);
+        validateNeg(b);
         Automaton N;
         if (arithmeticOperator.equals("*")) {
             //note that the case of b = 0 is handled in Computer class
@@ -776,7 +755,7 @@ public class NumberSystem {
             String b,
             String c,
             String arithmeticOperator) {
-        if (!is_neg && a < 0) throw ExceptionHelper.negativeConstant(a);
+        validateNeg(a);
         Automaton N;
         if (arithmeticOperator.equals("*")) {
             N = getMultiplication(a);
@@ -819,7 +798,7 @@ public class NumberSystem {
             String b,
             int c,
             String arithmeticOperator) {
-        if (!is_neg && c < 0) throw ExceptionHelper.negativeConstant(c);
+        validateNeg(c);
         if (arithmeticOperator.equals("*") || arithmeticOperator.equals("/")) {
             throw ExceptionHelper.operatorTwoVariables(arithmeticOperator);
         }
@@ -848,9 +827,7 @@ public class NumberSystem {
      * @return an Automaton with one input. It accepts when the input equals n.
      */
     private Automaton constant(int n) {
-        if (!is_neg && n < 0) {
-            throw ExceptionHelper.negativeConstant(n);
-        }
+        validateNeg(n);
         if (constantsDynamicTable.containsKey(n)) {
             return constantsDynamicTable.get(n);
         }
@@ -893,7 +870,7 @@ public class NumberSystem {
      * @return
      */
     private Automaton multiplication(int n) {
-        if (!is_neg && n < 0) throw ExceptionHelper.negativeConstant(n);
+        validateNeg(n);
         if (n == 0) throw new RuntimeException("multiplication(0)");
         if (multiplicationsDynamicTable.containsKey(n)) return multiplicationsDynamicTable.get(n);
         //note that the case of n==0 is handled in Computer class
@@ -939,6 +916,10 @@ public class NumberSystem {
         return P;
     }
 
+    private void validateNeg(int n) {
+        if (!is_neg && n < 0) throw ExceptionHelper.negativeConstant(n);
+    }
+
     /**
      * The returned automaton has two inputs, and it accepts iff the second is one nth of the first. So the input is ordered!
      *
@@ -947,7 +928,7 @@ public class NumberSystem {
      */
     // a / n = b <=> Er,q a = q + r & q = n*b & n < r <= 0 if n < 0
     private Automaton division(int n) {
-        if (!is_neg && n < 0) throw new RuntimeException("constant cannot be negative");
+        validateNeg(n);
         if (n == 0) throw ExceptionHelper.divisionByZero();
         if (divisionsDynamicTable.containsKey(n)) return divisionsDynamicTable.get(n);
         String a = "a", b = "b", r = "r", q = "q";
@@ -975,7 +956,7 @@ public class NumberSystem {
     }
 
     private Automaton makeOne() {
-        return makeConstant(is_msd ? "0*1" : "10*", 1);
+        return makeConstant(isMsd ? "0*1" : "10*", 1);
     }
 
     private Automaton makeConstant(String regex, int constant) {
@@ -991,5 +972,17 @@ public class NumberSystem {
         M.canonize();
         constantsDynamicTable.put(constant, M);
         return M;
+    }
+
+    /**
+     * Parse the base (k) from an Automaton's number system name, e.g. "msd_10" => 10.
+     * Throws if base is invalid.
+     */
+    public int parseBase() {
+        String baseStr = name.substring(name.indexOf("_") + 1);
+        if (!UtilityMethods.isNumber(baseStr) || Integer.parseInt(baseStr) <= 1) {
+            throw new RuntimeException("Base of automaton's number system must be > 1 and int, found: " + baseStr);
+        }
+        return Integer.parseInt(baseStr);
     }
 }

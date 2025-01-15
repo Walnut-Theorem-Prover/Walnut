@@ -18,7 +18,6 @@
 package Automata;
 
 import Automata.FA.DeterminizationStrategies;
-import Automata.FA.FA;
 import Automata.FA.ProductStrategies;
 import Main.UtilityMethods;
 import it.unimi.dsi.fastutil.ints.*;
@@ -116,14 +115,15 @@ public class AutomatonLogicalOps {
             AxB.getNS().add(A.getNS().get(i));
         }
         for (int i = 0; i < B.getA().size(); i++) {
+            NumberSystem bNS = B.getNS().get(i);
             if (sameInputsInMAndThis[i] == -1) {
                 AxB.getA().add(new ArrayList<>(B.getA().get(i)));
                 AxB.getLabel().add(B.getLabel().get(i));
-                AxB.getNS().add(B.getNS().get(i));
+                AxB.getNS().add(bNS);
             } else {
                 int j = sameInputsInMAndThis[i];
-                if (B.getNS().get(i) != null && AxB.getNS().get(j) == null) {
-                    AxB.getNS().set(j, B.getNS().get(i));
+                if (bNS != null && AxB.getNS().get(j) == null) {
+                    AxB.getNS().set(j, bNS);
                 }
             }
         }
@@ -196,8 +196,8 @@ public class AutomatonLogicalOps {
         long timeBefore = System.currentTimeMillis();
         UtilityMethods.logMessage(print, prefix + "computing " + friendlyOp + ":" + A.getQ() + " states - " + B.getQ() + " states", log);
 
-        totalize(A.fa, print, prefix + " ", log);
-        totalize(B.fa, print, prefix + " ", log);
+        A.fa.totalize(print, prefix + " ", log);
+        B.fa.totalize(print, prefix + " ", log);
         Automaton N = crossProductAndMinimize(A, B, friendlyOp, print, prefix + " ", log);
         N.applyAllRepresentations();
 
@@ -254,8 +254,8 @@ public class AutomatonLogicalOps {
         long timeBefore = System.currentTimeMillis();
         UtilityMethods.logMessage(print, prefix + "computing " + friendlyOp + ":" + A.getQ() + " states - " + B.getQ() + " states", log);
 
-        totalize(A.fa, print, prefix + " ", log);
-        totalize(B.fa, print, prefix + " ", log);
+        A.fa.totalize(print, prefix + " ", log);
+        B.fa.totalize(print, prefix + " ", log);
         Automaton N = crossProductAndMinimize(A, B, friendlyOp, print, prefix + " ", log);
         N.applyAllRepresentations();
 
@@ -296,7 +296,7 @@ public class AutomatonLogicalOps {
         long timeBefore = System.currentTimeMillis();
         UtilityMethods.logMessage(print, prefix + "computing " + friendlyOp + ":" + A.getQ() + " states", log);
 
-        totalize(A.fa, print, prefix + " ", log);
+        A.fa.totalize(print, prefix + " ", log);
         for (int q = 0; q < A.getQ(); q++)
             A.getO().set(q, A.getO().getInt(q) != 0 ? 0 : 1);
 
@@ -420,18 +420,6 @@ public class AutomatonLogicalOps {
             }
         }
         return true;
-    }
-
-    /**
-     * This method adds a dead state to totalize the transition function
-     *
-     */
-    static void totalize(FA A, boolean print, String prefix, StringBuilder log) {
-        long timeBefore = System.currentTimeMillis();
-        UtilityMethods.logMessage(print, prefix + "totalizing:" + A.getQ() + " states", log);
-        A.totalize();
-        long timeAfter = System.currentTimeMillis();
-        UtilityMethods.logMessage(print, prefix + "totalized:" + A.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
     }
 
 
@@ -566,11 +554,7 @@ public class AutomatonLogicalOps {
         }
 
         Automaton M = new Automaton();
-        M.setQ(2);
-        M.getO().add(1);
-        M.getO().add(1);
-        M.getD().add(new Int2ObjectRBTreeMap<>());
-        M.getD().add(new Int2ObjectRBTreeMap<>());
+        M.getFa().initBasicFA(IntList.of(1,1));
         M.setNS(A.getNS());
         M.setA(A.getA());
         M.setLabel(A.getLabel());
@@ -716,25 +700,17 @@ public class AutomatonLogicalOps {
             return;
         }
 
-        String name_of_labels = "";
         for (String s : listOfLabelsToQuantify) {
             if (!A.getLabel().contains(s)) {
                 throw new RuntimeException(
                         "Variable " + s + " in the list of quantified variables is not a free variable.");
             }
-            if (name_of_labels.isEmpty()) {
-                name_of_labels += s;
-            } else {
-                name_of_labels += "," + s;
-            }
         }
         long timeBefore = System.currentTimeMillis();
         UtilityMethods.logMessage(print, prefix + "quantifying:" + A.getQ() + " states", log);
 
-        /**
-         * If this is the case, then the quantified automaton is either the true or false automaton.
-         * It is true if the language is not empty.
-         */
+        //If this is the case, then the quantified automaton is either the true or false automaton.
+        //It is true if the language is not empty.
         if (listOfLabelsToQuantify.size() == A.getA().size()) {
             A.fa.setTRUE_AUTOMATON(!A.isEmpty());
             A.fa.setTRUE_FALSE_AUTOMATON(true);
@@ -786,8 +762,6 @@ public class AutomatonLogicalOps {
      * Enabling the reverseMsd flag will flip the number system of the A from msd to lsd, and vice versa.
      * Reversing the Msd will also call this function as reversals are done in the NumberSystem class upon
      * initializing.
-     *
-     * @return the reverse of this automaton
      */
     public static void reverse(
         Automaton A, boolean print, String prefix, StringBuilder log, boolean reverseMsd) {
@@ -808,7 +782,6 @@ public class AutomatonLogicalOps {
 
     /**
      * Reverse a DFAO. Use Theorem 4.3.3 from Allouche & Shallit.
-     *
      */
     public static void reverseWithOutput(Automaton A, boolean reverseMsd, boolean print, String prefix, StringBuilder log) {
         if (A.fa.isTRUE_FALSE_AUTOMATON()) {
@@ -917,14 +890,14 @@ public class AutomatonLogicalOps {
             throw new RuntimeException("Automaton must have exactly one input to be converted.");
         }
 
+        NumberSystem ns = A.getNS().get(0);
         // 1) Parse the base from the A’s NS
-        int fromBase = parseBase(A.getNS().get(0).getName());
+        int fromBase = ns.parseBase();
 
         // If the old and new bases are the same, check if only MSD/LSD is changing
         if (fromBase == toBase) {
-            if (A.getNS().get(0).isMsd() == toMsd) {
-                throw new RuntimeException("New and old number systems are identical: " +
-                    A.getNS().get(0).getName());
+            if (ns.isMsd() == toMsd) {
+                throw new RuntimeException("New and old number systems are identical: " + ns.getName());
             } else {
                 // If only msd <-> lsd differs, just reverse the A
                 reverseWithOutput(A, true, print, prefix + " ", log);
@@ -939,7 +912,7 @@ public class AutomatonLogicalOps {
         }
 
         // If originally LSD, we need to reverse to treat it as MSD for the conversions
-        if (!A.getNS().get(0).isMsd()) {
+        if (!ns.isMsd()) {
             reverseWithOutput(A, true, print, prefix + " ", log);
         }
 
@@ -980,7 +953,7 @@ public class AutomatonLogicalOps {
      */
     private static void convertMsdBaseToExponent(Automaton A, int exponent,
                                                  boolean print, String prefix, StringBuilder log) {
-        int base = parseBase(A.getNS().get(0).getName());
+        int base = A.getNS().get(0).parseBase();
 
         long timeBefore = System.currentTimeMillis();
         UtilityMethods.logMessage(
@@ -1012,7 +985,7 @@ public class AutomatonLogicalOps {
     private static void convertLsdBaseToRoot(Automaton A, int root, int exponent,
                                              boolean print, String prefix, StringBuilder log) {
         // Parse base and validate
-        int base = parseBase(A.getNS().get(0).getName());
+        int base = A.getNS().get(0).parseBase();
         double expected = Math.pow(root, exponent);
         if (base != (int) expected) {
             throw new RuntimeException("Base mismatch: expected " + (int) expected + ", found " + base);
@@ -1133,19 +1106,6 @@ public class AutomatonLogicalOps {
     }
 
     /**
-     * Parse the base (k) from an Automaton's number system name, e.g. "msd_10" => 10.
-     * Throws if base is invalid.
-     */
-    private static int parseBase(String nsName) {
-        String baseStr = nsName.substring(nsName.indexOf("_") + 1);
-        if (!UtilityMethods.isNumber(baseStr) || Integer.parseInt(baseStr) <= 1) {
-            throw new RuntimeException("Base of automaton's number system must be > 1 and int, found: " + baseStr);
-        }
-        return Integer.parseInt(baseStr);
-    }
-
-
-    /**
      * Updates the A's alphabet to [0..newBase-1] and sets alphabetSize accordingly.
      */
     private static void setAutomatonAlphabet(Automaton A, int newBase) {
@@ -1164,7 +1124,7 @@ public class AutomatonLogicalOps {
     private static int computeStringValue(List<Integer> digits, int root) {
         int value = 0;
         for (int i = 0; i < digits.size(); i++) {
-            value += digits.get(i) * Math.pow(root, i);
+            value += (int) (digits.get(i) * Math.pow(root, i));
         }
         return value;
     }
@@ -1192,8 +1152,8 @@ public class AutomatonLogicalOps {
             first.randomLabel();
             next.setLabel(first.getLabel());
             // crossProduct requires both automata to be totalized, otherwise it has no idea which cartesian states to transition to
-            totalize(first.fa, print, prefix + " ", log);
-            totalize(next.fa, print, prefix + " ", log);
+            first.fa.totalize(print, prefix + " ", log);
+            next.fa.totalize(print, prefix + " ", log);
             Automaton product = crossProduct(first, next, "combine", print, prefix + " ", log);
             product.combineIndex = first.combineIndex + 1;
             product.combineOutputs = first.combineOutputs;
@@ -1204,7 +1164,7 @@ public class AutomatonLogicalOps {
         }
 
         // totalize the resulting A
-        totalize(first.fa, print, prefix + " ", log);
+        first.fa.totalize(print, prefix + " ", log);
         first.canonizeAndApplyAllRepresentationsWithOutput(print, prefix + " ", log);
 
         return first;
@@ -1224,10 +1184,12 @@ public class AutomatonLogicalOps {
     public static Automaton compare(
             Automaton A, Automaton B, String operator, boolean print, String prefix, StringBuilder log) {
         long timeBefore = System.currentTimeMillis();
-        UtilityMethods.logMessage(print, prefix + "comparing (" + operator + "):" + A.getQ() + " states - " + B.getQ() + " states", log);
+        UtilityMethods.logMessage(print,
+            prefix + "comparing (" + operator + "):" + A.getFa().getQ() + " states - " + B.getFa().getQ() + " states", log);
         Automaton M = crossProductAndMinimize(A, B, operator, print, prefix + " ", log);
         long timeAfter = System.currentTimeMillis();
-        UtilityMethods.logMessage(print, prefix + "compared (" + operator + "):" + A.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
+        UtilityMethods.logMessage(print,
+            prefix + "compared (" + operator + "):" + M.getFa().getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
         return M;
     }
 }

@@ -99,7 +99,7 @@ public class Session {
         getWriteAddressForCustomBases(), getWriteAddressForMacroLibrary(), getWriteAddressForMorphismLibrary(),
         getWriteAddressForWordsLibrary())) {
       File f = new File(s);
-      if (!f.exists() && !f.mkdir()) {
+      if (!f.isDirectory() && !f.mkdir()) {
         throw new RuntimeException("Couldn't create directory:" + s);
       }
     }
@@ -129,8 +129,8 @@ public class Session {
   }
 
   // read from, session-specific
-  public static String getReadAddressForCustomBases() {
-    return mainWalnutDir + "Custom Bases/";
+  public static String getReadAddressForCustomBases(String filename) {
+    return globalOrSessionFile("Custom Bases/" + filename);
   }
   public static String getReadFileForMacroLibrary(String filename) {
     return globalOrSessionFile("Macro Library/" + filename);
@@ -152,10 +152,10 @@ public class Session {
   private static String globalOrSessionFile(String testAddress) {
     String sessionFile = sessionWalnutDir + testAddress;
     String globalFile = mainWalnutDir + testAddress;
-    if (!(new File(sessionFile).exists())) {
+    if (!(new File(sessionFile).isFile())) {
       return globalFile;
     }
-    if (new File(globalFile).exists()) {
+    if (new File(globalFile).isFile()) {
       String overrideMessage = "Overriding global file with session file:" + sessionFile;
       try {
         // Are they the same?

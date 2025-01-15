@@ -166,7 +166,7 @@ public class Ostrowski {
             Session.getWriteAddressForCustomBases() + fullName;
         System.out.println("Writing to: " + repr_file_name);
         File f = new File(repr_file_name);
-        if (f.exists() && !f.isDirectory()) {
+        if (f.exists()) {
             throw new RuntimeException("Error: number system " + name + " already exists.");
         }
         AutomatonWriter.write(a, repr_file_name);

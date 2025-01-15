@@ -19,9 +19,9 @@
 package Token;
 
 import Automata.AutomatonLogicalOps;
+import Automata.Automaton;
 import Main.ExceptionHelper;
 import Main.Expression;
-import Automata.Automaton;
 import Automata.NumberSystem;
 import Main.Expressions.*;
 import Main.UtilityMethods;
@@ -45,8 +45,7 @@ public class RelationalOperator extends Operator {
     }
 
     public void act(Stack<Expression> S, boolean print, String prefix, StringBuilder log) {
-
-        if (S.size() < getArity()) throw new RuntimeException("operator " + op + " requires " + getArity() + " operands");
+        super.validateArity(S);
         Expression b = S.pop();
         Expression a = S.pop();
 
@@ -89,36 +88,21 @@ public class RelationalOperator extends Operator {
             }
             M = AutomatonLogicalOps.and(M, word.M, print, prefix + " ", log);
             AutomatonLogicalOps.quantify(M, word.identifiersToQuantify, print, prefix + " ", log);
-            if (arithmetic instanceof ArithmeticExpression) {
-                M = AutomatonLogicalOps.and(M, arithmetic.M, print, prefix + " ", log);
-                AutomatonLogicalOps.quantify(M, arithmetic.identifier, print, prefix + " ", log);
-            }
+            M = andQuantifyIfArithmetic(print, prefix, log, arithmetic, M);
             S.push(new AutomatonExpression(word.toString(), M));
         } else if ((a instanceof ArithmeticExpression || a instanceof VariableExpression)
                 && (b instanceof ArithmeticExpression || b instanceof VariableExpression)) {
             Automaton M = ns.comparison(a.identifier, b.identifier, op);
-            if (a instanceof ArithmeticExpression) {
-                M = AutomatonLogicalOps.and(M, a.M, print, prefix + " ", log);
-                AutomatonLogicalOps.quantify(M, a.identifier, print, prefix + " ", log);
-            }
-            if (b instanceof ArithmeticExpression) {
-                M = AutomatonLogicalOps.and(M, b.M, print, prefix + " ", log);
-                AutomatonLogicalOps.quantify(M, b.identifier, print, prefix + " ", log);
-            }
+            M = andQuantifyIfArithmetic(print, prefix, log, a, M);
+            M = andQuantifyIfArithmetic(print, prefix, log, b, M);
             S.push(new AutomatonExpression(a + op + b, M));
         } else if ((a instanceof NumberLiteralExpression || a instanceof AlphabetLetterExpression) && (b instanceof ArithmeticExpression || b instanceof VariableExpression)) {
             Automaton M = ns.comparison(a.constant, b.identifier, op);
-            if (b instanceof ArithmeticExpression) {
-                M = AutomatonLogicalOps.and(M, b.M, print, prefix + " ", log);
-                AutomatonLogicalOps.quantify(M, b.identifier, print, prefix + " ", log);
-            }
+            M = andQuantifyIfArithmetic(print, prefix, log, b, M);
             S.push(new AutomatonExpression(a + op + b, M));
         } else if ((a instanceof ArithmeticExpression || a instanceof VariableExpression) && (b instanceof NumberLiteralExpression || b instanceof AlphabetLetterExpression)) {
             Automaton M = ns.comparison(a.identifier, b.constant, op);
-            if (a instanceof ArithmeticExpression) {
-                M = AutomatonLogicalOps.and(M, a.M, print, prefix + " ", log);
-                AutomatonLogicalOps.quantify(M, a.identifier, print, prefix + " ", log);
-            }
+            M = andQuantifyIfArithmetic(print, prefix, log, a, M);
             S.push(new AutomatonExpression(a + op + b, M));
         } else if (a instanceof WordExpression && b instanceof WordExpression) {
             Automaton M = AutomatonLogicalOps.compare(a.wordAutomaton, b.wordAutomaton, op, print, prefix + " ", log);
@@ -143,6 +127,14 @@ public class RelationalOperator extends Operator {
             throw ExceptionHelper.invalidDualOperators(op, a, b);
         }
         UtilityMethods.logAndPrint(print, prefix + "computed " + a + op + b, log);
+    }
+
+    private static Automaton andQuantifyIfArithmetic(boolean print, String prefix, StringBuilder log, Expression arithmetic, Automaton M) {
+        if (arithmetic instanceof ArithmeticExpression) {
+            M = AutomatonLogicalOps.and(M, arithmetic.M, print, prefix + " ", log);
+            AutomatonLogicalOps.quantify(M, arithmetic.identifier, print, prefix + " ", log);
+        }
+        return M;
     }
 
     public static boolean compare(String op, int a, int b) {

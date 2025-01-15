@@ -479,7 +479,7 @@ public class Predicate {
 
         // Construct the Automaton
         String functionName = matcher.group(1);
-        Automaton A = new Automaton(Session.getReadFileForAutomataLibrary(functionName + ".txt"));
+        Automaton A = Automaton.readAutomatonFromFile(functionName);
 
         // Parse parentheses for function arguments
         ParseResult parseResult = parseParenthesizedArguments(matcher.end());

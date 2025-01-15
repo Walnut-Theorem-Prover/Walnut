@@ -62,4 +62,21 @@ public abstract class Token {
     public void setPositionInPredicate(int positionInPredicate) {
         this.positionInPredicate = positionInPredicate;
     }
+
+    protected void validateArity(Stack<Expression> S, String name1, String name2) {
+        if (S.size() < getArity()) throw new RuntimeException(name1 + this + " requires " + getArity() + name2);
+    }
+
+    public void validateArity(String name, int otherArity) {
+        if (otherArity != getArity()) throw new RuntimeException(
+                "function " + name + " requires " + otherArity + " arguments: char at " + getPositionInPredicate());
+    }
+
+    public Stack<Expression> reverseStack(Stack<Expression> S) {
+        Stack<Expression> temp = new Stack<>();
+        for (int i = 0; i < getArity(); i++) {
+            temp.push(S.pop());
+        }
+        return temp;
+    }
 }

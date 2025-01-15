@@ -18,6 +18,8 @@
 
 package Token;
 
+import Main.Expression;
+
 import java.util.List;
 import java.util.Stack;
 
@@ -122,5 +124,9 @@ public abstract class Operator extends Token {
         }
 
         return specialNegation || op.equals("~");
+    }
+
+    protected void validateArity(Stack<Expression> S) {
+        if (S.size() < getArity()) throw new RuntimeException("operator " + op + " requires " + getArity() + " operands");
     }
 }

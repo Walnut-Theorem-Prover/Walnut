@@ -46,8 +46,7 @@ public class Function extends Token {
         setPositionInPredicate(position);
         this.A = A;
         this.ns = new NumberSystem(number_system);
-        if (A.getArity() != getArity())
-            throw new RuntimeException("function " + name + " requires " + A.getArity() + " arguments: char at " + getPositionInPredicate());
+        super.validateArity(name, A.getArity());
     }
 
     public String toString() {
@@ -55,11 +54,8 @@ public class Function extends Token {
     }
 
     public void act(Stack<Expression> S, boolean print, String prefix, StringBuilder log) {
-        if (S.size() < getArity()) throw new RuntimeException("function " + this + " requires " + getArity() + " arguments");
-        Stack<Expression> temp = new Stack<>();
-        for (int i = 0; i < getArity(); i++) {
-            temp.push(S.pop());
-        }
+        super.validateArity(S, "function ", " arguments");
+        Stack<Expression> temp = reverseStack(S);
         String stringValue = this + "(";
         UtilityMethods.logAndPrint(print, prefix + "computing " + stringValue + "...)", log);
         Automaton M = new Automaton(true);
@@ -72,12 +68,18 @@ public class Function extends Token {
         stringValue += UtilityMethods.genericListString(expressions, ",") + "))";
         for (int i = 0; i < getArity(); i++) {
             Expression expression = expressions.get(i);
-            switch (expression) {
-                case VariableExpression ve -> M = ve.act(print, prefix, log, this, this.ns, identifiers, M, quantify);
-                case ArithmeticExpression ae -> M = ae.act(print, prefix, log, identifiers, M, quantify);
-                case NumberLiteralExpression ne -> M = ne.act(print, prefix, log, this, identifiers, quantify, M);
-                case AutomatonExpression ae -> M = ae.act(print, prefix, name, log, i, M, identifiers);
-                case null, default -> expression.act("argument " + (i + 1) + " of function " + this);
+            if (expression instanceof VariableExpression ve) {
+                M = ve.act(print, prefix, log, this, this.ns, identifiers, M, quantify);
+            } else if (expression instanceof ArithmeticExpression ae) {
+                M = ae.act(print, prefix, log, identifiers, M, quantify);
+            } else if (expression instanceof NumberLiteralExpression ne) {
+                M = ne.act(print, prefix, log, this, identifiers, quantify, M);
+            } else if (expression instanceof AutomatonExpression ae) {
+                M = ae.act(print, prefix, name, log, i, M, identifiers);
+            } else if (expression == null) {
+                throw new IllegalArgumentException("Expression is null");
+            } else {
+                expression.act("argument " + (i + 1) + " of function " + this);
             }
         }
         A.bind(identifiers);

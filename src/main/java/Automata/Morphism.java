@@ -52,7 +52,7 @@ public class Morphism {
     public TreeMap<Integer, List<Integer>> mapping;
 
     // The set of values in the image of the morphism
-    public HashSet<Integer> range;
+    public Set<Integer> range;
 
     public Morphism() {}
     /**

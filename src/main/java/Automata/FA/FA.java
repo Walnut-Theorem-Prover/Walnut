@@ -23,6 +23,7 @@ import MRC.Model.MyNFA;
 import Main.ExceptionHelper;
 import Main.UtilityMethods;
 import Token.RelationalOperator;
+import dk.brics.automaton.RegExp;
 import dk.brics.automaton.State;
 import dk.brics.automaton.Transition;
 import it.unimi.dsi.fastutil.ints.*;
@@ -33,6 +34,7 @@ import java.util.*;
 
 /**
  * Abstraction of NFA/DFA/DFAO code from Automaton.
+ * TODO: fully abstract transitions such that this is easily an NFA, DFA, or anywhere in between.
  */
 public class FA implements Cloneable {
   private static int AutomataIndex = 0; // Indicates the index of the automata in a particular run
@@ -62,6 +64,14 @@ public class FA implements Cloneable {
   }
   public static int IncrementIndex() {
     return AutomataIndex++;
+  }
+
+  public void initBasicFA(IntList O) {
+    this.O = new IntArrayList(O);
+    Q = O.size();
+    for(int i = 0; i < Q; i++) {
+      nfaD.add(new Int2ObjectRBTreeMap<>());
+    }
   }
 
   public boolean equals(FA M) {
@@ -157,13 +167,13 @@ public class FA implements Cloneable {
     N.O.add(1); // The newly added state is a final state.
     N.nfaD.add(new Int2ObjectRBTreeMap<>());
     N.setQ0(newState);
-    N.setQ(N.getQ() + 1);
-    Int2ObjectRBTreeMap<IntList> sourceMap = automaton.nfaD.get(automaton.getQ0());
+    N.Q = N.Q + 1;
+    Set<Int2ObjectMap.Entry<IntList>> sourceEntrySet = automaton.getEntriesNfaD(automaton.getQ0());
     for (int q = 0; q < N.getQ(); q++) {
       if (N.O.getInt(q) == 0) continue;  // only handle final states
       // Merge transitions from automaton's initial state's transitions
       Int2ObjectRBTreeMap<IntList> destMap = N.nfaD.get(q);
-      for (Int2ObjectMap.Entry<IntList> entry : sourceMap.int2ObjectEntrySet()) {
+      for (Int2ObjectMap.Entry<IntList> entry : sourceEntrySet) {
         destMap.computeIfAbsent(entry.getIntKey(), k -> new IntArrayList()).addAll(entry.getValue());
       }
     }
@@ -174,7 +184,7 @@ public class FA implements Cloneable {
       for (int q = 0; q < other.getQ(); q++) {
         N.O.add(other.O.getInt(q)); // add the output
         N.nfaD.add(new Int2ObjectRBTreeMap<>());
-        for (Int2ObjectMap.Entry<IntList> entry : other.nfaD.get(q).int2ObjectEntrySet()) {
+        for (Int2ObjectMap.Entry<IntList> entry : other.getEntriesNfaD(q)) {
           int symbol = entry.getIntKey();
           IntList oldDestinations = entry.getValue();
           IntArrayList newTransitionMap = new IntArrayList(oldDestinations.size());
@@ -193,7 +203,7 @@ public class FA implements Cloneable {
         }
 
         // otherwise, it is a final state, and we add our transitions.
-        for (Int2ObjectMap.Entry<IntList> entry : N.nfaD.get(originalQ).int2ObjectEntrySet()) {
+        for (Int2ObjectMap.Entry<IntList> entry : N.getEntriesNfaD(originalQ)) {
           N.nfaD.get(q).computeIfAbsent(entry.getIntKey(), s -> new IntArrayList()).addAll(entry.getValue());
         }
       }
@@ -236,7 +246,7 @@ public class FA implements Cloneable {
     int i = 1;
     while (!state_queue.isEmpty()) {
       int q = state_queue.poll();
-      for (Int2ObjectMap.Entry<IntList> entry : nfaD.get(q).int2ObjectEntrySet()) {
+      for (Int2ObjectMap.Entry<IntList> entry : this.getEntriesNfaD(q)) {
         for (int p : entry.getValue()) {
           if (!map.containsKey(p)) {
             map.put(p, i++);
@@ -274,7 +284,7 @@ public class FA implements Cloneable {
     nfaD = newD;
 
     for (int q = 0; q < Q; q++) {
-      for (Int2ObjectMap.Entry<IntList> entry : nfaD.get(q).int2ObjectEntrySet()) {
+      for (Int2ObjectMap.Entry<IntList> entry : this.getEntriesNfaD(q)) {
         IntList newDestination = new IntArrayList();
         for (int p : entry.getValue()) {
           if (map.containsKey(p)) {
@@ -292,18 +302,33 @@ public class FA implements Cloneable {
     this.canonized = true;
   }
 
-  public void addOffsetToInputs(int offset) {
+  private void addOffsetToInputs(int offset) {
       List<Int2ObjectRBTreeMap<IntList>> new_d = new ArrayList<>(Q);
       for (int q = 0; q < Q; q++) new_d.add(new Int2ObjectRBTreeMap<>());
       for (int q = 0; q < Q; q++) {
-        for (Int2ObjectMap.Entry<IntList> entry : nfaD.get(q).int2ObjectEntrySet()) {
+        for (Int2ObjectMap.Entry<IntList> entry : this.getEntriesNfaD(q)) {
           new_d.get(q).put(entry.getIntKey() + offset, entry.getValue());
         }
       }
       nfaD = new_d;
   }
 
-  public void convertBrics(List<Integer> alphabet, dk.brics.automaton.Automaton M) {
+  public void convertBrics(List<Integer> alphabet, String regularExpression) {
+    long timeBefore = System.currentTimeMillis();
+    // For example if alphabet = {2,4,1} then intersectingRegExp = [241]*
+    StringBuilder intersectingRegExp = new StringBuilder("[");
+    for (int x : alphabet) {
+      if (x < 0 || x > 9) {
+        throw new RuntimeException("the input alphabet of an automaton generated from a regular expression must be a subset of {0,1,...,9}");
+      }
+      intersectingRegExp.append(x);
+    }
+    intersectingRegExp.append("]*");
+    regularExpression = "(" + regularExpression + ")&" + intersectingRegExp;
+    dk.brics.automaton.RegExp RE = new RegExp(regularExpression);
+    dk.brics.automaton.Automaton M = RE.toAutomaton();
+    M.minimize();
+
     alphabetSize = alphabet.size();
     List<State> setOfStates = new ArrayList<>(M.getStates());
     Q = setOfStates.size();
@@ -314,7 +339,7 @@ public class FA implements Cloneable {
       Int2ObjectRBTreeMap<IntList> currentStatesTransitions = new Int2ObjectRBTreeMap<>();
       nfaD.add(currentStatesTransitions);
       for (Transition t : state.getTransitions()) {
-        for (char a = UtilityMethods.max(t.getMin(), '0'); a <= UtilityMethods.min(t.getMax(), '9'); a++) {
+        for (char a = (char)Math.max(t.getMin(), '0'); a <= Math.min(t.getMax(), '9'); a++) {
           if (alphabet.contains(a - '0')) {
             IntList dest = new IntArrayList();
             dest.add(setOfStates.indexOf(t.getDest()));
@@ -323,9 +348,31 @@ public class FA implements Cloneable {
         }
       }
     }
+    long timeAfter = System.currentTimeMillis();
+    String msg = "computed ~:" + Q + " states - " + (timeAfter - timeBefore) + "ms";
+    System.out.println(msg);
   }
 
-  public void setFromBricsAutomaton(dk.brics.automaton.Automaton M, List<State> setOfStates) {
+  public void setFromBricsAutomaton(int alphabetSize, String regularExpression) {
+    if (alphabetSize > ((1 << Character.SIZE) - 1)) {
+      throw new RuntimeException("size of input alphabet exceeds the limit of " + ((1 << Character.SIZE) - 1));
+    }
+    long timeBefore = System.currentTimeMillis();
+    StringBuilder intersectingRegExp = new StringBuilder("[");
+    for (int x = 0; x < alphabetSize; x++) {
+      char nextChar = (char) (128 + x);
+      intersectingRegExp.append(nextChar);
+    }
+    intersectingRegExp.append("]*");
+    regularExpression = "(" + regularExpression + ")&" + intersectingRegExp;
+    dk.brics.automaton.RegExp RE = new RegExp(regularExpression);
+    dk.brics.automaton.Automaton M = RE.toAutomaton();
+    M.minimize();
+    // We use packagedk.brics.automaton for automata minimization.
+    if (!M.isDeterministic())
+      throw ExceptionHelper.bricsNFA();
+    List<State> setOfStates = new ArrayList<>(M.getStates());
+
     Q = setOfStates.size();
     q0 = setOfStates.indexOf(M.getInitialState());
     O = new IntArrayList();
@@ -343,34 +390,53 @@ public class FA implements Cloneable {
         }
       }
     }
+    // We added 128 to the encoding of every input vector before to avoid reserved characters, now we subtract it again
+    // to get back the standard encoding
+    this.addOffsetToInputs(-128);
+    long timeAfter = System.currentTimeMillis();
+    String msg = "computed ~:" + getQ() + " states - " + (timeAfter - timeBefore) + "ms";
+    System.out.println(msg);
   }
 
-  public void totalize() {
-      //we first check if the automaton is totalized
-      boolean totalized = true;
-      for (int q = 0; q < Q; q++) {
-          for (int x = 0; x < alphabetSize; x++) {
-              if (!nfaD.get(q).containsKey(x)) {
-                // point every missing transition to new state
-                IntList nullState = new IntArrayList();
-                nullState.add(Q);
-                nfaD.get(q).put(x, nullState);
-                totalized = false;
-              }
-          }
-      }
-      if (!totalized) {
-        // Add new state, point new state to itself
-        int newState = Q;
-        O.add(0);
-        Q++;
-        nfaD.add(new Int2ObjectRBTreeMap<>());
-        for (int x = 0; x < alphabetSize; x++) {
+  /**
+   * This method adds a dead state to totalize the transition function
+   *
+   */
+  public void totalize(boolean print, String prefix, StringBuilder log) {
+    long timeBefore = System.currentTimeMillis();
+    UtilityMethods.logMessage(print, prefix + "totalizing:" + Q + " states", log);
+    totalize();
+    long timeAfter = System.currentTimeMillis();
+    UtilityMethods.logMessage(print, prefix + "totalized:" + Q + " states - " + (timeAfter - timeBefore) + "ms", log);
+  }
+
+  private void totalize() {
+    //we first check if the automaton is totalized
+    boolean totalized = true;
+    int deadState = Q; // may or may not be created
+
+    for (int q = 0; q < Q; q++) {
+      for (int x = 0; x < alphabetSize; x++) {
+        if (!nfaD.get(q).containsKey(x)) {
+          // point missing transitions to new state
           IntList nullState = new IntArrayList();
-          nullState.add(newState);
-          nfaD.get(newState).put(x, nullState);
+          nullState.add(deadState);
+          nfaD.get(q).put(x, nullState);
+          totalized = false;
         }
       }
+    }
+    if (!totalized) {
+      // Add new non-accepting state that points to itself
+      O.add(0);
+      Q++;
+      nfaD.add(new Int2ObjectRBTreeMap<>());
+      for (int x = 0; x < alphabetSize; x++) {
+        IntList nullState = new IntArrayList();
+        nullState.add(deadState);
+        nfaD.get(deadState).put(x, nullState);
+      }
+    }
   }
 
   /**
@@ -390,8 +456,7 @@ public class FA implements Cloneable {
       if (!totalized) {
         msg = prefix + "Added distinguished dead state with output of " + (min - 1) + ": " + getQ() + " states - " + (timeAfter - timeBefore) + "ms";
       }
-      log.append(msg + System.lineSeparator());
-      System.out.println(msg);
+      UtilityMethods.logMessage(true, msg, log);
     }
     return !totalized;
   }
@@ -421,7 +486,7 @@ public class FA implements Cloneable {
       if (nfaD != null) {
         // reverse NFA transitions
         for (int q = 0; q < Q; q++) {
-          for (Int2ObjectMap.Entry<IntList> entry : nfaD.get(q).int2ObjectEntrySet()) {
+          for (Int2ObjectMap.Entry<IntList> entry : this.getEntriesNfaD(q)) {
             for (int dest : entry.getValue()) {
               addTransition(newNfaD, dest, entry.getIntKey(), q);
             }
@@ -531,7 +596,7 @@ public class FA implements Cloneable {
     fa.canonized = this.canonized;
     for (int q = 0; q < fa.Q; q++) {
       fa.nfaD.add(new Int2ObjectRBTreeMap<>());
-      for (Int2ObjectMap.Entry<IntList> entry : nfaD.get(q).int2ObjectEntrySet()) {
+      for (Int2ObjectMap.Entry<IntList> entry : this.getEntriesNfaD(q)) {
         fa.nfaD.get(q).put(entry.getIntKey(), new IntArrayList(entry.getValue()));
       }
     }
@@ -578,7 +643,7 @@ public class FA implements Cloneable {
     }
     dk.brics.automaton.State initialState = setOfStates.get(getQ0());
     for (int q = 0; q < Q; q++) {
-      for (Int2ObjectMap.Entry<IntList> entry : nfaD.get(q).int2ObjectEntrySet()) {
+      for (Int2ObjectMap.Entry<IntList> entry : this.getEntriesNfaD(q)) {
         for (int dest : entry.getValue()) {
           setOfStates.get(q).addTransition(new dk.brics.automaton.Transition((char) entry.getIntKey(), setOfStates.get(dest)));
         }

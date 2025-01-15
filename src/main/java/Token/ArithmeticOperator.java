@@ -46,7 +46,7 @@ public class ArithmeticOperator extends Operator {
     }
 
     public void act(Stack<Expression> S, boolean print, String prefix, StringBuilder log) {
-        if (S.size() < getArity()) throw new RuntimeException("operator " + op + " requires " + getArity() + " operands");
+        super.validateArity(S);
         Expression b = S.pop();
         if (!isValidArithmeticOperator(b))
             throw ExceptionHelper.invalidOperator(op, b);
@@ -59,7 +59,7 @@ public class ArithmeticOperator extends Operator {
                 S.push(new AlphabetLetterExpression("@" + (-b.constant), -b.constant));
                 return;
             } else if (b instanceof WordExpression) {
-                b.wordAutomaton.applyOperator(0, "_", print, prefix, log);
+                b.wordAutomaton.applyOperator(0, "_", false, print, prefix, log);
                 S.push(b);
                 return;
             }
@@ -89,12 +89,12 @@ public class ArithmeticOperator extends Operator {
             return;
         }
         if (a instanceof WordExpression && (b instanceof AlphabetLetterExpression || b instanceof NumberLiteralExpression)) {
-            a.wordAutomaton.applyOperator(op, b.constant, print, prefix, log);
+            a.wordAutomaton.applyOperator(b.constant, op, true, print, prefix, log);
             S.push(a);
             return;
         }
         if ((a instanceof AlphabetLetterExpression || a instanceof NumberLiteralExpression) && b instanceof WordExpression) {
-            b.wordAutomaton.applyOperator(a.constant, op, print, prefix, log);
+            b.wordAutomaton.applyOperator(a.constant, op, false, print, prefix, log);
             S.push(b);
             return;
         }
@@ -192,6 +192,33 @@ public class ArithmeticOperator extends Operator {
             }
             case "*" -> {
                 return a * b;
+            }
+            default -> throw ExceptionHelper.unexpectedOperator(op);
+        }
+    }
+
+    /**
+     * Note differences:
+     * 1. Division behavior: -5 / 2 = -2 because integer division drops the fractional part, floorDiv(-5, 2) = -3.
+     * 2. "_" returns -b.
+     */
+    public static int arith2(String op, int a, int b) {
+        switch (op) {
+            case "+" -> {
+                return a + b;
+            }
+            case "-" -> {
+                return a - b;
+            }
+            case "/" -> {
+                if (b == 0) throw ExceptionHelper.divisionByZero();
+                return a / b;
+            }
+            case "*" -> {
+                return a * b;
+            }
+            case "_" -> {
+                return - b;
             }
             default -> throw ExceptionHelper.unexpectedOperator(op);
         }

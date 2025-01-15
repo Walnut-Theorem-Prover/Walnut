@@ -19,7 +19,6 @@
 package Token;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Stack;
 
@@ -53,7 +52,7 @@ public class LogicalOperator extends Operator {
     }
 
     public void act(Stack<Expression> S, boolean print, String prefix, StringBuilder log) {
-        if (S.size() < getArity()) throw new RuntimeException("operator " + op + " requires " + getArity() + " operands");
+        super.validateArity(S);
 
         if (this.isNegation(op) || op.equals("`")) {
             actNegationOrReverse(S, print, prefix, log);
@@ -107,17 +106,12 @@ public class LogicalOperator extends Operator {
 
     private void actQuantifier(Stack<Expression> S, boolean print, String prefix, StringBuilder log) {
         StringBuilder stringValue = new StringBuilder("(" + op + " ");
-        Stack<Expression> temp = new Stack<>();
-        List<Expression> operands = new ArrayList<>();
+        Stack<Expression> temp = reverseStack(S);
         Automaton M = null;
-        for (int i = 0; i < getArity(); i++) {
-            temp.push(S.pop());
-        }
         UtilityMethods.logAndPrint(print, prefix + "computing quantifier " + op, log);
         List<String> identifiersToQuantify = new ArrayList<>();
         for (int i = 0; i < getArity(); i++) {
-            operands.add(temp.pop());
-            Expression operand = operands.get(i);
+            Expression operand = temp.pop();
             if (i < getArity() - 1) {
                 if (i == 0)
                     stringValue.append(operand).append(" ");

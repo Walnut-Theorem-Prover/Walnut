@@ -19,29 +19,18 @@
 package Main;
 
 import java.io.File;
-import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 
 /**
  * This class contains a number of useful static methods.
- *
- * @author Hamoon
  */
 public class UtilityMethods {
     static String ADDRESS_FOR_UNIT_TEST_INTEGRATION_TEST_RESULTS = "src/test/resources/integrationTests/";
 
     private static final Pattern PATTERN_NUMBER = Pattern.compile("^\\d+$");
     private static final Pattern PATTERN_NEG_NUMBER = Pattern.compile("^neg_\\d+$");
-
-    public static char min(char a, char b) {
-        return a < b ? a : b;
-    }
-
-    public static char max(char a, char b) {
-        return a < b ? b : a;
-    }
 
     /**
      * checks if a string is \\d+
@@ -276,7 +265,7 @@ public class UtilityMethods {
 
     public static File validateFile(String path) {
         File file = new File(path);
-        if (!file.exists() || !file.isFile()) {
+        if (!file.isFile()) {
             throw new IllegalArgumentException("File does not exist or is not a valid file: " + path);
         }
         return file;

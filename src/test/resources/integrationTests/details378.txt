@@ -101,7 +101,7 @@ j>=1:3 states - 1ms
       computed cross product:4 states - 0ms
       Minimizing: 4 states.
       Minimized:4 states - 0ms.
-     compared (=):2 states - 0ms
+     compared (=):4 states - 0ms
      computing &:4 states - 16 states
       Computing cross product:4 states - 16 states
       computed cross product:34 states - 1ms

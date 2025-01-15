@@ -36,8 +36,7 @@ public class Word extends Token {
         setPositionInPredicate(position);
         this.wordAutomaton = wordAutomaton;
         setArity(indexCount);
-        if (wordAutomaton.getArity() != getArity())
-            throw new RuntimeException("word " + name + " requires " + wordAutomaton.getArity() + " indices: char at " + getPositionInPredicate());
+        super.validateArity(name, wordAutomaton.getArity());
     }
 
     public String toString() {
@@ -45,11 +44,8 @@ public class Word extends Token {
     }
 
     public void act(Stack<Expression> S, boolean print, String prefix, StringBuilder log) {
-        if (S.size() < getArity()) throw new RuntimeException("word " + this + " requires " + getArity() + " indices");
-        Stack<Expression> temp = new Stack<>();
-        for (int i = 1; i <= getArity(); i++) {
-            temp.push(S.pop());
-        }
+        super.validateArity(S, "word ", " indices");
+        Stack<Expression> temp = reverseStack(S);
         StringBuilder stringValue = new StringBuilder(name);
         UtilityMethods.logAndPrint(print, prefix + "computing " + stringValue + "[...]", log);
         List<String> identifiers = new ArrayList<>();
@@ -58,13 +54,20 @@ public class Word extends Token {
         for (int i = 0; i < getArity(); i++) {
             Expression expression = temp.pop();
             stringValue.append("[").append(expression).append("]");
-            switch (expression) {
-                case VariableExpression ve -> M = ve.act(print, prefix, log, this, wordAutomaton.getNS().get(i), identifiers, M, quantify);
-                case ArithmeticExpression ae -> M = ae.act(print, prefix, log, identifiers, M, quantify);
-                case NumberLiteralExpression ne -> M = ne.act(print, prefix, log, this, identifiers, quantify, M);
-                case AutomatonExpression ae -> M = ae.act(print, prefix, name, log, i, M, identifiers);
-                case null, default -> expression.act("argument " + (i + 1) + " of function " + this);
+            if (expression instanceof VariableExpression ve) {
+                M = ve.act(print, prefix, log, this, wordAutomaton.getNS().get(i), identifiers, M, quantify);
+            } else if (expression instanceof ArithmeticExpression ae) {
+                M = ae.act(print, prefix, log, identifiers, M, quantify);
+            } else if (expression instanceof NumberLiteralExpression ne) {
+                M = ne.act(print, prefix, log, this, identifiers, quantify, M);
+            } else if (expression instanceof AutomatonExpression ae) {
+                M = ae.act(print, prefix, name, log, i, M, identifiers);
+            } else if (expression == null) {
+                throw new IllegalArgumentException("Expression is null");
+            } else {
+                expression.act("argument " + (i + 1) + " of function " + this);
             }
+
         }
         wordAutomaton.bind(identifiers);
         S.push(new WordExpression(stringValue.toString(), wordAutomaton, M, quantify));

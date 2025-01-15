@@ -1,3 +1,20 @@
+/*	 Copyright 2016 Hamoon Mousavi, 2025 John Nicol
+ *
+ * 	 This file is part of Walnut.
+ *
+ *   Walnut is free software: you can redistribute it and/or modify
+ *   it under the terms of the GNU General Public License as published by
+ *   the Free Software Foundation, either version 3 of the License, or
+ *   (at your option) any later version.
+ *
+ *   Walnut is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU General Public License for more details.
+ *
+ *   You should have received a copy of the GNU General Public License
+ *   along with Walnut.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
 package Automata;
 
@@ -10,17 +27,15 @@ import java.io.*;
 import java.util.*;
 import java.util.function.Predicate;
 
-import dk.brics.automaton.RegExp;
-import dk.brics.automaton.State;
+import Token.ArithmeticOperator;
 import it.unimi.dsi.fastutil.ints.*;
 
 import static Automata.ParseMethods.PATTERN_WHITESPACE;
 
 /**
- * This class can represent different types of automaton: deterministic/non-deterministic and/or automata with output/automata without output.<bf>
+ * This class can represent different NFA, NFAO, DFA, DFAO.<bf>
  * There are also two special automata: true automaton, which accepts everything, and false automaton, which accepts nothing.
  * To represent true/false automata we use the field members: TRUE_FALSE_AUTOMATON and TRUE_AUTOMATA. <br>
- * Let's forget about special true/false automata, and talk about ordinary automata:
  * Inputs to an ordinary automaton are n-tuples. Each coordinate has its own alphabet. <br>
  * Let's see this by means of an example: <br>
  * Suppose our automaton has 3-tuples as its input: <br>
@@ -38,22 +53,19 @@ import static Automata.ParseMethods.PATTERN_WHITESPACE;
  * 2 = (1,-1,1)<br>
  * ...<br>
  * 11 = (2,1,3)<br>
- * We use this encoded numbers in our representation of automaton to refer to a particular input. For example
- * we might say on (2,1,3) we go from state 5 to state 0 by setting d.get(5) = (11,[5]). We'll see more on d (transition function)
- * -Now what about states? Q stores the number of states. For example when Q = 3, the set of states is {0,1,2}.
- * -Initial state: q0 is the initial state. For example we might have q0 = 1.
- * -Now field member O is an important one: O stores the output of an state. Now in the case of DFA/NFA, a value of non-zero
- * in O means a final state, and a value of zero means a non-final state. So for example we might have O = {1,-1,0} which means
- * that the first two states are final states. In the case of an automaton with output O simply represents output of an state.
- * Continuing with this example, in the case of automaton with output,
- * the first state has output 1, the second has output -1, and the third one has output 0. As you
- * have guessed the output alphabet can be any finite subset of integers. <br>
+ * We use this encoding in our representation of automaton to refer to a particular input. For example
+ * we might say on (2,1,3) we go from state 5 to state 0 by setting d.get(5) = (11,[5]).
+ * Q stores the number of states. For example when Q = 3, the set of states is {0,1,2}.
+ * q0 is the initial state. Multiple initial states aren't supported.
+ * O stores the output of a state. In the case of DFA/NFA, a nonzero value means a final state,
+ * and a value of zero means a non-final state.
+ * In the case of automaton with output,
+ * the first state has output 1, the second has output -1, and the third one has output 0.
+ * The output alphabet can be any finite subset of integers. <br>
  * We might want to give labels to inputs. For example if we set label = ["x","y","z"], the label of the first input is "x".
- * Then in future, we can refer to this first input by the label "x". <br>
- * -The transition function is d which is a TreeMap<integer,List<Integer>> for each state. For example we might have
+ * Then in the future, we can refer to this first input by the label "x". <br>
+ * -The transition function is d which is a Map<integer,List<Integer>> for each state. For example we might have
  * d.get(1) = {(0,[0]),(1,[1,2]),...} which means that state 1 goes to state 0 on input 0, and goes to states 1 and 2 on 1,....
- *
- * @author Hamoon
  */
 public class Automaton {
 
@@ -72,18 +84,20 @@ public class Automaton {
     IntList combineOutputs;
 
     /**
-     * We would like to give label to inputs. For example we might want to call the first input by a and so on.
+     * We would like to give label to inputs.
      * As an example when label = ["a","b","c"], the label of the first, second, and third inputs are a, b, and c respectively.
-     * These labels are then useful when we quantify an automaton. So for example, in a predicate like E a f(a,b,c) we are having an automaton
-     * of three inputs, where the first, second, and third inputs are labeled "a","b", and "c". Therefore E a f(a,b,c) says, we want to
-     * do an existential quantifier on the first input.
-     */ /**
-     * Default constructor. It just initializes the field members.
+     * These labels are then useful when we quantify an automaton.
+     * For example, in a predicate like E a f(a,b,c) we have an automaton
+     * of three inputs, where the inputs are labeled "a","b", and "c".
+     * E a f(a,b,c) says, we want to do an existential quantifier on the first input.
      */
     public List<String> getLabel() {
         return label;
     }
 
+    /*
+     * Default constructor. It just initializes the field members.
+     */
     public Automaton() {
         fa = new FA();
         setA(new ArrayList<>());
@@ -97,12 +111,12 @@ public class Automaton {
      * A true automaton, is an automaton that accepts everything. A false automaton is an automaton that accepts nothing.
      * Therefore, M and false is false for every automaton M. We also have that M or true is true for every automaton M.
      *
-     * @param true_automaton
+     * @param truthValue - truth value of special automaton
      */
-    public Automaton(boolean true_automaton) {
+    public Automaton(boolean truthValue) {
         fa = new FA();
         fa.setTRUE_FALSE_AUTOMATON(true);
-        this.fa.setTRUE_AUTOMATON(true_automaton);
+        this.fa.setTRUE_AUTOMATON(truthValue);
     }
 
     /**
@@ -115,41 +129,19 @@ public class Automaton {
      * automaton accepts (1|2)*<br>
      * <p>
      * An important thing to note here is that the automaton being constructed
-     * with this constructor, has only one input, and it is of type Type.alphabetLetter.
+     * with this constructor, has only one input, and it is of type AlphabetLetter.
      */
     public Automaton(String regularExpression, List<Integer> alphabet) {
         this();
+        getNS().add(null);
         if (alphabet == null || alphabet.isEmpty()) throw new RuntimeException("empty alphabet is not accepted");
-        long timeBefore = System.currentTimeMillis();
         alphabet = new ArrayList<>(alphabet);
-        getNS().add(null);
+        //The alphabet is a set and does not allow repeated elements. However, the user might enter the command
+        //reg myreg {1,1,0,0,0} "10*"; and therefore alphabet = [1,1,0,0,0]. So remove duplicates.
         UtilityMethods.removeDuplicates(alphabet);
-        /**
-         * For example if alphabet = {2,4,1} then intersectingRegExp = [241]*
-         */
-        String intersectingRegExp = "[";
-        for (int x : alphabet) {
-            if (x < 0 || x > 9) {
-                throw new RuntimeException("the input alphabet of an automaton generated from a regular expression must be a subset of {0,1,...,9}");
-            }
-            intersectingRegExp += x;
-        }
-        intersectingRegExp += "]*";
-        regularExpression = "(" + regularExpression + ")&" + intersectingRegExp;
-        dk.brics.automaton.RegExp RE = new RegExp(regularExpression);
-        dk.brics.automaton.Automaton M = RE.toAutomaton();
-        M.minimize();
-        /**
-         * Recall that the alphabet is a set and does not allow repeated elements. However, the user might enter the command
-         * reg myreg {1,1,0,0,0} "10*"; and therefore alphabet = [1,1,0,0,0]. So we need remove duplicates before we
-         * move forward.
-         */
         getA().add(alphabet);
-        getNS().add(null);
-        this.fa.convertBrics(alphabet, M);
-        long timeAfter = System.currentTimeMillis();
-        String msg = "computed ~:" + getQ() + " states - " + (timeAfter - timeBefore) + "ms";
-        System.out.println(msg);
+
+        this.fa.convertBrics(alphabet, regularExpression);
     }
 
     public Automaton(
@@ -163,28 +155,8 @@ public class Automaton {
     // This handles the generalised case of vectors such as "[0,1]*[0,0][0,1]"
     public Automaton(String regularExpression, Integer alphabetSize) {
         this();
-
-        if (alphabetSize > ((1 << Character.SIZE) - 1)) {
-            throw new RuntimeException("size of input alphabet exceeds the limit of " + ((1 << Character.SIZE) - 1));
-        }
-        long timeBefore = System.currentTimeMillis();
-        String intersectingRegExp = "[";
-        for (int x = 0; x < alphabetSize; x++) {
-            char nextChar = (char) (128 + x);
-            intersectingRegExp += nextChar;
-        }
-        intersectingRegExp += "]*";
-        regularExpression = "(" + regularExpression + ")&" + intersectingRegExp;
-        dk.brics.automaton.RegExp RE = new RegExp(regularExpression);
-        dk.brics.automaton.Automaton M = RE.toAutomaton();
-        M.minimize();
-        this.setThisAutomatonToRepresent(M);
-        // We added 128 to the encoding of every input vector before to avoid reserved characters, now we subtract it again
-        // to get back the standard encoding
-        this.fa.addOffsetToInputs(-128);
-        long timeAfter = System.currentTimeMillis();
-        String msg = "computed ~:" + getQ() + " states - " + (timeAfter - timeBefore) + "ms";
-        System.out.println(msg);
+        fa.setCanonized(false);
+        this.fa.setFromBricsAutomaton(alphabetSize, regularExpression);
     }
 
     /**
@@ -392,7 +364,7 @@ public class Automaton {
         return first;
     }
 
-    private static Automaton readAutomatonFromFile(String automataName) {
+    public static Automaton readAutomatonFromFile(String automataName) {
       return new Automaton(Session.getReadFileForAutomataLibrary(automataName + ".txt"));
     }
 
@@ -458,21 +430,21 @@ public class Automaton {
         boolean switchNS = false;
         List<NumberSystem> numberSystems = new ArrayList<>(getNS().size());
         for (int i = 0; i < getNS().size(); i++) {
-            if (getNS().get(i) != null && getNS().get(i).useAllRepresentations()) {
+            NumberSystem ns = getNS().get(i);
+            if (ns != null && ns.useAllRepresentations()) {
                 switchNS = true;
                 int max = Collections.max(getA().get(i));
-                numberSystems.add(new NumberSystem((getNS().get(i).isMsd() ? "msd_" : "lsd_") + (max + 1)));
+                numberSystems.add(new NumberSystem((ns.isMsd() ? "msd_" : "lsd_") + (max + 1)));
             } else {
-                numberSystems.add(getNS().get(i));
+                numberSystems.add(ns);
             }
         }
 
         if (switchNS) {
             setAlphabet(false, numberSystems, getA(), print, prefix, log);
-            // do this whether or not you print!
+            // always print this
             String msg = prefix + "WARN: The alphabet of the resulting automaton was changed. Use the alphabet command to change as desired.";
-            log.append(msg + System.lineSeparator());
-            System.out.println(msg);
+            UtilityMethods.logMessage(true, msg, log);
         }
     }
 
@@ -554,8 +526,7 @@ public class Automaton {
                 nsNames.add(ns == null ? alphabet.get(i).toString() : ns.toString());
             }
             String msg = prefix + "setting alphabet to " + nsNames;
-            log.append(msg + System.lineSeparator());
-            System.out.println(msg);
+            UtilityMethods.logMessage(true, msg, log);
         }
 
         Automaton M = clone();
@@ -728,22 +699,10 @@ public class Automaton {
 
         for (int i = 0; i < inputs.size(); i++) {
             if (!inputs.get(i).isEmpty()) {
-                if (getNS().get(i) == null)
+                NumberSystem ns = getNS().get(i);
+                if (ns == null)
                     throw new RuntimeException("Number system for input " + i + " must be defined.");
-                NumberSystem negativeNumberSystem;
-                if (getNS().get(i).is_neg) {
-                    negativeNumberSystem = getNS().get(i);
-                } else {
-                    try {
-                        negativeNumberSystem = getNS().get(i).negative_number_system();
-                    } catch (RuntimeException e) {
-                        throw new RuntimeException("Negative number system for " + getNS().get(i) + " must be defined");
-                    }
-                }
-                negativeNumberSystem.setBaseChange();
-                if (negativeNumberSystem.baseChange == null) {
-                    throw new RuntimeException("Number systems " + getNS().get(i) + " and " + negativeNumberSystem + " cannot be compared.");
-                }
+                NumberSystem negativeNumberSystem = ns.determineNegativeNS();
 
                 Automaton baseChange = negativeNumberSystem.baseChange.clone();
                 String a = "a" + i, b = "b" + i, c = "c" + i;
@@ -786,8 +745,8 @@ public class Automaton {
             UtilityMethods.logMessage(print, prefix + "computing =>:" + first.getQ() + " states - " + next.getQ() + " states", log);
 
             // crossProduct requires both automata to be totalized, otherwise it has no idea which cartesian states to transition to
-            AutomatonLogicalOps.totalize(first.fa, print, prefix + " ", log);
-            AutomatonLogicalOps.totalize(next.fa, print, prefix + " ", log);
+            first.fa.totalize(print, prefix + " ", log);
+            next.fa.totalize(print, prefix + " ", log);
             first = AutomatonLogicalOps.crossProduct(first, next, "first", print, prefix + " ", log);
             first = first.minimizeWithOutput(print, prefix + " ", log);
 
@@ -910,98 +869,26 @@ public class Automaton {
         labelSorted = M.labelSorted;
     }
 
-
     /**
      * The operator can be one of "_" "+" "-" "/" "*".
      * For example if operator = "+" then this method returns
-     * a DFAO that outputs this[x]+o on input x.
+     * a DFAO that outputs o+this[x] (or this[x]+p) on input x.
      * To be used only when this automaton and M are DFAOs (words).
-     *
-     * @param operator
      */
-    public void applyOperator(String operator, int o, boolean print, String prefix, StringBuilder log) {
+    public void applyOperator(int o, String operator, boolean reverse, boolean print, String prefix, StringBuilder log) {
         long timeBefore = System.currentTimeMillis();
         UtilityMethods.logMessage(print, prefix + "applying operator (" + operator + "):" + getQ() + " states", log);
         for (int p = 0; p < getQ(); p++) {
             IntList thisO = this.getO();
             int thisP = thisO.getInt(p);
-            switch (operator) {
-                case "+":
-                    thisO.set(p, thisP + o);
-                    break;
-                case "-":
-                    thisO.set(p, thisP - o);
-                    break;
-                case "*":
-                    thisO.set(p, thisP * o);
-                    break;
-                case "/":
-                    if (o == 0) throw ExceptionHelper.divisionByZero();
-                    thisO.set(p, thisP / o);
-                    break;
-                case "_":
-                    thisO.set(p, -thisP);
-                    break;
-            }
+            thisO.set(p,
+                reverse ? ArithmeticOperator.arith2(operator, thisP, o) : ArithmeticOperator.arith2(operator, o, thisP));
         }
         minimizeSelfWithOutput(print, prefix + " ", log);
         long timeAfter = System.currentTimeMillis();
         UtilityMethods.logMessage(print, prefix + "applied operator (" + operator + "):" + getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
     }
 
-    /**
-     * The operator can be one of "_" "+" "-" "/" "*".
-     * For example if operator = "+" then this method returns
-     * a DFAO that outputs o+this[x] on input x.
-     * To be used only when this automaton and M are DFAOs (words).
-     *
-     * @param operator
-     */
-    public void applyOperator(int o, String operator, boolean print, String prefix, StringBuilder log) {
-        long timeBefore = System.currentTimeMillis();
-        UtilityMethods.logMessage(print, prefix + "applying operator (" + operator + "):" + getQ() + " states", log);
-        for (int p = 0; p < getQ(); p++) {
-            IntList thisO = this.getO();
-            int thisP = thisO.getInt(p);
-            switch (operator) {
-                case "+":
-                    thisO.set(p, o + thisP);
-                    break;
-                case "-":
-                    thisO.set(p, o - thisP);
-                    break;
-                case "*":
-                    thisO.set(p, o * thisP);
-                    break;
-                case "/":
-                    if (thisP == 0) throw ExceptionHelper.divisionByZero();
-                    thisO.set(p, o / thisP);
-                    break;
-                case "_":
-                    thisO.set(p, -thisP);
-                    break;
-            }
-        }
-        minimizeSelfWithOutput(print, prefix + " ", log);
-        long timeAfter = System.currentTimeMillis();
-        UtilityMethods.logMessage(print, prefix + "applied operator (" + operator + "):" + getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
-    }
-
-    /**
-     * Set the fields of this automaton to represent a dk.brics.automaton.Automaton.
-     * An automata in our program can be of type Automaton or dk.brics.automaton.Automaton. We use package
-     * dk.brics.automaton for automata minimization. This method transforms an automaton of type dk.brics.automaton.Automaton
-     * to an automaton of type Automaton.
-     *
-     * @param M is a deterministic automaton without output.
-     */
-    private void setThisAutomatonToRepresent(dk.brics.automaton.Automaton M) {
-        if (!M.isDeterministic())
-            throw ExceptionHelper.bricsNFA();
-        List<State> setOfStates = new ArrayList<>(M.getStates());
-        fa.setCanonized(false);
-        this.fa.setFromBricsAutomaton(M, setOfStates);
-    }
 
     /**
      * Sorts states in Q based on their breadth-first order. It also calls sortLabel().
@@ -1260,9 +1147,6 @@ public class Automaton {
      * Recall that (0,-1) represents 0 in mixed-radix base (1,2) and alphabet A. We have this mixed-radix base (1,2) stored as encoder in
      * our program, so for more information on how we compute it read the information on List<Integer> encoder field.
      * <p>
-     * For memory reduction, during determinization the transition function d is set to null and temporarily represented with
-     * the memory-efficient newMemD, which only stores single-state transitions output by the Subset Construction algorithm.
-     * The transition function d is then regenerated during the minimize_valmari method, once the states are minimized.
      */
     public List<Int2ObjectRBTreeMap<IntList>> getD() {
         return this.fa.getNfaD();
@@ -1343,5 +1227,10 @@ public class Automaton {
 
     public FA getFa() {
         return fa;
+    }
+
+    @Override
+    public String toString() {
+        return "FA:" + this.fa.toString() + "\nA:" + this.A + "\nlabel:" + this.label + "\nencoder:" + this.encoder;
     }
 }

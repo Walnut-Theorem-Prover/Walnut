@@ -1,4 +1,4 @@
-/*	 Copyright 2016 Hamoon Mousavi
+/*	 Copyright 2016 Hamoon Mousavi, 2025 John Nicol
  *
  * 	 This file is part of Walnut.
  *
@@ -30,7 +30,7 @@ import Token.Token;
 
 public class Computer {
     private final Predicate predicateObject;
-    String predicateString;
+    final String predicateString;
     Expression result;
     private final StringBuilder log;
     final StringBuilder logDetails;
@@ -80,8 +80,8 @@ public class Computer {
                 if (t.isOperator() && nextExpression instanceof AutomatonExpression) {
                     step = prefix + nextExpression + ":" +
                         nextExpression.M.getQ() + " states - " + (timeAfter - timeBefore) + "ms";
-                    log.append(step + System.lineSeparator());
-                    logDetails.append(step + System.lineSeparator());
+                    log.append(step).append(System.lineSeparator());
+                    logDetails.append(step).append(System.lineSeparator());
                     if (printSteps || printDetails) {
                         System.out.println(step);
                     }
@@ -105,9 +105,9 @@ public class Computer {
         }
 
         if (expressions.size() > 1) {
-            String message =
-                    "Cannot evaluate the following into a single automaton:" +
-                            System.lineSeparator();
+            StringBuilder message =
+                new StringBuilder("Cannot evaluate the following into a single automaton:" +
+                    System.lineSeparator());
             Stack<Expression> tmp = new Stack<>();
 
             while (!expressions.isEmpty()) {
@@ -115,11 +115,11 @@ public class Computer {
             }
 
             while (!tmp.isEmpty()) {
-                message += tmp.pop() + System.lineSeparator();
+                message.append(tmp.pop()).append(System.lineSeparator());
             }
 
-            message += "Probably some operators are missing.";
-            throw new RuntimeException(message);
+            message.append("Probably some operators are missing.");
+            throw new RuntimeException(message.toString());
         } else if (expressions.isEmpty()) {
             throw new RuntimeException("Evaluation ended in no result.");
         } else {

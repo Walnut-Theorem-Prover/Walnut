@@ -722,7 +722,7 @@ public class Prover {
     if (automataNames.isEmpty()) {
       throw new RuntimeException("Combine requires at least one automaton as input.");
     }
-    Automaton first = new Automaton(Session.getReadFileForAutomataLibrary(automataNames.get(0) + ".txt"));
+    Automaton first = Automaton.readAutomatonFromFile(automataNames.get(0));
     automataNames.remove(0);
 
     Automaton C = first.combine(automataNames, outputs, printSteps, prefix, log);
@@ -792,7 +792,7 @@ public class Prover {
   public static boolean infCommand(String s) {
     Matcher m = matchOrFail(PAT_FOR_inf_CMD, s, "inf");
 
-    Automaton M = new Automaton(Session.getReadFileForAutomataLibrary(m.group(GROUP_INF_NAME) + ".txt"));
+    Automaton M = Automaton.readAutomatonFromFile(m.group(GROUP_INF_NAME));
     M = removeLeadTrailZeroes(M);
     String infReg = M.infinite();
     if (infReg.isEmpty()) {
@@ -815,10 +815,10 @@ public class Prover {
 
     Automaton M;
     boolean isDFAO;
-    if ((new File(addressForWordAutomaton)).exists()) {
+    if ((new File(addressForWordAutomaton)).isFile()) {
       M = new Automaton(addressForWordAutomaton);
       isDFAO = true;
-    } else if ((new File(addressForAutomaton)).exists()) {
+    } else if ((new File(addressForAutomaton)).isFile()) {
       M = new Automaton(addressForAutomaton);
       isDFAO = false;
     } else {
@@ -883,13 +883,13 @@ public class Prover {
       String addressForAutomaton
           = Session.getReadFileForAutomataLibrary(automatonName + ".txt");
       Automaton M;
-      if ((new File(addressForWordAutomaton)).exists()) {
+      if ((new File(addressForWordAutomaton)).isFile()) {
         M = new Automaton(addressForWordAutomaton);
         isDFAO = true;
-      } else if ((new File(addressForAutomaton)).exists()) {
+      } else if ((new File(addressForAutomaton)).isFile()) {
         M = new Automaton(addressForAutomaton);
       } else {
-        throw new RuntimeException("Automaton " + m.group(GROUP_RSPLIT_AUTOMATA) + " does not exist.");
+        throw new RuntimeException("Automaton " + automatonName + " does not exist.");
       }
 
       String automatonInputs = m1.group(GROUP_JOIN_AUTOMATON_INPUT);
@@ -923,7 +923,7 @@ public class Prover {
 
     // We find the first n inputs accepted by our automaton, lexicographically. If less than n inputs are accepted,
     // we output all that are.
-    Automaton M = new Automaton(Session.getReadFileForAutomataLibrary(m.group(GROUP_TEST_NAME) + ".txt"));
+    Automaton M = Automaton.readAutomatonFromFile(m.group(GROUP_TEST_NAME));
 
     // we don't want to count multiple representations of the same value as distinct accepted values
     M = removeLeadTrailZeroes(M);
@@ -1016,7 +1016,6 @@ public class Prover {
       inLibrary = Session.getReadFileForAutomataLibrary(inFileName);
       isDFAO = false;
     }
-
     Automaton M = new Automaton(inLibrary);
 
     if (isDFAO) {
@@ -1087,8 +1086,7 @@ public class Prover {
     boolean printSteps = m.group(GROUP_FIXLEADZERO_END).equals(":");
     boolean printDetails = m.group(GROUP_FIXLEADZERO_END).equals("::");
 
-    Automaton M = new Automaton(
-        Session.getReadFileForAutomataLibrary(m.group(GROUP_FIXLEADZERO_OLD_NAME) + ".txt"));
+    Automaton M = Automaton.readAutomatonFromFile(m.group(GROUP_FIXLEADZERO_OLD_NAME));
 
     AutomatonLogicalOps.fixLeadingZerosProblem(M, printSteps || printDetails, prefix, log);
 
@@ -1103,8 +1101,7 @@ public class Prover {
     boolean printSteps = m.group(GROUP_FIXTRAILZERO_END).equals(":");
     boolean printDetails = m.group(GROUP_FIXTRAILZERO_END).equals("::");
 
-    Automaton M = new Automaton(
-        Session.getReadFileForAutomataLibrary(m.group(GROUP_FIXTRAILZERO_OLD_NAME) + ".txt"));
+    Automaton M = Automaton.readAutomatonFromFile(m.group(GROUP_FIXTRAILZERO_OLD_NAME));
 
     AutomatonLogicalOps.fixTrailingZerosProblem(M, printSteps || printDetails, prefix, log);
 
@@ -1189,8 +1186,7 @@ public class Prover {
     if (automataNames.isEmpty()) {
       throw new RuntimeException("Union requires at least one automaton as input.");
     }
-    Automaton C = new Automaton(
-        Session.getReadFileForAutomataLibrary(automataNames.get(0) + ".txt"));
+    Automaton C = Automaton.readAutomatonFromFile(automataNames.get(0));
 
     automataNames.remove(0);
 
@@ -1217,8 +1213,7 @@ public class Prover {
     if (automataNames.isEmpty()) {
       throw new RuntimeException("Intersect requires at least one automaton as input.");
     }
-    Automaton C = new Automaton(
-        Session.getReadFileForAutomataLibrary(automataNames.get(0) + ".txt"));
+    Automaton C = Automaton.readAutomatonFromFile(automataNames.get(0));
 
     automataNames.remove(0);
 
@@ -1261,8 +1256,7 @@ public class Prover {
     if (automataNames.size() < 2) {
       throw new RuntimeException("Concatenation requires at least two automata as input.");
     }
-    Automaton C = new Automaton(
-        Session.getReadFileForAutomataLibrary(automataNames.get(0) + ".txt"));
+    Automaton C = Automaton.readAutomatonFromFile(automataNames.get(0));
 
     automataNames.remove(0);
 
@@ -1280,10 +1274,8 @@ public class Prover {
     boolean printSteps = m.group(GROUP_rightquo_END).equals(":");
     boolean printDetails = m.group(GROUP_rightquo_END).equals("::");
 
-    Automaton M1 = new Automaton(
-        Session.getReadFileForAutomataLibrary(m.group(GROUP_rightquo_OLD_NAME1) + ".txt"));
-    Automaton M2 = new Automaton(
-        Session.getReadFileForAutomataLibrary(m.group(GROUP_rightquo_OLD_NAME2) + ".txt"));
+    Automaton M1 = Automaton.readAutomatonFromFile(m.group(GROUP_rightquo_OLD_NAME1));
+    Automaton M2 = Automaton.readAutomatonFromFile(m.group(GROUP_rightquo_OLD_NAME2));
 
     Automaton C = AutomatonLogicalOps.rightQuotient(M1, M2, false, printSteps || printDetails, prefix, log);
 
@@ -1297,10 +1289,8 @@ public class Prover {
     boolean printSteps = m.group(GROUP_leftquo_END).equals(":");
     boolean printDetails = m.group(GROUP_leftquo_END).equals("::");
 
-    Automaton M1 = new Automaton(
-        Session.getReadFileForAutomataLibrary(m.group(GROUP_leftquo_OLD_NAME1) + ".txt"));
-    Automaton M2 = new Automaton(
-        Session.getReadFileForAutomataLibrary(m.group(GROUP_leftquo_OLD_NAME2) + ".txt"));
+    Automaton M1 = Automaton.readAutomatonFromFile(m.group(GROUP_leftquo_OLD_NAME1));
+    Automaton M2 = Automaton.readAutomatonFromFile(m.group(GROUP_leftquo_OLD_NAME2));
 
     Automaton C = AutomatonLogicalOps.leftQuotient(M1, M2, printSteps || printDetails, prefix, log);
 

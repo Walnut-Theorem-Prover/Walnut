@@ -405,12 +405,13 @@ public class Transducer extends Automaton {
             List<Integer> stateMorphed = new ArrayList<>();
 
             // relying on the di's to be sorted here...
-            for (Int2ObjectMap.Entry<IntList> entry : M.getD().get(currState.state).int2ObjectEntrySet()) {
-                stateMorphed.add(entry.getValue().getInt(0));
-            }
+            addFirstEntries(M, currState.state, stateMorphed);
 
             // look at the states that this state transitions to.
-            for (int di : M.getD().get(currState.state).keySet()) {
+
+            for (Int2ObjectMap.Entry<IntList> entry : M.getFa().getEntriesNfaD(currState.state)) {
+                int di = entry.getIntKey();
+
                 // make new state string
                 List<Integer> newStateString = new ArrayList<>(newString);
                 for (int u = 0; u < di; u++) {
@@ -454,14 +455,18 @@ public class Transducer extends Automaton {
         List<Integer> iString = new ArrayList<>();
         for (Integer integer : prevString) {
             // for every digit in the alphabet of M
-            for (Int2ObjectMap.Entry<IntList> entry : M.getD().get(integer).int2ObjectEntrySet()) {
-                // each list of states that this transition goes to.
-                // we assuming it's a DFA for now, so this has length 1 we're assuming...
-                // get the first index of M.d on state x and edge label l
-                iString.add(entry.getValue().getInt(0));
-            }
+            addFirstEntries(M, integer, iString);
         }
         return iString;
+    }
+
+    private static void addFirstEntries(Automaton M, Integer integer, List<Integer> iString) {
+        for (Int2ObjectMap.Entry<IntList> entry : M.getFa().getEntriesNfaD(integer)) {
+            // each list of states that this transition goes to.
+            // we assuming it's a DFA for now, so this has length 1 we're assuming...
+            // get the first index of M.d on state x and edge label l
+            iString.add(entry.getValue().getInt(0));
+        }
     }
 
     /**
