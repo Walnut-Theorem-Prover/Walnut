@@ -843,8 +843,10 @@ public class IntegrationTest {
 		L.add("fixtrailzero test629 shift;");
 		L.add("fixleadzero test630 shift;");
 
-		L.add("eval test631 \"9 >= a& a!=8 & 9 > a & 4 <= a & 6 != a\";");//a = 4,5,7
-
+		L.add("[strategy SC 1]eval test631 \"9 >= a& a!=8 & 9 > a & 4 <= a & 6 != a\";");//a = 4,5,7
+		L.add("[strategy OTF 1]eval test632 \"9 >= a& a!=8 & 9 > a & 4 <= a & 6 != a\";");//a = 4,5,7
+		L.add("[strategy BRZ 1]eval test633 \"9 >= a& a!=8 & 9 > a & 4 <= a & 6 != a\";");//a = 4,5,7
+		L.add("[strategy OTF_BRZ 1]eval test634 \"9 >= a& a!=8 & 9 > a & 4 <= a & 6 != a\";");//a = 4,5,7
 	}
 
 	@TestFactory

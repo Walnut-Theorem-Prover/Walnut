@@ -1,8 +1,8 @@
 package Automata.FA;
 
 import MRC.Model.MyNFA;
-import net.automatalib.alphabet.Alphabets;
-import net.automatalib.automaton.fsa.CompactNFA;
+import net.automatalib.alphabet.impl.Alphabets;
+import net.automatalib.automaton.fsa.impl.CompactNFA;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 

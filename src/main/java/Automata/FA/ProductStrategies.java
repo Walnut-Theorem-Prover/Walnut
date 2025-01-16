@@ -10,6 +10,10 @@ import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 
 import java.util.*;
 
+/**
+ * Product strategy logic.
+ * Automata are numbered, which is useful for meta-commands like [export]
+ */
 public class ProductStrategies {
     /**
      * Cross-product of two DFAs. Output is an NFA (for now).

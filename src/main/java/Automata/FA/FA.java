@@ -27,8 +27,8 @@ import dk.brics.automaton.RegExp;
 import dk.brics.automaton.State;
 import dk.brics.automaton.Transition;
 import it.unimi.dsi.fastutil.ints.*;
-import net.automatalib.alphabet.Alphabets;
-import net.automatalib.automaton.fsa.CompactNFA;
+import net.automatalib.alphabet.impl.Alphabets;
+import net.automatalib.automaton.fsa.impl.CompactNFA;
 
 import java.util.*;
 

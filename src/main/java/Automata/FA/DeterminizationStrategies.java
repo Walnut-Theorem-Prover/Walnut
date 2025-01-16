@@ -7,19 +7,20 @@ import MRC.Model.MyDFA;
 import MRC.Model.MyNFA;
 import MRC.Model.Threshold;
 import MRC.NFATrim;
-import MRC.PT.PT2WithBlockArr;
-import MRC.PTInitializers;
 import Main.UtilityMethods;
 import MRC.OnTheFlyDeterminization;
 import it.unimi.dsi.fastutil.ints.*;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import net.automatalib.alphabet.Alphabet;
-import net.automatalib.automaton.MutableDeterministic;
 import simpleRABIT.algorithms.ParallelSimulation;
 
 import java.util.*;
 
+/**
+ * Determinization logic, with support for alternative strategies of Brzozowski, OTF, and OTF-Brzozowski
+ * Automata are numbered as they are determinized, which is useful for meta-commands like [export] and [strategy]
+ */
 public class DeterminizationStrategies {
   private static final Int2ObjectMap<Strategy> strategyMap = new Int2ObjectOpenHashMap<>();
 
@@ -28,19 +29,25 @@ public class DeterminizationStrategies {
   }
 
   public enum Strategy {
-    SC("SC"), BRZ("Brzozowski"), OTF("OTF"), OTF_BRZ("OTF-Brzozowski");
+    SC("SC", List.of("SC")), BRZ("Brzozowski", List.of("Brz")),
+    OTF("OTF", List.of("OTF")), OTF_BRZ("OTF-Brzozowski", List.of("OTF_BRZ", "OTF-BRZ"));
     private final String name;
+    private final List<String> aliases;
 
-    Strategy(String name) {
+    Strategy(String name, List<String> aliases) {
       this.name = name;
+      this.aliases = new ArrayList<>(aliases);
+      this.aliases.add(name);
     }
     public static Strategy fromString(String name) {
       for (Strategy strategy : Strategy.values()) {
-        if (strategy.name.equalsIgnoreCase(name)) {
-          return strategy;
+        for(String alias: strategy.aliases) {
+          if (name.equalsIgnoreCase(alias)) {
+            return strategy;
+          }
         }
       }
-      throw new IllegalArgumentException("No strategy found for name: " + name);
+      throw new IllegalArgumentException("No strategy found for: " + name);
     }
   }
 

@@ -144,9 +144,7 @@ public class AutomatonLogicalOps {
     }
 
     /**
-     * @param A
-     * @param B
-     * @return this A and M.
+     * @return A and B.
      */
     public static Automaton and(Automaton A,
                                 Automaton B,
@@ -180,9 +178,6 @@ public class AutomatonLogicalOps {
     }
 
     /**
-     * @param A
-     * @param B
-     * @param friendlyOp
      * @return this A or M
      */
     public static Automaton or(Automaton A, Automaton B, boolean print, String prefix, StringBuilder log, String friendlyOp) {
@@ -192,25 +187,10 @@ public class AutomatonLogicalOps {
             }
             return or(B, A, print, prefix, log, friendlyOp); // or is symmetric
         }
-
-        long timeBefore = System.currentTimeMillis();
-        UtilityMethods.logMessage(print, prefix + "computing " + friendlyOp + ":" + A.getQ() + " states - " + B.getQ() + " states", log);
-
-        A.fa.totalize(print, prefix + " ", log);
-        B.fa.totalize(print, prefix + " ", log);
-        Automaton N = crossProductAndMinimize(A, B, friendlyOp, print, prefix + " ", log);
-        N.applyAllRepresentations();
-
-        long timeAfter = System.currentTimeMillis();
-        UtilityMethods.logMessage(print, prefix + "computed " + friendlyOp + ":" + N.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
-
-        return N;
+        return totalizeCrossProduct(A, B, print, prefix, log, friendlyOp);
     }
 
     /**
-     * @param A
-     * @param B
-     * @param friendlyOp
      * @return A xor B
      */
     public static Automaton xor(Automaton A, Automaton B, boolean print, String prefix, StringBuilder log, String friendlyOp) {
@@ -223,14 +203,10 @@ public class AutomatonLogicalOps {
             }
             return xor(B, A, print, prefix, log, friendlyOp); // xor is symmetric
         }
-
       return totalizeCrossProduct(A, B, print, prefix, log, friendlyOp);
     }
 
     /**
-     * @param A
-     * @param B
-     * @param friendlyOp
      * @return A imply B
      */
     public static Automaton imply(Automaton A, Automaton B, boolean print, String prefix, StringBuilder log, String friendlyOp) {
@@ -281,7 +257,7 @@ public class AutomatonLogicalOps {
     }
 
     /**
-     * @return changes this A to its negation
+     * @return negation of A
      */
     public static void not(Automaton A, boolean print, String prefix, StringBuilder log) {
         not(A, print, prefix, log, "~");
@@ -310,12 +286,6 @@ public class AutomatonLogicalOps {
     /**
      * If this A's language is L_1 and the language of "B" is L_2, this A accepts the language
      * L_1 / L_2 = { x : exists y in L_2 such that xy in L_1 }
-     *
-     * @param A
-     * @param B
-     * @param print
-     * @param prefix
-     * @param log
      * @return
      */
     public static Automaton rightQuotient(Automaton A, Automaton B, boolean skipSubsetCheck, boolean print, String prefix, StringBuilder log) {
@@ -448,7 +418,7 @@ public class AutomatonLogicalOps {
     }
 
     /**
-     * Make Automaton accept 0*x, iff it used to accept x.
+     * Make A accept 0*x, iff it used to accept x.
      */
     public static void fixLeadingZerosProblem(Automaton A, boolean print, String prefix, StringBuilder log) {
         if (A.fa.isTRUE_FALSE_AUTOMATON()) return;

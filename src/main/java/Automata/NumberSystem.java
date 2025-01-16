@@ -684,10 +684,8 @@ public class NumberSystem {
             case "-":
                 M.bind(List.of(b, c, a));
                 break;
-            case "*":
-                throw new RuntimeException("the operator * cannot be applied to two variables");
-            case "/":
-                throw new RuntimeException("the operator / cannot be applied to two variables");
+            case "*", "/":
+                throw ExceptionHelper.operatorTwoVariables(arithmeticOperator);
             default:
                 throw new RuntimeException("undefined arithmetic operator:" + arithmeticOperator);
         }

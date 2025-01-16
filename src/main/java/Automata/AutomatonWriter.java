@@ -18,7 +18,6 @@
 package Automata;
 
 import Automata.FA.FA;
-import MRC.BAFormat;
 import MRC.Model.MyNFA;
 import Main.UtilityMethods;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
@@ -32,6 +31,8 @@ import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import net.automatalib.serialization.ba.BAWriter;
 
 public class AutomatonWriter {
     /**
