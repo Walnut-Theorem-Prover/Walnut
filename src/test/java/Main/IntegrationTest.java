@@ -847,6 +847,16 @@ public class IntegrationTest {
 		L.add("[strategy OTF 1]eval test632 \"9 >= a& a!=8 & 9 > a & 4 <= a & 6 != a\";");//a = 4,5,7
 		L.add("[strategy BRZ 1]eval test633 \"9 >= a& a!=8 & 9 > a & 4 <= a & 6 != a\";");//a = 4,5,7
 		L.add("[strategy OTF_BRZ 1]eval test634 \"9 >= a& a!=8 & 9 > a & 4 <= a & 6 != a\";");//a = 4,5,7
+		L.add("[strategy OTF_BRZ_NOSIM 1]eval test635 \"9 >= a& a!=8 & 9 > a & 4 <= a & 6 != a\";");//a = 4,5,7
+		L.add("[strategy OTF_NOSIM 1]eval test636 \"9 >= a& a!=8 & 9 > a & 4 <= a & 6 != a\";");//a = 4,5,7
+
+		// thm5, from https://cs.uwaterloo.ca/~shallit/Papers/thm5.txt
+		// Very fast for BRZ and OTF
+		L.add("[strategy BRZ 10]eval test637 \"E x,y,z (n=x+y+z)&(QQ[x]=@1)&(QQ[y]=@1)&(QQ[z]=@1)\"::");
+		L.add("[strategy OTF 10]eval test638 \"E x,y,z (n=x+y+z)&(QQ[x]=@1)&(QQ[y]=@1)&(QQ[z]=@1)\"::");
+		L.add("[strategy OTF_NOSIM 10]eval test639 \"E x,y,z (n=x+y+z)&(QQ[x]=@1)&(QQ[y]=@1)&(QQ[z]=@1)\"::");
+		//L.add("[strategy OTF_BRZ_NOSIM 10]eval test640 \"E x,y,z (n=x+y+z)&(QQ[x]=@1)&(QQ[y]=@1)&(QQ[z]=@1)\"::");
+		//L.add("[strategy OTF_BRZ 10]eval test641 \"E x,y,z (n=x+y+z)&(QQ[x]=@1)&(QQ[y]=@1)&(QQ[z]=@1)\"::");
 	}
 
 	@TestFactory
@@ -865,7 +875,7 @@ public class IntegrationTest {
 		String command = L.get(i);
 		try{
 			TestCase actual = Prover.dispatchForIntegrationTest(command, String.valueOf(i));
-			Assertions.assertTrue(conformMPL(expected.getMpl().trim(), actual.getMpl().trim()), "MPL does not conform");
+			assertEqualMessages(expected.getMpl().trim(), actual.getMpl().trim());
 			assertEqualMessages(expected.getDetails(), actual.getDetails());
 			Assertions.assertTrue(actual.getResult() == null || expected.getResult() != null);
 			Assertions.assertTrue(actual.getResult() != null || expected.getResult() == null);
@@ -880,10 +890,12 @@ public class IntegrationTest {
 	private static void assertEqualMessages(String expected, String actual) {
 		String expectedDetails = expected.trim();
 		expectedDetails = expectedDetails.replaceAll(" {2}"," ");
+		//		expectedDetails = expectedDetails.replaceAll(" ",""); if whitespace is confusing you
 		expectedDetails = expectedDetails.replaceAll("\\d+ms", "");
 		expectedDetails = expectedDetails.replaceAll("\\s*Progress:.*", "");
 		String actualDetails = actual.trim();
 		actualDetails = actualDetails.replaceAll(" {2}"," ");
+		//		actualDetails = actualDetails.replaceAll(" ",""); if whitespace is confusing you
 		actualDetails = actualDetails.replaceAll("\\d+ms", "");
 		actualDetails = actualDetails.replaceAll("\\s*Progress:.*", "");
 
@@ -960,6 +972,7 @@ public class IntegrationTest {
 	}
 
 	//@Test // uncomment this line if you want to regenerate test cases
+	// You will also need to comment out the asserts in runSpecificTest
 	public void createTestCases() throws IOException {
     for (String command : L) {
       System.out.println(command);

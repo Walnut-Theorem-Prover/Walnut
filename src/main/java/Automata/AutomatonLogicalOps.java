@@ -429,13 +429,7 @@ public class AutomatonLogicalOps {
 
         // Subset Construction with different initial state
         IntSet initial_state = A.fa.zeroReachableStates(zero);
-        DeterminizationStrategies.determinize(
-                A.fa, null, initial_state, print, prefix + " ", log, DeterminizationStrategies.Strategy.SC);
-
-        // Subset Construction with usual initial state
-        IntSet qqq = new IntOpenHashSet();
-        qqq.add(A.fa.getQ0());
-        A.fa.determinizeAndMinimize(A.fa.getDfaD(), qqq, print, prefix + " ", log);
+        A.fa.determinizeAndMinimize(A.fa.getDfaD(), initial_state, print, prefix, log);
 
         long timeAfter = System.currentTimeMillis();
         UtilityMethods.logMessage(print, prefix + "fixed leading zeros:" + A.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
@@ -455,7 +449,8 @@ public class AutomatonLogicalOps {
             long timeBefore = System.currentTimeMillis();
             UtilityMethods.logMessage(print, prefix + "fixing trailing zeros:" + A.getQ() + " states", log);
             A.fa.setCanonized(false);
-            A.fa.determinizeAndMinimize(print, prefix + " ", log);
+            // We don't have to determinize, since all that was altered was final states
+            A.fa.justMinimize(print, prefix + " ", log);
             long timeAfter = System.currentTimeMillis();
             UtilityMethods.logMessage(print, prefix + "fixed trailing zeros:" + A.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
         } else {

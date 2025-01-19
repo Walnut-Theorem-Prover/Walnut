@@ -13,7 +13,7 @@ j<=i:2 states - 0ms
    Minimized:4 states - 0ms.
   computed &:4 states - 0ms
   quantifying:4 states
-    Determinizing [#2, strategy: SC]: 4 states
+    Determinizing [#0, strategy: SC]: 4 states
     Determinized: 4 states - 0ms
     Minimizing: 4 states.
     Minimized:3 states - 0ms.
@@ -26,16 +26,14 @@ j<=i:2 states - 0ms
    Minimized:6 states - 0ms.
   computed &:6 states - 0ms
   quantifying:6 states
-    Determinizing [#3, strategy: SC]: 6 states
+    Determinizing [#1, strategy: SC]: 6 states
     Determinized: 6 states - 1ms
     Minimizing: 6 states.
     Minimized:6 states - 0ms.
   quantified:6 states - 1ms
   fixing trailing zeros:6 states
-    Determinizing [#4, strategy: SC]: 6 states
-    Determinized: 6 states - 0ms
-    Minimizing: 6 states.
-    Minimized:4 states - 0ms.
+   Minimizing: 6 states.
+   Minimized:4 states - 0ms.
   fixed trailing zeros:4 states - 0ms
  computed (i+m)<=(j+n)
  (i+m)<=(j+n):4 states - 1ms

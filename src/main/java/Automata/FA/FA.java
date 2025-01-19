@@ -60,10 +60,34 @@ public class FA implements Cloneable {
    * Used when we're done with a particular run.
    */
   public static void resetIndex() {
-      AutomataIndex = 0;
+    AutomataIndex = 0;
+    DeterminizationStrategies.getStrategyMap().clear();
   }
   public static int IncrementIndex() {
     return AutomataIndex++;
+  }
+
+  public void alphabetStates(List<List<Integer>> newAlphabet, List<List<Integer>> oldAlphabet, Automaton M) {
+      List<Int2ObjectRBTreeMap<IntList>> newD = new ArrayList<>(M.getQ());
+      for (int q = 0; q < M.getQ(); q++) {
+          Int2ObjectRBTreeMap<IntList> newMap = new Int2ObjectRBTreeMap<>();
+          for (Int2ObjectMap.Entry<IntList> entry: getEntriesNfaD(q)) {
+            List<Integer> decoded = Automaton.decode(oldAlphabet, entry.getIntKey());
+            if (isInNewAlphabet(newAlphabet, decoded)) {
+              newMap.put(M.encode(decoded), entry.getValue());
+            }
+          }
+          newD.add(newMap);
+      }
+      M.fa.nfaD = newD;
+  }
+  private static boolean isInNewAlphabet(List<List<Integer>> alphabet, List<Integer> decoded) {
+    for (int i = 0; i < decoded.size(); i++) {
+      if (!alphabet.get(i).contains(decoded.get(i))) {
+        return false;
+      }
+    }
+    return true;
   }
 
   public void initBasicFA(IntList O) {
@@ -210,72 +234,43 @@ public class FA implements Cloneable {
       N.setQ(originalQ + other.getQ());
   }
 
-  public static void alphabetStates(Automaton automaton, List<List<Integer>> alphabet, Automaton M) {
-      List<Int2ObjectRBTreeMap<IntList>> newD = new ArrayList<>();
-      for (int q = 0; q < M.getQ(); q++) {
-          Int2ObjectRBTreeMap<IntList> newMap = new Int2ObjectRBTreeMap<>();
-          for (Int2ObjectMap.Entry<IntList> entry: automaton.getFa().getEntriesNfaD(q)) {
-            List<Integer> decoded = Automaton.decode(automaton.getA(), entry.getIntKey());
-            if (isInNewAlphabet(alphabet, decoded)) {
-              newMap.put(M.encode(decoded), entry.getValue());
-            }
-          }
-          newD.add(newMap);
-      }
-      M.fa.nfaD = newD;
-  }
-
-  private static boolean isInNewAlphabet(List<List<Integer>> alphabet, List<Integer> decoded) {
-    for (int i = 0; i < decoded.size(); i++) {
-      if (!alphabet.get(i).contains(decoded.get(i))) {
-        return false;
-      }
-    }
-    return true;
-  }
-
   public void canonizeInternal() {
     if (this.canonized || this.isTRUE_FALSE_AUTOMATON()) return;
     Queue<Integer> state_queue = new LinkedList<>();
     state_queue.add(q0);
 
-    /**map holds the permutation we need to apply to Q. In other words if map = {(0,3),(1,10),...} then
-     *we have got to send Q[0] to Q[3] and Q[1] to Q[10]*/
-    Int2IntMap map = new Int2IntOpenHashMap();
-    map.put(q0, 0);
+    //map holds the permutation we need to apply to Q. In other words if map = {(0,3),(1,10),...} then
+    // we send Q[0] to Q[3] and Q[1] to Q[10]
+    Int2IntMap permutationMap = new Int2IntOpenHashMap();
+    permutationMap.put(q0, 0);
     int i = 1;
     while (!state_queue.isEmpty()) {
       int q = state_queue.poll();
       for (Int2ObjectMap.Entry<IntList> entry : this.getEntriesNfaD(q)) {
         for (int p : entry.getValue()) {
-          if (!map.containsKey(p)) {
-            map.put(p, i++);
+          if (!permutationMap.containsKey(p)) {
+            permutationMap.put(p, i++);
             state_queue.add(p);
           }
         }
       }
     }
 
-    q0 = map.get(q0);
-    int newQ = map.size();
+    q0 = permutationMap.get(q0);
+    int newQ = permutationMap.size();
     IntList newO = new IntArrayList(newQ);
     for (int q = 0; q < newQ; q++) {
       newO.add(0);
     }
-    for (int q = 0; q < Q; q++) {
-      if (map.containsKey(q)) {
-        newO.set(map.get(q), O.getInt(q));
-      }
-    }
-
     List<Int2ObjectRBTreeMap<IntList>> newD = new ArrayList<>(newQ);
     for (int q = 0; q < newQ; q++) {
       newD.add(null);
     }
 
     for (int q = 0; q < Q; q++) {
-      if (map.containsKey(q)) {
-        newD.set(map.get(q), nfaD.get(q));
+      if (permutationMap.containsKey(q)) {
+        newO.set(permutationMap.get(q), O.getInt(q));
+        newD.set(permutationMap.get(q), nfaD.get(q));
       }
     }
 
@@ -287,8 +282,8 @@ public class FA implements Cloneable {
       for (Int2ObjectMap.Entry<IntList> entry : this.getEntriesNfaD(q)) {
         IntList newDestination = new IntArrayList();
         for (int p : entry.getValue()) {
-          if (map.containsKey(p)) {
-            newDestination.add(map.get(p));
+          if (permutationMap.containsKey(p)) {
+            newDestination.add(permutationMap.get(p));
           }
         }
 
@@ -839,8 +834,7 @@ public class FA implements Cloneable {
    * Determinize and minimize. Technically, the logging is backwards.
    */
   public void determinizeAndMinimize(List<Int2IntMap> dfaD, IntSet qqq, boolean print, String prefix, StringBuilder log) {
-    DeterminizationStrategies.determinize(
-            this, dfaD, qqq, print, prefix + " ", log, null);
+    DeterminizationStrategies.determinize(this, dfaD, qqq, print, prefix + " ", log);
     justMinimize(print, prefix + " ", log);
   }
 
@@ -852,19 +846,16 @@ public class FA implements Cloneable {
     UtilityMethods.logMessage(
             print, prefix + "Minimizing: " + Q + " states.", log);
 
-    minimize();
-
-    long timeAfter = System.currentTimeMillis();
-    UtilityMethods.logMessage(
-            print, prefix + "Minimized:" + Q + " states - " + (timeAfter - timeBefore) + "ms.", log);
-  }
-
-  public void minimize() {
+    this.convertNFAtoDFA();
     ValmariDFA v = new ValmariDFA(this.dfaD, Q);
     this.setDfaD(null); // save memory
     v.minValmari(O);
     v.replaceFields(this); // TODO: we're using NFA representation, even though we know this is a DFA
     this.canonized = false;
+
+    long timeAfter = System.currentTimeMillis();
+    UtilityMethods.logMessage(
+            print, prefix + "Minimized:" + Q + " states - " + (timeAfter - timeBefore) + "ms.", log);
   }
 
   public void setCanonized(boolean canonized) {
@@ -910,6 +901,24 @@ public class FA implements Cloneable {
       return nfa;
   }
 
+  /*
+  Convert FA to MyNFA representation, allowing additional initialState
+   */
+  public MyNFA<Integer> FAtoMyNFA(IntSet initialState) {
+    MyNFA<Integer> nfa = this.FAtoMyNFA();
+    // Replace initial states
+    for(int i: nfa.getInitialStates()) {
+      nfa.setInitial(i, false);
+    }
+    for(int i: initialState) {
+      nfa.setInitial(i, true);
+    }
+    return nfa;
+  }
+
+  /*
+  Convert FA to MyNFA representation
+  */
   public MyNFA<Integer> FAtoMyNFA() {
     MyNFA<Integer> nfa = new MyNFA<>(Alphabets.integers(0, this.alphabetSize - 1), this.Q);
     for (int i = 0; i < this.Q; i++) {
@@ -918,12 +927,8 @@ public class FA implements Cloneable {
     nfa.setInitial(this.q0, true);
     if (nfaD != null) {
       for (int i = 0; i < this.Q; i++) {
-        Int2ObjectRBTreeMap<IntList> iMap = nfaD.get(i);
-        for (int in = 0; in < this.alphabetSize; in++) {
-          IntList iList = iMap.get(in);
-          if (iList != null) {
-            nfa.addTransitions(i, in, iList);
-          }
+        for(Int2ObjectMap.Entry<IntList> entry : this.getEntriesNfaD(i)) {
+          nfa.addTransitions(i, entry.getIntKey(), entry.getValue());
         }
       }
     } else {
@@ -1010,5 +1015,27 @@ public class FA implements Cloneable {
         ((IntArrayList)iList).trim();
       }
     }
+  }
+
+  /**
+   * Use DFA representation internally. Fails if not a DFA.
+   */
+  public void convertNFAtoDFA() {
+    if (nfaD == null) {
+      return; // nothing to do
+    }
+    dfaD = new ArrayList<>(Q);
+    for(int i=0;i<Q;i++) {
+      Set<Int2ObjectMap.Entry<IntList>> sourceEntrySet = this.getEntriesNfaD(i);
+      Int2IntMap iMap = new Int2IntOpenHashMap();
+      dfaD.add(iMap);
+      for(Int2ObjectMap.Entry<IntList> entry : sourceEntrySet) {
+        if (entry.getValue().size() > 1) {
+          throw new RuntimeException("Unexpected NFA instead of DFA.");
+        }
+        iMap.put(entry.getIntKey(), entry.getValue().iterator().nextInt());
+      }
+    }
+    nfaD = null;
   }
 }

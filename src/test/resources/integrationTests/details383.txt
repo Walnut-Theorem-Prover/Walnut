@@ -23,10 +23,8 @@ n23=10:5 states - 0ms
     fixing leading zeros:5 states
      Determinizing [#1, strategy: SC]: 5 states
      Determinized: 5 states - 0ms
-      Determinizing [#2, strategy: SC]: 5 states
-      Determinized: 5 states - 0ms
-      Minimizing: 5 states.
-      Minimized:5 states - 0ms.
+     Minimizing: 5 states.
+     Minimized:5 states - 0ms.
     fixed leading zeros:5 states - 0ms
    computed quantifier (E i (n23=10&i=12))
    (E i (n23=10&i=12)):5 states - 0ms

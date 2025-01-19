@@ -8,18 +8,16 @@ computing fibmr(...)
   Minimized:22 states - 0ms.
  computed &:22 states - 1ms
  quantifying:22 states
-   Determinizing [#3, strategy: SC]: 22 states
+   Determinizing [#0, strategy: SC]: 22 states
    Determinized: 26 states - 0ms
    Minimizing: 26 states.
    Minimized:26 states - 0ms.
  quantified:26 states - 0ms
  fixing leading zeros:26 states
-  Determinizing [#4, strategy: SC]: 26 states
+  Determinizing [#1, strategy: SC]: 26 states
   Determinized: 26 states - 0ms
-   Determinizing [#5, strategy: SC]: 26 states
-   Determinized: 26 states - 0ms
-   Minimizing: 26 states.
-   Minimized:19 states - 0ms.
+  Minimizing: 26 states.
+  Minimized:19 states - 0ms.
  fixed leading zeros:19 states - 0ms
 computed fibmr(i,n,(n+1)))
 Computing n-1
@@ -32,25 +30,23 @@ computing fibmr(...)
   Minimized:22 states - 0ms.
  computed &:22 states - 0ms
  quantifying:22 states
-   Determinizing [#9, strategy: SC]: 22 states
+   Determinizing [#2, strategy: SC]: 22 states
    Determinized: 16 states - 0ms
    Minimizing: 16 states.
    Minimized:15 states - 0ms.
  quantified:15 states - 0ms
  fixing leading zeros:15 states
-  Determinizing [#10, strategy: SC]: 15 states
+  Determinizing [#3, strategy: SC]: 15 states
   Determinized: 15 states - 0ms
-   Determinizing [#11, strategy: SC]: 15 states
-   Determinized: 15 states - 0ms
-   Minimizing: 15 states.
-   Minimized:15 states - 0ms.
+  Minimizing: 15 states.
+  Minimized:15 states - 0ms.
  fixed leading zeros:15 states - 0ms
 computed fibmr(i,(n-1),n))
 computing ~fibmr(i,(n-1),n))
  computing ~:15 states
   totalizing:15 states
   totalized:16 states - 0ms
-   Determinizing [#12, strategy: SC]: 16 states
+   Determinizing [#4, strategy: SC]: 16 states
    Determinized: 16 states - 1ms
    Minimizing: 16 states.
    Minimized:16 states - 0ms.

@@ -42,10 +42,10 @@ public class ValmariDFA {
     // heads of transitions
     private int[] H;
 
-    public ValmariDFA(List<Int2IntMap> newMemD, int numStates) {
+    public ValmariDFA(List<Int2IntMap> dfaD, int numStates) {
         // Pre-size the arrays.
-        for(int q = 0; q != newMemD.size();++q){
-            numTransitions += newMemD.get(q).keySet().size();
+        for(int q = 0; q != dfaD.size();++q){
+            numTransitions += dfaD.get(q).keySet().size();
         }
 
         T = new int[numTransitions];
@@ -53,8 +53,8 @@ public class ValmariDFA {
         H = new int[numTransitions];
 
         int arrIndex = 0;
-        for(int q = 0; q != newMemD.size();++q){
-            for(Int2IntMap.Entry entry: newMemD.get(q).int2IntEntrySet()) {
+        for(int q = 0; q != dfaD.size();++q){
+            for(Int2IntMap.Entry entry: dfaD.get(q).int2IntEntrySet()) {
                 H[arrIndex] = entry.getIntValue();
                 T[arrIndex] = q;
                 L[arrIndex] = entry.getIntKey();

@@ -12,18 +12,16 @@ j>=1:3 states - 1ms
    Minimized:83 states - 0ms.
   computed &:83 states - 0ms
   quantifying:83 states
-    Determinizing [#4, strategy: SC]: 83 states
+    Determinizing [#0, strategy: SC]: 83 states
     Determinized: 61 states - 0ms
     Minimizing: 61 states.
     Minimized:40 states - 0ms.
   quantified:40 states - 1ms
   fixing leading zeros:40 states
-   Determinizing [#5, strategy: SC]: 40 states
+   Determinizing [#1, strategy: SC]: 40 states
    Determinized: 40 states - 0ms
-    Determinizing [#6, strategy: SC]: 40 states
-    Determinized: 40 states - 0ms
-    Minimizing: 40 states.
-    Minimized:40 states - 0ms.
+   Minimizing: 40 states.
+   Minimized:40 states - 0ms.
   fixed leading zeros:40 states - 0ms
  computed i+(2*j)
  computing (i+(2*j))<=n
@@ -35,19 +33,17 @@ j>=1:3 states - 1ms
    Minimized:123 states - 0ms.
   computed &:123 states - 1ms
   quantifying:123 states
-    Determinizing [#8, strategy: SC]: 123 states
+    Determinizing [#2, strategy: SC]: 123 states
       Progress: Added 100 states - 15 states left in queue - 115 reachable states - 1ms
     Determinized: 120 states - 1ms
     Minimizing: 120 states.
     Minimized:51 states - 0ms.
   quantified:51 states - 1ms
   fixing leading zeros:51 states
-   Determinizing [#9, strategy: SC]: 51 states
+   Determinizing [#3, strategy: SC]: 51 states
    Determinized: 51 states - 0ms
-    Determinizing [#10, strategy: SC]: 51 states
-    Determinized: 51 states - 1ms
-    Minimizing: 51 states.
-    Minimized:51 states - 0ms.
+   Minimizing: 51 states.
+   Minimized:51 states - 0ms.
   fixed leading zeros:51 states - 1ms
  computed (i+(2*j))<=n
  (i+(2*j))<=n:51 states - 3ms
@@ -78,19 +74,17 @@ j>=1:3 states - 1ms
       Minimized:139 states - 0ms.
      computed &:139 states - 0ms
      quantifying:139 states
-       Determinizing [#11, strategy: SC]: 139 states
+       Determinizing [#4, strategy: SC]: 139 states
          Progress: Added 100 states - 10 states left in queue - 110 reachable states - 0ms
        Determinized: 115 states - 0ms
        Minimizing: 115 states.
        Minimized:78 states - 1ms.
      quantified:78 states - 2ms
      fixing leading zeros:78 states
-      Determinizing [#12, strategy: SC]: 78 states
+      Determinizing [#5, strategy: SC]: 78 states
       Determinized: 78 states - 0ms
-       Determinizing [#13, strategy: SC]: 78 states
-       Determinized: 78 states - 0ms
-       Minimizing: 78 states.
-       Minimized:78 states - 0ms.
+      Minimizing: 78 states.
+      Minimized:78 states - 0ms.
      fixed leading zeros:78 states - 0ms
     computed (i+j)+k
     computing F[...]
@@ -116,38 +110,30 @@ j>=1:3 states - 1ms
       Minimized:141 states - 0ms.
      computed &:141 states - 2ms
      quantifying:141 states
-       Determinizing [#14, strategy: SC]: 141 states
+       Determinizing [#6, strategy: SC]: 141 states
          Progress: Added 100 states - 9 states left in queue - 109 reachable states - 0ms
        Determinized: 117 states - 0ms
        Minimizing: 117 states.
        Minimized:112 states - 1ms.
      quantified:112 states - 2ms
      fixing leading zeros:112 states
-      Determinizing [#15, strategy: SC]: 112 states
-        Progress: Added 100 states - 11 states left in queue - 111 reachable states - 0ms
+      Determinizing [#7, strategy: SC]: 112 states
       Determinized: 112 states - 0ms
-       Determinizing [#16, strategy: SC]: 112 states
-         Progress: Added 100 states - 11 states left in queue - 111 reachable states - 0ms
-       Determinized: 112 states - 0ms
-       Minimizing: 112 states.
-       Minimized:112 states - 1ms.
+      Minimizing: 112 states.
+      Minimized:112 states - 1ms.
      fixed leading zeros:112 states - 1ms
      quantifying:112 states
-       Determinizing [#17, strategy: SC]: 112 states
+       Determinizing [#8, strategy: SC]: 112 states
          Progress: Added 100 states - 18 states left in queue - 118 reachable states - 0ms
        Determinized: 134 states - 0ms
        Minimizing: 134 states.
        Minimized:119 states - 0ms.
      quantified:119 states - 0ms
      fixing leading zeros:119 states
-      Determinizing [#18, strategy: SC]: 119 states
-        Progress: Added 100 states - 27 states left in queue - 127 reachable states - 0ms
+      Determinizing [#9, strategy: SC]: 119 states
       Determinized: 145 states - 0ms
-       Determinizing [#19, strategy: SC]: 145 states
-         Progress: Added 100 states - 27 states left in queue - 127 reachable states - 0ms
-       Determinized: 145 states - 0ms
-       Minimizing: 145 states.
-       Minimized:61 states - 1ms.
+      Minimizing: 145 states.
+      Minimized:61 states - 1ms.
      fixed leading zeros:61 states - 2ms
     computed F[(i+k)]=F[((i+j)+k)]
     F[(i+k)]=F[((i+j)+k)]:61 states - 8ms
@@ -169,30 +155,28 @@ j>=1:3 states - 1ms
        computing ~:93 states
         totalizing:93 states
         totalized:94 states - 0ms
-         Determinizing [#20, strategy: SC]: 94 states
+         Determinizing [#10, strategy: SC]: 94 states
          Determinized: 94 states - 1ms
          Minimizing: 94 states.
          Minimized:94 states - 0ms.
        computed ~:85 states - 3ms
        quantifying:85 states
-         Determinizing [#21, strategy: SC]: 85 states
+         Determinizing [#11, strategy: SC]: 85 states
            Progress: Added 100 states - 71 states left in queue - 171 reachable states - 0ms
          Determinized: 236 states - 1ms
          Minimizing: 236 states.
          Minimized:12 states - 0ms.
        quantified:12 states - 1ms
        fixing leading zeros:12 states
-        Determinizing [#22, strategy: SC]: 12 states
+        Determinizing [#12, strategy: SC]: 12 states
         Determinized: 12 states - 0ms
-         Determinizing [#23, strategy: SC]: 12 states
-         Determinized: 12 states - 0ms
-         Minimizing: 12 states.
-         Minimized:12 states - 0ms.
+        Minimizing: 12 states.
+        Minimized:12 states - 0ms.
        fixed leading zeros:12 states - 0ms
        computing ~:12 states
         totalizing:12 states
         totalized:13 states - 0ms
-         Determinizing [#24, strategy: SC]: 13 states
+         Determinizing [#13, strategy: SC]: 13 states
          Determinized: 13 states - 0ms
          Minimizing: 13 states.
          Minimized:13 states - 0ms.

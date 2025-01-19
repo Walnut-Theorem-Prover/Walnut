@@ -535,7 +535,7 @@ public class Automaton {
         M.determineAlphabetSizeFromA();
         M.setupEncoder();
 
-        FA.alphabetStates(this, alphabet, M);
+        this.getFa().alphabetStates(alphabet, this.getA(), M);
 
         if (isDFAO) {
             M.minimizeSelfWithOutput(print, prefix, log);
