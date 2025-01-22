@@ -855,8 +855,8 @@ public class IntegrationTest {
 		L.add("[strategy BRZ 10]eval test637 \"E x,y,z (n=x+y+z)&(QQ[x]=@1)&(QQ[y]=@1)&(QQ[z]=@1)\"::");
 		L.add("[strategy OTF 10]eval test638 \"E x,y,z (n=x+y+z)&(QQ[x]=@1)&(QQ[y]=@1)&(QQ[z]=@1)\"::");
 		L.add("[strategy OTF_NOSIM 10]eval test639 \"E x,y,z (n=x+y+z)&(QQ[x]=@1)&(QQ[y]=@1)&(QQ[z]=@1)\"::");
-		//L.add("[strategy OTF_BRZ_NOSIM 10]eval test640 \"E x,y,z (n=x+y+z)&(QQ[x]=@1)&(QQ[y]=@1)&(QQ[z]=@1)\"::");
-		//L.add("[strategy OTF_BRZ 10]eval test641 \"E x,y,z (n=x+y+z)&(QQ[x]=@1)&(QQ[y]=@1)&(QQ[z]=@1)\"::");
+		L.add("[strategy OTF_BRZ_NOSIM 10]eval test640 \"E x,y,z (n=x+y+z)&(QQ[x]=@1)&(QQ[y]=@1)&(QQ[z]=@1)\"::");
+			L.add("[strategy OTF_BRZ 10]eval test641 \"E x,y,z (n=x+y+z)&(QQ[x]=@1)&(QQ[y]=@1)&(QQ[z]=@1)\"::");
 	}
 
 	@TestFactory

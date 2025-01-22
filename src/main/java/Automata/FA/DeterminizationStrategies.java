@@ -32,15 +32,21 @@ public class DeterminizationStrategies {
   }
 
   public enum Strategy {
-    SC("SC", List.of("SC")), BRZ("Brzozowski", List.of("Brz")),
-    OTF("OTF", List.of("OTF")), OTF_BRZ("OTF-Brzozowski", List.of("OTF_BRZ", "OTF-BRZ")),
-    OTF_NOSIM("OTF-no-simulation", List.of("OTF_NOSIM", "OTF-NOSIM")),
-    OTF_BRZ_NOSIM("OTF-Brzozowski-no-simulation", List.of("OTF_BRZ_NOSIM", "OTF-BRZ-NOSIM"));
+    SC("SC", false, List.of("SC")),
+    BRZ("Brzozowski", false, List.of("Brz")),
+    OTF("OTF", true, List.of("OTF")),
+    OTF_BRZ("OTF-Brzozowski", true, List.of("OTF_BRZ", "OTF-BRZ")),
+    OTF_NOSIM("OTF-no-simulation", false,
+        List.of("OTF_NOSIM", "OTF-NOSIM","OTF-NO-SIM", "OTF_NO_SIM")),
+    OTF_BRZ_NOSIM("OTF-Brzozowski-no-simulation", false,
+        List.of("OTF_BRZ_NOSIM", "OTF-BRZ-NOSIM", "OTF-BRZ-NO-SIM", "OTF_BRZ_NO_SIM"));
     private final String name;
+    private final boolean doSimulation;
     private final List<String> aliases;
 
-    Strategy(String name, List<String> aliases) {
+    Strategy(String name, boolean doSimulation, List<String> aliases) {
       this.name = name;
+      this.doSimulation = doSimulation;
       this.aliases = new ArrayList<>(aliases);
       this.aliases.add(name);
     }
@@ -87,7 +93,6 @@ public class DeterminizationStrategies {
       // then trim
       // then bisim
 
-
       long timeBefore = System.currentTimeMillis();
 
       Strategy strategy = Strategy.SC;
@@ -103,11 +108,8 @@ public class DeterminizationStrategies {
 
       switch (strategy) {
         case SC -> SC(fa, initialState, print, prefix, log);
-        case BRZ -> Brz(fa, initialState, strategy, true, print, prefix, log);
-        case OTF_BRZ -> Brz(fa, initialState, strategy, true, print, prefix, log);
-        case OTF_BRZ_NOSIM -> Brz(fa, initialState, strategy, false, print, prefix, log);
-        case OTF -> OTF(fa, initialState, true, print, prefix, log);
-        case OTF_NOSIM -> OTF(fa, initialState, false, print, prefix, log);
+        case BRZ, OTF_BRZ, OTF_BRZ_NOSIM -> Brz(fa, initialState, strategy, print, prefix, log);
+        case OTF, OTF_NOSIM -> OTF(fa, initialState, strategy.doSimulation, print, prefix, log);
       }
 
       long timeAfter = System.currentTimeMillis();
@@ -122,31 +124,29 @@ public class DeterminizationStrategies {
    * @param strategy - BRZ or OTF_BRZ
    */
   private static void Brz(
-      FA fa, IntSet initialStates, Strategy strategy, boolean doSimulation, boolean print, String prefix, StringBuilder log) {
+      FA fa, IntSet initialStates, Strategy strategy, boolean print, String prefix, StringBuilder log) {
     strategy = strategy.removeBrzozowski();
 
-    // Reverse
-    brzStep(fa, initialStates, strategy, doSimulation, print, prefix, log, "Reverse");
-
+    // Reverse, determinize, minimize
+    brzStep(fa, initialStates, strategy, print, prefix, log, "Reverse");
     fa.justMinimize(print, prefix, log); // also switches back to NFA representation
 
-    // Reverse again. Note that initial state of SC is q0
-    brzStep(fa, IntSet.of(fa.getQ0()), Strategy.SC, doSimulation, print, prefix, log, "Reverse of reverse");
+    // Reverse and determinize again. Note that initial state is now q0
+    brzStep(fa, IntSet.of(fa.getQ0()), Strategy.SC, print, prefix, log, "Reverse of reverse");
   }
 
-  private static void brzStep(FA fa, IntSet initialStates, Strategy strategy, boolean doSimulation, boolean print, String prefix, StringBuilder log, String message) {
-    IntSet newInitialStates;
-    long timeAfter;
-    long timeBefore;
-    timeBefore = System.currentTimeMillis();
-    newInitialStates = fa.reverseToNFAInternal(initialStates);
-    UtilityMethods.logMessage(print, prefix + message + " -- Determinizing with strategy:" + strategy.name + ".", log);
+  private static void brzStep(FA fa, IntSet initialStates, Strategy strategy,
+                              boolean print, String prefix, StringBuilder log, String message) {
+    long timeBefore = System.currentTimeMillis();
+    IntSet newInitialStates = fa.reverseToNFAInternal(initialStates);
+    UtilityMethods.logMessage(
+        print, prefix + message + " -- Determinizing with strategy:" + strategy.name + ".", log);
     if (strategy.equals(Strategy.SC)) {
       SC(fa, newInitialStates, print, prefix, log);
     } else {
-      OTF(fa, newInitialStates, print, doSimulation, prefix, log);
+      OTF(fa, newInitialStates, strategy.doSimulation, print, prefix, log);
     }
-    timeAfter = System.currentTimeMillis();
+    long timeAfter = System.currentTimeMillis();
     UtilityMethods.logMessage(
         print, prefix + message + ": " + fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
   }

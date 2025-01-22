@@ -128,23 +128,21 @@ n=((x+y)+z):3 states - 0ms
        computing quantifier E
         quantifying:1790 states
           Determinizing [#10, strategy: OTF-Brzozowski]: 1790 states
-          Reversed -- Determinizing with strategy:OTF.
+          Reverse -- Determinizing with strategy:OTF.
           Bisimulation reduced to 369 states
-          Simulation altered to 336 states
-          Found 1071 simulation relations
-          Reversed: 366 states - 
-          Minimizing: 366 states.
-          Minimized:15 states - 0ms.
-          Reverse of reverse -- Determinizing with strategy:OTF.
-          Simulation altered to 17 states
-          Found 26 simulation relations
-          Reverse of reverse: 13 states - 
-          Determinized: 13 states - 
-          Minimizing: 13 states.
-          Minimized:13 states - 0ms.
-        quantified:13 states - 297ms
-        fixing leading zeros:13 states
-         Determinizing [#11, strategy: SC]: 13 states
+          Simulation altered to 337 states
+          Found 1019 simulation relations
+          Reverse: 489 states - 
+          Minimizing: 489 states.
+          Minimized:14 states - 0ms.
+          Reverse of reverse -- Determinizing with strategy:SC.
+          Reverse of reverse: 12 states - 
+          Determinized: 12 states - 
+          Minimizing: 12 states.
+          Minimized:12 states - 0ms.
+        quantified:12 states - 297ms
+        fixing leading zeros:12 states
+         Determinizing [#11, strategy: SC]: 12 states
          Determinized: 12 states - 0ms
          Minimizing: 12 states.
          Minimized:12 states - 0ms.
