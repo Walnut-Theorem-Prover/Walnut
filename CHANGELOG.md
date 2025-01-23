@@ -12,11 +12,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - Versioning output to Walnut.
 - Session functionality. Each run of Walnut writes all of its results to a new session, which makes it much easier to organize and not overwrite previous results.
-- Determinization "strategy". It's now possible to determinize with Subset Construction (default), Brzozwski's reversal construction, OTF, or OTF (with Brzozwski reversal). 
+- Dead states are removed (trim) before determinization.
+- (INCOMPLETE) Bisimulation reduction before determinization.
+- (INCOMPLETE) Determinization "strategy". It's now possible to determinize with Subset Construction (default), Brzozwski's reversal construction, OTF, or OTF (with Brzozwski reversal).
 
 ### Fixed
 
 - Major performance improvements, particularly in product automata construction.
+- Unnecessary determinizations in fix leading/trailing zeros have been removed.
 - Increased testing and code coverage.
 
 ### Changed

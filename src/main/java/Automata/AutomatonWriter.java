@@ -42,7 +42,6 @@ public class AutomatonWriter {
      * @param address
      */
     public static String writeMatrices(Automaton automaton, String address, List<String> free_variables) {
-        System.out.println("Writing to:" + address);
         if (automaton.fa.isTRUE_FALSE_AUTOMATON()) {
             throw new RuntimeException("incidence matrices cannot be calculated, because the automaton does not have a free variable.");
         }
@@ -164,7 +163,6 @@ public class AutomatonWriter {
      * @throws
      */
     public static void write(Automaton automaton, String address) {
-        System.out.println("Writing to:" + address);
         try (PrintWriter out = new PrintWriter(address, StandardCharsets.UTF_8)) {
             writeToStream(automaton, out);
         } catch (IOException e) {
@@ -227,7 +225,6 @@ public class AutomatonWriter {
      * @param address
      */
     public static void draw(Automaton automaton, String address, String predicate, boolean isDFAO) {
-        System.out.println("Writing to:" + address);
         StringBuilder gv = new StringBuilder();
         if (automaton.fa.isTRUE_FALSE_AUTOMATON()) {
             addln(gv,"digraph G {");

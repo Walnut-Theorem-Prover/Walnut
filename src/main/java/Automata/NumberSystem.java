@@ -198,7 +198,7 @@ public class NumberSystem {
 
         setAdditionAutomaton(name, base);
         setLessThanAutomaton(name, base);
-        setEqualityAutomaton(addition.getA().get(0));
+        setEqualityAutomaton(getAlphabet());
         setAllRepAutomaton(name, base);
 
         constantsDynamicTable = new HashMap<>();
@@ -256,18 +256,18 @@ public class NumberSystem {
                     "The addition automaton must have exactly 3 inputs: base " + name);
         }
 
-        if (!addition.getA().get(0).contains(0)) {
+        if (!getAlphabet().contains(0)) {
             throw new RuntimeException(
                     "The input alphabet of addition automaton must contain 0: base " + name);
         }
 
-        if (!addition.getA().get(0).contains(1)) {
+        if (!getAlphabet().contains(1)) {
             throw new RuntimeException(
                     "The input alphabet of addition automaton must contain 1: base " + name);
         }
 
         for (int i = 1; i < addition.getA().size(); i++) {
-            if (!UtilityMethods.areEqual(addition.getA().get(i), addition.getA().get(0))) {
+            if (!UtilityMethods.areEqual(addition.getA().get(i), getAlphabet())) {
                 throw new RuntimeException(
                         "All 3 inputs of the addition automaton " +
                                 "must have the same alphabet: base " + name);
@@ -286,7 +286,7 @@ public class NumberSystem {
             if (UtilityMethods.parseNegNumber(base) > 1) {
                 lessThan = baseNegNLessThan(UtilityMethods.parseNegNumber(base));
             } else {
-                lessThan = lexicographicLessThan(addition.getA().get(0));
+                lessThan = lexicographicLessThan(getAlphabet());
             }
             if (!isMsd) {
                 AutomatonLogicalOps.reverse(lessThan, false, null, null, false);
@@ -303,7 +303,7 @@ public class NumberSystem {
         }
 
         for (int i = 0; i < lessThan.getA().size(); i++) {
-            if (!UtilityMethods.areEqual(lessThan.getA().get(i), addition.getA().get(0))) {
+            if (!UtilityMethods.areEqual(lessThan.getA().get(i), getAlphabet())) {
                 throw new RuntimeException(
                     "Inputs of the less_than automaton must have the same alphabet " +
                         "as the alphabet of inputs of addition automaton: base " + name);
@@ -405,8 +405,7 @@ public class NumberSystem {
      * @param n
      */
     private Automaton baseNadditionAutomaton(int n) {
-        List<Integer> alphabet = new ArrayList<>();
-        for (int i = 0; i < n; i++) alphabet.add(i);
+        List<Integer> alphabet = buildAlphabet(n);
         Automaton addition = initBasicAutomaton(IntList.of(1,0), 3, alphabet);
         FA additionFA = addition.getFa();
         int l = 0;
@@ -432,6 +431,12 @@ public class NumberSystem {
         return addition;
     }
 
+    private static List<Integer> buildAlphabet(int n) {
+        List<Integer> alphabet = new ArrayList<>(n);
+        for (int i = 0; i < n; i++) alphabet.add(i);
+        return alphabet;
+    }
+
     /**
      * Initializes addition to base negative n addition. addition has three inputs, and it accepts
      * iff the third is the sum of the first two. So the input is ordered!
@@ -439,8 +444,7 @@ public class NumberSystem {
      * @param n
      */
     private Automaton baseNegNAddition(int n) {
-        List<Integer> alphabet = new ArrayList<>(n);
-        for (int i = 0; i < n; i++) alphabet.add(i);
+        List<Integer> alphabet = buildAlphabet(n);
         Automaton addition =  initBasicAutomaton(IntList.of(1,0,0), 3, alphabet);
         FA additionFA = addition.getFa();
         int l = 0;
@@ -482,8 +486,7 @@ public class NumberSystem {
      * @param n
      */
     private Automaton baseNegNLessThan(int n) {
-        List<Integer> alphabet = new ArrayList<>();
-        for (int i = 0; i < n; i++) alphabet.add(i);
+        List<Integer> alphabet = buildAlphabet(n);
         Automaton lessThan = initBasicAutomaton(IntList.of(0,1,0), 2, alphabet);
         FA lessThanFA = lessThan.getFa();
         int l = 0;
@@ -514,8 +517,7 @@ public class NumberSystem {
      * @param n
      */
     private Automaton baseNBaseChange(int n) {
-        List<Integer> alphabet = new ArrayList<>();
-        for (int i = 0; i < n; i++) alphabet.add(i);
+        List<Integer> alphabet = buildAlphabet(n);
         Automaton baseChange = initBasicAutomaton(IntList.of(1,1,0,0));
         if (isMsd) {
             baseChange.getNS().add(new NumberSystem("msd_" + n));
@@ -958,12 +960,10 @@ public class NumberSystem {
     }
 
     private Automaton makeConstant(String regex, int constant) {
-        List<Integer> alph = new ArrayList<>();
-        alph.add(0);
-        alph.add(1);
+        List<Integer> alph = buildAlphabet(2);
         Automaton M = new Automaton(regex, alph, this);
         M.setA(new ArrayList<>());
-        M.getA().add(new ArrayList<>(addition.getA().get(0)));
+        M.getA().add(new ArrayList<>(getAlphabet()));
         M.determineAlphabetSizeFromA();
         M.setEncoder(new ArrayList<>());
         M.getEncoder().add(1);
