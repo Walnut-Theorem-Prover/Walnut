@@ -11,23 +11,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Added
 
 - Versioning output to Walnut.
-- Session functionality. Each run of Walnut writes all of its results to a new session, which makes it much easier to organize and not overwrite previous results.
+- Session functionality. Each run of Walnut writes to a new session, making it easier to organize and not overwrite previous results.
 - Dead states are removed (trim) before determinization.
-- Leveraging the [https://github.com/LearnLib/automatalib](AutomataLib) library.
-- (INCOMPLETE, UNPUBLISHED) Leveraging the OTF library.
 - (INCOMPLETE) Bisimulation reduction before determinization.
+- Leveraging the [AutomataLib](https://github.com/LearnLib/automatalib) library.
+- (INCOMPLETE, UNPUBLISHED) Leveraging the OTF library.
 - (INCOMPLETE) Determinization "strategy". It's now possible to determinize with Subset Construction (default), Brzozwski's reversal construction, OTF, or OTF (with Brzozwski reversal).
-- (INCOMPLETE) Allow reading and writing to the [https://languageinclusion.org/doku.php?id=tools](BA) format.
+- (INCOMPLETE) Allow reading and writing to the [BA](https://languageinclusion.org/doku.php?id=tools) format.
 
 ### Fixed
 
-- Major performance improvements, particularly in product automata construction.
+- Major performance improvements, particularly in product automata construction and Walnut file reading.
 - Unnecessary determinizations in fix leading/trailing zeros have been removed.
 - Increased testing and code coverage.
         
 ### Changed
 
-- Almost total rewrite.
+- Near-total rewrite.
 - "eval" and "def" commands are now the same. Before, "eval" would not write files to "Automata Library", which was confusing.
 - Help documentation organized into topics.
 
@@ -35,7 +35,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - JVM backwards compatibility. Walnut now requires JDK 17 or higher.
 
-## [Walnut 6] - 2024-03-30 - Author: Anatoly Zavyalov
+## [Walnut 6.2] - 2024-03-30 - Author: Anatoly Zavyalov
 
 - Source: [https://github.com/firetto/Walnut]
 
@@ -53,6 +53,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - Bug fixes
 - Performance improvements, particularly in Subset Construction and multiplication
+
+### Changed
+
+- Gradle build system
 
 ## [Walnut 5] - 2023-11-26 - Author: Anatoly Zavyalov
 

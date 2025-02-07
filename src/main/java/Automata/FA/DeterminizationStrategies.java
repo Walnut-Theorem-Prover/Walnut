@@ -254,10 +254,12 @@ public class DeterminizationStrategies {
     int numInputs = fa.getAlphabetSize();
     int totalPrints = 0;
 
+    int statesExplored = 0;
+
     while (!stack.isEmpty()) {
       if (print) {
-        int statesSoFar = out.size();
-        if (statesSoFar / 1000 > totalPrints) {
+        if (statesExplored++ / 1000 > totalPrints) {
+          int statesSoFar = out.size() - stateBuffer.size();
           totalPrints++;
           int queueSize = stack.size();
           long timeAfter = System.currentTimeMillis();
@@ -293,7 +295,11 @@ public class DeterminizationStrategies {
 
       if (complete && threshold.test(out)) {
         OnTheFlyDeterminization.minimizeReuse(inputs, out, finishedStates, stateBuffer, index);
-        threshold.update(out.size() - stateBuffer.size());
+        int statesSoFar = out.size() - stateBuffer.size();
+        threshold.update(statesSoFar);
+        long timeAfter = System.currentTimeMillis();
+        UtilityMethods.logMessage(print,
+            prefix + "  Progress: Periodic minimization: " + statesSoFar + " states - " + (timeAfter - timeBefore) + "ms", log);
       }
     }
     fa.setFromMyDFA(out);
