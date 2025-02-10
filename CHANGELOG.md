@@ -17,9 +17,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Leveraging the [AutomataLib](https://github.com/LearnLib/automatalib) library.
 - (INCOMPLETE, UNPUBLISHED) Leveraging the OTF library.
 - (INCOMPLETE, UNPUBLISHED) Additional determinization strategy choices:
-  * [Brzozwski's algorithm](https://en.wikipedia.org/wiki/DFA_minimization#Brzozowski's_algorithm)
+  * [Brzozowski's algorithm](https://en.wikipedia.org/wiki/DFA_minimization#Brzozowski's_algorithm)
   * OTF
-  * Brzozwski-OTF
+  * Brzozowski-OTF
 - (INCOMPLETE) Allow reading and writing to the [BA](https://languageinclusion.org/doku.php?id=tools) format.
 
 ### Fixed
