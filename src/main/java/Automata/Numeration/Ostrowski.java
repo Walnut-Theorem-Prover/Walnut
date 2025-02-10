@@ -81,7 +81,7 @@ public class Ostrowski {
     Automaton adder;
     Automaton repr;
 
-    public String getName() {
+    String getName() {
         return name;
     }
 

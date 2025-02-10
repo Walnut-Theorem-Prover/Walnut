@@ -24,6 +24,10 @@ public class ExceptionHelper {
         return new RuntimeException("Error using the " + cmd + " command.");
     }
 
+    public static RuntimeException fileDoesNotExist(String address) {
+        return new RuntimeException("File does not exist: " + address);
+    }
+
     public static RuntimeException internalMacro(int index) {
         return new RuntimeException("a function/macro cannot be called from inside another function/macro's argument list: char at " + index);
     }
@@ -70,6 +74,10 @@ public class ExceptionHelper {
 
     public static RuntimeException unbalancedParen(int index) {
         return new RuntimeException("unbalanced parenthesis: char at " + index);
+    }
+
+    public static RuntimeException undefinedStatement(long lineNumber, String address) {
+        return new RuntimeException("Undefined statement: line at " + lineNumber + " of file " + address);
     }
 
     public static RuntimeException undefinedToken(int position) {

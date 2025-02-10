@@ -31,6 +31,7 @@ import net.automatalib.alphabet.impl.Alphabets;
 import net.automatalib.automaton.fsa.impl.CompactNFA;
 
 import java.util.*;
+import java.util.function.Predicate;
 
 /**
  * Abstraction of NFA/DFA/DFAO code from Automaton.
@@ -38,11 +39,34 @@ import java.util.*;
  */
 public class FA implements Cloneable {
   private static int AutomataIndex = 0; // Indicates the index of the automata in a particular run
+
+  // q0 is the initial state. Multiple initial states aren't supported.
   private int q0;
+
+  // Q stores the number of states. For example when Q = 3, the set of states is {0,1,2}.
   private int Q;
   private int alphabetSize;
+
+  // O stores the output of a state. In the case of DFA/NFA, a nonzero value means a final state,
+  // and a value of zero means a non-final state.
   private IntList O;
+
+  /**
+   * Transition function. For example, when d[0] = [(0,[1]),(1,[2,3]),(2,[2]),(3,[4]),(4,[1]),(5,[0])]
+   * and alphabet A = [[0,1],[-1,2,3]]
+   * then from the state 0 on
+   * (0,-1) we go to 1
+   * (0,2) we go to 2,3
+   * (0,3) we go to 2
+   * (1,-1) we go to 4
+   * ...
+   * So we store the encoded values of inputs in d, i.e., instead of saying on (0,-1) we go to state 1, we say on 0, we go
+   * to state 1.
+   * Recall that (0,-1) represents 0 in mixed-radix base (1,2) and alphabet A. We have this mixed-radix base (1,2) stored as encoder in
+   * our program, so for more information on how we compute it read the information on List<Integer> encoder field.
+   */
   private List<Int2ObjectRBTreeMap<IntList>> nfaD; // transitions when this is an NFA -- null if this is a known DFA
+
   private List<Int2IntMap> dfaD; // memory-efficient transitions when this is a known DFA -- usually null
   private boolean canonized; // When true, states are sorted in breadth-first order
 
@@ -483,7 +507,7 @@ public class FA implements Cloneable {
         for (int q = 0; q < Q; q++) {
           for (Int2ObjectMap.Entry<IntList> entry : this.getEntriesNfaD(q)) {
             for (int dest : entry.getValue()) {
-              addTransition(newNfaD, dest, entry.getIntKey(), q);
+              addNewTransition(newNfaD, dest, entry.getIntKey(), q);
             }
           }
         }
@@ -491,7 +515,7 @@ public class FA implements Cloneable {
         // reverse DFA transitions
         for (int q = 0; q < Q; q++) {
           for (Int2IntMap.Entry entry : dfaD.get(q).int2IntEntrySet()) {
-            addTransition(newNfaD, entry.getIntValue(), entry.getIntKey(), q);
+            addNewTransition(newNfaD, entry.getIntValue(), entry.getIntKey(), q);
           }
         }
       }
@@ -511,7 +535,7 @@ public class FA implements Cloneable {
       return newInitialStates;
   }
 
-  private static void addTransition(List<Int2ObjectRBTreeMap<IntList>> newNfaD, int dest, int symbol, int q) {
+  private static void addNewTransition(List<Int2ObjectRBTreeMap<IntList>> newNfaD, int dest, int symbol, int q) {
     if (newNfaD.get(dest).containsKey(symbol))
       newNfaD.get(dest).get(symbol).add(q);
     else {
@@ -721,13 +745,13 @@ public class FA implements Cloneable {
     return altered;
   }
 
-  public void setFieldsFromFile(int newQ, int newQ0, Map<Integer, Integer> state_output,
-                                Map<Integer, Int2ObjectRBTreeMap<IntList>> state_transition) {
+  public void setFieldsFromFile(int newQ, int newQ0, Map<Integer, Integer> stateOutput,
+                                Map<Integer, Int2ObjectRBTreeMap<IntList>> stateTransition) {
     Q = newQ;
     q0 = newQ0;
     for (int q = 0; q < newQ; q++) {
-      O.add((int) state_output.get(q));
-      nfaD.add(state_transition.get(q));
+      O.add((int) stateOutput.get(q));
+      nfaD.add(stateTransition.get(q));
     }
     this.reduceNfaDMemory();
   }
@@ -802,7 +826,10 @@ public class FA implements Cloneable {
       nfaD = newD;
   }
 
-  public void addTransition(int src, int dest, int inp) {
+  /**
+   * Add new transition to nfaD. Note that this will overwrite previous transitions if it exists.
+   */
+  public void addNewTransition(int src, int dest, int inp) {
       IntList destStates = new IntArrayList();
       destStates.add(dest);
       nfaD.get(src).put(inp, destStates);
@@ -1037,5 +1064,106 @@ public class FA implements Cloneable {
       }
     }
     nfaD = null;
+  }
+
+  // helper function for our DFS to facilitate recursion
+  public String infiniteHelper(List<List<Integer>> A, IntSet visited, int started, int state, String result) {
+      if (visited.contains(state)) {
+          if (state == started) {
+              return result;
+          }
+          return "";
+      }
+      visited.add(state);
+      for (Int2ObjectMap.Entry<IntList> entry : getEntriesNfaD(state)) {
+          for (int y: entry.getValue()) {
+              // this adds brackets even when inputs have arity 1 - this is fine, since we just want a usable infinite regex
+              String cycle = infiniteHelper(A, visited, started, y, result + Automaton.decode(A, entry.getIntKey()));
+              if (!cycle.isEmpty()) {
+                  return cycle;
+              }
+          }
+      }
+
+      visited.remove(state);
+      return "";
+  }
+
+  // Determines whether an automaton accepts infinitely many values. If it does, a regex of infinitely many accepted values (not all)
+  // is given. This is true iff there exists a cycle in a minimized version of the automaton, which previously had leading or
+  // trailing zeroes removed according to whether it was msd or lsd
+  public String infinite(List<List<Integer>> A) {
+      for (int i = 0; i < Q; i++) {
+          IntSet visited = new IntOpenHashSet(); // states we have visited
+          String cycle = infiniteHelper(A, visited, i, i, "");
+          // once a cycle is detected, compute a prefix leading to state i and a suffix from state i to an accepting state
+          if (!cycle.isEmpty()) {
+              final int finalI = i;
+              String prefix = findPath(this, getQ0(), y -> y == finalI, A);
+              String suffix = findPath(this, finalI, y -> O.getInt(y) != 0, A);
+              return prefix + "(" + cycle + ")*" + suffix;
+          }
+      }
+      return ""; // an empty string signals that we have failed to find a cycle
+  }
+  // Core pathfinding logic
+  private static String findPath(
+      FA automaton,
+      int startState,
+      Predicate<Integer> isFoundCondition,
+      List<List<Integer>> A) {
+    // Early exit if the start state meets the condition
+    if (isFoundCondition.test(startState)) {
+      return "";
+    }
+    List<Integer> distance = new ArrayList<>(Collections.nCopies(automaton.getQ(), -1));
+    List<Integer> prev = new ArrayList<>(Collections.nCopies(automaton.getQ(), -1));
+    List<Integer> input = new ArrayList<>(Collections.nCopies(automaton.getQ(), -1));
+    distance.set(startState, 0);
+
+    Queue<Integer> queue = new LinkedList<>();
+    queue.add(startState);
+
+    boolean found = false;
+    int endState = -1;
+
+    // BFS to find the path
+    while (!queue.isEmpty() && !found) {
+      int current = queue.poll();
+
+      for (Int2ObjectMap.Entry<IntList> entry : automaton.getEntriesNfaD(current)) {
+        int x = entry.getIntKey();
+        IntList transitions = entry.getValue();
+
+        for (int y : transitions) {
+          if (isFoundCondition.test(y)) {
+            found = true;
+            endState = y;
+          }
+          if (distance.get(y) == -1) { // Unvisited state
+            distance.set(y, distance.get(current) + 1);
+            prev.set(y, current);
+            input.set(y, x);
+            queue.add(y);
+          }
+        }
+      }
+    }
+
+    // Reconstruct the path
+    List<Integer> path = new ArrayList<>();
+    int current = found ? endState : startState;
+    while (current != startState) {
+      path.add(input.get(current));
+      current = prev.get(current);
+    }
+    Collections.reverse(path);
+
+    // Convert the path to a string
+    StringBuilder result = new StringBuilder();
+    for (Integer node : path) {
+      result.append(Automaton.decode(A, node));
+    }
+    return result.toString();
   }
 }

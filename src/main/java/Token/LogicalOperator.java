@@ -134,7 +134,7 @@ public class LogicalOperator extends Operator {
                     AutomatonLogicalOps.not(M, print, prefix + " ", log);
                 } else {
                     M = AutomatonLogicalOps.removeLeadingZeroes(M, identifiersToQuantify, print, prefix + " ", log);
-                    String infReg = M.infinite();
+                    String infReg = M.fa.infinite(M.getA());
                     M = infReg.isEmpty() ? new Automaton(false) : new Automaton(true);
                 }
             }

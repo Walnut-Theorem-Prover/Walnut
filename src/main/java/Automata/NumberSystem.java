@@ -336,7 +336,7 @@ public class NumberSystem {
         equality = initBasicAutomaton(IntList.of(1), 2, alphabet);
         FA equalityFA = equality.getFa();
         for (int i = 0; i < alphabet.size(); i++) {
-            equalityFA.addTransition(0, 0, i * alphabet.size() + i);
+            equalityFA.addNewTransition(0, 0, i * alphabet.size() + i);
         }
     }
 
@@ -354,12 +354,12 @@ public class NumberSystem {
         for (int i = 0; i < alphabet.size(); i++) {
             for (int j = 0; j < alphabet.size(); j++) {
                 if (i == j) {
-                    lessThanFA.addTransition(0, 0, j * alphabet.size() + i);
+                    lessThanFA.addNewTransition(0, 0, j * alphabet.size() + i);
                 }
                 if (i < j) {
-                    lessThanFA.addTransition(0, 1, j * alphabet.size() + i);
+                    lessThanFA.addNewTransition(0, 1, j * alphabet.size() + i);
                 }
-                lessThanFA.addTransition(1, 1, i * alphabet.size() + j);
+                lessThanFA.addNewTransition(1, 1, i * alphabet.size() + j);
             }
         }
         return lessThan;
@@ -413,16 +413,16 @@ public class NumberSystem {
             for (int j = 0; j < n; j++) {
                 for (int i = 0; i < n; i++) {
                     if (i + j == k) {
-                        additionFA.addTransition(0, 0, l);
+                        additionFA.addNewTransition(0, 0, l);
                     }
                     if (i + j + 1 == k) {
-                        additionFA.addTransition(0, 1, l);
+                        additionFA.addNewTransition(0, 1, l);
                     }
                     if (i + j + 1 == k + n) {
-                        additionFA.addTransition(1, 1, l);
+                        additionFA.addNewTransition(1, 1, l);
                     }
                     if (i + j == k + n) {
-                        additionFA.addTransition(1, 0, l);
+                        additionFA.addNewTransition(1, 0, l);
                     }
                     l++;
                 }
@@ -452,25 +452,25 @@ public class NumberSystem {
             for (int j = 0; j < n; j++) {
                 for (int i = 0; i < n; i++) {
                     if (i + j == k) {
-                        additionFA.addTransition(0, 0, l);
+                        additionFA.addNewTransition(0, 0, l);
                     }
                     if (i + j + 1 == k) {
-                        additionFA.addTransition(0, 1, l);
+                        additionFA.addNewTransition(0, 1, l);
                     }
                     if (i + j - 1 == k) {
-                        additionFA.addTransition(0, 2, l);
+                        additionFA.addNewTransition(0, 2, l);
                     }
                     if (i + j == k + n) {
-                        additionFA.addTransition(2, 0, l);
+                        additionFA.addNewTransition(2, 0, l);
                     }
                     if (i + j + 1 == k + n) {
-                        additionFA.addTransition(2, 1, l);
+                        additionFA.addNewTransition(2, 1, l);
                     }
                     if (i + j - 1 == k + n) {
-                        additionFA.addTransition(2, 2, l);
+                        additionFA.addNewTransition(2, 2, l);
                     }
                     if (i == 0 && j == 0 && k == n - 1) {
-                        additionFA.addTransition(1, 2, l);
+                        additionFA.addNewTransition(1, 2, l);
                     }
                     l++;
                 }
@@ -493,16 +493,16 @@ public class NumberSystem {
         for (int j = 0; j < n; j++) {
             for (int i = 0; i < n; i++) {
                 if (i == j) {
-                    lessThanFA.addTransition(0, 0, l);
+                    lessThanFA.addNewTransition(0, 0, l);
                 }
                 if (i < j) {
-                    lessThanFA.addTransition(0, 1, l);
+                    lessThanFA.addNewTransition(0, 1, l);
                 }
                 if (j < i) {
-                    lessThanFA.addTransition(0, 2, l);
+                    lessThanFA.addNewTransition(0, 2, l);
                 }
-                lessThanFA.addTransition(1, 2, l);
-                lessThanFA.addTransition(2, 1, l);
+                lessThanFA.addNewTransition(1, 2, l);
+                lessThanFA.addNewTransition(2, 1, l);
                 l++;
             }
         }
@@ -534,22 +534,22 @@ public class NumberSystem {
         for (int j = 0; j < n; j++) {
             for (int i = 0; i < n; i++) {
                 if (i == 0 && j == 0) {
-                    baseChangeFA.addTransition(1, 0, l);
+                    baseChangeFA.addNewTransition(1, 0, l);
                 }
                 if (i == j) {
-                    baseChangeFA.addTransition(0, 1, l);
+                    baseChangeFA.addNewTransition(0, 1, l);
                 }
                 if (i + 1 == j) {
-                    baseChangeFA.addTransition(2, 1, l);
+                    baseChangeFA.addNewTransition(2, 1, l);
                 }
                 if (i + j == n) {
-                    baseChangeFA.addTransition(1, 2, l);
+                    baseChangeFA.addNewTransition(1, 2, l);
                 }
                 if (i + j == n - 1) {
-                    baseChangeFA.addTransition(3, 2, l);
+                    baseChangeFA.addNewTransition(3, 2, l);
                 }
                 if (i == n - 1 && j == 0) {
-                    baseChangeFA.addTransition(2, 3, l);
+                    baseChangeFA.addNewTransition(2, 3, l);
                 }
                 l++;
             }

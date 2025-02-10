@@ -17,7 +17,6 @@
  */
 package Automata;
 
-import Automata.FA.DeterminizationStrategies;
 import Automata.FA.ProductStrategies;
 import Main.UtilityMethods;
 import it.unimi.dsi.fastutil.ints.*;
@@ -25,123 +24,6 @@ import it.unimi.dsi.fastutil.ints.*;
 import java.util.*;
 
 public class AutomatonLogicalOps {
-    /**
-     * This method is used in and, or, not, and many others.
-     * A and B should have TRUE_FALSE_AUTOMATON = false.
-     * A and B must have labeled inputs.
-     * For the sake of an example, suppose that Q = 3, q0 = 1, B.Q = 2, and B.q0 = 0. Then N.Q = 6 and the states of N
-     * are {0=(0,0),1=(0,1),2=(1,0),3=(1,1),4=(2,0),5=(2,1)} and N.q0 = 2. The transitions of state (a,b) is then
-     * based on the transitions of a and b in this and B.
-     * To continue with this example suppose that label = ["i","j"] and
-     * B.label = ["p","q","j"]. Then N.label = ["i","j","p","q"], and inputs to N are four tuples.
-     * Now suppose in this we go from 0 to 1 by reading (i=1,j=2)
-     * and in B we go from 1 to 0 by reading (p=-1,q=-2,j=2).
-     * Then in N we go from (0,1) to (1,0) by reading (i=1,j=2,p=-1,q=-2).
-     *
-     * @param A
-     * @param B
-     * @return A cross product B.
-     */
-    static Automaton crossProduct(Automaton A,
-                                  Automaton B,
-                                  String op,
-                                  boolean print,
-                                  String prefix,
-                                  StringBuilder log) {
-        Automaton AxB = new Automaton();
-        long timeBefore = System.currentTimeMillis();
-        int[] allInputsOfN = createBasicAutomaton(A, B, print, prefix, log, AxB);
-        int combineOut = op.equals("combine") ? A.combineOutputs.getInt(A.combineIndex) : -1;
-        ProductStrategies.crossProductInternal(
-            A.fa, B.fa, AxB.fa, combineOut, allInputsOfN, op, print, prefix, log, timeBefore);
-        return AxB;
-    }
-    static Automaton crossProductAndMinimize(Automaton A,
-                                  Automaton B,
-                                  String op,
-                                  boolean print,
-                                  String prefix,
-                                  StringBuilder log) {
-        Automaton AxB = new Automaton();
-        long timeBefore = System.currentTimeMillis();
-        int[] allInputsOfN = createBasicAutomaton(A, B, print, prefix, log, AxB);
-        int combineOut = op.equals("combine") ? A.combineOutputs.getInt(A.combineIndex) : -1;
-        ProductStrategies.crossProductInternalDFA(
-                A.fa, B.fa, AxB.fa, combineOut, allInputsOfN, op, print, prefix, log, timeBefore);
-        AxB.fa.justMinimize(print, prefix, log);
-        if (AxB.fa.getNfaD() == null) {
-            throw new RuntimeException("Unexpected null");
-        }
-        return AxB;
-    }
-
-    private static int[] createBasicAutomaton(
-            Automaton A, Automaton B, boolean print, String prefix, StringBuilder log, Automaton AxB) {
-        if (A.fa.isTRUE_FALSE_AUTOMATON() || B.fa.isTRUE_FALSE_AUTOMATON()) {
-            throw new RuntimeException("Invalid use of the crossProduct method: " +
-                    "the automata for this method cannot be true or false automata.");
-        }
-
-        if (A.getLabel() == null ||
-                B.getLabel() == null ||
-                A.getLabel().size() != A.getA().size() ||
-                B.getLabel().size() != B.getA().size()
-        ) {
-            throw new RuntimeException("Invalid use of the crossProduct method: " +
-                    "the automata for this method must have labeled inputs.");
-        }
-
-        UtilityMethods.logMessage(print, prefix + "Computing cross product:" + A.getQ() + " states - " + B.getQ() + " states", log);
-
-        /**
-         * for example when sameLabelsInMAndThis[2] = 3, then input 2 of B has the same label as input 3 of this
-         * and when sameLabelsInMAndThis[2] = -1, it means that input 2 of B is not an input of this
-         */
-        int[] sameInputsInMAndThis = new int[B.getA().size()];
-        for (int i = 0; i < B.getLabel().size(); i++) {
-            sameInputsInMAndThis[i] = -1;
-            if (A.getLabel().contains(B.getLabel().get(i))) {
-                int j = A.getLabel().indexOf(B.getLabel().get(i));
-                if (!UtilityMethods.areEqual(A.getA().get(j), B.getA().get(i))) {
-                    throw new RuntimeException("in computing cross product of two automaton, "
-                            + "variables with the same label must have the same alphabet");
-                }
-                sameInputsInMAndThis[i] = j;
-            }
-        }
-        for (int i = 0; i < A.getA().size(); i++) {
-            AxB.getA().add(A.getA().get(i));
-            AxB.getLabel().add(A.getLabel().get(i));
-            AxB.getNS().add(A.getNS().get(i));
-        }
-        for (int i = 0; i < B.getA().size(); i++) {
-            NumberSystem bNS = B.getNS().get(i);
-            if (sameInputsInMAndThis[i] == -1) {
-                AxB.getA().add(new ArrayList<>(B.getA().get(i)));
-                AxB.getLabel().add(B.getLabel().get(i));
-                AxB.getNS().add(bNS);
-            } else {
-                int j = sameInputsInMAndThis[i];
-                if (bNS != null && AxB.getNS().get(j) == null) {
-                    AxB.getNS().set(j, bNS);
-                }
-            }
-        }
-        AxB.determineAlphabetSizeFromA();
-
-        IntList allInputsOfN = new IntArrayList();
-        for (int i = 0; i < A.getAlphabetSize(); i++) {
-            for (int j = 0; j < B.getAlphabetSize(); j++) {
-                List<Integer> inputForN = joinTwoInputsForCrossProduct(
-                    Automaton.decode(A.getA(), i), Automaton.decode(B.getA(), j), sameInputsInMAndThis);
-                if (inputForN == null)
-                    allInputsOfN.add(-1);
-                else
-                    allInputsOfN.add(AxB.encode(inputForN));
-            }
-        }
-        return allInputsOfN.toArray(new int[0]);
-    }
 
     /**
      * @return A and B.
@@ -170,7 +52,7 @@ public class AutomatonLogicalOps {
         long timeBefore = System.currentTimeMillis();
         UtilityMethods.logMessage(print, prefix + "computing " + friendlyOp + ":" + A.getQ() + " states - " + B.getQ() + " states", log);
 
-        Automaton N = crossProductAndMinimize(A, B, friendlyOp, print, prefix + " ", log);
+        Automaton N = ProductStrategies.crossProductAndMinimize(A, B, friendlyOp, print, prefix + " ", log);
         long timeAfter = System.currentTimeMillis();
         UtilityMethods.logMessage(print, prefix + "computed " + friendlyOp + ":" + N.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
 
@@ -232,7 +114,7 @@ public class AutomatonLogicalOps {
 
         A.fa.totalize(print, prefix + " ", log);
         B.fa.totalize(print, prefix + " ", log);
-        Automaton N = crossProductAndMinimize(A, B, friendlyOp, print, prefix + " ", log);
+        Automaton N = ProductStrategies.crossProductAndMinimize(A, B, friendlyOp, print, prefix + " ", log);
         N.applyAllRepresentations();
 
         long timeAfter = System.currentTimeMillis();
@@ -322,7 +204,7 @@ public class AutomatonLogicalOps {
         otherClone.setNS(A.getNS());
 
         for (int i = 0; i < A.getQ(); i++) {
-            // this will be a temporary A that will be the same as as self except it will start from the A
+            // this will be a temporary A that will be the same as self except it will start from the A
             Automaton T = A.clone();
 
             if (i != 0) {
@@ -392,30 +274,6 @@ public class AutomatonLogicalOps {
         return true;
     }
 
-
-    /**
-     * For example, suppose that first = [1,2,3], second = [-1,4,2], and equalIndices = [-1,-1,1].
-     * Then the result is [1,2,3,-1,4].
-     * However if second = [-1,4,3] then the result is null
-     * because 3rd element of second is not equal two 2nd element of first.
-     *
-     * @param first
-     * @param second
-     * @param equalIndices
-     * @return
-     */
-    private static List<Integer> joinTwoInputsForCrossProduct(
-            List<Integer> first, List<Integer> second, int[] equalIndices) {
-      List<Integer> R = new ArrayList<>(first);
-        for (int i = 0; i < second.size(); i++)
-            if (equalIndices[i] == -1)
-                R.add(second.get(i));
-            else {
-                if (!first.get(equalIndices[i]).equals(second.get(i)))
-                    return null;
-            }
-        return R;
-    }
 
     /**
      * Make A accept 0*x, iff it used to accept x.
@@ -613,7 +471,7 @@ public class AutomatonLogicalOps {
     public static Automaton applyOperator(Automaton A, Automaton B, String operator, boolean print, String prefix, StringBuilder log) {
         long timeBefore = System.currentTimeMillis();
         UtilityMethods.logMessage(print, prefix + "applying operator (" + operator + "):" + A.getQ() + " states - " + B.getQ() + " states", log);
-        Automaton N = crossProduct(A, B, operator, print, prefix + " ", log);
+        Automaton N = ProductStrategies.crossProduct(A, B, operator, print, prefix + " ", log);
         N.minimizeWithOutput(print, prefix + " ", log);
         long timeAfter = System.currentTimeMillis();
         UtilityMethods.logMessage(print, prefix + "applied operator (" + operator + "):" + A.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
@@ -710,7 +568,7 @@ public class AutomatonLogicalOps {
                 int mappedKey = permutation.get(transition.getIntKey());
                 IntList existingTransitions = newMemDTransitionFunction.get(mappedKey);
                 if (existingTransitions != null) {
-                    UtilityMethods.addAllWithoutRepetition(existingTransitions, transition.getValue());
+                    addAllWithoutRepetition(existingTransitions, transition.getValue());
                 } else {
                     newMemDTransitionFunction.put(mappedKey, new IntArrayList(transition.getValue()));
                 }
@@ -720,6 +578,15 @@ public class AutomatonLogicalOps {
         A.fa.determinizeAndMinimize(print, prefix + " ", log);
         long timeAfter = System.currentTimeMillis();
         UtilityMethods.logMessage(print, prefix + "quantified:" + A.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
+    }
+
+    /**
+     * add elements of R that do not exist in L to L.
+     * Also: keep order of previous elements of L and new elements (w.r.t. R).
+     */
+    private static <T> void addAllWithoutRepetition(List<T> L, List<T> R) {
+        if (R == null || R.isEmpty()) return;
+        R.stream().filter(x -> !L.contains(x)).forEach(L::add);
     }
 
     /**
@@ -1119,7 +986,7 @@ public class AutomatonLogicalOps {
             // crossProduct requires both automata to be totalized, otherwise it has no idea which cartesian states to transition to
             first.fa.totalize(print, prefix + " ", log);
             next.fa.totalize(print, prefix + " ", log);
-            Automaton product = crossProduct(first, next, "combine", print, prefix + " ", log);
+            Automaton product = ProductStrategies.crossProduct(first, next, "combine", print, prefix + " ", log);
             product.combineIndex = first.combineIndex + 1;
             product.combineOutputs = first.combineOutputs;
             first = product;
@@ -1151,7 +1018,7 @@ public class AutomatonLogicalOps {
         long timeBefore = System.currentTimeMillis();
         UtilityMethods.logMessage(print,
             prefix + "comparing (" + operator + "):" + A.getFa().getQ() + " states - " + B.getFa().getQ() + " states", log);
-        Automaton M = crossProductAndMinimize(A, B, operator, print, prefix + " ", log);
+        Automaton M = ProductStrategies.crossProductAndMinimize(A, B, operator, print, prefix + " ", log);
         long timeAfter = System.currentTimeMillis();
         UtilityMethods.logMessage(print,
             prefix + "compared (" + operator + "):" + M.getFa().getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);

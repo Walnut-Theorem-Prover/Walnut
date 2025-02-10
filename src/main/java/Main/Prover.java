@@ -19,7 +19,6 @@
 package Main;
 
 import java.io.*;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.LinkedList;
@@ -32,7 +31,6 @@ import Automata.FA.FA;
 import Automata.Numeration.Ostrowski;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
-import it.unimi.dsi.fastutil.objects.ObjectIntPair;
 
 /**
  * This class contains the main method. It is responsible to get a command from user
@@ -829,7 +827,7 @@ public class Prover {
 
     Automaton M = Automaton.readAutomatonFromFile(m.group(GROUP_INF_NAME));
     M = removeLeadTrailZeroes(M);
-    String infReg = M.infinite();
+    String infReg = M.fa.infinite(M.getA());
     if (infReg.isEmpty()) {
       System.out.println("Automaton " + m.group(GROUP_INF_NAME) + " accepts finitely many values.");
       return false;

@@ -19,9 +19,9 @@
 package Main;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * This class contains a number of useful static methods.
@@ -31,12 +31,11 @@ public class UtilityMethods {
 
     private static final Pattern PATTERN_NUMBER = Pattern.compile("^\\d+$");
     private static final Pattern PATTERN_NEG_NUMBER = Pattern.compile("^neg_\\d+$");
+    private static final Pattern PATTERN_WHITESPACE = Pattern.compile("\\s");
+
 
     /**
      * checks if a string is \\d+
-     *
-     * @param s
-     * @return
      */
     public static boolean isNumber(String s) {
         return PATTERN_NUMBER.matcher(s).matches();
@@ -45,9 +44,6 @@ public class UtilityMethods {
     /**
      * Checks if a string is neg_\\d+, then return the number but negative.
      * Otherwise, returns 0.
-     *
-     * @param s
-     * @return
      */
     public static int parseNegNumber(String s) {
         if (!PATTERN_NEG_NUMBER.matcher(s).matches()) {
@@ -57,31 +53,7 @@ public class UtilityMethods {
     }
 
     /**
-     * Permutes L with regard to permutation.
-     * @jn1z notes: However, behavior is *not* what was designed:
-     * Expected: "if permutation = [1,2,0] then the return value is [L[1],L[2],L[0]]"
-     * Actual:   "if permutation = [1,2,0] then the return value is [L[2],L[0],L[1]]", i.e. the inverse
-     * Changing this causes other issues, so we're leaving it.
-     * (I suspect as this is the inverse, it ends up not being an issue down the line.)
-     * Also: behavior is undefined is permutation size != L.size
-     *
-     * @param L
-     * @param permutation
-     * @return
-     */
-    public static <T> List<T> permute(List<T> L, int[] permutation) {
-        List<T> R = new ArrayList<>(L);
-        for (int i = 0; i < L.size(); i++) {
-            R.set(permutation[i], L.get(i));
-        }
-        return R;
-    }
-
-    /**
      * For example when L = [1,2,3] then the result is the string "(1,2,3)"
-     *
-     * @param l
-     * @return
      */
     public static <T> String toTuple(List<T> l) {
         return "(" + UtilityMethods.genericListString(l, ",") + ")";
@@ -98,69 +70,25 @@ public class UtilityMethods {
 
     /**
      * For example when L = [1,3,2,1,3] the result is [1,3,2]
-     *
-     * @param L
      */
     public static <T> void removeDuplicates(List<T> L) {
         if (L == null || L.size() <= 1) return;
-        List<T> R = new ArrayList<>();
-        for (int i = 0; i < L.size(); i++) {
-            boolean flag = true;
-            for (int j = 0; j < i; j++) {
-                if (L.get(i).equals(L.get(j))) {
-                    flag = false;
-                    break;
-                }
-            }
-            if (flag) R.add(L.get(i));
-        }
+        Set<T> set = new LinkedHashSet<>(L);
         L.clear();
-        L.addAll(R);
+        L.addAll(set);
     }
 
     /**
-     * Checks if the set of L and R are equal. L and R does not have duplicates.
-     *
-     * @param L
-     * @param R
-     * @return
+     * Checks if the set of L and R are equal. L and R do not have duplicates.
      */
     public static <T> boolean areEqual(List<T> L, List<T> R) {
         if (L == null && R == null) return true;
         if (L == null || R == null) return false;
-        if (L.size() != R.size()) return false;
-        for (T x : L)
-            if (!R.contains(x)) return false;
-        return true;
-    }
-
-    /**
-     * add elements of R that do not exist in L to L.
-     * Also: keep order of previous elements of L and new elements (w.r.t. R).
-     *
-     * @param L
-     * @param R
-     */
-    public static <T> void addAllWithoutRepetition(List<T> L, List<T> R) {
-        if (R == null || R.isEmpty()) return;
-        for (T x : R) {
-            boolean flag = true;
-            for (T y : L) {
-                if (y.equals(x)) {
-                    flag = false;
-                    break;
-                }
-            }
-            if (flag)
-                L.add(x);
-        }
+        return new HashSet<>(L).equals(new HashSet<>(R));
     }
 
     /**
      * For example when indices = [1,3] and L = [X,Y,Z,W] then the result is [X,Z]
-     *
-     * @param L
-     * @param indices
      */
     public static <T> void removeIndices(List<T> L, List<Integer> indices) {
         List<T> R = new ArrayList<>();
@@ -176,14 +104,7 @@ public class UtilityMethods {
      * Parse integer from String. The string may have spaces, which are removed.
      */
     public static int parseInt(String s) {
-        StringBuilder b = new StringBuilder(s.length());
-        for (int i = 0; i < s.length(); i++) {
-            char c = s.charAt(i);
-            if (!Character.isWhitespace(c)) {
-                b.append(c);
-            }
-        }
-        return Integer.parseInt(b.toString());
+        return Integer.parseInt(PATTERN_WHITESPACE.matcher(s).replaceAll(""));
     }
 
     /**
@@ -208,14 +129,7 @@ public class UtilityMethods {
      * Where a_i can be represented as a string, and "," is an arbitrary separator.
      */
     public static String genericListString(List<?> objects, String separator) {
-        StringBuilder sb = new StringBuilder();
-        for(int i=0;i<objects.size();i++) {
-            if (i > 0) {
-                sb.append(separator);
-            }
-            sb.append(objects.get(i));
-        }
-        return sb.toString();
+        return objects.stream().map(Object::toString).collect(Collectors.joining(separator));
     }
 
     public static boolean isSorted(List<String> label) {
@@ -225,28 +139,6 @@ public class UtilityMethods {
             }
         }
         return true;
-    }
-
-    /**
-     * For example if label_permutation[1]=[3], then input number 1 becomes input number 3 after sorting.
-     * For example if label = ["z","a","c"], and A = [[-1,2],[0,1],[1,2,3]],
-     * then label_permutation = [2,0,1] and permuted_A = [[0,1],[1,2,3],[-1,2]].
-     */
-    public static int[] getLabelPermutation(List<String> label, List<String> sorted_label) {
-        int[] label_permutation = new int[label.size()];
-        for (int i = 0; i < label.size(); i++) {
-            label_permutation[i] = sorted_label.indexOf(label.get(i));
-        }
-        return label_permutation;
-    }
-
-    public static List<Integer> getPermutedEncoder(List<List<Integer>> A, List<List<Integer>> permuted_A) {
-        List<Integer> permuted_encoder = new ArrayList<>();
-        permuted_encoder.add(1);
-        for (int i = 0; i < A.size() - 1; i++) {
-            permuted_encoder.add(permuted_encoder.get(i) * permuted_A.get(i).size());
-        }
-        return permuted_encoder;
     }
 
     public static void logMessage(boolean print, String msg, StringBuilder log) {

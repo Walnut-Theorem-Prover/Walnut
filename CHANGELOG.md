@@ -16,13 +16,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - (INCOMPLETE) Bisimulation reduction before determinization.
 - Leveraging the [AutomataLib](https://github.com/LearnLib/automatalib) library.
 - (INCOMPLETE, UNPUBLISHED) Leveraging the OTF library.
-- (INCOMPLETE) Determinization "strategy". It's now possible to determinize with Subset Construction (default), Brzozwski's reversal construction, OTF, or OTF (with Brzozwski reversal).
+- (INCOMPLETE, UNPUBLISHED) Additional determinization strategy choices:
+  * [Brzozwski's algorithm](https://en.wikipedia.org/wiki/DFA_minimization#Brzozowski's_algorithm)
+  * OTF
+  * Brzozwski-OTF
 - (INCOMPLETE) Allow reading and writing to the [BA](https://languageinclusion.org/doku.php?id=tools) format.
 
 ### Fixed
 
 - Major performance improvements, particularly in product automata construction and Walnut file reading.
-- Unnecessary determinizations in fix leading/trailing zeros have been removed.
+- Removed unnecessary determinizations when handling leading/trailing zeros.
 - Increased testing and code coverage.
         
 ### Changed
@@ -52,16 +55,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Fixed
 
 - Bug fixes
-- Performance improvements, particularly in Subset Construction and multiplication
+- Major performance improvements, particularly in Subset Construction (~7x memory reduction, ~2x speedup) and multiplication
 
 ### Changed
 
-- Gradle build system
+- Walnut now builds with [Gradle](https://gradle.org/)
 
 ## [Walnut 5] - 2023-11-26 - Author: Anatoly Zavyalov
 
 - Source: [https://github.com/firetto/Walnut/tree/walnut5]
-- Additional documentation: [https://cs.uwaterloo.ca/~shallit/walnut-5-doc.txt]
+- [Additional documentation](https://cs.uwaterloo.ca/~shallit/walnut-5-doc.txt)
 
 ### Added
 

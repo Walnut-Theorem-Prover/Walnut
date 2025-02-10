@@ -19,13 +19,13 @@
 package Automata;
 
 import Automata.FA.FA;
+import Automata.FA.ProductStrategies;
 import Main.ExceptionHelper;
 import Main.Session;
 import Main.UtilityMethods;
 
 import java.io.*;
 import java.util.*;
-import java.util.function.Predicate;
 
 import Token.ArithmeticOperator;
 import it.unimi.dsi.fastutil.ints.*;
@@ -39,12 +39,10 @@ import static Automata.ParseMethods.PATTERN_WHITESPACE;
  * Inputs to an ordinary automaton are n-tuples. Each coordinate has its own alphabet. <br>
  * Let's see this by means of an example: <br>
  * Suppose our automaton has 3-tuples as its input: <br>
- * -The field A, which is a list of list of integers, is used to store the alphabets of
- * all these three inputs. For example we might have A = [[1,2],[0,-1,1],[1,3]]. This means that the first input is over alphabet
+ * The field A stores the alphabets of these inputs.
+ * For example, we might have A = [[1,2],[0,-1,1],[1,3]]. This means that the first input is over alphabet
  * {1,2} and the second one is over {0,-1,1},... <br>
  * Note: Input alphabets are subsets of integers. <br>
- * -Each coordinate also has a type which is stored in T. For example we might have T = [Type.arithmetic,Type.arithmetic,Type.arithmetic],
- * which means all three inputs are of type arithmetic. You can find out what this means in the tutorial.
  * -So in total there are 12 = 2*3*2 different inputs (this number is stored in alphabetSize)
  * for this automaton. Here are two example inputs: (2,-1,3),(1,0,3).
  * We can encode these 3-tuples by the following rule:<br>
@@ -53,19 +51,13 @@ import static Automata.ParseMethods.PATTERN_WHITESPACE;
  * 2 = (1,-1,1)<br>
  * ...<br>
  * 11 = (2,1,3)<br>
- * We use this encoding in our representation of automaton to refer to a particular input. For example
+ * We use this encoding in our representation of automaton to refer to a particular input. For example,
  * we might say on (2,1,3) we go from state 5 to state 0 by setting d.get(5) = (11,[5]).
- * Q stores the number of states. For example when Q = 3, the set of states is {0,1,2}.
- * q0 is the initial state. Multiple initial states aren't supported.
- * O stores the output of a state. In the case of DFA/NFA, a nonzero value means a final state,
- * and a value of zero means a non-final state.
  * In the case of automaton with output,
  * the first state has output 1, the second has output -1, and the third one has output 0.
  * The output alphabet can be any finite subset of integers. <br>
  * We might want to give labels to inputs. For example if we set label = ["x","y","z"], the label of the first input is "x".
  * Then in the future, we can refer to this first input by the label "x". <br>
- * -The transition function is d which is a Map<integer,List<Integer>> for each state. For example we might have
- * d.get(1) = {(0,[0]),(1,[1,2]),...} which means that state 1 goes to state 0 on input 0, and goes to states 1 and 2 on 1,....
  */
 public class Automaton {
 
@@ -82,6 +74,10 @@ public class Automaton {
 
     // for use in the combine command, allows crossProduct to determine what to set outputs to
     IntList combineOutputs;
+
+    public int determineCombineOutVal(String op) {
+      return op.equals("combine") ? this.combineOutputs.getInt(this.combineIndex) : -1;
+    }
 
     /**
      * We would like to give label to inputs.
@@ -161,51 +157,19 @@ public class Automaton {
 
     /**
      * Takes an address and constructs the automaton represented by the file referred to by the address
-     *
-     * @param address
      */
     public Automaton(String address) {
         this();
         File f = UtilityMethods.validateFile(address);
 
-        //lineNumber will be used in error messages
         long lineNumber = 0;
         setAlphabetSize(1);
 
+        Boolean[] trueFalseSingleton = new Boolean[1];
         try (BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(f)))) {
-            String line;
-            boolean[] singleton = new boolean[1];
-            while ((line = in.readLine()) != null) {
-                lineNumber++;
-                if (PATTERN_WHITESPACE.matcher(line).matches()) {
-                    // Ignore blank lines.
-                    continue;
-                }
-                if (ParseMethods.parseTrueFalse(line, singleton)) {
-                    // It is a true/false automaton.
-                    fa.setTRUE_FALSE_AUTOMATON(true);
-                    fa.setTRUE_AUTOMATON(singleton[0]);
-                    return;
-                }
-                if (ParseMethods.parseAlphabetDeclaration(line, getA(), getNS())) {
-                    for (int i = 0; i < getA().size(); i++) {
-                        if (getNS().get(i) != null &&
-                            (!getA().get(i).contains(0) || !getA().get(i).contains(1))) {
-                            throw new RuntimeException(
-                                "The " + (i + 1) + "th input of type arithmetic " +
-                                    "of the automaton declared in file " + address +
-                                    " requires 0 and 1 in its input alphabet: line " +
-                                    lineNumber);
-                        }
-                        UtilityMethods.removeDuplicates(getA().get(i));
-                    }
-                    this.determineAlphabetSizeFromA();
-                    break;
-                } else {
-                    throw new RuntimeException(
-                        "Undefined statement: line " +
-                            lineNumber + " of file " + address);
-                }
+            lineNumber = firstParse(address, in, lineNumber, trueFalseSingleton);
+            if (trueFalseSingleton[0] != null) {
+                return;
             }
 
             int[] pair = new int[2];
@@ -216,22 +180,16 @@ public class Automaton {
             Int2ObjectRBTreeMap<IntList> currentStateTransitions = new Int2ObjectRBTreeMap<>();
             Map<Integer, Integer> output = new TreeMap<>();
             Map<Integer, Int2ObjectRBTreeMap<IntList>> transitions = new TreeMap<>();
-            /**
-             * This will hold all states that are destination of some transition.
-             * Then we make sure all these states are declared.
-             */
+
             int Q = 0, q0=0;
             Set<Integer> setOfDestinationStates = new HashSet<>();
             boolean outputLongFile = false;
+
+            String line;
             while ((line = in.readLine()) != null) {
                 lineNumber++;
-                if (lineNumber % 1000000 == 0) {
-                    if (!outputLongFile) {
-                        outputLongFile = true;
-                        System.out.print("Parsing " + address + " ...");
-                    }
-                    System.out.print("line " + lineNumber + "...");
-                }
+                outputLongFile = debugPrintLongFile(address, lineNumber, outputLongFile);
+
                 if (PATTERN_WHITESPACE.matcher(line).matches()) {
                     continue;
                 }
@@ -248,50 +206,104 @@ public class Automaton {
                     currentStateTransitions = new Int2ObjectRBTreeMap<>();
                     transitions.put(currentState, currentStateTransitions);
                 } else if (ParseMethods.parseTransition(line, input, dest)) {
+                    validateTransition(address, currentState, lineNumber, input);
                     setOfDestinationStates.addAll(dest);
-                    if (currentState == -1) {
-                        throw new RuntimeException(
-                                "Must declare a state before declaring a list of transitions: line " +
-                                        lineNumber + " of file " + address);
-                    }
-
-                    if (input.size() != getA().size()) {
-                        throw new RuntimeException("This automaton requires a " + getA().size() +
-                                "-tuple as input: line " + lineNumber + " of file " + address);
-                    }
                     List<List<Integer>> inputs = expandWildcard(this.getA(), input);
-
                     for (List<Integer> i : inputs) {
                         currentStateTransitions.put(encode(i), dest);
                     }
-
                     input = new ArrayList<>();
                     dest = new IntArrayList();
                 } else {
-                    throw new RuntimeException("Undefined statement: line " + lineNumber + " of file " + address);
+                    throw ExceptionHelper.undefinedStatement(lineNumber, address);
                 }
             }
             if (outputLongFile) {
                 System.out.println("...finished");
             }
-            for (int q : setOfDestinationStates) {
-                if (!output.containsKey(q)) {
-                    throw new RuntimeException(
-                            "State " + q + " is used but never declared anywhere in file: " + address);
-                }
-            }
+
+            validateDeclaredStates(setOfDestinationStates, output, address);
 
             this.fa.setFieldsFromFile(Q, q0, output, transitions);
         } catch (IOException e) {
             e.printStackTrace();
-            throw new RuntimeException("File does not exist: " + address);
+            throw ExceptionHelper.fileDoesNotExist(address);
+        }
+    }
+
+    static boolean debugPrintLongFile(String address, long lineNumber, boolean outputLongFile) {
+        if (lineNumber % 1000000 == 0) {
+            if (!outputLongFile) {
+                outputLongFile = true;
+                System.out.print("Parsing " + address + " ...");
+            }
+            System.out.print("line " + lineNumber + "...");
+        }
+        return outputLongFile;
+    }
+
+    protected void validateTransition(String address, int currentState, long lineNumber, List<Integer> input) {
+        if (currentState == -1) {
+            throw new RuntimeException(
+                    "Must declare a state before declaring a list of transitions: line " +
+                        lineNumber + " of file " + address);
+        }
+
+        if (input.size() != getA().size()) {
+            throw new RuntimeException("This automaton requires a " + getA().size() +
+                    "-tuple as input: line " + lineNumber + " of file " + address);
+        }
+    }
+
+    protected long firstParse(
+        String address, BufferedReader in, long lineNumber, Boolean[] trueFalseSingleton) throws IOException {
+        String line;
+        while ((line = in.readLine()) != null) {
+            lineNumber++;
+
+            if (PATTERN_WHITESPACE.matcher(line).matches()) {
+                // Ignore blank lines.
+                continue;
+            }
+
+            if (trueFalseSingleton != null && ParseMethods.parseTrueFalse(line, trueFalseSingleton)) {
+                // It is a true/false automaton.
+                fa.setTRUE_FALSE_AUTOMATON(true);
+                fa.setTRUE_AUTOMATON(trueFalseSingleton[0]);
+                break;
+            }
+
+            if (ParseMethods.parseAlphabetDeclaration(line, getA(), getNS())) {
+                for (int i = 0; i < getA().size(); i++) {
+                    if (getNS().get(i) != null &&
+                        (!getA().get(i).contains(0) || !getA().get(i).contains(1))) {
+                        throw new RuntimeException(
+                            "The " + (i + 1) + "th input of type arithmetic " +
+                                "of the automaton declared in file " + address +
+                                " requires 0 and 1 in its input alphabet: line " +
+                                lineNumber);
+                    }
+                    UtilityMethods.removeDuplicates(getA().get(i));
+                }
+                this.determineAlphabetSizeFromA();
+                break;
+            } else {
+                throw ExceptionHelper.undefinedStatement(lineNumber, address);
+            }
+        }
+        return lineNumber;
+    }
+
+    protected void validateDeclaredStates(Set<Integer> destinationStates, Map<Integer, ?> declaredStates, String address) {
+        for (Integer q : destinationStates) {
+            if (!declaredStates.containsKey(q)) {
+                throw new RuntimeException("State " + q + " is used but never declared anywhere in file: " + address);
+            }
         }
     }
 
     /**
-     * returns a deep copy of this automaton.
-     *
-     * @return a deep copy of this automaton
+     * Returns a deep copy of this automaton.
      */
     public Automaton clone() {
         if (fa.isTRUE_FALSE_AUTOMATON()) {
@@ -302,8 +314,12 @@ public class Automaton {
 
     Automaton cloneFields(Automaton M) {
         M.fa = fa.clone();
-        M.setAlphabetSize(getAlphabetSize());
         M.labelSorted = labelSorted;
+        clonePartialFields(M);
+        return M;
+    }
+
+    void clonePartialFields(Automaton M) {
         for (int i = 0; i < getA().size(); i++) {
             M.getA().add(new ArrayList<>(getA().get(i)));
             M.getNS().add(getNS().get(i));
@@ -314,9 +330,7 @@ public class Automaton {
             if (this.isBound())
                 M.getLabel().add(getLabel().get(i));
         }
-        return M;
     }
-
 
     public boolean equals(Automaton M) {
         if (M == null) return false;
@@ -328,9 +342,6 @@ public class Automaton {
      *
      * @param automataNames - list of automata names, saved in Automata Library
      * @param op            - either "union" or "intersect"
-     * @param print
-     * @param prefix
-     * @param log
      * @return The union/intersection of all automata in automataNames and this automaton
      */
     public Automaton unionOrIntersect(List<String> automataNames, String op, boolean print, String prefix, StringBuilder log) {
@@ -443,8 +454,8 @@ public class Automaton {
         if (switchNS) {
             setAlphabet(false, numberSystems, getA(), print, prefix, log);
             // always print this
-            String msg = prefix + "WARN: The alphabet of the resulting automaton was changed. Use the alphabet command to change as desired.";
-            UtilityMethods.logMessage(true, msg, log);
+            UtilityMethods.logMessage(true,
+                prefix + "WARN: The alphabet of the resulting automaton was changed. Use the alphabet command to change as desired.", log);
         }
     }
 
@@ -559,107 +570,6 @@ public class Automaton {
         this.fa.setAlphabetSize(alphabetSize);
     }
 
-    // Determines whether an automaton accepts infinitely many values. If it does, a regex of infinitely many accepted values (not all)
-    // is given. This is true iff there exists a cycle in a minimized version of the automaton, which previously had leading or
-    // trailing zeroes removed according to whether it was msd or lsd
-    public String infinite() {
-        for (int i = 0; i < getQ(); i++) {
-            IntSet visited = new IntOpenHashSet(); // states we have visited
-            String cycle = infiniteHelper(visited, i, i, "");
-            // once a cycle is detected, compute a prefix leading to state i and a suffix from state i to an accepting state
-            if (!cycle.isEmpty()) {
-                final int finalI = i;
-                String prefix = findPath(this.fa, this.fa.getQ0(), y -> y == finalI, this.getA());
-                String suffix = findPath(this.fa, finalI, y -> getO().getInt(y) != 0, this.getA());
-                return prefix + "(" + cycle + ")*" + suffix;
-            }
-        }
-        return ""; // an empty string signals that we have failed to find a cycle
-    }
-
-    // helper function for our DFS to facilitate recursion
-    private String infiniteHelper(IntSet visited, int started, int state, String result) {
-        if (visited.contains(state)) {
-            if (state == started) {
-                return result;
-            }
-            return "";
-        }
-        visited.add(state);
-        for (Int2ObjectMap.Entry<IntList> entry : getFa().getEntriesNfaD(state)) {
-            for (int y: entry.getValue()) {
-                // this adds brackets even when inputs have arity 1 - this is fine, since we just want a usable infinite regex
-                String cycle = infiniteHelper(visited, started, y, result + decode(getA(), entry.getIntKey()));
-                if (!cycle.isEmpty()) {
-                    return cycle;
-                }
-            }
-        }
-
-        visited.remove(state);
-        return "";
-    }
-
-    // Core pathfinding logic
-    private static String findPath(
-        FA automaton,
-        int startState,
-        Predicate<Integer> isFoundCondition,
-        List<List<Integer>> A) {
-        // Early exit if the start state meets the condition
-        if (isFoundCondition.test(startState)) {
-            return "";
-        }
-        List<Integer> distance = new ArrayList<>(Collections.nCopies(automaton.getQ(), -1));
-        List<Integer> prev = new ArrayList<>(Collections.nCopies(automaton.getQ(), -1));
-        List<Integer> input = new ArrayList<>(Collections.nCopies(automaton.getQ(), -1));
-        distance.set(startState, 0);
-
-        Queue<Integer> queue = new LinkedList<>();
-        queue.add(startState);
-
-        boolean found = false;
-        int endState = -1;
-
-        // BFS to find the path
-        while (!queue.isEmpty() && !found) {
-            int current = queue.poll();
-
-            for (Int2ObjectMap.Entry<IntList> entry : automaton.getEntriesNfaD(current)) {
-                int x = entry.getIntKey();
-                IntList transitions = entry.getValue();
-
-                for (int y : transitions) {
-                    if (isFoundCondition.test(y)) {
-                        found = true;
-                        endState = y;
-                    }
-                    if (distance.get(y) == -1) { // Unvisited state
-                        distance.set(y, distance.get(current) + 1);
-                        prev.set(y, current);
-                        input.set(y, x);
-                        queue.add(y);
-                    }
-                }
-            }
-        }
-
-        // Reconstruct the path
-        List<Integer> path = new ArrayList<>();
-        int current = found ? endState : startState;
-        while (current != startState) {
-            path.add(input.get(current));
-            current = prev.get(current);
-        }
-        Collections.reverse(path);
-
-        // Convert the path to a string
-        StringBuilder result = new StringBuilder();
-        for (Integer node : path) {
-            result.append(decode(A, node));
-        }
-        return result.toString();
-    }
 
     /**
      * @param inputs A list of "+", "-" or "". Indicating how our input will be interpreted in the output automata.
@@ -675,9 +585,6 @@ public class Automaton {
      *
      * @param inputs A list of "+", "-" or "". Indicating how our input will be interpreted in the output automata.
      * @param reverse Whether to perform the reverse split operation.
-     * @param print Whether to print debug information.
-     * @param prefix A prefix for debug messages.
-     * @param log A log to store debug information.
      * @return The modified automaton after the split/reverse split operation.
      */
     public Automaton processSplit(List<String> inputs, boolean reverse, boolean print, String prefix, StringBuilder log) {
@@ -747,7 +654,7 @@ public class Automaton {
             // crossProduct requires both automata to be totalized, otherwise it has no idea which cartesian states to transition to
             first.fa.totalize(print, prefix + " ", log);
             next.fa.totalize(print, prefix + " ", log);
-            first = AutomatonLogicalOps.crossProduct(first, next, "first", print, prefix + " ", log);
+            first = ProductStrategies.crossProduct(first, next, "first", print, prefix + " ", log);
             first = first.minimizeWithOutput(print, prefix + " ", log);
 
             long timeAfter = System.currentTimeMillis();
@@ -824,7 +731,7 @@ public class Automaton {
                 Automaton N = ns.getAllRepresentations();
                 if (N != null && ns.useAllRepresentations()) {
                     N.bind(List.of(getLabel().get(i)));
-                    K = AutomatonLogicalOps.crossProduct(this, N, "if_other", print, prefix, log);
+                    K = ProductStrategies.crossProduct(this, N, "if_other", print, prefix, log);
                 }
             }
         }
@@ -891,12 +798,11 @@ public class Automaton {
 
 
     /**
-     * Sorts states in Q based on their breadth-first order. It also calls sortLabel().
+     * Sorts states based on their breadth-first order. It also calls sortLabel().
      * The method also removes states that are not reachable from the initial state.
-     * In draw() and write() methods, we first call the canonize the automaton.
+     * In draw() and write() methods, we first canonize the automaton.
      * It is also used in write() method.
-     * Note that before we try to canonize, we check if this automaton is already canonized.
-     *
+     * Before we try to canonize, we check if this automaton is already canonized.
      */
     public void canonize() {
         sortLabel();
@@ -923,39 +829,76 @@ public class Automaton {
         List<String> sorted_label = new ArrayList<>(getLabel());
         Collections.sort(sorted_label);
 
-        int[] label_permutation = UtilityMethods.getLabelPermutation(getLabel(), sorted_label);
+        int[] label_permutation = getLabelPermutation(getLabel(), sorted_label);
 
-        /**
+        /*
          * permuted_A is going to hold the alphabet of the sorted inputs.
          * For example if label = ["z","a","c"], and A = [[-1,2],[0,1],[1,2,3]],
          * then label_permutation = [2,0,1] and permuted_A = [[0,1],[1,2,3],[-1,2]].
          * The same logic is behind permuted_encoder.
          */
-        List<List<Integer>> permuted_A = UtilityMethods.permute(getA(), label_permutation);
-        List<Integer> permuted_encoder = UtilityMethods.getPermutedEncoder(getA(), permuted_A);
-        /**
-         * For example encoded_input_permutation[2] = 5 means that encoded input 2 becomes
-         * 5 after sorting.
-         */
+        List<List<Integer>> permuted_A = permute(getA(), label_permutation);
+        List<Integer> permuted_encoder = getPermutedEncoder(getA(), permuted_A);
+
+        //For example encoded_input_permutation[2] = 5 means that encoded input 2 becomes 5 after sorting.
         int[] encoded_input_permutation = new int[getAlphabetSize()];
         for (int i = 0; i < getAlphabetSize(); i++) {
             List<Integer> input = decode(getA(), i);
-            List<Integer> permuted_input = UtilityMethods.permute(input, label_permutation);
+            List<Integer> permuted_input = permute(input, label_permutation);
             encoded_input_permutation[i] = encode(permuted_input, permuted_A, permuted_encoder);
         }
 
         setLabel(sorted_label);
         setA(permuted_A);
         setEncoder(permuted_encoder);
-        setNS(UtilityMethods.permute(getNS(), label_permutation));
+        setNS(permute(getNS(), label_permutation));
 
         this.fa.permuteD(encoded_input_permutation);
+    }
+
+    /**
+     * Permutes L with regard to permutation.
+     * @jn1z notes: However, behavior is *not* what was designed:
+     * Expected: "if permutation = [1,2,0] then the return value is [L[1],L[2],L[0]]"
+     * Actual:   "if permutation = [1,2,0] then the return value is [L[2],L[0],L[1]]", i.e. the inverse
+     * Changing this causes other issues, so we're leaving it.
+     * (I suspect as this is the inverse, it ends up not being an issue down the line.)
+     * Also: behavior is undefined is permutation size != L.size
+     */
+    public static <T> List<T> permute(List<T> L, int[] permutation) {
+        List<T> R = new ArrayList<>(L);
+        for (int i = 0; i < L.size(); i++) {
+            R.set(permutation[i], L.get(i));
+        }
+        return R;
+    }
+
+    /**
+     * For example if label_permutation[1]=[3], then input number 1 becomes input number 3 after sorting.
+     * For example if label = ["z","a","c"], and A = [[-1,2],[0,1],[1,2,3]],
+     * then label_permutation = [2,0,1] and permuted_A = [[0,1],[1,2,3],[-1,2]].
+     */
+    static int[] getLabelPermutation(List<String> label, List<String> sorted_label) {
+        int[] label_permutation = new int[label.size()];
+        for (int i = 0; i < label.size(); i++) {
+            label_permutation[i] = sorted_label.indexOf(label.get(i));
+        }
+        return label_permutation;
+    }
+
+    static List<Integer> getPermutedEncoder(List<List<Integer>> A, List<List<Integer>> permuted_A) {
+        List<Integer> permuted_encoder = new ArrayList<>();
+        permuted_encoder.add(1);
+        for (int i = 0; i < A.size() - 1; i++) {
+            permuted_encoder.add(permuted_encoder.get(i) * permuted_A.get(i).size());
+        }
+        return permuted_encoder;
     }
 
 
     /**
      * Input to dk.brics.automaton.Automata is a char. Input to Automaton is List<Integer>.
-     * Thus this method transforms an integer to its corresponding List<Integer>
+     * Thus, this method transforms an integer to its corresponding List<Integer>
      * Example: A = [[0,1],[-1,2,3]] and if
      * n = 0 then we return [0,-1]
      * n = 1 then we return [1,-1]
@@ -963,10 +906,6 @@ public class Automaton {
      * n = 3 then we return [1,2]
      * n = 4 then we return [0,3]
      * n = 5 then we return [1,3]
-     *
-     * @param A
-     * @param n
-     * @return
      */
     public static List<Integer> decode(List<List<Integer>> A, int n) {
         List<Integer> l = new ArrayList<>(A.size());
@@ -980,7 +919,7 @@ public class Automaton {
 
     /**
      * Input to dk.brics.automaton.Automata is a char. Input to Automata.Automaton is List<Integer>.
-     * Thus this method transforms a List<Integer> to its corresponding integer.
+     * Thus, this method transforms a List<Integer> to its corresponding integer.
      * The other application of this function is when we use the transition function d in State. Note that the transtion function
      * maps an integer (encoding of List<Integer>) to a set of states.
      * <p>
@@ -1000,9 +939,6 @@ public class Automaton {
      * l = [-3,1,-1,7] then we return 5
      * l = [-2,0,0,7] then we return 6
      * ...
-     *
-     * @param l
-     * @return
      */
     public int encode(List<Integer> l) {
         if (getEncoder() == null) {
@@ -1102,9 +1038,6 @@ public class Automaton {
         return encode(y, newAlphabet, newEncoder);
     }
 
-    /**
-     * Initial State.
-     */
     public int getQ0() {
         return fa.getQ0();
     }
@@ -1113,9 +1046,6 @@ public class Automaton {
         this.fa.setQ0(q0);
     }
 
-    /**
-     * Number of States. For example when Q = 3, the set of states is {0,1,2}
-     */
     public int getQ() {
         return this.fa.getQ();
     }
@@ -1124,30 +1054,10 @@ public class Automaton {
         this.fa.setQ(q);
     }
 
-    /**
-     * State Outputs. In case of DFA/NFA accepting states have a nonzero integer as their output.
-     * Rejecting states have output 0.
-     * Example: O = [-1,2,...] then state 0 and 1 have outputs -1 and 2 respectively.
-     */
     public IntList getO() {
         return this.fa.getO();
     }
 
-    /**
-     * Transition Function for This State. For example, when d[0] = [(0,[1]),(1,[2,3]),(2,[2]),(3,[4]),(4,[1]),(5,[0])]
-     * and alphabet A = [[0,1],[-1,2,3]]
-     * then from the state 0 on
-     * (0,-1) we go to 1
-     * (0,2) we go to 2,3
-     * (0,3) we go to 2
-     * (1,-1) we go to 4
-     * ...
-     * So we store the encoded values of inputs in d, i.e., instead of saying on (0,-1) we go to state 1, we say on 0, we go
-     * to state 1.
-     * Recall that (0,-1) represents 0 in mixed-radix base (1,2) and alphabet A. We have this mixed-radix base (1,2) stored as encoder in
-     * our program, so for more information on how we compute it read the information on List<Integer> encoder field.
-     * <p>
-     */
     public List<Int2ObjectRBTreeMap<IntList>> getD() {
         return this.fa.getNfaD();
     }
@@ -1164,7 +1074,7 @@ public class Automaton {
      * Types of the inputs to this automaton.
      * There are two possible types for inputs for an automaton:Type.arithmetic or Type.alphabetLetter.
      * In other words, type of inputs to an automaton is either arithmetic or non-arithmetic.
-     * For example we might have A = [[1,-1],[0,1,2],[0,-1]] and T = [Type.alphabetLetter, Type.arithmetic, Type.alphabetLetter]. So
+     * For example, we might have A = [[1,-1],[0,1,2],[0,-1]] and T = [Type.alphabetLetter, Type.arithmetic, Type.alphabetLetter]. So
      * the first and third inputs are non-arithmetic (and should not be treated as arithmetic).
      * This type is useful in type checking. So for example, we might have f(a,b+1,c+1), where f is the example automaton. Then this
      * is a type error, because the third input to f is non-arithmetic, and hence we cannot have c+1 as our third argument.

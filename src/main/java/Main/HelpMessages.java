@@ -60,7 +60,7 @@ public class HelpMessages {
       System.out.println("Too many arguments. Usage: help [group] [command];");
     } catch (IOException e) {
       e.printStackTrace();
-      throw new RuntimeException("Error using the help command");
+      throw ExceptionHelper.errorCommand("help");
     }
   }
 
