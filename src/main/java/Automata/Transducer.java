@@ -129,11 +129,11 @@ public class Transducer extends Automaton {
                 } else if (ParseMethods.parseTransducerTransition(line, input, dest, output)) {
                     validateTransition(address, currentState, lineNumber, input);
                     setOfDestinationStates.addAll(dest);
-                    List<List<Integer>> inputs = expandWildcard(this.getA(), input);
+                    List<List<Integer>> inputs = richAlphabet.expandWildcard(input);
                     for (List<Integer> i : inputs) {
-                        currentStateTransitions.put(encode(i), dest);
+                        currentStateTransitions.put(richAlphabet.encode(i), dest);
                         if (output.size() == 1) {
-                            currentStateTransitionOutputs.put(encode(i), output.get(0));
+                            currentStateTransitionOutputs.put(richAlphabet.encode(i), output.get(0));
                         } else {
                             throw new RuntimeException("Transducers must have one output for each transition: line "
                                     + lineNumber + " of file " + address);
@@ -321,7 +321,7 @@ public class Transducer extends Automaton {
 
             // set up the output of this state.
 
-            N.getO().add((int) sigma.get(currState.iterates.get(0).get(getQ0())).get(encode(List.of(M.getO().getInt(currState.state)))));
+            N.getO().add((int) sigma.get(currState.iterates.get(0).get(getQ0())).get(richAlphabet.encode(List.of(M.getO().getInt(currState.state)))));
 
             N.getD().add(new Int2ObjectRBTreeMap<>());
 
@@ -416,7 +416,7 @@ public class Transducer extends Automaton {
         // Check that the output alphabet of the automaton is compatible with the input alphabet of the transducer.
         IntList O = M.getO();
         for (int i = 0; i < O.size(); i++) {
-            int encoded = encode(List.of(O.getInt(i)));
+            int encoded = richAlphabet.encode(List.of(O.getInt(i)));
             if (!getD().get(0).containsKey(encoded)) {
                 throw new RuntimeException("Output alphabet of automaton must be compatible with the transducer input alphabet");
             }
@@ -516,7 +516,7 @@ public class Transducer extends Automaton {
     }
 
     private Map<Integer, Integer> createMap2(FA M, int i) {
-        int encoded = encode(List.of(M.getO().getInt(i)));
+        int encoded = richAlphabet.encode(List.of(M.getO().getInt(i)));
         Map<Integer, Integer> map = new HashMap<>();
         for (int j = 0; j < getQ(); j++) {
             map.put(j, getD().get(j).get(encoded).getInt(0));
@@ -525,7 +525,7 @@ public class Transducer extends Automaton {
     }
 
     private Map<Integer, Integer> createMap(FA M, Integer i, Map<Integer, Integer> mapSoFar) {
-        int encoded = encode(List.of(M.getO().getInt(i)));
+        int encoded = richAlphabet.encode(List.of(M.getO().getInt(i)));
         Map<Integer, Integer> map = new HashMap<>();
         for (int j = 0; j < getQ(); j++) {
             map.put(j, getD().get(mapSoFar.get(j)).get(encoded).getInt(0));

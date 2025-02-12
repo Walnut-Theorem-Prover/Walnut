@@ -528,7 +528,7 @@ public class NumberSystem {
         }
         baseChange.getA().add(new ArrayList<>(alphabet));
         baseChange.getA().add(alphabet);
-        baseChange.determineAlphabetSizeFromA();
+        baseChange.determineAlphabetSize();
         FA baseChangeFA = baseChange.getFa();
         int l = 0;
         for (int j = 0; j < n; j++) {
@@ -568,7 +568,7 @@ public class NumberSystem {
             a.getNS().add(this);
             a.getA().add(new ArrayList<>(alphabet));
         }
-        a.determineAlphabetSizeFromA();
+        a.determineAlphabetSize();
         return a;
     }
 
@@ -857,7 +857,7 @@ public class NumberSystem {
             P = arithmetic(a, b, c, "+");
             P = AutomatonLogicalOps.and(P, M, false, null, null);
             P = AutomatonLogicalOps.and(P, N, false, null, null);
-            AutomatonLogicalOps.quantify(P, List.of(a, b), false, null, null);
+            AutomatonLogicalOps.quantify(P, Set.of(a, b), false, null, null);
         }
         constantsDynamicTable.put(n, P);
         return P;
@@ -907,7 +907,7 @@ public class NumberSystem {
                 P = arithmetic(c, a, d, "+");
                 P = AutomatonLogicalOps.and(P, M, false, null, null);
                 P = AutomatonLogicalOps.and(P, D, false, null, null);
-                AutomatonLogicalOps.quantify(P, List.of(b, c), false, null, null);
+                AutomatonLogicalOps.quantify(P, Set.of(b, c), false, null, null);
             }
 
             P.sortLabel();
@@ -945,7 +945,7 @@ public class NumberSystem {
         Automaton P = AutomatonLogicalOps.and(P1, P2, false, null, null);
         Automaton R = AutomatonLogicalOps.and(M, N, false, null, null);
         R = AutomatonLogicalOps.and(R, P, false, null, null);
-        AutomatonLogicalOps.quantify(R, List.of(q, r), false, null, null);
+        AutomatonLogicalOps.quantify(R, Set.of(q, r), false, null, null);
         R.sortLabel();
         divisionsDynamicTable.put(n, R);
         return R;
@@ -964,9 +964,9 @@ public class NumberSystem {
         Automaton M = new Automaton(regex, alph, this);
         M.setA(new ArrayList<>());
         M.getA().add(new ArrayList<>(getAlphabet()));
-        M.determineAlphabetSizeFromA();
-        M.setEncoder(new ArrayList<>());
-        M.getEncoder().add(1);
+        M.determineAlphabetSize();
+        M.richAlphabet.setEncoder(new ArrayList<>());
+        M.richAlphabet.getEncoder().add(1);
         M.canonize();
         constantsDynamicTable.put(constant, M);
         return M;

@@ -274,17 +274,17 @@ public class ProductStrategies {
                 }
             }
         }
-        AxB.determineAlphabetSizeFromA();
+        AxB.determineAlphabetSize();
 
         IntList allInputsOfN = new IntArrayList();
         for (int i = 0; i < A.getAlphabetSize(); i++) {
             for (int j = 0; j < B.getAlphabetSize(); j++) {
                 List<Integer> inputForN = joinTwoInputsForCrossProduct(
-                    Automaton.decode(A.getA(), i), Automaton.decode(B.getA(), j), sameInputsInMAndThis);
+                    A.richAlphabet.decode(i), B.richAlphabet.decode(j), sameInputsInMAndThis);
                 if (inputForN == null)
                     allInputsOfN.add(-1);
                 else
-                    allInputsOfN.add(AxB.encode(inputForN));
+                    allInputsOfN.add(AxB.richAlphabet.encode(inputForN));
             }
         }
         return allInputsOfN.toArray(new int[0]);

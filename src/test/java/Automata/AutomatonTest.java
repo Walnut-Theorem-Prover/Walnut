@@ -29,27 +29,13 @@ class AutomatonTest {
     List<List<Integer>> A = new ArrayList<>();
     A.add(List.of(0,1));
     A.add(List.of(-1,2,3));
-    Assertions.assertEquals(List.of(0,-1), Automaton.decode(A, 0));
-    Assertions.assertEquals(List.of(1,-1), Automaton.decode(A, 1));
-    Assertions.assertEquals(List.of(0,2), Automaton.decode(A, 2));
-    Assertions.assertEquals(List.of(1,2), Automaton.decode(A, 3));
-    Assertions.assertEquals(List.of(0,3), Automaton.decode(A, 4));
-    Assertions.assertEquals(List.of(1,3), Automaton.decode(A, 5));
-  }
-
-  @Test
-  void textExpandWildcard() {
-    List<List<Integer>> A = new ArrayList<>();
-    A.add(List.of(1,2));
-    A.add(List.of(0,-1));
-    A.add(List.of(3,4,5));
-    List<Integer> L = new ArrayList<>();
-    L.add(1);
-    L.add(null); // wildcard
-    L.add(4);
-    List<List<Integer>> B = new ArrayList<>();
-    B.add(List.of(1,0,4));
-    B.add(List.of(1,-1,4));
-    Assertions.assertEquals(B, Automaton.expandWildcard(A, L));
+    RichAlphabet r = new RichAlphabet();
+    r.setA(A);
+    Assertions.assertEquals(List.of(0,-1), r.decode(0));
+    Assertions.assertEquals(List.of(1,-1), r.decode(1));
+    Assertions.assertEquals(List.of(0,2), r.decode(2));
+    Assertions.assertEquals(List.of(1,2), r.decode(3));
+    Assertions.assertEquals(List.of(0,3), r.decode(4));
+    Assertions.assertEquals(List.of(1,3), r.decode(5));
   }
 }

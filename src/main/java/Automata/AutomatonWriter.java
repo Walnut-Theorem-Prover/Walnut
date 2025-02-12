@@ -87,7 +87,7 @@ public class AutomatonWriter {
         s.append(" := Matrix([");
         Set<Integer> encoded_values = new HashSet<>();
         for (int x = 0; x != automaton.getAlphabetSize(); ++x) {
-            List<Integer> decoding = Automaton.decode(automaton.getA(), x);
+            List<Integer> decoding = automaton.richAlphabet.decode(x);
             List<Integer> compareList = indices.stream().map(decoding::get).toList();
             if (compareList.equals(valueList)) {
                 encoded_values.add(x);
@@ -204,7 +204,7 @@ public class AutomatonWriter {
                 System.lineSeparator() + q + " " +
                         automaton.getO().getInt(q) + System.lineSeparator());
         for (Int2ObjectMap.Entry<IntList> entry : automaton.getFa().getEntriesNfaD(q)) {
-            List<Integer> l = Automaton.decode(automaton.getA(), entry.getIntKey());
+            List<Integer> l = automaton.richAlphabet.decode(entry.getIntKey());
             for (int j = 0; j < l.size(); j++)
                 out.write(l.get(j) + " ");
             out.write("->");
@@ -264,7 +264,7 @@ public class AutomatonWriter {
                     for (int dest : entry.getValue()) {
                         transitions.get(q).putIfAbsent(dest, new ArrayList<>());
                         transitions.get(q).get(dest).add(
-                            UtilityMethods.toTransitionLabel(Automaton.decode(automaton.getA(), entry.getIntKey())));
+                            UtilityMethods.toTransitionLabel(automaton.richAlphabet.decode(entry.getIntKey())));
                     }
                 }
             }

@@ -18,6 +18,7 @@
 package Automata.FA;
 
 import Automata.Automaton;
+import Automata.RichAlphabet;
 import MRC.Model.MyDFA;
 import MRC.Model.MyNFA;
 import Main.ExceptionHelper;
@@ -96,9 +97,9 @@ public class FA implements Cloneable {
       for (int q = 0; q < M.getQ(); q++) {
           Int2ObjectRBTreeMap<IntList> newMap = new Int2ObjectRBTreeMap<>();
           for (Int2ObjectMap.Entry<IntList> entry: getEntriesNfaD(q)) {
-            List<Integer> decoded = Automaton.decode(oldAlphabet, entry.getIntKey());
+            List<Integer> decoded = RichAlphabet.decode(oldAlphabet, entry.getIntKey());
             if (isInNewAlphabet(newAlphabet, decoded)) {
-              newMap.put(M.encode(decoded), entry.getValue());
+              newMap.put(M.richAlphabet.encode(decoded), entry.getValue());
             }
           }
           newD.add(newMap);
@@ -1078,7 +1079,7 @@ public class FA implements Cloneable {
       for (Int2ObjectMap.Entry<IntList> entry : getEntriesNfaD(state)) {
           for (int y: entry.getValue()) {
               // this adds brackets even when inputs have arity 1 - this is fine, since we just want a usable infinite regex
-              String cycle = infiniteHelper(A, visited, started, y, result + Automaton.decode(A, entry.getIntKey()));
+              String cycle = infiniteHelper(A, visited, started, y, result + RichAlphabet.decode(A, entry.getIntKey()));
               if (!cycle.isEmpty()) {
                   return cycle;
               }
@@ -1162,7 +1163,7 @@ public class FA implements Cloneable {
     // Convert the path to a string
     StringBuilder result = new StringBuilder();
     for (Integer node : path) {
-      result.append(Automaton.decode(A, node));
+      result.append(RichAlphabet.decode(A, node));
     }
     return result.toString();
   }

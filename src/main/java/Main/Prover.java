@@ -622,29 +622,13 @@ public class Prover {
     Matcher m = matchOrFail(PAT_FOR_reg_CMD, s, REG);
 
     List<List<Integer>> alphabets = new ArrayList<>();
-    List<NumberSystem> numSys = new ArrayList<>();
-    List<Integer> alphabet;
+    List<NumberSystem> NS = new ArrayList<>();
     if (m.group(R_LIST_OF_ALPHABETS) == null) {
       String base = "msd_2";
-      NumberSystem ns = getNumberSystem(base, numSys, m);
+      NumberSystem ns = getNumberSystem(base, NS, m);
       alphabets.add(ns.getAlphabet());
     }
-    Matcher m1 = PAT_FOR_AN_ALPHABET.matcher(m.group(R_LIST_OF_ALPHABETS));
-    while (m1.find()) {
-      if ((m1.group(R_NUMBER_SYSTEM) != null)) {
-        String base = "msd_2";
-        if (m1.group(3) != null) base = m1.group(3);
-        if (m1.group(6) != null) base = m1.group(7) + "_" + m1.group(8);
-        if (m1.group(9) != null) base = m1.group(9) + "_2";
-        if (m1.group(10) != null) base = "msd_" + m1.group(10);
-        NumberSystem ns = getNumberSystem(base, numSys, m);
-        alphabets.add(ns.getAlphabet());
-      } else if (m1.group(R_SET) != null) {
-        alphabet = determineAlphabet(m1.group(R_SET));
-        alphabets.add(alphabet);
-        numSys.add(null);
-      }
-    }
+    determineAlphabetsAndNS(m, NS, alphabets);
     // To support regular expressions with multiple arity (eg. "[1,0][0,1][0,0]*"), we must translate each of these vectors to an
     // encoding, which will then be turned into a unicode character that dk.brics can work with when constructing an automaton
     // from a regular expression. Since the encoding method is within the Automaton class, we create a dummy instance and load it
@@ -673,7 +657,7 @@ public class Prover {
       if (L.size() != M.getA().size()) {
         throw new RuntimeException("Mismatch between vector length in regex and specified number of inputs to automaton");
       }
-      int vectorEncoding = M.encode(L);
+      int vectorEncoding = M.richAlphabet.encode(L);
       // dk.brics regex has several reserved characters - we cannot use these or the method that generates the automaton will
       // not be able to parse the string properly. All of these reserved characters have UTF-16 values between 0 and 127, so offsetting
       // our encoding by 128 will be enough to ensure that we have no conflicts
@@ -696,7 +680,7 @@ public class Prover {
           .replace(alphabetVectorCopy, replacementStr)
           .replace("§", "[-" + alphabetVectorCopy + "]");
     }
-    M.determineAlphabetSizeFromA();
+    M.determineAlphabetSize();
 
     // We should always do this with replacement, since we may have regexes such as "...", which accepts any three characters
     // in a row, on an alphabet containing bracketed characters. We don't make any replacements here, but they are implicitly made
@@ -707,11 +691,10 @@ public class Prover {
 
     Automaton R = new Automaton(baseexp, M.getAlphabetSize());
     R.setA(M.getA());
-    R.determineAlphabetSizeFromA();
-    R.setNS(numSys);
+    R.determineAlphabetSize();
+    R.setNS(NS);
 
-    writeAutomata(m.group(R_REGEXP), R, Session.getWriteAddressForAutomataLibrary(), m.group(R_NAME), false);
-
+    R.writeAutomata(m.group(R_REGEXP), Session.getWriteAddressForAutomataLibrary(), m.group(R_NAME), false);
     return new TestCase(R);
   }
 
@@ -760,8 +743,7 @@ public class Prover {
 
     Automaton C = first.combine(automataNames, outputs, printSteps, prefix, log);
 
-    writeAutomata(s, C, Session.getWriteAddressForWordsLibrary(), m.group(GROUP_COMBINE_NAME), true);
-
+    C.writeAutomata(s, Session.getWriteAddressForWordsLibrary(), m.group(GROUP_COMBINE_NAME), true);
     return new TestCase(C);
   }
 
@@ -786,8 +768,8 @@ public class Prover {
 
     Morphism h = new Morphism(Session.getReadFileForMorphismLibrary(m.group(GROUP_PROMOTE_MORPHISM) + ".txt"));
     Automaton P = h.toWordAutomaton();
-    writeAutomata(s, P, Session.getWriteAddressForWordsLibrary(), m.group(GROUP_PROMOTE_NAME), true);
 
+    P.writeAutomata(s, Session.getWriteAddressForWordsLibrary(), m.group(GROUP_PROMOTE_NAME), true);
     return new TestCase(P);
   }
 
@@ -817,8 +799,7 @@ public class Prover {
     TestCase retrieval = combineCommand(combineString.toString());
     Automaton I = retrieval.getResult().clone();
 
-    writeAutomata(s, I, Session.getWriteAddressForWordsLibrary(), m.group(GROUP_IMAGE_NEW_NAME), true);
-
+    I.writeAutomata(s, Session.getWriteAddressForWordsLibrary(), m.group(GROUP_IMAGE_NEW_NAME), true);
     return new TestCase(I);
   }
 
@@ -826,7 +807,7 @@ public class Prover {
     Matcher m = matchOrFail(PAT_FOR_inf_CMD, s, INF);
 
     Automaton M = Automaton.readAutomatonFromFile(m.group(GROUP_INF_NAME));
-    M = removeLeadTrailZeroes(M);
+    M = M.removeLeadTrailZeroes();
     String infReg = M.fa.infinite(M.getA());
     if (infReg.isEmpty()) {
       System.out.println("Automaton " + m.group(GROUP_INF_NAME) + " accepts finitely many values.");
@@ -882,10 +863,9 @@ public class Prover {
     Automaton N = subautomata.remove(0);
     N = AutomatonLogicalOps.combine(N, new LinkedList<>(subautomata), outputs, printSteps, prefix, log);
 
-    writeAutomata(s, N,
+    N.writeAutomata(s,
         isDFAO ? Session.getWriteAddressForWordsLibrary() : Session.getWriteAddressForAutomataLibrary(),
         name, isDFAO);
-
     return new TestCase(N);
   }
 
@@ -945,10 +925,9 @@ public class Prover {
     Automaton N = subautomata.remove(0);
     N = N.join(new LinkedList<>(subautomata), printSteps, prefix, log);
 
-    writeAutomata(s, N,
+    N.writeAutomata(s,
         isDFAO ? Session.getWriteAddressForWordsLibrary() : Session.getWriteAddressForAutomataLibrary(),
         m.group(GROUP_JOIN_NAME), isDFAO);
-
     return new TestCase(N);
   }
 
@@ -963,7 +942,7 @@ public class Prover {
     Automaton M = Automaton.readAutomatonFromFile(m.group(GROUP_TEST_NAME));
 
     // we don't want to count multiple representations of the same value as distinct accepted values
-    M = removeLeadTrailZeroes(M);
+    M = M.removeLeadTrailZeroes();
 
     String infSubcommand = "inf " + m.group(GROUP_TEST_NAME) + ";";
     boolean infinite = infCommand(infSubcommand);
@@ -1033,7 +1012,7 @@ public class Prover {
     Automaton M = new Automaton(inLibrary);
 
     Automaton C = T.transduceNonDeterministic(M, printStepsOrDetails, prefix, log);
-    writeAutomata(s, C, Session.getWriteAddressForWordsLibrary(), m.group(GROUP_TRANSDUCE_NEW_NAME), true);
+    C.writeAutomata(s, Session.getWriteAddressForWordsLibrary(), m.group(GROUP_TRANSDUCE_NEW_NAME), true);
     return new TestCase(C);
   }
 
@@ -1068,7 +1047,7 @@ public class Prover {
       outLibrary = Session.getWriteAddressForAutomataLibrary();
     }
 
-    writeAutomata(s, M, outLibrary, m.group(GROUP_REVERSE_NEW_NAME), true);
+    M.writeAutomata(s, outLibrary, m.group(GROUP_REVERSE_NEW_NAME), true);
     return new TestCase(M);
   }
 
@@ -1082,7 +1061,7 @@ public class Prover {
 
     M.minimizeSelfWithOutput(printStepsOrDetails, prefix, log);
 
-    writeAutomata(s, M, Session.getWriteAddressForWordsLibrary(), m.group(GROUP_MINIMIZE_NEW_NAME), true);
+    M.writeAutomata(s, Session.getWriteAddressForWordsLibrary(), m.group(GROUP_MINIMIZE_NEW_NAME), true);
     return new TestCase(M);
   }
 
@@ -1112,8 +1091,7 @@ public class Prover {
       outLibrary = Session.getWriteAddressForAutomataLibrary();
     }
 
-    writeAutomata(s, M, outLibrary, m.group(GROUP_CONVERT_NEW_NAME), true);
-
+    M.writeAutomata(s, outLibrary, m.group(GROUP_CONVERT_NEW_NAME), true);
     return new TestCase(M);
   }
 
@@ -1126,7 +1104,7 @@ public class Prover {
 
     AutomatonLogicalOps.fixLeadingZerosProblem(M, printStepsOrDetails, prefix, log);
 
-    writeAutomata(s, M, Session.getWriteAddressForAutomataLibrary(), m.group(GROUP_FIXLEADZERO_NEW_NAME), false);
+    M.writeAutomata(s, Session.getWriteAddressForAutomataLibrary(), m.group(GROUP_FIXLEADZERO_NEW_NAME), false);
     return new TestCase(M);
   }
 
@@ -1140,8 +1118,7 @@ public class Prover {
 
     AutomatonLogicalOps.fixTrailingZerosProblem(M, printStepsOrDetails, prefix, log);
 
-    writeAutomata(s, M, Session.getWriteAddressForAutomataLibrary(), m.group(GROUP_FIXTRAILZERO_NEW_NAME), false);
-
+    M.writeAutomata(s, Session.getWriteAddressForAutomataLibrary(), m.group(GROUP_FIXTRAILZERO_NEW_NAME), false);
     return new TestCase(M);
   }
 
@@ -1151,10 +1128,6 @@ public class Prover {
     if (m.group(GROUP_alphabet_LIST_OF_ALPHABETS) == null) {
       throw new RuntimeException("List of alphabets for alphabet command must not be empty.");
     }
-
-    List<List<Integer>> alphabets = new ArrayList<>();
-    List<NumberSystem> numSys = new ArrayList<>();
-    List<Integer> alphabet;
 
     boolean printStepsOrDetails = determinePrintStepsOrDetails(m, GROUP_alphabet_END);
 
@@ -1167,42 +1140,45 @@ public class Prover {
       isDFAO = false;
     }
 
+    List<NumberSystem> NS = new ArrayList<>();
+    List<List<Integer>> alphabets = new ArrayList<>();
+    determineAlphabetsAndNS(m, NS, alphabets);
+
+    Automaton M = new Automaton(inLibrary);
+
+    // here, call the function to set the number system.
+    M.setAlphabet(isDFAO, NS, alphabets, printStepsOrDetails, prefix, log);
+
+    String outLibrary = Session.getWriteAddressForWordsLibrary();
+    if (m.group(GROUP_alphabet_DOLLAR_SIGN).equals("$")) {
+      outLibrary = Session.getWriteAddressForAutomataLibrary();
+    }
+
+    M.writeAutomata(s, outLibrary, m.group(GROUP_alphabet_NEW_NAME), false);
+    return new TestCase(M);
+  }
+
+  private static void determineAlphabetsAndNS(Matcher m, List<NumberSystem> NS, List<List<Integer>> alphabets) {
     Matcher m1 = PAT_FOR_AN_ALPHABET.matcher(m.group(R_LIST_OF_ALPHABETS));
     int counter = 1;
     while (m1.find()) {
-
       if ((m1.group(R_NUMBER_SYSTEM) != null)) {
         String base = "msd_2";
         if (m1.group(3) != null) base = m1.group(3);
         if (m1.group(6) != null) base = m1.group(7) + "_" + m1.group(8);
         if (m1.group(9) != null) base = m1.group(9) + "_2";
         if (m1.group(10) != null) base = "msd_" + m1.group(10);
-        NumberSystem ns = getNumberSystem(base, numSys, m);
+        NumberSystem ns = getNumberSystem(base, NS, m);
         alphabets.add(ns.getAlphabet());
       } else if (m1.group(R_SET) != null) {
-        alphabet = determineAlphabet(m1.group(R_SET));
-        alphabets.add(alphabet);
-        numSys.add(null);
+        alphabets.add(determineAlphabet(m1.group(R_SET)));
+        NS.add(null);
       } else {
         throw new RuntimeException("Alphabet at position " + counter + " not recognized in alphabet command");
       }
       counter += 1;
     }
-
-    Automaton M = new Automaton(inLibrary);
-
-    // here, call the function to set the number system.
-    M.setAlphabet(isDFAO, numSys, alphabets, printStepsOrDetails, prefix, log);
-
-    String outLibrary = Session.getWriteAddressForWordsLibrary();
-    if (m.group(GROUP_alphabet_DOLLAR_SIGN).equals("$")) {
-      outLibrary = Session.getWriteAddressForAutomataLibrary();
-    }
-    writeAutomata(s, M, outLibrary, m.group(GROUP_alphabet_NEW_NAME), false);
-
-    return new TestCase(M);
   }
-
 
   public static TestCase unionCommand(String s) {
     Matcher m = matchOrFail(PAT_FOR_union_CMD, s, UNION);
@@ -1225,8 +1201,7 @@ public class Prover {
 
     C = C.unionOrIntersect(automataNames, UNION, printStepsOrDetails, prefix, log);
 
-    writeAutomata(s, C, Session.getWriteAddressForAutomataLibrary(), m.group(GROUP_UNION_NAME), true);
-
+    C.writeAutomata(s, Session.getWriteAddressForAutomataLibrary(), m.group(GROUP_UNION_NAME), true);
     return new TestCase(C);
   }
 
@@ -1251,8 +1226,7 @@ public class Prover {
 
     C = C.unionOrIntersect(automataNames, INTERSECT, printStepsOrDetails, prefix, log);
 
-    writeAutomata(s, C, Session.getWriteAddressForAutomataLibrary(), m.group(GROUP_INTERSECT_NAME), true);
-
+    C.writeAutomata(s, Session.getWriteAddressForAutomataLibrary(), m.group(GROUP_INTERSECT_NAME), true);
     return new TestCase(C);
   }
 
@@ -1267,7 +1241,7 @@ public class Prover {
 
     Automaton C = M.star(printStepsOrDetails, prefix, log);
 
-    writeAutomata(s, C, Session.getWriteAddressForAutomataLibrary(), m.group(GROUP_STAR_NEW_NAME), false);
+    C.writeAutomata(s, Session.getWriteAddressForAutomataLibrary(), m.group(GROUP_STAR_NEW_NAME), false);
     return new TestCase(C);
   }
 
@@ -1292,8 +1266,7 @@ public class Prover {
 
     C = C.concat(automataNames, printStepsOrDetails, prefix, log);
 
-    writeAutomata(s, C, Session.getWriteAddressForAutomataLibrary(), m.group(GROUP_CONCAT_NAME), true);
-
+    C.writeAutomata(s, Session.getWriteAddressForAutomataLibrary(), m.group(GROUP_CONCAT_NAME), true);
     return new TestCase(C);
   }
 
@@ -1308,7 +1281,7 @@ public class Prover {
 
     Automaton C = AutomatonLogicalOps.rightQuotient(M1, M2, false, printStepsOrDetails, prefix, log);
 
-    writeAutomata(s, C, Session.getWriteAddressForAutomataLibrary(), m.group(GROUP_rightquo_NEW_NAME), false);
+    C.writeAutomata(s, Session.getWriteAddressForAutomataLibrary(), m.group(GROUP_rightquo_NEW_NAME), false);
     return new TestCase(C);
   }
 
@@ -1322,7 +1295,7 @@ public class Prover {
 
     Automaton C = AutomatonLogicalOps.leftQuotient(M1, M2, printStepsOrDetails, prefix, log);
 
-    writeAutomata(s, C, Session.getWriteAddressForAutomataLibrary(), m.group(GROUP_leftquo_NEW_NAME), false);
+    C.writeAutomata(s, Session.getWriteAddressForAutomataLibrary(), m.group(GROUP_leftquo_NEW_NAME), false);
     return new TestCase(C);
   }
 
@@ -1365,17 +1338,4 @@ public class Prover {
     return L;
   }
 
-  private static Automaton removeLeadTrailZeroes(Automaton M) {
-    // When dealing with enumerating values (e.g. inf and test commands), we remove leading zeroes in the case of msd
-    // and trailing zeroes in the case of lsd. To do this, we construct a reg subcommand that generates the complement
-    // of zero-prefixed strings for msd and zero suffixed strings for lsd, then intersect this with our original automaton.
-    M.randomLabel();
-    return AutomatonLogicalOps.removeLeadingZeroes(M, M.getLabel(), false, null, null);
-  }
-
-  private static void writeAutomata(String s, Automaton M, String outLibrary, String name, boolean isDFAO) {
-    AutomatonWriter.draw(M, Session.getAddressForResult() + name + ".gv", s, isDFAO);
-    AutomatonWriter.write(M, Session.getAddressForResult() + name + ".txt");
-    AutomatonWriter.write(M, outLibrary + name + ".txt");
-  }
 }

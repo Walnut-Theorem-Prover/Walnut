@@ -42,7 +42,9 @@ public class AutomataTest {
         List.of(List.of(0,1), List.of(1,2,3), List.of(-1,2));
     Assertions.assertEquals(expectedPermutedA, permutedA);
 
-    Assertions.assertEquals(List.of(1,2,6), getPermutedEncoder(A, permutedA));
+    RichAlphabet r = new RichAlphabet();
+    r.setA(A);
+    Assertions.assertEquals(List.of(1,2,6), r.getPermutedEncoder(permutedA));
   }
 
 }

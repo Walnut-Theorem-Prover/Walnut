@@ -105,6 +105,8 @@ public class AutomatonLogicalOps {
             }
         }
 
+        System.out.println("IMPLY");
+
       return totalizeCrossProduct(A, B, print, prefix, log, friendlyOp);
     }
 
@@ -193,12 +195,12 @@ public class AutomatonLogicalOps {
         for (int q = 0; q < otherClone.getQ(); q++) {
             Int2ObjectRBTreeMap<IntList> newMap = new Int2ObjectRBTreeMap<>();
             for (Int2ObjectMap.Entry<IntList> entry : otherClone.getFa().getEntriesNfaD(q)) {
-                newMap.put(A.encode(Automaton.decode(otherClone.getA(), entry.getIntKey())), entry.getValue());
+                newMap.put(A.richAlphabet.encode(otherClone.richAlphabet.decode(entry.getIntKey())), entry.getValue());
             }
             newOtherD.add(newMap);
         }
         otherClone.setD(newOtherD);
-        otherClone.setEncoder(A.getEncoder());
+        otherClone.richAlphabet.setEncoder(A.richAlphabet.getEncoder());
         otherClone.setA(A.getA());
         otherClone.setAlphabetSize(A.getAlphabetSize());
         otherClone.setNS(A.getNS());
@@ -296,7 +298,7 @@ public class AutomatonLogicalOps {
     private static int determineZero(Automaton A) {
         List<Integer> ZERO = new ArrayList<>(A.getA().size());//all zero input
         for (List<Integer> i : A.getA()) ZERO.add(i.indexOf(0));
-        return A.encode(ZERO);
+        return A.richAlphabet.encode(ZERO);
     }
 
     /**
@@ -386,7 +388,7 @@ public class AutomatonLogicalOps {
         IntList dest = new IntArrayList();
         dest.add(1);
         for (int i = 0; i < A.getAlphabetSize(); i++) {
-            List<Integer> list = Automaton.decode(A.getA(), i);
+            List<Integer> list = A.richAlphabet.decode(i);
             if (list.get(n) != 0) {
                 M.getD().get(0).put(i, new IntArrayList(dest));
             }
@@ -427,20 +429,25 @@ public class AutomatonLogicalOps {
 
     private static void reduceDimension(Automaton A, List<Integer> I) {
         List<List<Integer>> newAlphabet = new ArrayList<>();
-        List<Integer> newEncoder = new ArrayList<>();
-        newEncoder.add(1);
         for (int i = 0; i < A.getA().size(); i++)
             if (!I.contains(i) || I.indexOf(i) == 0)
                 newAlphabet.add(new ArrayList<>(A.getA().get(i)));
-        for (int i = 0; i < newAlphabet.size() - 1; i++)
+
+        List<Integer> newEncoder = new ArrayList<>(newAlphabet.size());
+        newEncoder.add(1);
+        for (int i = 0; i < newAlphabet.size() - 1; i++) {
             newEncoder.add(newEncoder.get(i) * newAlphabet.get(i).size());
+        }
+
         List<Integer> map = new ArrayList<>(A.getAlphabetSize());
-        for (int n = 0; n < A.getAlphabetSize(); n++)
-            map.add(Automaton.mapToReducedEncodedInput(n, I, newEncoder, A.getA(), newAlphabet));
-        List<Int2ObjectRBTreeMap<IntList>> new_d = new ArrayList<>(A.getQ());
+        for (int n = 0; n < A.getAlphabetSize(); n++) {
+            map.add(RichAlphabet.mapToReducedEncodedInput(n, I, newEncoder, A.getA(), newAlphabet));
+        }
+
+        List<Int2ObjectRBTreeMap<IntList>> newD = new ArrayList<>(A.getQ());
         for (int q = 0; q < A.getQ(); q++) {
             Int2ObjectRBTreeMap<IntList> currentStatesTransition = new Int2ObjectRBTreeMap<>();
-            new_d.add(currentStatesTransition);
+            newD.add(currentStatesTransition);
             for (Int2ObjectMap.Entry<IntList> entry : A.getFa().getEntriesNfaD(q)) {
                 int m = map.get(entry.getIntKey());
                 if (m != -1) {
@@ -448,12 +455,12 @@ public class AutomatonLogicalOps {
                 }
             }
         }
-        A.setD(new_d);
+        A.setD(newD);
         I.remove(0);
         A.setA(newAlphabet);
         UtilityMethods.removeIndices(A.getNS(), I);
-        A.setEncoder(null);
-        A.determineAlphabetSizeFromA();
+        A.richAlphabet.setEncoder(null);
+        A.determineAlphabetSize();
         UtilityMethods.removeIndices(A.getLabel(), I);
     }
 
@@ -479,7 +486,7 @@ public class AutomatonLogicalOps {
     }
 
     public static void quantify(Automaton A, String labelToQuantify, boolean print, String prefix, StringBuilder log) {
-        quantify(A, List.of(labelToQuantify), print, prefix, log);
+        quantify(A, Set.of(labelToQuantify), print, prefix, log);
     }
     public static void quantify(Automaton A, List<String> labelsToQuantify, boolean print, String prefix, StringBuilder log) {
         quantify(A, new HashSet<>(labelsToQuantify), print, prefix, log);
@@ -496,10 +503,10 @@ public class AutomatonLogicalOps {
          * every number system must use 0 to denote its additive identity.
          *
          * @param A
-         * @param listOfLabelsToQuantify must contain at least one element. listOfLabelsToQuantify must be a subset of this.label.
+         * @param labelsToQuantify must contain at least one elemen, and must be a subset of this.label.
          */
-    public static void quantify(Automaton A, Set<String> listOfLabelsToQuantify, boolean print, String prefix, StringBuilder log) {
-        quantifyHelper(A, listOfLabelsToQuantify, print, prefix, log);
+    public static void quantify(Automaton A, Set<String> labelsToQuantify, boolean print, String prefix, StringBuilder log) {
+        quantifyHelper(A, labelsToQuantify, print, prefix, log);
         if (A.fa.isTRUE_FALSE_AUTOMATON()) return;
 
         Boolean isMsd = NumberSystem.determineMsd(A.getNS());
@@ -513,17 +520,14 @@ public class AutomatonLogicalOps {
     /**
      * This method is very similar to public void quantify(Set<String> listOfLabelsToQuantify,boolean leadingZeros)
      * with the exception that, this method does not deal with leading/trailing zeros problem.
-     *
-     * @param A
-     * @param listOfLabelsToQuantify
      */
     private static void quantifyHelper(
-        Automaton A, Set<String> listOfLabelsToQuantify, boolean print, String prefix, StringBuilder log) {
-        if (listOfLabelsToQuantify.isEmpty() || A.getLabel() == null) {
+        Automaton A, Set<String> labelsToQuantify, boolean print, String prefix, StringBuilder log) {
+        if (labelsToQuantify.isEmpty() || A.getLabel() == null) {
             return;
         }
 
-        for (String s : listOfLabelsToQuantify) {
+        for (String s : labelsToQuantify) {
             if (!A.getLabel().contains(s)) {
                 throw new RuntimeException(
                         "Variable " + s + " in the list of quantified variables is not a free variable.");
@@ -534,24 +538,24 @@ public class AutomatonLogicalOps {
 
         //If this is the case, then the quantified automaton is either the true or false automaton.
         //It is true if the language is not empty.
-        if (listOfLabelsToQuantify.size() == A.getA().size()) {
+        if (labelsToQuantify.size() == A.getA().size()) {
             A.fa.setTRUE_AUTOMATON(!A.isEmpty());
             A.fa.setTRUE_FALSE_AUTOMATON(true);
             A.clear();
             return;
         }
 
-        List<Integer> listOfInputsToQuantify = new ArrayList<>(listOfLabelsToQuantify.size());
+        List<Integer> listOfInputsToQuantify = new ArrayList<>(labelsToQuantify.size());
         //extract the list of indices of inputs we would like to quantify
-        for (String l : listOfLabelsToQuantify)
+        for (String l : labelsToQuantify)
             listOfInputsToQuantify.add(A.getLabel().indexOf(l));
         List<List<Integer>> allInputs = new ArrayList<>(A.getAlphabetSize());
         for (int i = 0; i < A.getAlphabetSize(); i++)
-            allInputs.add(Automaton.decode(A.getA(), i));
+            allInputs.add(A.richAlphabet.decode(i));
         //now we remove those indices in listOfInputsToQuantify from A,T,label, and allInputs
         UtilityMethods.removeIndices(A.getA(), listOfInputsToQuantify);
-        A.setEncoder(null);
-        A.determineAlphabetSizeFromA();
+        A.richAlphabet.setEncoder(null);
+        A.determineAlphabetSize();
         UtilityMethods.removeIndices(A.getNS(), listOfInputsToQuantify);
         UtilityMethods.removeIndices(A.getLabel(), listOfInputsToQuantify);
         for (List<Integer> i : allInputs)
@@ -559,7 +563,7 @@ public class AutomatonLogicalOps {
         //example: permutation[1] = 7 means that encoded old input 1 becomes encoded new input 7
         List<Integer> permutation = new ArrayList<>(allInputs.size());
         for (List<Integer> i : allInputs)
-            permutation.add(A.encode(i));
+            permutation.add(A.richAlphabet.encode(i));
         List<Int2ObjectRBTreeMap<IntList>> new_d = new ArrayList<>(A.getQ());
         for (int q = 0; q < A.getQ(); q++) {
             Int2ObjectRBTreeMap<IntList> newMemDTransitionFunction = new Int2ObjectRBTreeMap<>();
@@ -977,6 +981,7 @@ public class AutomatonLogicalOps {
         while (!subautomata.isEmpty()) {
             Automaton next = subautomata.remove();
             long timeBefore = System.currentTimeMillis();
+            System.out.println("COMBINE");
             UtilityMethods.logMessage(print, prefix + "computing =>:" + first.getQ() + " states - " + next.getQ() + " states", log);
 
             // crossProduct requires labelling; make an arbitrary labelling and use it for both: this is valid since

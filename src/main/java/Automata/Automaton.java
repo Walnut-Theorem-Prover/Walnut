@@ -33,36 +33,16 @@ import it.unimi.dsi.fastutil.ints.*;
 import static Automata.ParseMethods.PATTERN_WHITESPACE;
 
 /**
- * This class can represent different NFA, NFAO, DFA, DFAO.<bf>
+ * This class can represent different NFA, NFAO, DFA, DFAO.
  * There are also two special automata: true automaton, which accepts everything, and false automaton, which accepts nothing.
  * To represent true/false automata we use the field members: TRUE_FALSE_AUTOMATON and TRUE_AUTOMATA. <br>
- * Inputs to an ordinary automaton are n-tuples. Each coordinate has its own alphabet. <br>
- * Let's see this by means of an example: <br>
- * Suppose our automaton has 3-tuples as its input: <br>
- * The field A stores the alphabets of these inputs.
- * For example, we might have A = [[1,2],[0,-1,1],[1,3]]. This means that the first input is over alphabet
- * {1,2} and the second one is over {0,-1,1},... <br>
- * Note: Input alphabets are subsets of integers. <br>
- * -So in total there are 12 = 2*3*2 different inputs (this number is stored in alphabetSize)
- * for this automaton. Here are two example inputs: (2,-1,3),(1,0,3).
- * We can encode these 3-tuples by the following rule:<br>
- * 0 = (1,0,1) <br>
- * 1 = (2,0,1) <br>
- * 2 = (1,-1,1)<br>
- * ...<br>
- * 11 = (2,1,3)<br>
- * We use this encoding in our representation of automaton to refer to a particular input. For example,
- * we might say on (2,1,3) we go from state 5 to state 0 by setting d.get(5) = (11,[5]).
- * In the case of automaton with output,
- * the first state has output 1, the second has output -1, and the third one has output 0.
- * The output alphabet can be any finite subset of integers. <br>
- * We might want to give labels to inputs. For example if we set label = ["x","y","z"], the label of the first input is "x".
- * Then in the future, we can refer to this first input by the label "x". <br>
+ * We use the RichAlphabet encoding in our representation of automaton to refer to a particular input.
+ * The output alphabet can be any finite subset of integers.
+ * We may give labels to inputs. For example if we set label = ["x","y","z"], the label of the first input is "x".
+ * Then in the future, we can refer to this first input by the label "x".
  */
 public class Automaton {
-
-    private List<List<Integer>> A;
-    private List<Integer> encoder;
+    public RichAlphabet richAlphabet;
     private List<NumberSystem> NS;
     private List<String> label;
     private boolean labelSorted;  // hen true, labels are sorted lexicographically. It is used in sortLabel() method.
@@ -74,6 +54,20 @@ public class Automaton {
 
     // for use in the combine command, allows crossProduct to determine what to set outputs to
     IntList combineOutputs;
+
+    public void writeAutomata(String s, String outLibrary, String name, boolean isDFAO) {
+      AutomatonWriter.draw(this, Session.getAddressForResult() + name + ".gv", s, isDFAO);
+      AutomatonWriter.write(this, Session.getAddressForResult() + name + ".txt");
+      AutomatonWriter.write(this, outLibrary + name + ".txt");
+    }
+
+    public Automaton removeLeadTrailZeroes() {
+      // When dealing with enumerating values (e.g. inf and test commands), we remove leading zeroes in the case of msd
+      // and trailing zeroes in the case of lsd. To do this, we construct a reg subcommand that generates the complement
+      // of zero-prefixed strings for msd and zero suffixed strings for lsd, then intersect this with our original automaton.
+      randomLabel();
+      return AutomatonLogicalOps.removeLeadingZeroes(this, getLabel(), false, null, null);
+    }
 
     public int determineCombineOutVal(String op) {
       return op.equals("combine") ? this.combineOutputs.getInt(this.combineIndex) : -1;
@@ -96,7 +90,7 @@ public class Automaton {
      */
     public Automaton() {
         fa = new FA();
-        setA(new ArrayList<>());
+        richAlphabet = new RichAlphabet();
         setNS(new ArrayList<>());
         setLabel(new ArrayList<>());
         dk.brics.automaton.Automaton.setMinimization(dk.brics.automaton.Automaton.MINIMIZE_HOPCROFT);
@@ -111,6 +105,7 @@ public class Automaton {
      */
     public Automaton(boolean truthValue) {
         fa = new FA();
+        richAlphabet = new RichAlphabet();
         fa.setTRUE_FALSE_AUTOMATON(true);
         this.fa.setTRUE_AUTOMATON(truthValue);
     }
@@ -208,9 +203,9 @@ public class Automaton {
                 } else if (ParseMethods.parseTransition(line, input, dest)) {
                     validateTransition(address, currentState, lineNumber, input);
                     setOfDestinationStates.addAll(dest);
-                    List<List<Integer>> inputs = expandWildcard(this.getA(), input);
+                    List<List<Integer>> inputs = richAlphabet.expandWildcard(input);
                     for (List<Integer> i : inputs) {
-                        currentStateTransitions.put(encode(i), dest);
+                        currentStateTransitions.put(richAlphabet.encode(i), dest);
                     }
                     input = new ArrayList<>();
                     dest = new IntArrayList();
@@ -285,7 +280,7 @@ public class Automaton {
                     }
                     UtilityMethods.removeDuplicates(getA().get(i));
                 }
-                this.determineAlphabetSizeFromA();
+                this.determineAlphabetSize();
                 break;
             } else {
                 throw ExceptionHelper.undefinedStatement(lineNumber, address);
@@ -320,13 +315,9 @@ public class Automaton {
     }
 
     void clonePartialFields(Automaton M) {
+        M.richAlphabet = richAlphabet.clone();
         for (int i = 0; i < getA().size(); i++) {
-            M.getA().add(new ArrayList<>(getA().get(i)));
             M.getNS().add(getNS().get(i));
-            if (getEncoder() != null && !getEncoder().isEmpty()) {
-                if (M.getEncoder() == null) M.setEncoder(new ArrayList<>());
-                M.getEncoder().add(getEncoder().get(i));
-            }
             if (this.isBound())
                 M.getLabel().add(getLabel().get(i));
         }
@@ -543,8 +534,8 @@ public class Automaton {
         Automaton M = clone();
         M.setA(alphabet);
         M.setNS(numberSystems);
-        M.determineAlphabetSizeFromA();
-        M.setupEncoder();
+        M.determineAlphabetSize();
+        M.richAlphabet.setupEncoder();
 
         this.getFa().alphabetStates(alphabet, this.getA(), M);
 
@@ -562,14 +553,10 @@ public class Automaton {
         UtilityMethods.logMessage(print, prefix + "set alphabet complete:" + (timeAfter - timeBefore) + "ms", log);
     }
 
-    public void determineAlphabetSizeFromA() {
-        int alphabetSize = 1;
-        for (List<Integer> x : this.getA()) {
-            alphabetSize *= x.size();
-        }
-        this.fa.setAlphabetSize(alphabetSize);
+    // TODO: possibly this can just be determined when setA() is called.
+    public void determineAlphabetSize() {
+        this.fa.setAlphabetSize(richAlphabet.determineAlphabetSize());
     }
-
 
     /**
      * @param inputs A list of "+", "-" or "". Indicating how our input will be interpreted in the output automata.
@@ -684,7 +671,7 @@ public class Automaton {
         }
         for (Int2ObjectMap.Entry<IntList> entry : getFa().getEntriesNfaD(state)) {
             for (int y : entry.getValue()) {
-                List<Integer> decodeAx = decode(getA(), entry.getIntKey());
+                List<Integer> decodeAx = richAlphabet.decode(entry.getIntKey());
                 String input = decodeAx.toString();
 
                 // we remove brackets if we have a single arity input that is between 0 and 9 (and hence unambiguous)
@@ -769,9 +756,8 @@ public class Automaton {
         fa.setTRUE_FALSE_AUTOMATON(M.fa.isTRUE_FALSE_AUTOMATON());
         fa.setTRUE_AUTOMATON(M.fa.isTRUE_AUTOMATON());
         fa = M.fa.clone();
-        setA(M.getA());
+        richAlphabet = M.richAlphabet.clone();
         setNS(M.getNS());
-        setEncoder(M.getEncoder());
         setLabel(M.getLabel());
         labelSorted = M.labelSorted;
     }
@@ -838,19 +824,19 @@ public class Automaton {
          * The same logic is behind permuted_encoder.
          */
         List<List<Integer>> permuted_A = permute(getA(), label_permutation);
-        List<Integer> permuted_encoder = getPermutedEncoder(getA(), permuted_A);
+        List<Integer> permuted_encoder = richAlphabet.getPermutedEncoder(permuted_A);
 
         //For example encoded_input_permutation[2] = 5 means that encoded input 2 becomes 5 after sorting.
         int[] encoded_input_permutation = new int[getAlphabetSize()];
         for (int i = 0; i < getAlphabetSize(); i++) {
-            List<Integer> input = decode(getA(), i);
+            List<Integer> input = richAlphabet.decode(i);
             List<Integer> permuted_input = permute(input, label_permutation);
-            encoded_input_permutation[i] = encode(permuted_input, permuted_A, permuted_encoder);
+            encoded_input_permutation[i] = RichAlphabet.encode(permuted_input, permuted_A, permuted_encoder);
         }
 
         setLabel(sorted_label);
         setA(permuted_A);
-        setEncoder(permuted_encoder);
+        richAlphabet.setEncoder(permuted_encoder);
         setNS(permute(getNS(), label_permutation));
 
         this.fa.permuteD(encoded_input_permutation);
@@ -886,106 +872,6 @@ public class Automaton {
         return label_permutation;
     }
 
-    static List<Integer> getPermutedEncoder(List<List<Integer>> A, List<List<Integer>> permuted_A) {
-        List<Integer> permuted_encoder = new ArrayList<>();
-        permuted_encoder.add(1);
-        for (int i = 0; i < A.size() - 1; i++) {
-            permuted_encoder.add(permuted_encoder.get(i) * permuted_A.get(i).size());
-        }
-        return permuted_encoder;
-    }
-
-
-    /**
-     * Input to dk.brics.automaton.Automata is a char. Input to Automaton is List<Integer>.
-     * Thus, this method transforms an integer to its corresponding List<Integer>
-     * Example: A = [[0,1],[-1,2,3]] and if
-     * n = 0 then we return [0,-1]
-     * n = 1 then we return [1,-1]
-     * n = 2 then we return [0,2]
-     * n = 3 then we return [1,2]
-     * n = 4 then we return [0,3]
-     * n = 5 then we return [1,3]
-     */
-    public static List<Integer> decode(List<List<Integer>> A, int n) {
-        List<Integer> l = new ArrayList<>(A.size());
-        for (List<Integer> integers : A) {
-            l.add(integers.get(n % integers.size()));
-            n = n / integers.size();
-        }
-        return l;
-    }
-
-
-    /**
-     * Input to dk.brics.automaton.Automata is a char. Input to Automata.Automaton is List<Integer>.
-     * Thus, this method transforms a List<Integer> to its corresponding integer.
-     * The other application of this function is when we use the transition function d in State. Note that the transtion function
-     * maps an integer (encoding of List<Integer>) to a set of states.
-     * <p>
-     * Example: A = [[0,1],[-1,2,3]] and if
-     * l = [0,-1] then we return 0
-     * l = [1,-1] then we return 1
-     * l = [0,2] then we return 2
-     * l = [1,2] then we return 3
-     * l = [0,3] then we return 4
-     * l = [1,3] then we return 5
-     * Second Example: A = [[-2,-1,-3],[0,1],[-1,0,3],[7,8]] and if
-     * l = [-2,0,-1,7] then we return 0
-     * l = [-1,0,-1,7] then we return 1
-     * l = [-3,0,-1,7] then we return 2
-     * l = [-2,1,-1,7] then we return 3
-     * l = [-1,1,-1,7] then we return 4
-     * l = [-3,1,-1,7] then we return 5
-     * l = [-2,0,0,7] then we return 6
-     * ...
-     */
-    public int encode(List<Integer> l) {
-        if (getEncoder() == null) {
-            setupEncoder();
-        }
-        return encode(l, getA(), getEncoder());
-    }
-
-    public static int encode(List<Integer> l, List<List<Integer>> A, List<Integer> encoder) {
-        int encoding = 0;
-        for (int i = 0; i < l.size(); i++) {
-            encoding += encoder.get(i) * A.get(i).indexOf(l.get(i));
-        }
-        return encoding;
-    }
-
-    public void setupEncoder() {
-        setEncoder(new ArrayList<>());
-        getEncoder().add(1);
-        for (int i = 0; i < getA().size() - 1; i++) {
-            getEncoder().add(getEncoder().get(i) * getA().get(i).size());
-        }
-    }
-
-    /**
-     * A wildcard is denoted by null in L. What do we mean by expanding wildcard?
-     * Here is an example: suppose that A = [[1,2],[0,-1],[3,4,5]] and L = [1,*,4]. Then the method would return
-     * [[1,0,4],[1,-1,4]]. In other words, it'll replace * in the second position with 0 and -1.
-     */
-    public static List<List<Integer>> expandWildcard(List<List<Integer>> A, List<Integer> L) {
-        List<List<Integer>> R = new ArrayList<>();
-        R.add(new ArrayList<>(L));
-        for (int i = 0; i < L.size(); i++) {
-            if (L.get(i) == null) {
-                List<List<Integer>> tmp = new ArrayList<>();
-                for (int x : A.get(i)) {
-                    for (List<Integer> tmp2 : R) {
-                        tmp.add(new ArrayList<>(tmp2));
-                        tmp.get(tmp.size() - 1).set(i, x);
-                    }
-                }
-                R = new ArrayList<>(tmp);
-            }
-        }
-        return R;
-    }
-
     public void bind(List<String> names) {
         if (fa.isTRUE_FALSE_AUTOMATON() || getA().size() != names.size()) throw ExceptionHelper.invalidBind();
         setLabels(names);
@@ -1008,9 +894,8 @@ public class Automaton {
      */
     void clear() {
         this.fa.clear();
-        setA(null);
+        this.richAlphabet.clear();
         setNS(null);
-        setEncoder(null);
         setLabel(null);
         labelSorted = false;
     }
@@ -1020,22 +905,6 @@ public class Automaton {
             return !fa.isTRUE_AUTOMATON();
         }
         return this.fa.to_dk_brics_automaton().isEmpty();
-    }
-
-
-    static int mapToReducedEncodedInput(int n, List<Integer> I, List<Integer> newEncoder,
-                                 List<List<Integer>> oldAlphabet,
-                                 List<List<Integer>> newAlphabet) {
-        if (I.size() <= 1) return n;
-        List<Integer> x = decode(oldAlphabet, n);
-        for (int i = 1; i < I.size(); i++)
-            if (x.get(I.get(i)) != x.get(I.get(0)))
-                return -1;
-        List<Integer> y = new ArrayList<>();
-        for (int i = 0; i < x.size(); i++)
-            if (!I.contains(i) || I.indexOf(i) == 0)
-                y.add(x.get(i));
-        return encode(y, newAlphabet, newEncoder);
     }
 
     public int getQ0() {
@@ -1089,24 +958,6 @@ public class Automaton {
     }
 
     /**
-     * This vector is useful in the encode method.
-     * When A = [l1,l2,l3,...,ln] then
-     * encoder = [1,|l1|,|l1|*|l2|,...,|l1|*|l2|*...*|ln-1|].
-     * It is useful, as mentioned earlier, in the encode method. encode method gets a list x, which represents a viable
-     * input to this automaton, and returns a non-negative integer, which is the integer represented by x, in base encoder.
-     * Note that encoder is a mixed-radix base. We use the encoded integer, returned by encode(), to store transitions.
-     * So we don't store the list x.
-     * We can decode, the number returned by encode(), and get x back using decode method.
-     */
-    public List<Integer> getEncoder() {
-        return encoder;
-    }
-
-    public void setEncoder(List<Integer> encoder) {
-        this.encoder = encoder;
-    }
-
-    /**
      * Alphabet Size. For example, if A = [[-1,1],[2,3]], then alphabetSize = 4 and if A = [[-1,1],[0,1,2]], then alphabetSize = 6
      */
     public int getAlphabetSize() {
@@ -1128,11 +979,11 @@ public class Automaton {
      * we have to make sure, at all times, that the inner lists of A don't contain repeated elements.
      */
     public List<List<Integer>> getA() {
-        return A;
+        return richAlphabet.getA();
     }
 
     public void setA(List<List<Integer>> a) {
-        A = a;
+        richAlphabet.setA(a);
     }
 
     public FA getFa() {
@@ -1141,6 +992,6 @@ public class Automaton {
 
     @Override
     public String toString() {
-        return "FA:" + this.fa.toString() + "\nA:" + this.A + "\nlabel:" + this.label + "\nencoder:" + this.encoder;
+        return "FA:" + fa + richAlphabet + "\nlabel:" + this.label;
     }
 }

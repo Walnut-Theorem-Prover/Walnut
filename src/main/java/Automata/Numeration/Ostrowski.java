@@ -204,19 +204,17 @@ public class Ostrowski {
             list.add(i);
         }
         // 3 inputs to the adder, all have the same alphabet and the null NumberSystem.
-        int alphabetSize = 1;
         List<List<Integer>> A = new ArrayList<>(inputs);
         List<NumberSystem> ns = new ArrayList<>(inputs);
         for(int i=0;i<inputs;i++) {
             A.add(list);
             ns.add(null);
-            alphabetSize *= (dMax + 1);
         }
 
         Automaton automaton = new Automaton();
         automaton.setA(A);
         automaton.setNS(ns);
-        automaton.setAlphabetSize(alphabetSize);
+        automaton.determineAlphabetSize();
         return automaton;
     }
 
