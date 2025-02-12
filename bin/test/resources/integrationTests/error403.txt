@@ -1,2 +1,0 @@
-negative constant -2
-	: char at 5

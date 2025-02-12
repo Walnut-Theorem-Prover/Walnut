@@ -1,1 +1,0 @@
-incidence matrices for the variable n cannot be calculated, because n is not a free variable.

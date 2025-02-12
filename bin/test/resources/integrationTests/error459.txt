@@ -1,2 +1,0 @@
-division by zero
-	: char at 2

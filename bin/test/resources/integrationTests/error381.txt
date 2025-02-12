@@ -1,1 +1,0 @@
-incidence matrices cannot be calculated, because the automaton does not have a free variable.

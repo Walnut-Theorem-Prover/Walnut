@@ -1,3 +1,0 @@
-msd_neg_fib
-
-0 0
