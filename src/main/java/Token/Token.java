@@ -26,15 +26,33 @@ import Main.Expression;
 public abstract class Token {
     private int arity;
     private int positionInPredicate;
-    private static char uniqueChar = 1000;
+    private static long uniqueCounter = 1000L;
 
     /**
-     * @return a string. It is guaranteed that the string does not have ascii characters, and that no two calls
-     * return the same value.
+     * Returns a unique string that contains only non-ASCII characters.
+     * This method can be called indefinitely without repeating values.
      */
     public String getUniqueString() {
-        uniqueChar++;
-        return Character.toString(uniqueChar);
+        uniqueCounter++;
+        return convertToNonAscii(uniqueCounter);
+    }
+
+    /**
+     * Converts a given number into a string representation using a custom base,
+     * where the "digits" are non-ASCII characters (from 0x0100 to 0x017F).
+     */
+    private static String convertToNonAscii(long number) {
+        final int base = 128; // Using 128 non-ASCII characters
+        StringBuilder sb = new StringBuilder();
+        do {
+            int digit = (int)(number % base);
+            // Map the digit to a non-ASCII character.
+            // Since ASCII characters are in the range 0–127, we use code points starting at 0x0100.
+            char nonAsciiChar = (char)(0x0100 + digit);
+            sb.append(nonAsciiChar);
+            number /= base;
+        } while (number > 0);
+        return sb.reverse().toString();
     }
 
     public void put(List<Token> postOrder) {
