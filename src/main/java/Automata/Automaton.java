@@ -773,12 +773,12 @@ public class Automaton {
     }
 
     /**
-     * The operator can be one of "_" "+" "-" "/" "*".
+     * The operator can be one of "+" "-" "/" "*".
      * For example if operator = "+" then this method returns
      * a DFAO that outputs o+this[x] (or this[x]+p) on input x.
      * To be used only when this automaton and M are DFAOs (words).
      */
-    public void applyOperator(int o, String operator, boolean reverse, boolean print, String prefix, StringBuilder log) {
+    public void applyWordOperator(int o, String operator, boolean reverse, boolean print, String prefix, StringBuilder log) {
         long timeBefore = System.currentTimeMillis();
         UtilityMethods.logMessage(print, prefix + "applying operator (" + operator + "):" + getQ() + " states", log);
         for (int p = 0; p < getQ(); p++) {

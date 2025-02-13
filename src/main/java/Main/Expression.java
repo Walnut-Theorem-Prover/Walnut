@@ -37,7 +37,7 @@ import Automata.Automaton;
  * -arithmetic: arithmetic expression is an expression with arithmetic operators: +,-,*,/. It has to have at
  * least one operator in it and no operators of other types. For example a+b is an arithmetic expression but a is not. Also note that c=a+b is not arithmetic, since
  * = is not an arithmetic operator but a comparison operator. An arithmetic expression evaluates to
- * an automaton, stored in the field memeber M, and an identifier, stored in identifier. For example a+b-c*2, evaluates
+ * an automaton, stored in the field member M, and an identifier, stored in identifier. For example a+b-c*2, evaluates
  * to an automaton with 4 inputs a,b,c,x and it accepts iff x = a+b-c*2. This x is a unique identifier we generate for this expression.
  * As we mentioned earlier, we store the automaton in M and the x in identifier since we need to eliminate x in future.<br>
  * -automaton: automaton is an expression with at least one of reverse, logical, or comparison operator:

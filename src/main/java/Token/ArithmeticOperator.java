@@ -50,33 +50,38 @@ public class ArithmeticOperator extends Operator {
         Expression b = S.pop();
         if (!isValidArithmeticOperator(b))
             throw ExceptionHelper.invalidOperator(op, b);
-
         if (op.equals("_")) {
-            if (b instanceof NumberLiteralExpression) {
-                S.push(new NumberLiteralExpression(Integer.toString(-b.constant), -b.constant, ns));
-                return;
-            } else if (b instanceof AlphabetLetterExpression) {
-                S.push(new AlphabetLetterExpression("@" + (-b.constant), -b.constant));
-                return;
-            } else if (b instanceof WordExpression) {
-                b.wordAutomaton.applyOperator(0, "_", false, print, prefix, log);
-                S.push(b);
-                return;
-            }
-            String c = getUniqueString();
-            // b + c = 0
-            Automaton M = ns.arithmetic(b.identifier, c, 0, "+");
-            UtilityMethods.logAndPrint(print, prefix + "computing " + op + b, log);
-            if (b instanceof ArithmeticExpression) {
-                // Eb, b + c = 0 & M(b,...)
-                M = AutomatonLogicalOps.and(M, b.M, print, prefix + " ", log);
-                AutomatonLogicalOps.quantify(M, b.identifier, print, prefix + " ", log);
-            }
-            S.push(new ArithmeticExpression("(" + op + b + ")", M, c));
-            UtilityMethods.logAndPrint(print, prefix + "computed " + op + b, log);
+            processUnaryOperator(b, S, print, prefix, log);
+        } else {
+            processBinaryOperator(b, S, print, prefix, log);
+        }
+    }
+
+    private void processUnaryOperator(Expression b, Stack<Expression> S, boolean print, String prefix, StringBuilder log) {
+        if (b instanceof NumberLiteralExpression) {
+            S.push(new NumberLiteralExpression(Integer.toString(-b.constant), -b.constant, ns));
+            return;
+        }
+        if (b instanceof AlphabetLetterExpression) {
+            S.push(new AlphabetLetterExpression("@" + (-b.constant), -b.constant));
+            return;
+        }
+        if (b instanceof WordExpression) {
+            b.wordAutomaton.applyWordOperator(0, "-", false, print, prefix, log);
+            S.push(b);
             return;
         }
 
+        String c = getUniqueString();
+        // b + c = 0
+        Automaton M = ns.arithmetic(b.identifier, c, 0, "+");
+        UtilityMethods.logAndPrint(print, prefix + "computing " + op + b, log);
+        M = andAndQuantifyArithmeticExpression(print, prefix, log, b, M);
+        S.push(new ArithmeticExpression("(" + op + b + ")", M, c));
+        UtilityMethods.logAndPrint(print, prefix + "computed " + op + b, log);
+    }
+
+    private void processBinaryOperator(Expression b, Stack<Expression> S, boolean print, String prefix, StringBuilder log) {
         Expression a = S.pop();
         if (!isValidArithmeticOperator(a))
             throw ExceptionHelper.invalidOperator(op, a);
@@ -89,12 +94,12 @@ public class ArithmeticOperator extends Operator {
             return;
         }
         if (a instanceof WordExpression && (b instanceof AlphabetLetterExpression || b instanceof NumberLiteralExpression)) {
-            a.wordAutomaton.applyOperator(b.constant, op, true, print, prefix, log);
+            a.wordAutomaton.applyWordOperator(b.constant, op, true, print, prefix, log);
             S.push(a);
             return;
         }
         if ((a instanceof AlphabetLetterExpression || a instanceof NumberLiteralExpression) && b instanceof WordExpression) {
-            b.wordAutomaton.applyOperator(a.constant, op, false, print, prefix, log);
+            b.wordAutomaton.applyWordOperator(a.constant, op, false, print, prefix, log);
             S.push(b);
             return;
         }
@@ -144,17 +149,14 @@ public class ArithmeticOperator extends Operator {
             }
             M = AutomatonLogicalOps.and(M, word.M, print, prefix + " ", log);
             AutomatonLogicalOps.quantify(M, word.identifiersToQuantify, print, prefix + " ", log);
-            if (arithmetic instanceof ArithmeticExpression) {
-                M = AutomatonLogicalOps.and(M, arithmetic.M, print, prefix + " ", log);
-                AutomatonLogicalOps.quantify(M, arithmetic.identifier, print, prefix + " ", log);
-            }
+            M = andAndQuantifyArithmeticExpression(print, prefix, log, arithmetic, M);
         } else {
             if (a instanceof NumberLiteralExpression) {
                 if (a.constant == 0 && op.equals("*")) {
                     S.push(new NumberLiteralExpression("0", 0, ns));
                     return;
-                } else
-                    M = ns.arithmetic(a.constant, b.identifier, c, op);
+                }
+                M = ns.arithmetic(a.constant, b.identifier, c, op);
             } else if (b instanceof NumberLiteralExpression) {
                 if (b.constant == 0 && op.equals("*")) {
                     S.push(new NumberLiteralExpression("0", 0, ns));
@@ -165,18 +167,22 @@ public class ArithmeticOperator extends Operator {
                 M = ns.arithmetic(a.identifier, b.identifier, c, op);
             }
 
-            if (a instanceof ArithmeticExpression) {
-                M = AutomatonLogicalOps.and(M, a.M, print, prefix + " ", log);
-                AutomatonLogicalOps.quantify(M, a.identifier, print, prefix + " ", log);
-            }
-            if (b instanceof ArithmeticExpression) {
-                M = AutomatonLogicalOps.and(M, b.M, print, prefix + " ", log);
-                AutomatonLogicalOps.quantify(M, b.identifier, print, prefix + " ", log);
-            }
+            M = andAndQuantifyArithmeticExpression(print, prefix, log, a, M);
+            M = andAndQuantifyArithmeticExpression(print, prefix, log, b, M);
         }
         S.push(new ArithmeticExpression("(" + a + op + b + ")", M, c));
         UtilityMethods.logAndPrint(print, prefix + "computed " + a + op + b, log);
     }
+
+    private static Automaton andAndQuantifyArithmeticExpression(boolean print, String prefix, StringBuilder log,
+                                                                Expression a, Automaton M) {
+        if (a instanceof ArithmeticExpression) {
+            M = AutomatonLogicalOps.and(M, a.M, print, prefix + " ", log);
+            AutomatonLogicalOps.quantify(M, a.identifier, print, prefix + " ", log);
+        }
+        return M;
+    }
+
 
     public static int arith(String op, int a, int b) {
         switch (op) {
@@ -216,9 +222,6 @@ public class ArithmeticOperator extends Operator {
             }
             case "*" -> {
                 return a * b;
-            }
-            case "_" -> {
-                return - b;
             }
             default -> throw ExceptionHelper.unexpectedOperator(op);
         }
