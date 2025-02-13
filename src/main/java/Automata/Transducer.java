@@ -128,16 +128,15 @@ public class Transducer extends Automaton {
                     stateTransitionOutput.put(currentState, currentStateTransitionOutputs);
                 } else if (ParseMethods.parseTransducerTransition(line, input, dest, output)) {
                     validateTransition(address, currentState, lineNumber, input);
+                    if (output.size() != 1) {
+                        throw new RuntimeException("Transducers must have one output for each transition: line "
+                            + lineNumber + " of file " + address);
+                    }
                     setOfDestinationStates.addAll(dest);
                     List<List<Integer>> inputs = richAlphabet.expandWildcard(input);
                     for (List<Integer> i : inputs) {
                         currentStateTransitions.put(richAlphabet.encode(i), dest);
-                        if (output.size() == 1) {
-                            currentStateTransitionOutputs.put(richAlphabet.encode(i), output.get(0));
-                        } else {
-                            throw new RuntimeException("Transducers must have one output for each transition: line "
-                                    + lineNumber + " of file " + address);
-                        }
+                        currentStateTransitionOutputs.put(richAlphabet.encode(i), output.get(0));
                     }
                     input = new ArrayList<>();
                     dest = new IntArrayList();
