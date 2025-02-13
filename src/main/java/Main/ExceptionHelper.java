@@ -12,6 +12,10 @@ public class ExceptionHelper {
         return new RuntimeException("Output alphabet is empty");
     }
 
+    public static RuntimeException arrayOverflow(String v, long count) {
+        return new RuntimeException("Array overflow: " + v + " is of size " + count + " which can't be handled by Java arrays");
+    }
+
     public static RuntimeException bricsNFA() {
         return new RuntimeException("cannot set an automaton of type Automaton to a non-deterministic automaton of type dk.bricks.automaton.Automaton");
     }

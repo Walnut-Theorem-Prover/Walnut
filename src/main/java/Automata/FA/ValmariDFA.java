@@ -17,6 +17,7 @@
  */
 package Automata.FA;
 
+import Main.ExceptionHelper;
 import it.unimi.dsi.fastutil.ints.*;
 
 import java.util.ArrayList;
@@ -44,9 +45,14 @@ public class ValmariDFA {
 
     public ValmariDFA(List<Int2IntMap> dfaD, int numStates) {
         // Pre-size the arrays.
+        long numTransitionsLong = 0;
         for(int q = 0; q != dfaD.size();++q){
-            numTransitions += dfaD.get(q).keySet().size();
+            numTransitionsLong += dfaD.get(q).keySet().size();
         }
+        if (numTransitionsLong > Integer.MAX_VALUE) {
+            throw ExceptionHelper.arrayOverflow("the number of transitions", numTransitionsLong);
+        }
+        numTransitions = (int)numTransitionsLong;
 
         T = new int[numTransitions];
         L = new int[numTransitions];
