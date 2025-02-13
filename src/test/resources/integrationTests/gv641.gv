@@ -1,0 +1,40 @@
+digraph G {
+label = "(n): E x,y,z (n=x+y+z)&(QQ[x]=@1)&(QQ[y]=@1)&(QQ[z]=@1)";
+rankdir = LR;
+node [shape = doublecircle, label="0", fontsize=12]0;
+node [shape = circle, label="1", fontsize=12]1;
+node [shape = doublecircle, label="2", fontsize=12]2;
+node [shape = circle, label="3", fontsize=12]3;
+node [shape = doublecircle, label="4", fontsize=12]4;
+node [shape = circle, label="5", fontsize=12]5;
+node [shape = doublecircle, label="6", fontsize=12]6;
+node [shape = circle, label="7", fontsize=12]7;
+node [shape = circle, label="8", fontsize=12]8;
+node [shape = doublecircle, label="9", fontsize=12]9;
+node [shape = doublecircle, label="10", fontsize=12]10;
+node [shape = doublecircle, label="11", fontsize=12]11;
+node [shape = point ]; qi
+qi -> 0;
+0 -> 0[ label = "0"];
+0 -> 1[ label = "1"];
+1 -> 2[ label = "0"];
+1 -> 3[ label = "1"];
+2 -> 4[ label = "0"];
+2 -> 5[ label = "1"];
+3 -> 6[ label = "0"];
+3 -> 7[ label = "1"];
+4 -> 8[ label = "0"];
+4 -> 9[ label = "1"];
+5 -> 9[ label = "0, 1"];
+6 -> 9[ label = "1"];
+6 -> 10[ label = "0"];
+7 -> 5[ label = "1"];
+7 -> 9[ label = "0"];
+8 -> 5[ label = "1"];
+8 -> 11[ label = "0"];
+9 -> 9[ label = "0, 1"];
+10 -> 5[ label = "1"];
+10 -> 9[ label = "0"];
+11 -> 9[ label = "0"];
+11 -> 10[ label = "1"];
+}

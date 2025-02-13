@@ -18,6 +18,8 @@
 
 package Main;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
@@ -34,14 +36,12 @@ public class Computer {
     Expression result;
     private final StringBuilder log;
     final StringBuilder logDetails;
-    String mpl;
     private final boolean printSteps;
     private final boolean printDetails;
 
     public Computer(String predicate, boolean printSteps, boolean printDetails) {
         this.log = new StringBuilder();
         this.logDetails = new StringBuilder();
-        mpl = "";
         this.predicateString = predicate;
         predicateObject = new Predicate(predicate);
         this.printSteps = printSteps;
@@ -54,11 +54,11 @@ public class Computer {
     }
 
     void writeLogs(String resultName, Computer c, boolean printDetails) throws IOException {
-        try (PrintWriter out = new PrintWriter(resultName + "_log.txt", StandardCharsets.UTF_8)) {
+        try (PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(resultName + "_log.txt")))) {
             out.write(c.log.toString());
         }
         if (printDetails) {
-            try (PrintWriter out = new PrintWriter(resultName + "_detailed_log.txt", StandardCharsets.UTF_8)) {
+            try (PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(resultName + "_detailed_log.txt")))) {
                 out.write(c.logDetails.toString());
             }
         }

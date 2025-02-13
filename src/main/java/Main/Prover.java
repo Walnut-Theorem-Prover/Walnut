@@ -19,6 +19,10 @@
 package Main;
 
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.LinkedList;
@@ -566,8 +570,36 @@ public class Prover {
 
   public static TestCase eval_def_commands(String s) throws IOException {
     Matcher m = matchOrFail(PAT_FOR_eval_def_CMDS, s, "eval/def");
+    String mplAddress = null;
 
-    Automaton M;
+    List<String> free_variables = determineFreeVariables(m);
+
+    boolean printSteps = m.group(ED_ENDING).equals(":");
+    boolean printDetails = m.group(ED_ENDING).equals("::");
+
+    Computer c = new Computer(m.group(ED_PREDICATE), printSteps, printDetails);
+    Automaton M = c.result.M;
+
+    String resultName = Session.getAddressForResult() + m.group(ED_NAME);
+    String gvAddress = resultName + ".gv";
+
+    M.writeAutomata(c.predicateString, Session.getWriteAddressForAutomataLibrary(), m.group(ED_NAME), false);
+
+    if (!free_variables.isEmpty()) {
+      mplAddress = resultName + ".mpl";
+      AutomatonWriter.writeMatrices(c.result.M, mplAddress, free_variables);
+    }
+
+    c.writeLogs(resultName, c, printDetails);
+
+    if (M.fa.isTRUE_FALSE_AUTOMATON()) {
+      System.out.println("____\n" + (M.fa.isTRUE_AUTOMATON() ? "TRUE" : "FALSE"));
+    }
+
+    return new TestCase(M, "", mplAddress, gvAddress, printDetails ? c.logDetails.toString() : "");
+  }
+
+  private static List<String> determineFreeVariables(Matcher m) {
     List<String> free_variables = new ArrayList<>();
     String freeVarString = m.group(ED_FREE_VARIABLES);
     if (freeVarString != null) {
@@ -577,33 +609,7 @@ public class Prover {
         free_variables.add(t);
       }
     }
-
-    boolean printSteps = m.group(ED_ENDING).equals(":");
-    boolean printDetails = m.group(ED_ENDING).equals("::");
-
-    Computer c = new Computer(m.group(ED_PREDICATE), printSteps, printDetails);
-    String resultName = Session.getAddressForResult() + m.group(ED_NAME);
-    AutomatonWriter.write(c.result.M, resultName + ".txt");
-    AutomatonWriter.draw(
-        c.result.M, resultName + ".gv", c.predicateString, false);
-
-    if (!free_variables.isEmpty()) {
-      c.mpl = AutomatonWriter.writeMatrices(c.result.M,
-          resultName + ".mpl", free_variables);
-    }
-
-    c.writeLogs(resultName, c, printDetails);
-
-    // We do this for both eval and def -- they're now the same command
-    AutomatonWriter.write(
-        c.result.M, Session.getWriteAddressForAutomataLibrary() + m.group(ED_NAME) + ".txt");
-
-    M = c.result.M;
-    if (M.fa.isTRUE_FALSE_AUTOMATON()) {
-      System.out.println("____\n" + (M.fa.isTRUE_AUTOMATON() ? "TRUE" : "FALSE"));
-    }
-
-    return new TestCase(M, "", c.mpl, printDetails ? c.logDetails.toString() : "");
+    return free_variables;
   }
 
 

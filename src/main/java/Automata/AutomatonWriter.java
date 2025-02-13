@@ -24,11 +24,7 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectRBTreeMap;
 import it.unimi.dsi.fastutil.ints.IntList;
 
-import java.io.BufferedOutputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.nio.charset.StandardCharsets;
+import java.io.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -41,50 +37,49 @@ public class AutomatonWriter {
      * @param automaton
      * @param address
      */
-    public static String writeMatrices(Automaton automaton, String address, List<String> free_variables) {
+    public static void writeMatrices(Automaton automaton, String address, List<String> free_variables) {
         if (automaton.fa.isTRUE_FALSE_AUTOMATON()) {
             throw new RuntimeException("incidence matrices cannot be calculated, because the automaton does not have a free variable.");
         }
         automaton.canonize();
-        StringBuilder s = new StringBuilder();
-        s.append("with(ArrayTools):" + System.lineSeparator());
-        writeInitialStateVector(automaton.getFa(), s);
-        s.append(System.lineSeparator() + "# In what follows, the M_i_x, for a free variable i and a value x, denotes" + System.lineSeparator());
-        s.append("# an incidence matrix of the underlying graph of (the automaton of)" + System.lineSeparator());
-        s.append("# the predicate in the query." + System.lineSeparator());
-        s.append("# For every pair of states p and q, the entry M_i_x[p][q] denotes the number of" + System.lineSeparator());
-        s.append("# transitions with i=x from p to q." + System.lineSeparator());
-        for (String variable : free_variables) {
-            if (!automaton.getLabel().contains(variable)) {
-                throw new RuntimeException("incidence matrices for the variable " + variable + " cannot be calculated, because " + variable + " is not a free variable.");
+
+        try (PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter((address))))) {
+            out.println("with(ArrayTools):");
+            writeInitialStateVector(automaton.getFa(), out);
+            out.println();
+            out.println("# In what follows, the M_i_x, for a free variable i and a value x, denotes");
+            out.println("# an incidence matrix of the underlying graph of (the automaton of)");
+            out.println("# the predicate in the query.");
+            out.println("# For every pair of states p and q, the entry M_i_x[p][q] denotes the number of");
+            out.println("# transitions with i=x from p to q.");
+            for (String variable : free_variables) {
+                if (!automaton.getLabel().contains(variable)) {
+                    throw new RuntimeException("incidence matrices for the variable " + variable + " cannot be calculated, because " + variable + " is not a free variable.");
+                }
             }
-        }
-        List<Integer> indices = free_variables.stream().map(variable -> automaton.getLabel().indexOf(variable)).collect(Collectors.toList());
-        List<List<Integer>> indexValueLists = indices.stream().map(index -> automaton.getA().get(index)).collect(Collectors.toList());
-        List<List<Integer>> valueLists = cartesianProduct(indexValueLists);
-        for (List<Integer> valueList : valueLists) {
-            writeMatrixForAVariableListValuePair(automaton, free_variables, valueList, indices, s);
-        }
-        writeFinalStatesVector(automaton.getFa(), s);
-        s.append(System.lineSeparator() + "for i from 1 to Size(v)[2] do v := v.M_");
-        s.append(String.join("_", free_variables) + "_");
-        s.append(String.join("_", Collections.nCopies(free_variables.size(), "0")));
-        s.append("; od; #fix up v by multiplying");
-
-        String res = s.toString();
-
-        try (PrintWriter out = new PrintWriter(address, StandardCharsets.UTF_8)) {
-            out.write(res);
+            List<Integer> indices = free_variables.stream().map(variable -> automaton.getLabel().indexOf(variable)).collect(Collectors.toList());
+            List<List<Integer>> indexValueLists = indices.stream().map(index -> automaton.getA().get(index)).collect(Collectors.toList());
+            List<List<Integer>> valueLists = cartesianProduct(indexValueLists);
+            for (List<Integer> valueList : valueLists) {
+                writeMatrixForAVariableListValuePair(automaton, free_variables, valueList, indices, out);
+            }
+            writeFinalStatesVector(automaton.getFa(), out);
+            out.println();
+            out.print("for i from 1 to Size(v)[2] do v := v.M_");
+            out.print(String.join("_", free_variables) + "_");
+            out.print(String.join("_", Collections.nCopies(free_variables.size(), "0")));
+            out.println("; od; #fix up v by multiplying");
         } catch (IOException e) {
             e.printStackTrace();
         }
-      return res;
     }
 
-    private static void writeMatrixForAVariableListValuePair(Automaton automaton, List<String> variables, List<Integer> valueList, List<Integer> indices, StringBuilder s) {
-        s.append(System.lineSeparator() + "M_" + String.join("_", variables) + "_");
-        s.append(valueList.stream().map(String::valueOf).collect(Collectors.joining("_")));
-        s.append(" := Matrix([");
+    private static void writeMatrixForAVariableListValuePair(
+        Automaton automaton, List<String> variables, List<Integer> valueList, List<Integer> indices, PrintWriter out) {
+        out.println();
+        out.print("M_" + String.join("_", variables) + "_");
+        out.print(valueList.stream().map(String::valueOf).collect(Collectors.joining("_")));
+        out.print(" := Matrix([");
         Set<Integer> encoded_values = new HashSet<>();
         for (int x = 0; x != automaton.getAlphabetSize(); ++x) {
             List<Integer> decoding = automaton.richAlphabet.decode(x);
@@ -93,8 +88,9 @@ public class AutomatonWriter {
                 encoded_values.add(x);
             }
         }
-        int[][] M = new int[automaton.getQ()][automaton.getQ()];
-        for (int p = 0; p < automaton.getQ(); ++p) {
+        int Q = automaton.getFa().getQ();
+        int[][] M = new int[Q][Q];
+        for (int p = 0; p < Q; ++p) {
             Int2ObjectRBTreeMap<IntList> transitions_p = automaton.getD().get(p);
             for (int v : encoded_values) {
                 if (transitions_p.containsKey(v)) {
@@ -105,65 +101,54 @@ public class AutomatonWriter {
                 }
             }
 
-            s.append("[");
-            for (int q = 0; q < automaton.getQ(); ++q) {
-                s.append(M[p][q]);
-                if (q < (automaton.getQ() - 1)) {
-                    s.append(",");
+            out.print("[");
+            for (int q = 0; q < Q; ++q) {
+                out.print(M[p][q]);
+                if (q < (Q - 1)) {
+                    out.print(",");
                 }
             }
-            s.append("]");
-            if (p < (automaton.getQ() - 1)) {
-                s.append("," + System.lineSeparator());
+            out.print("]");
+            if (p < (Q - 1)) {
+                out.println(",");
             }
         }
-        s.append("]);" + System.lineSeparator());
+        out.println("]);");
     }
 
-    private static void writeInitialStateVector(FA automaton, StringBuilder s) {
-        s.append("# The row vector v denotes the indicator vector of the (singleton)" + System.lineSeparator());
-        s.append("# set of initial states." + System.lineSeparator());
-        s.append("v := Vector[row]([");
-        for (int q = 0; q != automaton.getQ(); ++q) {
-            if (q == automaton.getQ0()) {
-                s.append("1");
-            } else {
-                s.append("0");
-            }
-            if (q < (automaton.getQ() - 1)) {
-                s.append(",");
+    private static void writeInitialStateVector(FA fa, PrintWriter out) {
+        out.println("# The row vector v denotes the indicator vector of the (singleton)");
+        out.println("# set of initial states.");
+        out.print("v := Vector[row]([");
+        for (int q = 0; q != fa.getQ(); ++q) {
+            out.print(q == fa.getQ0() ? "1" : "0");
+            if (q < (fa.getQ() - 1)) {
+                out.print(",");
             }
         }
-        s.append("]);" + System.lineSeparator());
+        out.println("]);");
     }
 
-    private static void writeFinalStatesVector(FA automaton, StringBuilder s) {
-        s.append(System.lineSeparator() + "# The column vector w denotes the indicator vector of the" + System.lineSeparator());
-        s.append("# set of final states." + System.lineSeparator());
-        s.append("w := Vector[column]([");
-        for (int q = 0; q != automaton.getQ(); ++q) {
-            if (automaton.getO().getInt(q) != 0) {
-                s.append("1");
-            } else {
-                s.append("0");
-            }
-            if (q < (automaton.getQ() - 1)) {
-                s.append(",");
+    private static void writeFinalStatesVector(FA fa, PrintWriter out) {
+        out.println();
+        out.println("# The column vector w denotes the indicator vector of the");
+        out.println("# set of final states.");
+        out.print("w := Vector[column]([");
+        for (int q = 0; q != fa.getQ(); ++q) {
+            out.print(fa.getO().getInt(q) != 0 ? "1" : "0");
+            if (q < (fa.getQ() - 1)) {
+                out.print(",");
             }
         }
-        s.append("]);" + System.lineSeparator());
+        out.println("]);");
     }
 
     /**
-     * Writes this automaton to a file given by the address.
-     * This automaton can be non deterministic. It can also be a DFAO. However it cannot have epsilon transition.
-     *
-     * @param automaton
-     * @param address
-     * @throws
+     * Writes automaton to a file given by the address.
+     * This automaton can be NFA, NFAO, DFA, or DFAO. However, it cannot have epsilon transition.
      */
     public static void write(Automaton automaton, String address) {
-        try (PrintWriter out = new PrintWriter(address, StandardCharsets.UTF_8)) {
+        try (PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter((address))))) {
             writeToStream(automaton, out);
         } catch (IOException e) {
             e.printStackTrace();
@@ -225,81 +210,76 @@ public class AutomatonWriter {
      * @param address
      */
     public static void draw(Automaton automaton, String address, String predicate, boolean isDFAO) {
-        StringBuilder gv = new StringBuilder();
-        if (automaton.fa.isTRUE_FALSE_AUTOMATON()) {
-            addln(gv,"digraph G {");
-            addln(gv,"label = \"(): " + predicate + "\";");
-            addln(gv,"rankdir = LR;");
-            if (automaton.fa.isTRUE_AUTOMATON())
-                addln(gv,"node [shape = doublecircle, label=\"" + 0 + "\", fontsize=12]" + 0 + ";");
-            else
-                addln(gv,"node [shape = circle, label=\"" + 0 + "\", fontsize=12]" + 0 + ";");
-            addln(gv,"node [shape = point ]; qi");
-            addln(gv,"qi ->" + 0 + ";");
-            if (automaton.fa.isTRUE_AUTOMATON())
-                addln(gv,0 + " -> " + 0 + "[ label = \"*\"];");
-            addln(gv,"}");
-        } else {
-            automaton.canonize();
-            addln(gv,"digraph G {");
-            addln(gv,"label = \"" + UtilityMethods.toTuple(automaton.getLabel()) + ": " + predicate + "\";");
-            addln(gv,"rankdir = LR;");
-            for (int q = 0; q < automaton.getQ(); q++) {
-                if (isDFAO)
-                    addln(gv,"node [shape = circle, label=\"" + q + "/" + automaton.getO().getInt(q) + "\", fontsize=12]" + q + ";");
-                else if (automaton.getO().getInt(q) != 0)
-                    addln(gv,"node [shape = doublecircle, label=\"" + q + "\", fontsize=12]" + q + ";");
+        try (PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter((address))))) {
+            if (automaton.fa.isTRUE_FALSE_AUTOMATON()) {
+                out.println("digraph G {");
+                out.println("label = \"(): " + predicate + "\";");
+                out.println("rankdir = LR;");
+                if (automaton.fa.isTRUE_AUTOMATON())
+                    out.println("node [shape = doublecircle, label=\"" + 0 + "\", fontsize=12]" + 0 + ";");
                 else
-                    addln(gv,"node [shape = circle, label=\"" + q + "\", fontsize=12]" + q + ";");
-            }
+                    out.println("node [shape = circle, label=\"" + 0 + "\", fontsize=12]" + 0 + ";");
+                out.println("node [shape = point ]; qi");
+                out.println("qi ->" + 0 + ";");
+                if (automaton.fa.isTRUE_AUTOMATON())
+                    out.println(0 + " -> " + 0 + "[ label = \"*\"];");
+                out.println("}");
+            } else {
+                automaton.canonize();
+                out.println("digraph G {");
+                out.println("label = \"" + UtilityMethods.toTuple(automaton.getLabel()) + ": " + predicate + "\";");
+                out.println("rankdir = LR;");
+                int Q = automaton.getFa().getQ();
+                for (int q = 0; q < Q; q++) {
+                    if (isDFAO)
+                        out.println("node [shape = circle, label=\"" + q + "/" + automaton.getO().getInt(q) + "\", fontsize=12]" + q + ";");
+                    else if (automaton.getO().getInt(q) != 0)
+                        out.println("node [shape = doublecircle, label=\"" + q + "\", fontsize=12]" + q + ";");
+                    else
+                        out.println("node [shape = circle, label=\"" + q + "\", fontsize=12]" + q + ";");
+                }
 
-            addln(gv,"node [shape = point ]; qi");
-            addln(gv,"qi -> " + automaton.getQ0() + ";");
+                out.println("node [shape = point ]; qi");
+                out.println("qi -> " + automaton.getQ0() + ";");
 
-            TreeMap<Integer, TreeMap<Integer, List<String>>> transitions =
+                TreeMap<Integer, TreeMap<Integer, List<String>>> transitions =
                     new TreeMap<>();
-            for (int q = 0; q < automaton.getQ(); q++) {
-                transitions.put(q, new TreeMap<>());
-                for (Int2ObjectMap.Entry<IntList> entry : automaton.getFa().getEntriesNfaD(q)) {
-                    for (int dest : entry.getValue()) {
-                        transitions.get(q).putIfAbsent(dest, new ArrayList<>());
-                        transitions.get(q).get(dest).add(
-                            UtilityMethods.toTransitionLabel(automaton.richAlphabet.decode(entry.getIntKey())));
+                for (int q = 0; q < Q; q++) {
+                    transitions.put(q, new TreeMap<>());
+                    for (Int2ObjectMap.Entry<IntList> entry : automaton.getFa().getEntriesNfaD(q)) {
+                        for (int dest : entry.getValue()) {
+                            transitions.get(q).putIfAbsent(dest, new ArrayList<>());
+                            transitions.get(q).get(dest).add(
+                                UtilityMethods.toTransitionLabel(automaton.richAlphabet.decode(entry.getIntKey())));
+                        }
                     }
                 }
-            }
 
-            for (int q = 0; q < automaton.getQ(); q++) {
-                for (Map.Entry<Integer, List<String>> entry : transitions.get(q).entrySet()) {
-                    String transition_label = String.join(", ", entry.getValue());
-                    addln(gv, q + " -> " + entry.getKey() + "[ label = \"" + transition_label + "\"];");
+                for (int q = 0; q < Q; q++) {
+                    for (Map.Entry<Integer, List<String>> entry : transitions.get(q).entrySet()) {
+                        String transition_label = String.join(", ", entry.getValue());
+                        out.println( q + " -> " + entry.getKey() + "[ label = \"" + transition_label + "\"];");
+                    }
                 }
-            }
 
-            addln(gv,"}");
-        }
-        try (PrintWriter out = new PrintWriter(address, StandardCharsets.UTF_8)) {
-            out.write(gv.toString());
+                out.println("}");
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
-    }
-    
-    private static void addln(StringBuilder gv, String line) {
-        gv.append(line).append(System.lineSeparator());
     }
 
     private static <T> List<List<T>> cartesianProduct(List<List<T>> lists) {
         List<List<T>> resultLists = new ArrayList<>();
         if (lists.isEmpty()) {
-            resultLists.add(new ArrayList<>());
+            resultLists.add(Collections.emptyList());
             return resultLists;
         } else {
             List<T> firstList = lists.get(0);
             List<List<T>> remainingLists = cartesianProduct(lists.subList(1, lists.size()));
             for (T condition : firstList) {
                 for (List<T> remainingList : remainingLists) {
-                    ArrayList<T> resultList = new ArrayList<>();
+                    List<T> resultList = new ArrayList<>(remainingList.size() + 1);
                     resultList.add(condition);
                     resultList.addAll(remainingList);
                     resultLists.add(resultList);

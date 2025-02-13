@@ -6,7 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased] - Author: John Nicol
 
-- Source: [https://github.com/jn1z/Walnut]
+- Source: [https://github.com/Walnut-Theorem-Prover/Walnut]
 
 ### Added
 
@@ -24,14 +24,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 
-- Major performance improvements, particularly in product automata construction and Walnut file reading.
+- Major performance improvements, particularly in product automata construction and Walnut file I/O.
+- Fixed OOM error when writing large Graphview files (reported by Pierre Ganty).
 - Removed unnecessary determinizations when handling leading/trailing zeros.
 - Increased testing and code coverage.
         
 ### Changed
 
 - Near-total rewrite.
-- "eval" and "def" commands are now the same. Before, "eval" would not write files to "Automata Library", which was confusing.
+- "eval" and "def" commands are now the same. Before, "eval" didn't write files to "Automata Library", which was confusing.
 - Help documentation organized into topics.
 
 ### Removed

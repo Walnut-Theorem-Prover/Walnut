@@ -18,7 +18,7 @@
 
 package Main;
 
-import java.io.File;
+import java.io.*;
 import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -121,7 +121,7 @@ public class UtilityMethods {
         if (a > b) {
             return commonRoot(b, a);
         }
-        return (b % a == 0) ? commonRoot(a, b/a) : -1;
+        return (b % a == 0) ? commonRoot(a, b / a) : -1;
     }
 
     /**
@@ -161,5 +161,22 @@ public class UtilityMethods {
             throw new IllegalArgumentException("File does not exist or is not a valid file: " + path);
         }
         return file;
+    }
+
+    public static String readFromFile(String filePath) throws IOException {
+        File f = new File(filePath);
+        if (!f.isFile()) {
+            return "";
+        }
+        StringBuilder output = new StringBuilder();
+        try (BufferedReader mplReader = new BufferedReader(new InputStreamReader(new FileInputStream(f)))) {
+            String temp;
+            boolean flag = false;
+            while ((temp = mplReader.readLine()) != null) {
+                output.append(flag ? System.lineSeparator() : "").append(temp);
+                flag = true;
+            }
+        }
+        return output.toString();
     }
 }

@@ -20,28 +20,42 @@ package Main;
 
 import Automata.Automaton;
 
+import java.io.IOException;
+
 public class TestCase {
     private final String error;
     private final String details;
-    private final String mpl;
+    private final String mplAddress;
+    private final String gvAddress;
     private final Automaton result;
 
-    public TestCase(Automaton result, String error, String mpl, String details) {
+    public TestCase(Automaton result, String error, String mplAddress, String gvAddress, String details) {
         this.result = result;
         this.error = error;
-        this.mpl = mpl;
+        this.mplAddress = mplAddress;
+        this.gvAddress = gvAddress;
         this.details = details;
     }
     public TestCase(Automaton result) {
-        this(result, "", "", "");
+        this(result, "", "", "", "");
     }
 
     public Automaton getResult() {
         return result;
     }
 
-    public String getMpl() {
-        return mpl;
+    public String getMpl() throws IOException {
+        if (mplAddress == null || mplAddress.isEmpty()) {
+            return "";
+        }
+        return UtilityMethods.readFromFile(mplAddress);
+    }
+
+    public String getGraphView() throws IOException {
+        if (gvAddress == null || gvAddress.isEmpty()) {
+            return "";
+        }
+        return UtilityMethods.readFromFile(gvAddress);
     }
 
     public String getDetails() {

@@ -27,7 +27,6 @@ import Automata.Automaton;
 import Automata.AutomatonWriter;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DynamicTest;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestFactory;
 
 public class IntegrationTest {
@@ -876,6 +875,12 @@ public class IntegrationTest {
 		try{
 			TestCase actual = Prover.dispatchForIntegrationTest(command, String.valueOf(i));
 			assertEqualMessages(expected.getMpl().trim(), actual.getMpl().trim());
+			String expectedGraphView = expected.getGraphView().trim();
+			if (!expectedGraphView.isEmpty()) {
+				// Rather than creating 100s of graphview files for testing and dealing with DFAOs etc.,
+				// we only test if added one to our resources
+				assertEqualMessages(expectedGraphView, actual.getGraphView().trim());
+			}
 			assertEqualMessages(expected.getDetails(), actual.getDetails());
 			Assertions.assertTrue(actual.getResult() == null || expected.getResult() != null);
 			Assertions.assertTrue(actual.getResult() != null || expected.getResult() == null);
@@ -901,7 +906,7 @@ public class IntegrationTest {
 
 		if (!expectedDetails.equals(actualDetails)) {
 			int startIndex = findFirstDifferingIndex(expectedDetails, actualDetails);
-			String message = "Details do not conform. \n ----- STARTING SECTION:\n" + expectedDetails.substring(0, startIndex);
+			String message = "Messages do not conform. \n ----- STARTING SECTION:\n" + expectedDetails.substring(0, startIndex);
 			message += "\n ----- EXPECTED SECTION:\n" + expectedDetails.substring(startIndex);
 			message += "\n ----- ACTUAL SECTION:\n" + actualDetails.substring(startIndex);
 			Assertions.fail(message);
@@ -947,28 +952,13 @@ public class IntegrationTest {
 			if (new File(automatonFilePath).isFile()) {
 				M = new Automaton(automatonFilePath);
 			}
-			String error = readFromFile(directoryAddress + "error" + i + ".txt");
-			String mpl = readFromFile(directoryAddress + "mpl" + i + ".mpl");
-			String details = readFromFile(directoryAddress+"details"+ i +".txt");
-			testCases.add(new TestCase(M,error,mpl,details));
+			String error = UtilityMethods.readFromFile(directoryAddress + "error" + i + ".txt");
+			String details = UtilityMethods.readFromFile(directoryAddress+"details"+ i +".txt");
+			testCases.add(new TestCase(
+					M,error,directoryAddress + "mpl" + i + ".mpl",
+					directoryAddress + "gv" + i + ".gv",details));
 		}
 		return testCases;
-	}
-
-	private static String readFromFile(String filePath) throws IOException {
-		StringBuilder output = new StringBuilder();
-		File f = new File(filePath);
-		if(f.isFile()) {
-			try (BufferedReader mplReader = new BufferedReader(new InputStreamReader(new FileInputStream(f)))) {
-				String temp;
-				boolean flag = false;
-				while ((temp = mplReader.readLine()) != null) {
-					output.append(flag ? System.lineSeparator() : "").append(temp);
-					flag = true;
-				}
-			}
-		}
-		return output.toString();
 	}
 
 	//@Test // uncomment this line if you want to regenerate test cases
@@ -980,7 +970,7 @@ public class IntegrationTest {
       try {
         test_case = Prover.dispatchForIntegrationTest(command, "integ:" + command);
       } catch (Exception e) {
-        test_case = new TestCase(null, e.getMessage(), "", "");
+        test_case = new TestCase(null, e.getMessage(), "", "", "");
       }
       testCases.add(test_case);
     }

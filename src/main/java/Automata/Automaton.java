@@ -25,6 +25,9 @@ import Main.Session;
 import Main.UtilityMethods;
 
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.*;
 
 import Token.ArithmeticOperator;
@@ -55,10 +58,17 @@ public class Automaton {
     // for use in the combine command, allows crossProduct to determine what to set outputs to
     IntList combineOutputs;
 
-    public void writeAutomata(String s, String outLibrary, String name, boolean isDFAO) {
-      AutomatonWriter.draw(this, Session.getAddressForResult() + name + ".gv", s, isDFAO);
-      AutomatonWriter.write(this, Session.getAddressForResult() + name + ".txt");
-      AutomatonWriter.write(this, outLibrary + name + ".txt");
+    public void writeAutomata(String predicate, String outLibrary, String name, boolean isDFAO) {
+        AutomatonWriter.draw(this, Session.getAddressForResult() + name + ".gv", predicate, isDFAO);
+        String firstAddress = Session.getAddressForResult() + name + ".txt";
+        AutomatonWriter.write(this, firstAddress);
+        // Copy to second location, rather than rewriting.
+        try {
+            Files.copy(Paths.get(firstAddress), Paths.get(outLibrary + name + ".txt"),
+                StandardCopyOption.REPLACE_EXISTING);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public Automaton removeLeadTrailZeroes() {
