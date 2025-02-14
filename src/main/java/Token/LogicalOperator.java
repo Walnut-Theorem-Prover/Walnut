@@ -81,7 +81,7 @@ public class LogicalOperator extends Operator {
                   new AutomatonExpression(opString, AutomatonLogicalOps.iff(a.M, b.M, print, prefix + " ", log, op));
               default -> throw new RuntimeException("Unexpected logical operator: " + op);
             };
-          S.push(ae);
+            S.push(ae);
 
             UtilityMethods.logAndPrint(print, prefix + "computed " + a + op + b, log);
             return;

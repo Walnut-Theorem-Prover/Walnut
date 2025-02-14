@@ -428,24 +428,11 @@ public class AutomatonLogicalOps {
     }
 
     private static void reduceDimension(Automaton A, List<Integer> I) {
-        List<List<Integer>> newAlphabet = new ArrayList<>();
-        for (int i = 0; i < A.getA().size(); i++)
-            if (!I.contains(i) || I.indexOf(i) == 0)
-                newAlphabet.add(new ArrayList<>(A.getA().get(i)));
+        List<Integer> map = A.richAlphabet.determineReducedDimensionMap(A.getAlphabetSize(), I);
 
-        List<Integer> newEncoder = new ArrayList<>(newAlphabet.size());
-        newEncoder.add(1);
-        for (int i = 0; i < newAlphabet.size() - 1; i++) {
-            newEncoder.add(newEncoder.get(i) * newAlphabet.get(i).size());
-        }
-
-        List<Integer> map = new ArrayList<>(A.getAlphabetSize());
-        for (int n = 0; n < A.getAlphabetSize(); n++) {
-            map.add(RichAlphabet.mapToReducedEncodedInput(n, I, newEncoder, A.getA(), newAlphabet));
-        }
-
-        List<Int2ObjectRBTreeMap<IntList>> newD = new ArrayList<>(A.getQ());
-        for (int q = 0; q < A.getQ(); q++) {
+        int Q = A.getFa().getQ();
+        List<Int2ObjectRBTreeMap<IntList>> newD = new ArrayList<>(Q);
+        for (int q = 0; q < Q; q++) {
             Int2ObjectRBTreeMap<IntList> currentStatesTransition = new Int2ObjectRBTreeMap<>();
             newD.add(currentStatesTransition);
             for (Int2ObjectMap.Entry<IntList> entry : A.getFa().getEntriesNfaD(q)) {
@@ -457,9 +444,7 @@ public class AutomatonLogicalOps {
         }
         A.setD(newD);
         I.remove(0);
-        A.setA(newAlphabet);
         UtilityMethods.removeIndices(A.getNS(), I);
-        A.richAlphabet.setEncoder(null);
         A.determineAlphabetSize();
         UtilityMethods.removeIndices(A.getLabel(), I);
     }
@@ -553,7 +538,7 @@ public class AutomatonLogicalOps {
         for (int i = 0; i < A.getAlphabetSize(); i++)
             allInputs.add(A.richAlphabet.decode(i));
         //now we remove those indices in listOfInputsToQuantify from A,T,label, and allInputs
-        UtilityMethods.removeIndices(A.getA(), listOfInputsToQuantify);
+        UtilityMethods.removeIndices(A.richAlphabet.getA(), listOfInputsToQuantify);
         A.richAlphabet.setEncoder(null);
         A.determineAlphabetSize();
         UtilityMethods.removeIndices(A.getNS(), listOfInputsToQuantify);
@@ -564,10 +549,12 @@ public class AutomatonLogicalOps {
         List<Integer> permutation = new ArrayList<>(allInputs.size());
         for (List<Integer> i : allInputs)
             permutation.add(A.richAlphabet.encode(i));
-        List<Int2ObjectRBTreeMap<IntList>> new_d = new ArrayList<>(A.getQ());
-        for (int q = 0; q < A.getQ(); q++) {
+
+        int Q = A.getFa().getQ();
+        List<Int2ObjectRBTreeMap<IntList>> newD = new ArrayList<>(Q);
+        for (int q = 0; q < Q; q++) {
             Int2ObjectRBTreeMap<IntList> newMemDTransitionFunction = new Int2ObjectRBTreeMap<>();
-            new_d.add(newMemDTransitionFunction);
+            newD.add(newMemDTransitionFunction);
             for (Int2ObjectMap.Entry<IntList> transition : A.getFa().getEntriesNfaD(q)) {
                 int mappedKey = permutation.get(transition.getIntKey());
                 IntList existingTransitions = newMemDTransitionFunction.get(mappedKey);
@@ -578,7 +565,7 @@ public class AutomatonLogicalOps {
                 }
             }
         }
-        A.setD(new_d);
+        A.setD(newD);
         A.fa.determinizeAndMinimize(print, prefix + " ", log);
         long timeAfter = System.currentTimeMillis();
         UtilityMethods.logMessage(print, prefix + "quantified:" + A.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);

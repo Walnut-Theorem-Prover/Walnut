@@ -27,21 +27,6 @@ public class RichAlphabet {
     this.A = new ArrayList<>();
   }
 
-  static int mapToReducedEncodedInput(int n, List<Integer> I, List<Integer> newEncoder,
-                                    List<List<Integer>> oldAlphabet,
-                                    List<List<Integer>> newAlphabet) {
-      if (I.size() <= 1) return n;
-      List<Integer> x = decode(oldAlphabet, n);
-      for (int i = 1; i < I.size(); i++)
-          if (x.get(I.get(i)) != x.get(I.get(0)))
-              return -1;
-      List<Integer> y = new ArrayList<>();
-      for (int i = 0; i < x.size(); i++)
-          if (!I.contains(i) || I.indexOf(i) == 0)
-              y.add(x.get(i));
-      return encode(y, newAlphabet, newEncoder);
-  }
-
   public static int encode(List<Integer> l, List<List<Integer>> A, List<Integer> encoder) {
     int encoding = 0;
     for (int i = 0; i < l.size(); i++) {
@@ -59,10 +44,10 @@ public class RichAlphabet {
   }
 
   public void setupEncoder() {
-    setEncoder(new ArrayList<>());
-    getEncoder().add(1);
-    for (int i = 0; i < getA().size() - 1; i++) {
-      getEncoder().add(getEncoder().get(i) * getA().get(i).size());
+    encoder = new ArrayList<>(A.size());
+    encoder.add(1);
+    for (int i = 0; i < A.size() - 1; i++) {
+      encoder.add(encoder.get(i) * A.get(i).size());
     }
   }
 
@@ -90,7 +75,7 @@ public class RichAlphabet {
    * ...
    */
   public int encode(List<Integer> l) {
-    if (getEncoder() == null) {
+    if (encoder == null) {
       setupEncoder();
     }
     int encoding = 0;
@@ -182,13 +167,53 @@ public class RichAlphabet {
     return permuted_encoder;
   }
 
+  List<Integer> determineReducedDimensionMap(int alphabetSize, List<Integer> I) {
+    List<List<Integer>> newA = new ArrayList<>();
+    for (int i = 0; i < A.size(); i++)
+      if (!I.contains(i) || I.indexOf(i) == 0)
+        newA.add(new ArrayList<>(A.get(i)));
+
+    List<Integer> newEncoder = new ArrayList<>(newA.size());
+    newEncoder.add(1);
+    for (int i = 0; i < newA.size() - 1; i++) {
+      newEncoder.add(newEncoder.get(i) * newA.get(i).size());
+    }
+
+    List<Integer> map = new ArrayList<>(alphabetSize);
+    for (int n = 0; n < alphabetSize; n++) {
+      int newElt = 0;
+      if (I.size() <= 1) {
+        newElt = n;
+      } else {
+        List<Integer> x = decode(A, n);
+        for (int i = 1; i < I.size(); i++)
+          if (x.get(I.get(i)) != x.get(I.get(0))) {
+            newElt = -1;
+            break;
+          }
+        if (newElt != -1) {
+          List<Integer> y = new ArrayList<>();
+          for (int i = 0; i < x.size(); i++)
+            if (!I.contains(i) || I.indexOf(i) == 0)
+              y.add(x.get(i));
+          newElt = encode(y, newA, newEncoder);
+        }
+      }
+      map.add(newElt);
+    }
+
+    this.A = newA;
+    this.encoder = null;
+    return map;
+  }
+
   public RichAlphabet clone() {
     RichAlphabet r = new RichAlphabet();
-    for (int i = 0; i < getA().size(); i++) {
-      r.A.add(new ArrayList<>(getA().get(i)));
-      if (getEncoder() != null && !getEncoder().isEmpty()) {
-        if (r.getEncoder() == null) r.setEncoder(new ArrayList<>());
-        r.getEncoder().add(getEncoder().get(i));
+    r.A.addAll(A);
+    for (int i = 0; i < A.size(); i++) {
+      if (encoder != null && !encoder.isEmpty()) {
+        if (r.encoder == null) r.encoder = new ArrayList<>();
+        r.encoder.add(encoder.get(i));
       }
     }
     return r;
