@@ -289,7 +289,7 @@ public class AutomatonLogicalOps {
 
         // Subset Construction with different initial state
         IntSet initial_state = A.fa.zeroReachableStates(zero);
-        A.fa.determinizeAndMinimize(A.fa.getDfaD(), initial_state, print, prefix, log);
+        A.fa.determinizeAndMinimize(initial_state, print, prefix, log);
 
         long timeAfter = System.currentTimeMillis();
         UtilityMethods.logMessage(print, prefix + "fixed leading zeros:" + A.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
@@ -593,7 +593,7 @@ public class AutomatonLogicalOps {
         UtilityMethods.logMessage(print, prefix + "Reversing:" + A.getQ() + " states", log);
 
         IntSet setOfFinalStates = A.fa.reverseToNFAInternal(IntSet.of(A.fa.getQ0()));
-        A.fa.determinizeAndMinimize(null, setOfFinalStates, print, prefix + " ", log);
+        A.fa.determinizeAndMinimize(setOfFinalStates, print, prefix + " ", log);
 
         if (reverseMsd) {
             NumberSystem.flipNS(A.getNS());

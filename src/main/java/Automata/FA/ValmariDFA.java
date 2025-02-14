@@ -180,7 +180,7 @@ public class ValmariDFA {
         ValmariPartition.M = ValmariPartition.W = null; // this fixes an actual leak
         cords = null;
         f.setNfaD(determineD()); // needs blocks.(L,F,S), L, T, H
-        f.reduceNfaDMemory();
+        FA.reduceNfaDMemory(f.getNfaD());
         L = T = H = blocks.L = blocks.S = null;
         f.setO(determineO()); // needs blocks.F
     }

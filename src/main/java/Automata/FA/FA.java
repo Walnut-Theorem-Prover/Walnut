@@ -503,23 +503,17 @@ public class FA implements Cloneable {
       // We change the direction of transitions first.
       List<Int2ObjectRBTreeMap<IntList>> newNfaD = new ArrayList<>(Q);
       for (int q = 0; q < Q; q++) newNfaD.add(new Int2ObjectRBTreeMap<>());
-      if (nfaD != null) {
-        // reverse NFA transitions
-        for (int q = 0; q < Q; q++) {
-          for (Int2ObjectMap.Entry<IntList> entry : this.getEntriesNfaD(q)) {
-            for (int dest : entry.getValue()) {
-              addNewTransition(newNfaD, dest, entry.getIntKey(), q);
-            }
-          }
-        }
-      } else {
-        // reverse DFA transitions
-        for (int q = 0; q < Q; q++) {
-          for (Int2IntMap.Entry entry : dfaD.get(q).int2IntEntrySet()) {
-            addNewTransition(newNfaD, entry.getIntValue(), entry.getIntKey(), q);
+
+      // reverse NFA transitions
+      for (int q = 0; q < Q; q++) {
+        for (Int2ObjectMap.Entry<IntList> entry : this.getEntriesNfaD(q)) {
+          for (int dest : entry.getValue()) {
+            addNewTransition(newNfaD, dest, entry.getIntKey(), q);
           }
         }
       }
+      FA.reduceNfaDMemory(newNfaD);
+
       nfaD = newNfaD;
       dfaD = null; // this is explicitly an NFA now
       IntSet newInitialStates = new IntOpenHashSet();
@@ -754,7 +748,7 @@ public class FA implements Cloneable {
       O.add((int) stateOutput.get(q));
       nfaD.add(stateTransition.get(q));
     }
-    this.reduceNfaDMemory();
+    reduceNfaDMemory(nfaD);
   }
 
   /**
@@ -855,14 +849,14 @@ public class FA implements Cloneable {
     }
     IntSet qqq = new IntOpenHashSet();
     qqq.add(q0);
-    determinizeAndMinimize(null, qqq, print, prefix, log);
+    determinizeAndMinimize(qqq, print, prefix, log);
   }
 
   /**
    * Determinize and minimize. Technically, the logging is backwards.
    */
-  public void determinizeAndMinimize(List<Int2IntMap> dfaD, IntSet qqq, boolean print, String prefix, StringBuilder log) {
-    DeterminizationStrategies.determinize(this, dfaD, qqq, print, prefix + " ", log);
+  public void determinizeAndMinimize(IntSet qqq, boolean print, String prefix, StringBuilder log) {
+    DeterminizationStrategies.determinize(this, qqq, print, prefix + " ", log);
     justMinimize(print, prefix + " ", log);
   }
 
@@ -1037,8 +1031,8 @@ public class FA implements Cloneable {
   /**
    * Reduce memory in DfaD by trimming all maps.
    */
-  public void reduceNfaDMemory() {
-    for (Int2ObjectRBTreeMap<IntList> iMap : this.nfaD) {
+  public static void reduceNfaDMemory(List<Int2ObjectRBTreeMap<IntList>> nfaD) {
+    for (Int2ObjectRBTreeMap<IntList> iMap : nfaD) {
       for(IntList iList: iMap.values()) {
         ((IntArrayList)iList).trim();
       }

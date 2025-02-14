@@ -81,14 +81,7 @@ public class DeterminizationStrategies {
      * Subset (or powerset) Construction.
      */
     public static void determinize(
-            FA fa, List<Int2IntMap> newMemD, IntSet initialState, boolean print, String prefix, StringBuilder log) {
-      if (newMemD != null) {
-        fa.setNfaD(null);
-      }
-      if (fa.getDfaD() != null) {
-        fa.setNfaD(null);
-      }
-
+            FA fa, IntSet initialState, boolean print, String prefix, StringBuilder log) {
       // Convert to MyNFA representation
       // then trim
       // then bisim
@@ -157,12 +150,17 @@ public class DeterminizationStrategies {
 
     int stateCount = 0, currentState = 0;
     Object2IntMap<IntSet> metastateToId = new Object2IntOpenHashMap<>();
+    metastateToId.defaultReturnValue(-1);
     List<IntSet> metastateList = new ArrayList<>();
     metastateList.add(initialState);
     metastateToId.put(initialState, 0);
     stateCount++;
 
-    List<Int2IntMap> dfaD = new ArrayList<>();
+    // precompute for efficiency
+    int alphabetSize = fa.getAlphabetSize();
+    List<Int2ObjectRBTreeMap<IntList>> nfaD = fa.getNfaD();
+
+    List<Int2IntMap> dfaD = new ArrayList<>(nfaD.size());
 
     while (currentState < stateCount) {
 
@@ -178,23 +176,29 @@ public class DeterminizationStrategies {
       IntSet state = metastateList.get(currentState);
       dfaD.add(new Int2IntOpenHashMap());
       Int2IntMap currentStateMap = dfaD.get(currentState);
-      for (int in = 0; in != fa.getAlphabetSize(); ++in) {
-        IntOpenHashSet metastate = determineMetastate(fa, state, in);
-        if (!metastate.isEmpty()) {
-          int new_dValue;
-          int key = metastateToId.getOrDefault(metastate, -1);
-          if (key != -1) {
-            new_dValue = key;
-          } else {
-            // TODO: BitSet may be a better choice, but it's not clear when NFA size is, say, >> 20000.
-            metastate.trim(); // reduce memory footprint of set before storing
-            metastateList.add(metastate);
-            metastateToId.put(metastate, stateCount);
-            new_dValue = stateCount;
-            stateCount++;
+      for (int in = 0; in != alphabetSize; ++in) {
+        IntOpenHashSet metastate = new IntOpenHashSet();
+        for (int q : state) {
+          IntList values = nfaD.get(q).get(in);
+          if (values != null) {
+            metastate.addAll(values);
           }
-          currentStateMap.put(in, new_dValue);
         }
+        if (metastate.isEmpty()) {
+          continue;
+        }
+        int new_dValue;
+        int key = metastateToId.getInt(metastate);
+        if (key != -1) {
+          new_dValue = key;
+        } else {
+          // TODO: BitSet may be a better choice, but it's not clear when NFA size is, say, >> 20000.
+          metastate.trim(); // reduce memory footprint of set before storing
+          metastateList.add(metastate);
+          metastateToId.put(metastate, stateCount);
+          new_dValue = stateCount++;
+        }
+        currentStateMap.put(in, new_dValue);
       }
       currentState++;
     }
@@ -304,34 +308,7 @@ public class DeterminizationStrategies {
     }
     fa.setFromMyDFA(out);
   }
-
-
-    /**
-     * Build up a new subset of states in the subset construction algorithm.
-     *
-     * @param state   -
-     * @param in      - index into alphabet
-     * @return Subset of states used in Subset Construction
-     */
-    private static IntOpenHashSet determineMetastate(FA fa, IntSet state, int in) {
-        IntOpenHashSet dest = new IntOpenHashSet();
-        for (int q : state) {
-            if (fa.getDfaD() == null) {
-                IntList values = fa.getNfaD().get(q).get(in);
-                if (values != null) {
-                    dest.addAll(values);
-                }
-            } else {
-                Int2IntMap iMap = fa.getDfaD().get(q);
-                int key = iMap.getOrDefault(in, -1);
-                if (key != -1) {
-                    dest.add(key);
-                }
-            }
-        }
-        return dest;
-    }
-
+  
     /**
      * Calculate new state output (O), from previous O and metastates.
      * @param O          - previous O
