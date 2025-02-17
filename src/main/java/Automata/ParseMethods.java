@@ -29,41 +29,41 @@ import Main.Predicate;
 import Main.UtilityMethods;
 
 public class ParseMethods {
-    static int ALPHABET_SET = 12;
-    static int ALPHABET_NUMBER_SYSTEM = 2;
-    static int STATE_DECLARATION_STATE_NAME = 1;
-    static int STATE_DECLARATION_OUTPUT = 2;
-    static int TRANSDUCER_STATE_DECLARATION_STATE_NAME = 1;
-    static int TRANSITION_INPUT = 1;
-    static int TRANSITION_DESTINATION = 6;
+    static final int ALPHABET_SET = 12;
+    static final int ALPHABET_NUMBER_SYSTEM = 2;
+    static final int STATE_DECLARATION_STATE_NAME = 1;
+    static final int STATE_DECLARATION_OUTPUT = 2;
+    static final int TRANSDUCER_STATE_DECLARATION_STATE_NAME = 1;
+    static final int TRANSITION_INPUT = 1;
+    static final int TRANSITION_DESTINATION = 6;
 
-    static int TRANSDUCER_TRANSITION_INPUT = 1;
-    static int TRANSDUCER_TRANSITION_DESTINATION = 6;
-    static int TRANSDUCER_TRANSITION_OUTPUT = 8; // character output by the transition, not the state.
+    static final int TRANSDUCER_TRANSITION_INPUT = 1;
+    static final int TRANSDUCER_TRANSITION_DESTINATION = 6;
+    static final int TRANSDUCER_TRANSITION_OUTPUT = 8; // character output by the transition, not the state.
 
-    static Pattern PATTERN_FOR_TRUE_FALSE = Pattern.compile("^\\s*(true|false)\\s*$");
+    static final Pattern PATTERN_FOR_TRUE_FALSE = Pattern.compile("^\\s*(true|false)\\s*$");
 
-    static Pattern PATTERN_NEXT_ALPHABET_TOKEN = Pattern.compile(
+    static final Pattern PATTERN_NEXT_ALPHABET_TOKEN = Pattern.compile(
         "\\G\\s*((((msd|lsd)_(\\d+|\\w+))|((msd|lsd)(\\d+|\\w+))|(msd|lsd)|(\\d+|\\w+))|(\\{\\s*((\\+|\\-)?\\s*\\d+\\s*(\\s*,\\s*(\\+|\\-)?\\s*\\d+)*)\\s*\\}))\\s*");
 
-    static Pattern PATTERN_ELEMENT = Pattern.compile("\\G\\s*,?\\s*(((\\+|\\-)?\\s*\\d+)|\\*)");
+    static final Pattern PATTERN_ELEMENT = Pattern.compile("\\G\\s*,?\\s*(((\\+|\\-)?\\s*\\d+)|\\*)");
 
-    static Pattern PATTERN_FOR_STATE_DECLARATION = Pattern.compile("^\\s*(\\d+)\\s+((\\+|\\-)?\\s*\\d+)\\s*$");
+    static final Pattern PATTERN_FOR_STATE_DECLARATION = Pattern.compile("^\\s*(\\d+)\\s+((\\+|\\-)?\\s*\\d+)\\s*$");
 
-    static Pattern PATTERN_FOR_TRANSITION =
+    static final Pattern PATTERN_FOR_TRANSITION =
         Pattern.compile("^\\s*((((\\+|\\-)?\\s*\\d+\\s*)|(\\s*\\*\\s*))+)\\s*\\->\\s*((\\d+\\s*)+)\\s*$");
 
-    static Pattern PATTERN_FOR_MAPPING_IN_morphism_COMMAND =
+    static final Pattern PATTERN_FOR_MAPPING_IN_morphism_COMMAND =
         Pattern.compile("(\\d+)\\s*\\-\\>\\s*((\\[(\\+|\\-)?\\s*\\d+\\]|\\d)*)");
-    static Pattern PATTERN_FOR_MAPPING_IMAGE_IN_morphism_COMMAND =
+    static final Pattern PATTERN_FOR_MAPPING_IMAGE_IN_morphism_COMMAND =
         Pattern.compile("\\[(\\+|\\-)?\\s*\\d+\\]|\\d");
 
-    static Pattern PATTERN_FOR_TRANSDUCER_STATE_DECLARATION = Pattern.compile("^\\s*(\\d+)\\s*$");
+    static final Pattern PATTERN_FOR_TRANSDUCER_STATE_DECLARATION = Pattern.compile("^\\s*(\\d+)\\s*$");
 
-    static Pattern PATTERN_FOR_TRANSDUCER_TRANSITION =
+    static final Pattern PATTERN_FOR_TRANSDUCER_TRANSITION =
         Pattern.compile("^\\s*((((\\+|\\-)?\\s*\\d+\\s*)|(\\s*\\*\\s*))+)\\s*\\->\\s*((\\d+\\s*)+)\\s*\\/\\s*((\\+|\\-)?\\s*\\d+)\\s*$");
 
-    public static Pattern PATTERN_WHITESPACE = Pattern.compile("^\\s*$");
+    public static final Pattern PATTERN_WHITESPACE = Pattern.compile("^\\s*$");
 
 
     public static boolean parseTrueFalse(String s, Boolean[] singleton) {

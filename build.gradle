@@ -1,7 +1,7 @@
 plugins {
     id 'java'
     id 'jacoco' // code coverage
-//    id "com.github.spotbugs" version "5.0.13" apply false
+//    id "com.github.spotbugs" version "6.1.2" apply false
 }
 
 repositories {
@@ -11,12 +11,12 @@ repositories {
     }
 }
 
-/*
 
+/*
 apply plugin: 'com.github.spotbugs'
 
 spotbugs {
-    toolVersion = '4.7.3'
+    toolVersion = '4.9.1'
 }
 
 spotbugsMain {
@@ -65,8 +65,8 @@ dependencies {
     implementation(files("libs/OTF.jar"))
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.11.4'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.11.4'
-    //   compileOnly "com.github.spotbugs:spotbugs-annotations:${spotbugs.toolVersion.get()}"
-    //  spotbugsPlugins 'com.h3xstream.findsecbugs:findsecbugs-plugin:1.12.0'
+//  compileOnly "com.github.spotbugs:spotbugs-annotations:${spotbugs.toolVersion.get()}"
+//  spotbugsPlugins 'com.h3xstream.findsecbugs:findsecbugs-plugin:1.13.0'
 }
 
 test {

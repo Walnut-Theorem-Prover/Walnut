@@ -88,7 +88,7 @@ public class FA implements Cloneable {
     AutomataIndex = 0;
     DeterminizationStrategies.getStrategyMap().clear();
   }
-  public static int IncrementIndex() {
+  public static int incrementIndex() {
     return AutomataIndex++;
   }
 

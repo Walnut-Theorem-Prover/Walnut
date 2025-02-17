@@ -26,33 +26,15 @@ import Main.Expression;
 public abstract class Token {
     private int arity;
     private int positionInPredicate;
-    private static long uniqueCounter = 1000L;
+    private static long uniqueCounter = 0L;
+    private static final String WALNUT_UNIQUE_STRING = "WALNUT_8AthA0PZZI_"; // just a unique string
 
     /**
-     * Returns a unique string that contains only non-ASCII characters.
-     * This method can be called indefinitely without repeating values.
+     * Returns a unique string used for Walnut identifiers
      */
     public String getUniqueString() {
         uniqueCounter++;
-        return convertToNonAscii(uniqueCounter);
-    }
-
-    /**
-     * Converts a given number into a string representation using a custom base,
-     * where the "digits" are non-ASCII characters (from 0x0100 to 0x017F).
-     */
-    private static String convertToNonAscii(long number) {
-        final int base = 128; // Using 128 non-ASCII characters
-        StringBuilder sb = new StringBuilder();
-        do {
-            int digit = (int)(number % base);
-            // Map the digit to a non-ASCII character.
-            // Since ASCII characters are in the range 0–127, we use code points starting at 0x0100.
-            char nonAsciiChar = (char)(0x0100 + digit);
-            sb.append(nonAsciiChar);
-            number /= base;
-        } while (number > 0);
-        return sb.reverse().toString();
+        return WALNUT_UNIQUE_STRING + uniqueCounter;
     }
 
     public void put(List<Token> postOrder) {

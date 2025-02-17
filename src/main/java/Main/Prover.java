@@ -97,13 +97,13 @@ public class Prover {
   /**
    * important groups in RE_FOR_reg_CMD
    */
-  static int R_NAME = 2, R_LIST_OF_ALPHABETS = 3, R_REGEXP = 20;
+  static final int R_NAME = 2, R_LIST_OF_ALPHABETS = 3, R_REGEXP = 20;
   static final Pattern PAT_FOR_reg_CMD = Pattern.compile(RE_FOR_reg_CMD);
   static final String RE_FOR_A_SINGLE_ELEMENT_OF_A_SET = "(\\+|\\-)?\\s*\\d+";
   static final Pattern PAT_FOR_A_SINGLE_ELEMENT_OF_A_SET = Pattern.compile(RE_FOR_A_SINGLE_ELEMENT_OF_A_SET);
   static final String RE_FOR_AN_ALPHABET = "((((msd|lsd)_(\\d+|\\w+))|((msd|lsd)(\\d+|\\w+))|(msd|lsd)|(\\d+|\\w+))|(\\{(\\s*(\\+|\\-)?\\s*\\d+)(\\s*,\\s*(\\+|\\-)?\\s*\\d+)*\\s*\\}))\\s+";
   static final Pattern PAT_FOR_AN_ALPHABET = Pattern.compile(RE_FOR_AN_ALPHABET);
-  static int R_NUMBER_SYSTEM = 2, R_SET = 11;
+  static final int R_NUMBER_SYSTEM = 2, R_SET = 11;
 
   static final String RE_FOR_AN_ALPHABET_VECTOR = "(\\[(\\s*(\\+|\\-)?\\s*\\d+)(\\s*,\\s*(\\+|\\-)?\\s*\\d+)*\\s*\\])|(\\d)";
   static final Pattern PAT_FOR_AN_ALPHABET_VECTOR = Pattern.compile(RE_FOR_AN_ALPHABET_VECTOR);
@@ -112,14 +112,14 @@ public class Prover {
   public static final String OST = "ost";
   static final String RE_FOR_ost_CMD = RE_START + OST + RE_WORD_OF_CMD + "\\s*\\[\\s*((\\d+\\s*)*)\\]\\s*\\[\\s*((\\d+\\s*)*)\\]\\s*(;|:|::)\\s*$";
   static final Pattern PAT_FOR_ost_CMD = Pattern.compile(RE_FOR_ost_CMD);
-  static int GROUP_OST_NAME = 1;
-  static int GROUP_OST_PREPERIOD = 2;
-  static int GROUP_OST_PERIOD = 4;
+  static final int GROUP_OST_NAME = 1;
+  static final int GROUP_OST_PREPERIOD = 2;
+  static final int GROUP_OST_PERIOD = 4;
 
   public static final String COMBINE = "combine";
   static final String RE_FOR_combine_CMD = RE_START + COMBINE + RE_WORD_OF_CMD + "((\\s+([a-zA-Z]\\w*(=-?\\d+)?))*)\\s*" + RE_END_CMD;
   static final Pattern PAT_FOR_combine_CMD = Pattern.compile(RE_FOR_combine_CMD);
-  static int GROUP_COMBINE_NAME = 1, GROUP_COMBINE_AUTOMATA = 2, GROUP_COMBINE_END = 6;
+  static final int GROUP_COMBINE_NAME = 1, GROUP_COMBINE_AUTOMATA = 2, GROUP_COMBINE_END = 6;
   static final String RE_FOR_AN_AUTOMATON_IN_combine_CMD = RE_WORD_OF_CMD_NO_SPC + "((=-?\\d+)?)";
   static final Pattern PAT_FOR_AN_AUTOMATON_IN_combine_CMD = Pattern.compile(RE_FOR_AN_AUTOMATON_IN_combine_CMD);
 
@@ -136,59 +136,59 @@ public class Prover {
   public static final String IMAGE = "image";
   static final String RE_FOR_image_CMD = RE_START + IMAGE + RE_WORD_OF_CMD + RE_WORD_OF_CMD + RE_WORD_OF_CMD + "\\s*" + RE_END_CMD;
   static final Pattern PAT_FOR_image_CMD = Pattern.compile(RE_FOR_image_CMD);
-  static int GROUP_IMAGE_NEW_NAME = 1, GROUP_IMAGE_MORPHISM = 2, GROUP_IMAGE_OLD_NAME = 3;
+  static final int GROUP_IMAGE_NEW_NAME = 1, GROUP_IMAGE_MORPHISM = 2, GROUP_IMAGE_OLD_NAME = 3;
 
   public static final String INF = "inf";
   static final String RE_FOR_inf_CMD = RE_START + INF + RE_WORD_OF_CMD + "\\s*" + RE_END_CMD;
   static final Pattern PAT_FOR_inf_CMD = Pattern.compile(RE_FOR_inf_CMD);
-  static int GROUP_INF_NAME = 1;
+  static final int GROUP_INF_NAME = 1;
 
   public static final String SPLIT = "split";
   static final String RE_FOR_split_CMD = RE_START + SPLIT + RE_WORD_OF_CMD + RE_WORD_OF_CMD + "((\\s*\\[\\s*[+-]?\\s*])+)\\s*" + RE_END_CMD;
   static final Pattern PAT_FOR_split_CMD = Pattern.compile(RE_FOR_split_CMD);
-  static int GROUP_SPLIT_NAME = 1, GROUP_SPLIT_AUTOMATA = 2, GROUP_SPLIT_INPUT = 3, GROUP_SPLIT_END = 5;
+  static final int GROUP_SPLIT_NAME = 1, GROUP_SPLIT_AUTOMATA = 2, GROUP_SPLIT_INPUT = 3, GROUP_SPLIT_END = 5;
   static final String RE_FOR_INPUT_IN_split_CMD = "\\[\\s*([+-]?)\\s*]";
   static final Pattern PAT_FOR_INPUT_IN_split_CMD = Pattern.compile(RE_FOR_INPUT_IN_split_CMD);
 
   public static final String RSPLIT = "rsplit";
   static final String RE_FOR_rsplit_CMD = RE_START + RSPLIT + RE_WORD_OF_CMD + "((\\s*\\[\\s*[+-]?\\s*])+)" + RE_WORD_OF_CMD + "\\s*" + RE_END_CMD;
   static final Pattern PAT_FOR_rsplit_CMD = Pattern.compile(RE_FOR_rsplit_CMD);
-  static int GROUP_RSPLIT_NAME = 1, GROUP_RSPLIT_AUTOMATA = 4, GROUP_RSPLIT_INPUT = 2, GROUP_RSPLIT_END = 5;
+  static final int GROUP_RSPLIT_NAME = 1, GROUP_RSPLIT_AUTOMATA = 4, GROUP_RSPLIT_INPUT = 2, GROUP_RSPLIT_END = 5;
 
   public static final String JOIN = "join";
   static final String RE_FOR_join_CMD = RE_START + JOIN + RE_WORD_OF_CMD + "((" + RE_WORD_OF_CMD + "((\\s*\\[\\s*[a-zA-Z&&[^AE]]\\w*\\s*])+))*)\\s*(;|::|:)\\s*";
   static final Pattern PAT_FOR_join_CMD = Pattern.compile(RE_FOR_join_CMD);
-  static int GROUP_JOIN_NAME = 1, GROUP_JOIN_AUTOMATA = 2, GROUP_JOIN_END = 7;
+  static final int GROUP_JOIN_NAME = 1, GROUP_JOIN_AUTOMATA = 2, GROUP_JOIN_END = 7;
   static final String RE_FOR_AN_AUTOMATON_IN_join_CMD = RE_WORD_OF_CMD_NO_SPC + "((\\s*\\[\\s*[a-zA-Z&&[^AE]]\\w*\\s*])+)";
   static final Pattern PAT_FOR_AN_AUTOMATON_IN_join_CMD = Pattern.compile(RE_FOR_AN_AUTOMATON_IN_join_CMD);
-  static int GROUP_JOIN_AUTOMATON_NAME = 1, GROUP_JOIN_AUTOMATON_INPUT = 2;
+  static final int GROUP_JOIN_AUTOMATON_NAME = 1, GROUP_JOIN_AUTOMATON_INPUT = 2;
   static final String RE_FOR_AN_AUTOMATON_INPUT_IN_join_CMD = "\\[\\s*([a-zA-Z&&[^AE]]\\w*)\\s*]";
   static final Pattern PAT_FOR_AN_AUTOMATON_INPUT_IN_join_CMD = Pattern.compile(RE_FOR_AN_AUTOMATON_INPUT_IN_join_CMD);
 
   public static final String TEST = "test";
   static final String RE_FOR_test_CMD = RE_START + TEST + RE_WORD_OF_CMD + "\\s*(\\d+)\\s*" + RE_END_CMD;
   static final Pattern PAT_FOR_test_CMD = Pattern.compile(RE_FOR_test_CMD);
-  static int GROUP_TEST_NAME = 1, GROUP_TEST_NUM = 2;
+  static final int GROUP_TEST_NAME = 1, GROUP_TEST_NUM = 2;
 
   public static final String TRANSDUCE = "transduce";
   static final String RE_FOR_transduce_CMD = RE_START + TRANSDUCE + RE_WORD_OF_CMD + RE_WORD_OF_CMD + "\\s+(\\$|\\s*)" + RE_WORD_OF_CMD_NO_SPC + "\\s*" + RE_END_CMD;
   static final Pattern PAT_FOR_transduce_CMD = Pattern.compile(RE_FOR_transduce_CMD);
-  static int GROUP_TRANSDUCE_NEW_NAME = 1, GROUP_TRANSDUCE_TRANSDUCER = 2,
+  static final int GROUP_TRANSDUCE_NEW_NAME = 1, GROUP_TRANSDUCE_TRANSDUCER = 2,
       GROUP_TRANSDUCE_DOLLAR_SIGN = 3, GROUP_TRANSDUCE_OLD_NAME = 4, GROUP_TRANSDUCE_END = 5;
 
   public static final String REVERSE = "reverse";
   static final String RE_FOR_reverse_CMD = RE_START + REVERSE + RE_WORD_OF_CMD + "\\s+(\\$|\\s*)" + RE_WORD_OF_CMD_NO_SPC + "\\s*" + RE_END_CMD;
   static final Pattern PAT_FOR_reverse_CMD = Pattern.compile(RE_FOR_reverse_CMD);
-  static int GROUP_REVERSE_NEW_NAME = 1, GROUP_REVERSE_DOLLAR_SIGN = 2, GROUP_REVERSE_OLD_NAME = 3, GROUP_REVERSE_END = 4;
+  static final int GROUP_REVERSE_NEW_NAME = 1, GROUP_REVERSE_DOLLAR_SIGN = 2, GROUP_REVERSE_OLD_NAME = 3, GROUP_REVERSE_END = 4;
 
   public static final String MINIMIZE = "minimize";
   static final String RE_FOR_minimize_CMD = RE_START + MINIMIZE + RE_WORD_OF_CMD + RE_WORD_OF_CMD + "\\s*" + RE_END_CMD;
   static final Pattern PAT_FOR_minimize_CMD = Pattern.compile(RE_FOR_minimize_CMD);
-  static int GROUP_MINIMIZE_NEW_NAME = 1, GROUP_MINIMIZE_OLD_NAME = 2, GROUP_MINIMIZE_END = 3;
+  static final int GROUP_MINIMIZE_NEW_NAME = 1, GROUP_MINIMIZE_OLD_NAME = 2, GROUP_MINIMIZE_END = 3;
 
   static final String RE_FOR_convert_CMD = RE_START + "convert\\s+(\\$|\\s*)" + RE_WORD_OF_CMD_NO_SPC + "\\s+((msd|lsd)_(\\d+))\\s+(\\$|\\s*)" + RE_WORD_OF_CMD_NO_SPC + "\\s*" + RE_END_CMD;
   static final Pattern PAT_FOR_convert_CMD = Pattern.compile(RE_FOR_convert_CMD);
-  static int GROUP_CONVERT_NEW_NAME = 2, GROUP_CONVERT_OLD_NAME = 7, GROUP_CONVERT_END = 8,
+  static final int GROUP_CONVERT_NEW_NAME = 2, GROUP_CONVERT_OLD_NAME = 7, GROUP_CONVERT_END = 8,
       GROUP_CONVERT_NEW_DOLLAR_SIGN = 1, GROUP_CONVERT_OLD_DOLLAR_SIGN = 6,
       GROUP_CONVERT_MSD_OR_LSD = 4,
       GROUP_CONVERT_BASE = 5;
@@ -196,55 +196,55 @@ public class Prover {
   public static final String FIXLEADZERO = "fixleadzero";
   static final String RE_FOR_fixleadzero_CMD = RE_START + FIXLEADZERO + RE_WORD_OF_CMD + "\\s+(\\$|\\s*)" + RE_WORD_OF_CMD_NO_SPC + "\\s*" + RE_END_CMD;
   static final Pattern PAT_FOR_fixleadzero_CMD = Pattern.compile(RE_FOR_fixleadzero_CMD);
-  static int GROUP_FIXLEADZERO_NEW_NAME = 1, GROUP_FIXLEADZERO_OLD_NAME = 3, GROUP_FIXLEADZERO_END = 4;
+  static final int GROUP_FIXLEADZERO_NEW_NAME = 1, GROUP_FIXLEADZERO_OLD_NAME = 3, GROUP_FIXLEADZERO_END = 4;
 
   static final String RE_FOR_fixtrailzero_CMD = RE_START + FIXTRAILZERO + RE_WORD_OF_CMD + "\\s+(\\$|\\s*)" + RE_WORD_OF_CMD_NO_SPC + "\\s*" + RE_END_CMD;
   static final Pattern PAT_FOR_fixtrailzero_CMD = Pattern.compile(RE_FOR_fixtrailzero_CMD);
-  static int GROUP_FIXTRAILZERO_NEW_NAME = 1, GROUP_FIXTRAILZERO_OLD_NAME = 3, GROUP_FIXTRAILZERO_END = 4;
+  static final int GROUP_FIXTRAILZERO_NEW_NAME = 1, GROUP_FIXTRAILZERO_OLD_NAME = 3, GROUP_FIXTRAILZERO_END = 4;
 
   static final String RE_FOR_alphabet_CMD = RE_START + "(alphabet)" + RE_WORD_OF_CMD + "\\s+((((((msd|lsd)_(\\d+|\\w+))|((msd|lsd)(\\d+|\\w+))|(msd|lsd)|(\\d+|\\w+))|(\\{(\\s*(\\+|\\-)?\\s*\\d+)(\\s*,\\s*(\\+|\\-)?\\s*\\d+)*\\s*\\}))\\s+)+)(\\$|\\s*)" + RE_WORD_OF_CMD_NO_SPC + "\\s*" + RE_END_CMD;
   static final Pattern PAT_FOR_alphabet_CMD = Pattern.compile(RE_FOR_alphabet_CMD);
-  static int GROUP_alphabet_NEW_NAME = 2, GROUP_alphabet_LIST_OF_ALPHABETS = 3, GROUP_alphabet_DOLLAR_SIGN = 20, GROUP_alphabet_OLD_NAME = 21, GROUP_alphabet_END = 22;
+  static final int GROUP_alphabet_NEW_NAME = 2, GROUP_alphabet_LIST_OF_ALPHABETS = 3, GROUP_alphabet_DOLLAR_SIGN = 20, GROUP_alphabet_OLD_NAME = 21, GROUP_alphabet_END = 22;
 
   public static final String UNION = "union";
   static final String RE_FOR_union_CMD = RE_START + UNION + RE_WORD_OF_CMD + "((" + RE_WORD_OF_CMD + ")*)\\s*" + RE_END_CMD;
   static final Pattern PAT_FOR_union_CMD = Pattern.compile(RE_FOR_union_CMD);
-  static int GROUP_UNION_NAME = 1, GROUP_UNION_AUTOMATA = 2, GROUP_UNION_END = 5;
+  static final int GROUP_UNION_NAME = 1, GROUP_UNION_AUTOMATA = 2, GROUP_UNION_END = 5;
   static final String RE_FOR_AN_AUTOMATON_IN_union_CMD = RE_WORD_OF_CMD_NO_SPC;
   static final Pattern PAT_FOR_AN_AUTOMATON_IN_union_CMD = Pattern.compile(RE_FOR_AN_AUTOMATON_IN_union_CMD);
 
   public static final String INTERSECT = "intersect";
   static final String RE_FOR_intersect_CMD = RE_START + INTERSECT + RE_WORD_OF_CMD + "((" + RE_WORD_OF_CMD + ")*)\\s*" + RE_END_CMD;
   static final Pattern PAT_FOR_intersect_CMD = Pattern.compile(RE_FOR_intersect_CMD);
-  static int GROUP_INTERSECT_NAME = 1, GROUP_INTERSECT_AUTOMATA = 2, GROUP_INTERSECT_END = 5;
+  static final int GROUP_INTERSECT_NAME = 1, GROUP_INTERSECT_AUTOMATA = 2, GROUP_INTERSECT_END = 5;
   static final String RE_FOR_AN_AUTOMATON_IN_intersect_CMD = RE_WORD_OF_CMD_NO_SPC;
   static final Pattern PAT_FOR_AN_AUTOMATON_IN_intersect_CMD = Pattern.compile(RE_FOR_AN_AUTOMATON_IN_intersect_CMD);
 
   public static final String STAR = "star";
   static final String RE_FOR_star_CMD = RE_START + STAR + RE_WORD_OF_CMD + RE_WORD_OF_CMD + "\\s*" + RE_END_CMD;
   static final Pattern PAT_FOR_star_CMD = Pattern.compile(RE_FOR_star_CMD);
-  static int GROUP_STAR_NEW_NAME = 1, GROUP_STAR_OLD_NAME = 2, GROUP_STAR_END = 3;
+  static final int GROUP_STAR_NEW_NAME = 1, GROUP_STAR_OLD_NAME = 2, GROUP_STAR_END = 3;
 
   public static final String CONCAT = "concat";
   static final String RE_FOR_concat_CMD = RE_START + CONCAT + RE_WORD_OF_CMD + "((" + RE_WORD_OF_CMD + ")*)\\s*" + RE_END_CMD;
   static final Pattern PAT_FOR_concat_CMD = Pattern.compile(RE_FOR_concat_CMD);
-  static int GROUP_CONCAT_NAME = 1, GROUP_CONCAT_AUTOMATA = 2, GROUP_CONCAT_END = 5;
+  static final int GROUP_CONCAT_NAME = 1, GROUP_CONCAT_AUTOMATA = 2, GROUP_CONCAT_END = 5;
   static final String RE_FOR_AN_AUTOMATON_IN_concat_CMD = RE_WORD_OF_CMD_NO_SPC;
   static final Pattern PAT_FOR_AN_AUTOMATON_IN_concat_CMD = Pattern.compile(RE_FOR_AN_AUTOMATON_IN_concat_CMD);
 
   public static final String RIGHTQUO = "rightquo";
   static final String RE_FOR_rightquo_CMD = RE_START + RIGHTQUO + RE_WORD_OF_CMD + RE_WORD_OF_CMD + RE_WORD_OF_CMD + "\\s*" + RE_END_CMD;
   static final Pattern PAT_FOR_rightquo_CMD = Pattern.compile(RE_FOR_rightquo_CMD);
-  static int GROUP_rightquo_NEW_NAME = 1, GROUP_rightquo_OLD_NAME1 = 2, GROUP_rightquo_OLD_NAME2 = 3, GROUP_rightquo_END = 4;
+  static final int GROUP_rightquo_NEW_NAME = 1, GROUP_rightquo_OLD_NAME1 = 2, GROUP_rightquo_OLD_NAME2 = 3, GROUP_rightquo_END = 4;
 
   public static final String LEFTQUO = "leftquo";
   static final String RE_FOR_leftquo_CMD = RE_START + LEFTQUO + RE_WORD_OF_CMD + RE_WORD_OF_CMD + RE_WORD_OF_CMD + "\\s*" + RE_END_CMD;
   static final Pattern PAT_FOR_leftquo_CMD = Pattern.compile(RE_FOR_leftquo_CMD);
-  static int GROUP_leftquo_NEW_NAME = 1, GROUP_leftquo_OLD_NAME1 = 2, GROUP_leftquo_OLD_NAME2 = 3, GROUP_leftquo_END = 4;
+  static final int GROUP_leftquo_NEW_NAME = 1, GROUP_leftquo_OLD_NAME1 = 2, GROUP_leftquo_OLD_NAME2 = 3, GROUP_leftquo_END = 4;
 
   static final String RE_FOR_draw_CMD = RE_START + "draw\\s+(\\$|\\s*)" + RE_WORD_OF_CMD_NO_SPC + "\\s*" + RE_END_CMD;
   static final Pattern PAT_FOR_draw_CMD = Pattern.compile(RE_FOR_draw_CMD);
-  static int GROUP_draw_DOLLAR_SIGN = 1, GROUP_draw_NAME = 2;
+  static final int GROUP_draw_DOLLAR_SIGN = 1, GROUP_draw_NAME = 2;
 
   static final String STRATEGY = "strategy ";
   static final String STRATEGY_CMD = "^\\[\\s*" + STRATEGY + "\\s*(?:([A-Za-z_-]+)\\s+(\\d+)(?:,\\s*)?)*\\]";

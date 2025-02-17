@@ -35,11 +35,11 @@ public class DeterminizationStrategies {
     SC("SC", false, List.of("SC")),
     BRZ("Brzozowski", false, List.of("Brz")),
     OTF("OTF", true, List.of("OTF")),
-    OTF_BRZ("OTF-Brzozowski", true, List.of("OTF_BRZ", "OTF-BRZ")),
+    OTF_BRZ("OTF-Brzozowski", true, List.of("OTFBRZ", "BRZOTF")),
     OTF_NOSIM("OTF-no-simulation", false,
-        List.of("OTF_NOSIM", "OTF-NOSIM","OTF-NO-SIM", "OTF_NO_SIM")),
+        List.of("OTFNOSIM")),
     OTF_BRZ_NOSIM("OTF-Brzozowski-no-simulation", false,
-        List.of("OTF_BRZ_NOSIM", "OTF-BRZ-NOSIM", "OTF-BRZ-NO-SIM", "OTF_BRZ_NO_SIM"));
+        List.of( "OTFBRZNOSIM", "BTZOTFNOSIM"));
     private final String name;
     private final boolean doSimulation;
     private final List<String> aliases;
@@ -52,9 +52,10 @@ public class DeterminizationStrategies {
     }
 
     public static Strategy fromString(String name) {
+      String tempName = name.replace("_","-").replace("-","");
       for (Strategy strategy : Strategy.values()) {
         for (String alias : strategy.aliases) {
-          if (name.equalsIgnoreCase(alias)) {
+          if (tempName.equalsIgnoreCase(alias)) {
             return strategy;
           }
         }
@@ -93,7 +94,7 @@ public class DeterminizationStrategies {
         // Increment our automata count for use in strategy calculations.
         // Note this is only done when print is true.
         // That's because there are several silent automata creations for NS, Ostrowski, and other caches.
-        int automataIdx = FA.IncrementIndex();
+        int automataIdx = FA.incrementIndex();
         strategy = strategyMap.getOrDefault(automataIdx, Strategy.SC);
         UtilityMethods.logMessage(print, prefix +
             "Determinizing " + strategy.outputName(automataIdx) + ": " + fa.getQ() + " states", log);
