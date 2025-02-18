@@ -719,7 +719,7 @@ public class Prover {
   public static TestCase combineCommand(String s) {
     Matcher m = matchOrFail(PAT_FOR_combine_CMD, s, COMBINE);
 
-    boolean printSteps = m.group(GROUP_COMBINE_END).equals(":");
+    boolean printStepsOrDetails = determinePrintStepsOrDetails(m, GROUP_COMBINE_END);
 
     List<String> automataNames = new ArrayList<>();
     IntList outputs = new IntArrayList();
@@ -747,7 +747,7 @@ public class Prover {
     Automaton first = Automaton.readAutomatonFromFile(automataNames.get(0));
     automataNames.remove(0);
 
-    Automaton C = first.combine(automataNames, outputs, printSteps, prefix, log);
+    Automaton C = first.combine(automataNames, outputs, printStepsOrDetails, prefix, log);
 
     C.writeAutomata(s, Session.getWriteAddressForWordsLibrary(), m.group(GROUP_COMBINE_NAME), true);
     return new TestCase(C);
@@ -847,7 +847,7 @@ public class Prover {
       }
     }
 
-    boolean printSteps = end.equals(":");
+    boolean printStepsOrDetails = end.equals(":") || end.equals("::");
 
     List<String> inputs = new ArrayList<>();
     boolean hasInput = false;
@@ -864,10 +864,10 @@ public class Prover {
     UtilityMethods.removeDuplicates(outputs);
     List<Automaton> subautomata = M.uncombine(outputs);
 
-    subautomata.replaceAll(automaton -> automaton.processSplit(inputs, isReverse, printSteps, prefix, log));
+    subautomata.replaceAll(automaton -> automaton.processSplit(inputs, isReverse, printStepsOrDetails, prefix, log));
 
     Automaton N = subautomata.remove(0);
-    N = AutomatonLogicalOps.combine(N, new LinkedList<>(subautomata), outputs, printSteps, prefix, log);
+    N = AutomatonLogicalOps.combine(N, new LinkedList<>(subautomata), outputs, printStepsOrDetails, prefix, log);
 
     N.writeAutomata(s,
         isDFAO ? Session.getWriteAddressForWordsLibrary() : Session.getWriteAddressForAutomataLibrary(),
@@ -892,7 +892,7 @@ public class Prover {
   public static TestCase joinCommand(String s) {
     Matcher m = matchOrFail(PAT_FOR_join_CMD, s, JOIN);
 
-    boolean printSteps = m.group(GROUP_JOIN_END).equals(":");
+    boolean printStepsOrDetails = determinePrintStepsOrDetails(m, GROUP_JOIN_END);
 
     Matcher m1 = PAT_FOR_AN_AUTOMATON_IN_join_CMD.matcher(m.group(GROUP_JOIN_AUTOMATA));
     List<Automaton> subautomata = new ArrayList<>();
@@ -929,7 +929,7 @@ public class Prover {
       subautomata.add(M);
     }
     Automaton N = subautomata.remove(0);
-    N = N.join(new LinkedList<>(subautomata), printSteps, prefix, log);
+    N = N.join(new LinkedList<>(subautomata), printStepsOrDetails, prefix, log);
 
     N.writeAutomata(s,
         isDFAO ? Session.getWriteAddressForWordsLibrary() : Session.getWriteAddressForAutomataLibrary(),

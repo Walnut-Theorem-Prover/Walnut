@@ -968,7 +968,6 @@ public class AutomatonLogicalOps {
         while (!subautomata.isEmpty()) {
             Automaton next = subautomata.remove();
             long timeBefore = System.currentTimeMillis();
-            System.out.println("COMBINE");
             UtilityMethods.logMessage(print, prefix + "computing =>:" + first.getQ() + " states - " + next.getQ() + " states", log);
 
             // crossProduct requires labelling; make an arbitrary labelling and use it for both: this is valid since
