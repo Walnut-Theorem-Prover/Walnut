@@ -82,12 +82,6 @@ jacocoTestReport {
 }
 apply plugin: 'java'
 
-java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(17)
-    }
-}
-
 test {
     testLogging {
         outputs.upToDateWhen {false}

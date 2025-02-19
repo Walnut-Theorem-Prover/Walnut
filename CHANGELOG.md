@@ -20,7 +20,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   * [Brzozowski's algorithm](https://en.wikipedia.org/wiki/DFA_minimization#Brzozowski's_algorithm)
   * OTF
   * Brzozowski-OTF
-- (INCOMPLETE) Allow reading and writing to the [BA](https://languageinclusion.org/doku.php?id=tools) format.
+- (INCOMPLETE) Allow reading and writing NFAs to/from the [BA](https://languageinclusion.org/doku.php?id=tools) format, including intermediates.
 
 ### Fixed
 
