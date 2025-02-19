@@ -785,7 +785,7 @@ public class Automaton {
             IntList thisO = this.getO();
             int thisP = thisO.getInt(p);
             thisO.set(p,
-                reverse ? ArithmeticOperator.arith2(operator, thisP, o) : ArithmeticOperator.arith2(operator, o, thisP));
+                reverse ? ArithmeticOperator.arith(operator, thisP, o) : ArithmeticOperator.arith(operator, o, thisP));
         }
         minimizeSelfWithOutput(print, prefix + " ", log);
         long timeAfter = System.currentTimeMillis();
