@@ -28,6 +28,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Fixed OOM error when writing large Graphview files (reported by Pierre Ganty).
 - Removed unnecessary determinizations when handling leading/trailing zeros.
 - Increased testing and code coverage.
+- Fixed unexpected behavior for integer rounding when doing division with negative numbers (fixed by Jonathan Yang)
         
 ### Changed
 
