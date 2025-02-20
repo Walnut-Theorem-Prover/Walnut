@@ -856,6 +856,19 @@ public class IntegrationTest {
 		L.add("[strategy OTF_NOSIM 10]eval test639 \"E x,y,z (n=x+y+z)&(QQ[x]=@1)&(QQ[y]=@1)&(QQ[z]=@1)\"::");
 		L.add("[strategy OTF_BRZ_NOSIM 10]eval test640 \"E x,y,z (n=x+y+z)&(QQ[x]=@1)&(QQ[y]=@1)&(QQ[z]=@1)\"::");
 			L.add("[strategy OTF_BRZ 10]eval test641 \"E x,y,z (n=x+y+z)&(QQ[x]=@1)&(QQ[y]=@1)&(QQ[z]=@1)\"::");
+
+		// Additional tests for division with negative numbers and DFAOs with negative outputs
+		L.add("eval test642 \"?msd_neg_2 _3 / _2 = 1\";");
+		L.add("eval test643 \"?msd_neg_2 3 / _2 = _2\";");
+		L.add("eval test644 \"?msd_neg_2 _3 / 2 = _2\";");
+		L.add("eval test645 \"?msd_neg_2 TEST2[a] / _3 = 1\";");
+		L.add("eval test646 \"?msd_neg_2 TEST2[a] / _3 = 0\";");
+		L.add("eval test647 \"?msd_neg_2 TEST2[a] / _3 = _1\";");
+		L.add("eval test648 \"?msd_neg_2 TEST2[a] / _3 = _2\";");
+		L.add("eval test649 \"?msd_neg_2 TEST2[a] / 3 = 1\";");
+		L.add("eval test650 \"?msd_neg_2 TEST2[a] / 3 = 0\";");
+		L.add("eval test651 \"?msd_neg_2 TEST2[a] / 3 = _1\";");
+		L.add("eval test652 \"?msd_neg_2 TEST2[a] / 3 = _2\";");
 	}
 
 	@TestFactory

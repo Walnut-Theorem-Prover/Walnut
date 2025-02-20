@@ -203,30 +203,6 @@ public class ArithmeticOperator extends Operator {
         }
     }
 
-    /**
-     * Note differences:
-     * 1. Division behavior: -5 / 2 = -2 because integer division drops the fractional part, floorDiv(-5, 2) = -3.
-     * 2. "_" returns -b.
-     */
-    public static int arith2(String op, int a, int b) {
-        switch (op) {
-            case "+" -> {
-                return a + b;
-            }
-            case "-" -> {
-                return a - b;
-            }
-            case "/" -> {
-                if (b == 0) throw ExceptionHelper.divisionByZero();
-                return a / b;
-            }
-            case "*" -> {
-                return a * b;
-            }
-            default -> throw ExceptionHelper.unexpectedOperator(op);
-        }
-    }
-
     public static boolean isValidArithmeticOperator(Expression a) {
         return (a instanceof AlphabetLetterExpression || a instanceof WordExpression || a instanceof ArithmeticExpression || a instanceof VariableExpression || a instanceof NumberLiteralExpression);
     }
