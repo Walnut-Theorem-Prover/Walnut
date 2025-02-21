@@ -54,14 +54,14 @@ class AutomatonExpressionTest {
             alphabet.add(1);
             alphabet.add(2);
 
-            a = new Automaton("01*", alphabet);
+            a = new Automaton("01*", alphabet, null);
             //Assertions.assertEquals("[{0=>[1]}, {1=>[1]}]", a.d.toString());
             Assertions.assertTrue(a.equals(a.clone()));
             List<String> labels = new ArrayList<>();
             labels.add("");
             Assertions.assertEquals(labels.toString(), a.getLabel().toString());
 
-            b = new Automaton("10*", alphabet);
+            b = new Automaton("10*", alphabet, null);
             Assertions.assertFalse(a.equals(b), a.fa + " == " + b.fa);
 
             b = a.clone();

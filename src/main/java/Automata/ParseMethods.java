@@ -64,6 +64,8 @@ public class ParseMethods {
         Pattern.compile("^\\s*((((\\+|\\-)?\\s*\\d+\\s*)|(\\s*\\*\\s*))+)\\s*\\->\\s*((\\d+\\s*)+)\\s*\\/\\s*((\\+|\\-)?\\s*\\d+)\\s*$");
 
     public static final Pattern PATTERN_WHITESPACE = Pattern.compile("^\\s*$");
+    public static final Pattern PATTERN_COMMENT = Pattern.compile("^\\s*#.*$");
+
 
 
     public static boolean parseTrueFalse(String s, Boolean[] singleton) {

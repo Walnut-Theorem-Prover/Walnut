@@ -33,6 +33,7 @@ import java.util.*;
 import Token.ArithmeticOperator;
 import it.unimi.dsi.fastutil.ints.*;
 
+import static Automata.ParseMethods.PATTERN_COMMENT;
 import static Automata.ParseMethods.PATTERN_WHITESPACE;
 
 /**
@@ -103,7 +104,6 @@ public class Automaton {
         richAlphabet = new RichAlphabet();
         setNS(new ArrayList<>());
         setLabel(new ArrayList<>());
-        dk.brics.automaton.Automaton.setMinimization(dk.brics.automaton.Automaton.MINIMIZE_HOPCROFT);
     }
 
     /**
@@ -114,8 +114,7 @@ public class Automaton {
      * @param truthValue - truth value of special automaton
      */
     public Automaton(boolean truthValue) {
-        fa = new FA();
-        richAlphabet = new RichAlphabet();
+        this();
         fa.setTRUE_FALSE_AUTOMATON(true);
         this.fa.setTRUE_AUTOMATON(truthValue);
     }
@@ -123,18 +122,18 @@ public class Automaton {
     /**
      * Takes a regular expression and the alphabet for that regular expression and constructs the corresponding automaton.
      * For example if the regularExpression = "01*" and alphabet = [0,1,2], then the resulting automaton accepts
-     * words of the form 01* over the alphabet {0,1,2}.<br>
-     * <p>
+     * words of the form 01* over the alphabet {0,1,2}.
      * We actually compute the automaton for regularExpression intersected with alphabet*.
      * So for example if regularExpression = [^4]* and alphabet is [1,2,4], then the resulting
-     * automaton accepts (1|2)*<br>
-     * <p>
+     * automaton accepts (1|2)*
      * An important thing to note here is that the automaton being constructed
      * with this constructor, has only one input, and it is of type AlphabetLetter.
      */
-    public Automaton(String regularExpression, List<Integer> alphabet) {
+    public Automaton(
+            String regularExpression,
+            List<Integer> alphabet,
+            NumberSystem numSys) {
         this();
-        getNS().add(null);
         if (alphabet == null || alphabet.isEmpty()) throw new RuntimeException("empty alphabet is not accepted");
         alphabet = new ArrayList<>(alphabet);
         //The alphabet is a set and does not allow repeated elements. However, the user might enter the command
@@ -143,20 +142,13 @@ public class Automaton {
         getA().add(alphabet);
 
         this.fa.convertBrics(alphabet, regularExpression);
-    }
-
-    public Automaton(
-            String regularExpression,
-            List<Integer> alphabet,
-            NumberSystem numSys) {
-        this(regularExpression, alphabet);
-        getNS().set(0, numSys);
+        getNS().add(numSys);
     }
 
     // This handles the generalised case of vectors such as "[0,1]*[0,0][0,1]"
+    // TODO - maybe exactly the same as above
     public Automaton(String regularExpression, Integer alphabetSize) {
         this();
-        fa.setCanonized(false);
         this.fa.setFromBricsAutomaton(alphabetSize, regularExpression);
     }
 
@@ -195,7 +187,7 @@ public class Automaton {
                 lineNumber++;
                 outputLongFile = debugPrintLongFile(address, lineNumber, outputLongFile);
 
-                if (PATTERN_WHITESPACE.matcher(line).matches()) {
+                if (shouldSkipLine(line)) {
                     continue;
                 }
 
@@ -266,8 +258,7 @@ public class Automaton {
         while ((line = in.readLine()) != null) {
             lineNumber++;
 
-            if (PATTERN_WHITESPACE.matcher(line).matches()) {
-                // Ignore blank lines.
+            if (shouldSkipLine(line)) {
                 continue;
             }
 
@@ -297,6 +288,11 @@ public class Automaton {
             }
         }
         return lineNumber;
+    }
+
+    // Ignore blank and comment (#) lines.
+    protected static boolean shouldSkipLine(String line) {
+        return PATTERN_WHITESPACE.matcher(line).matches() || PATTERN_COMMENT.matcher(line).matches();
     }
 
     protected void validateDeclaredStates(Set<Integer> destinationStates, Map<Integer, ?> declaredStates, String address) {

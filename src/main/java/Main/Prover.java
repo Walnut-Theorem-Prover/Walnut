@@ -642,12 +642,23 @@ public class Prover {
     // one requested, instead of the unicode alphabet that dk.brics uses.
     Automaton M = new Automaton();
     M.setA(alphabets);
-    String baseexp = m.group(R_REGEXP);
+    M.determineAlphabetSize();
 
+    String baseExp = determineBaseExp(m.group(R_REGEXP), M.getA().size(), M.richAlphabet);
+
+    Automaton R = new Automaton(baseExp, M.getAlphabetSize());
+    R.setA(M.getA());
+    R.determineAlphabetSize();
+    R.setNS(NS);
+
+    R.writeAutomata(m.group(R_REGEXP), Session.getWriteAddressForAutomataLibrary(), m.group(R_NAME), false);
+    return new TestCase(R);
+  }
+
+  private static String determineBaseExp(String baseexp, int inputLength, RichAlphabet r) {
     Matcher m2 = PAT_FOR_AN_ALPHABET_VECTOR.matcher(baseexp);
     // if we haven't had to replace any input vectors with unicode, we use the legacy method of constructing the automaton
     while (m2.find()) {
-      List<Integer> L = new ArrayList<>();
       String alphabetVector = m2.group();
 
       // needed to replace this string with the unicode mapping
@@ -656,14 +667,15 @@ public class Prover {
         alphabetVector = alphabetVector.substring(1, alphabetVector.length() - 1); // truncate brackets [ ]
       }
 
+      List<Integer> L = new ArrayList<>();
       Matcher m3 = PAT_FOR_A_SINGLE_ELEMENT_OF_A_SET.matcher(alphabetVector);
       while (m3.find()) {
         L.add(UtilityMethods.parseInt(m3.group()));
       }
-      if (L.size() != M.getA().size()) {
+      if (L.size() != inputLength) {
         throw new RuntimeException("Mismatch between vector length in regex and specified number of inputs to automaton");
       }
-      int vectorEncoding = M.richAlphabet.encode(L);
+      int vectorEncoding = r.encode(L);
       // dk.brics regex has several reserved characters - we cannot use these or the method that generates the automaton will
       // not be able to parse the string properly. All of these reserved characters have UTF-16 values between 0 and 127, so offsetting
       // our encoding by 128 will be enough to ensure that we have no conflicts
@@ -686,22 +698,13 @@ public class Prover {
           .replace(alphabetVectorCopy, replacementStr)
           .replace("§", "[-" + alphabetVectorCopy + "]");
     }
-    M.determineAlphabetSize();
 
     // We should always do this with replacement, since we may have regexes such as "...", which accepts any three characters
     // in a row, on an alphabet containing bracketed characters. We don't make any replacements here, but they are implicitly made
     // when we intersect with our alphabet(s).
 
     // remove all whitespace from regular expression.
-    baseexp = baseexp.replaceAll("\\s", "");
-
-    Automaton R = new Automaton(baseexp, M.getAlphabetSize());
-    R.setA(M.getA());
-    R.determineAlphabetSize();
-    R.setNS(NS);
-
-    R.writeAutomata(m.group(R_REGEXP), Session.getWriteAddressForAutomataLibrary(), m.group(R_NAME), false);
-    return new TestCase(R);
+    return baseexp.replaceAll("\\s", "");
   }
 
   private static NumberSystem getNumberSystem(String base, List<NumberSystem> numSys, Matcher m) {

@@ -12,6 +12,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - Versioning output to Walnut.
 - Session functionality. Each run of Walnut writes to a new session, making it easier to organize and not overwrite previous results.
+- Walnut .txt files now allow comments.
 - Dead states are removed (trim) before determinization.
 - (INCOMPLETE) Bisimulation reduction before determinization.
 - Leveraging the [AutomataLib](https://github.com/LearnLib/automatalib) library.

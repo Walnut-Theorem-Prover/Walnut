@@ -38,8 +38,6 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectRBTreeMap;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 
-import static Automata.ParseMethods.PATTERN_WHITESPACE;
-
 /**
  * The class Transducer represents a deterministic finite-state transducer with all states final that is 1-uniform.
  * <p>
@@ -109,7 +107,7 @@ public class Transducer extends Automaton {
                 lineNumber++;
                 outputLongFile = debugPrintLongFile(address, lineNumber, outputLongFile);
 
-                if (PATTERN_WHITESPACE.matcher(line).matches()) {
+                if (shouldSkipLine(line)) {
                     continue;
                 }
 

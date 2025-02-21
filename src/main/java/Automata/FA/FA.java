@@ -32,6 +32,7 @@ import net.automatalib.alphabet.impl.Alphabets;
 import net.automatalib.automaton.fsa.impl.CompactNFA;
 
 import java.util.*;
+import java.util.function.BiFunction;
 import java.util.function.Predicate;
 
 /**
@@ -322,17 +323,6 @@ public class FA implements Cloneable {
     this.canonized = true;
   }
 
-  private void addOffsetToInputs(int offset) {
-      List<Int2ObjectRBTreeMap<IntList>> new_d = new ArrayList<>(Q);
-      for (int q = 0; q < Q; q++) new_d.add(new Int2ObjectRBTreeMap<>());
-      for (int q = 0; q < Q; q++) {
-        for (Int2ObjectMap.Entry<IntList> entry : this.getEntriesNfaD(q)) {
-          new_d.get(q).put(entry.getIntKey() + offset, entry.getValue());
-        }
-      }
-      nfaD = new_d;
-  }
-
   public void convertBrics(List<Integer> alphabet, String regularExpression) {
     long timeBefore = System.currentTimeMillis();
     // For example if alphabet = {2,4,1} then intersectingRegExp = [241]*
@@ -345,29 +335,19 @@ public class FA implements Cloneable {
     }
     intersectingRegExp.append("]*");
     regularExpression = "(" + regularExpression + ")&" + intersectingRegExp;
+
     dk.brics.automaton.RegExp RE = new RegExp(regularExpression);
     dk.brics.automaton.Automaton M = RE.toAutomaton();
     M.minimize();
 
     alphabetSize = alphabet.size();
-    List<State> setOfStates = new ArrayList<>(M.getStates());
-    Q = setOfStates.size();
-    q0 = setOfStates.indexOf(M.getInitialState());
-    for (int q = 0; q < Q; q++) {
-      State state = setOfStates.get(q);
-      O.add(state.isAccept() ? 1 : 0);
-      Int2ObjectRBTreeMap<IntList> currentStatesTransitions = new Int2ObjectRBTreeMap<>();
-      nfaD.add(currentStatesTransitions);
-      for (Transition t : state.getTransitions()) {
-        for (char a = (char)Math.max(t.getMin(), '0'); a <= Math.min(t.getMax(), '9'); a++) {
-          if (alphabet.contains(a - '0')) {
-            IntList dest = new IntArrayList();
-            dest.add(setOfStates.indexOf(t.getDest()));
-            currentStatesTransitions.put(alphabet.indexOf(a - '0'), dest);
-          }
-        }
-      }
-    }
+
+    convertBricsAutomatonToInternalRepresentation(M, (t, a) -> {
+      // We only care about characters '0' through '9'
+      int digit = a - '0';
+      return alphabet.contains(digit) ? alphabet.indexOf(digit) : -1;
+    });
+
     long timeAfter = System.currentTimeMillis();
     String msg = "computed ~:" + Q + " states - " + (timeAfter - timeBefore) + "ms";
     System.out.println(msg);
@@ -385,38 +365,66 @@ public class FA implements Cloneable {
     }
     intersectingRegExp.append("]*");
     regularExpression = "(" + regularExpression + ")&" + intersectingRegExp;
+
     dk.brics.automaton.RegExp RE = new RegExp(regularExpression);
     dk.brics.automaton.Automaton M = RE.toAutomaton();
     M.minimize();
+
     // We use packagedk.brics.automaton for automata minimization.
     if (!M.isDeterministic())
       throw ExceptionHelper.bricsNFA();
-    List<State> setOfStates = new ArrayList<>(M.getStates());
 
+    // Here, each character 'a' is used directly as the key.
+    convertBricsAutomatonToInternalRepresentation(M, (t, a) -> (int) a);
+
+    // We added 128 to the encoding of every input vector before to avoid reserved characters, now we subtract it again
+    // to get back the standard encoding
+    nfaD = this.addOffsetToInputs(-128);
+
+    long timeAfter = System.currentTimeMillis();
+    String msg = "computed ~:" + getQ() + " states - " + (timeAfter - timeBefore) + "ms";
+    System.out.println(msg);
+  }
+
+  private List<Int2ObjectRBTreeMap<IntList>> addOffsetToInputs(int offset) {
+    List<Int2ObjectRBTreeMap<IntList>> newD = new ArrayList<>(Q);
+    for (int q = 0; q < Q; q++) newD.add(new Int2ObjectRBTreeMap<>());
+    for (int q = 0; q < Q; q++) {
+      for (Int2ObjectMap.Entry<IntList> entry : this.getEntriesNfaD(q)) {
+        newD.get(q).put(entry.getIntKey() + offset, entry.getValue());
+      }
+    }
+    return newD;
+  }
+
+  private void convertBricsAutomatonToInternalRepresentation(
+      dk.brics.automaton.Automaton M, BiFunction<Transition, Character, Integer> keyMapper) {
+    List<State> setOfStates = new ArrayList<>(M.getStates());
     Q = setOfStates.size();
     q0 = setOfStates.indexOf(M.getInitialState());
-    O = new IntArrayList();
-    nfaD = new ArrayList<>();
+    O = new IntArrayList(Q);
+    nfaD = new ArrayList<>(Q);
     for (int q = 0; q < Q; q++) {
       State state = setOfStates.get(q);
       O.add(state.isAccept() ? 1 : 0);
       Int2ObjectRBTreeMap<IntList> currentStatesTransitions = new Int2ObjectRBTreeMap<>();
       nfaD.add(currentStatesTransitions);
       for (Transition t : state.getTransitions()) {
+        // Note: For convertBrics we only want to iterate in the range '0'-'9'
+        // while the setFromBricsAutomaton uses the full range.
         for (char a = t.getMin(); a <= t.getMax(); a++) {
-          IntList dest = new IntArrayList();
-          dest.add(setOfStates.indexOf(t.getDest()));
-          currentStatesTransitions.put(a, dest);
+          int key = keyMapper.apply(t, a);
+          // the lambda returns -1 to indicate a character to skip.
+          if (key != -1) {
+            IntList dest = new IntArrayList();
+            dest.add(setOfStates.indexOf(t.getDest()));
+            currentStatesTransitions.put(key, dest);
+          }
         }
       }
     }
-    // We added 128 to the encoding of every input vector before to avoid reserved characters, now we subtract it again
-    // to get back the standard encoding
-    this.addOffsetToInputs(-128);
-    long timeAfter = System.currentTimeMillis();
-    String msg = "computed ~:" + getQ() + " states - " + (timeAfter - timeBefore) + "ms";
-    System.out.println(msg);
   }
+
 
   /**
    * This method adds a dead state to totalize the transition function
