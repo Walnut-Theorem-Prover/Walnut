@@ -17,8 +17,10 @@
  */
 package Automata;
 
+import Automata.FA.FA;
 import Automata.FA.ProductStrategies;
 import Main.UtilityMethods;
+import Token.RelationalOperator;
 import it.unimi.dsi.fastutil.ints.*;
 
 import java.util.*;
@@ -648,8 +650,6 @@ public class AutomatonLogicalOps {
 
             newD.add(new Int2ObjectRBTreeMap<>());
 
-            // assume that the
-            // System.out.println("alphabet: " + d.get(q0) + ", " + d + ", " + alphabetSize);
             if (A.getD().get(A.getQ0()).keySet().size() != A.getAlphabetSize()) {
                 throw new RuntimeException("Automaton should be deterministic!");
             }
@@ -822,80 +822,53 @@ public class AutomatonLogicalOps {
                 log
         );
 
-        // BFS-like approach with StateTuple
-        class StateTuple {
-            final int state;
-            final List<Integer> iList;
-
-            StateTuple(int state, List<Integer> iList) {
-                this.state = state;
-                this.iList = iList;
-            }
-
-            @Override
-            public boolean equals(Object o) {
-                if (this == o) return true;
-                if (o == null || getClass() != o.getClass()) return false;
-                StateTuple other = (StateTuple) o;
-                // Compare both the state and the string for uniqueness
-                return this.state == other.state && this.iList.equals(other.iList);
-            }
-
-            @Override
-            public int hashCode() {
-                int result = Integer.hashCode(this.state);
-                result = 31 * result + this.iList.hashCode();
-                return result;
-            }
-        }
-
         IntList oldO = A.getO();
         List<Int2ObjectRBTreeMap<IntList>> oldD = A.getD();
 
         // Prepare BFS structures
-        List<StateTuple> newStates = new ArrayList<>();
-        Queue<StateTuple> queue = new LinkedList<>();
-        Map<StateTuple, Integer> stateMap = new HashMap<>();
+        List<IntObjectPair<IntList>> newStates = new ArrayList<>();
+        Queue<IntObjectPair<IntList>> queue = new LinkedList<>();
+        Map<IntObjectPair<IntList>, Integer> stateMap = new HashMap<>();
         List<Int2ObjectRBTreeMap<IntList>> newD = new ArrayList<>();
         IntList newO = new IntArrayList();
 
         // Initialize BFS with the A's Q0
-        StateTuple init = new StateTuple(A.getQ0(), List.of());
+        IntObjectPair<IntList> init = new IntObjectImmutablePair<>(A.getQ0(), IntList.of());
         newStates.add(init);
         queue.add(init);
         stateMap.put(init, newStates.size() - 1);
 
         // BFS
         while (!queue.isEmpty()) {
-            StateTuple curr = queue.remove();
+            IntObjectPair<IntList> curr = queue.remove();
 
             // Create a new transition map in newD
             newD.add(new Int2ObjectRBTreeMap<>());
 
             // Output logic
-            if (curr.iList.isEmpty()) {
-                newO.add(oldO.getInt(curr.state));
+            if (curr.right().isEmpty()) {
+                newO.add(oldO.getInt(curr.leftInt()));
             } else {
-                int stringVal = computeStringValue(curr.iList, root);
+                int stringVal = computeStringValue(curr.right(), root);
                 // The next real state is oldD.get(curr.state).get(stringVal).getInt(0)
-                int realState = oldD.get(curr.state).get(stringVal).getInt(0);
+                int realState = oldD.get(curr.leftInt()).get(stringVal).getInt(0);
                 newO.add(oldO.getInt(realState));
             }
 
             // Build transitions for each possible digit di in [0..root-1]
             for (int di = 0; di < root; di++) {
-                List<Integer> nextString = new ArrayList<>(curr.iList);
+                IntList nextString = new IntArrayList(curr.right());
                 nextString.add(di);
 
-                StateTuple next;
-                if (curr.iList.size() < exponent - 1) {
+                IntObjectPair<IntList> next;
+                if (curr.right().size() < exponent - 1) {
                     // Haven't reached exponent length yet
-                    next = new StateTuple(curr.state, nextString);
+                    next = new IntObjectImmutablePair<>(curr.leftInt(), nextString);
                 } else {
                     // We have a full 'digit string', so jump to an actual next state
                     int nextStringVal = computeStringValue(nextString, root);
-                    int realState = oldD.get(curr.state).get(nextStringVal).getInt(0);
-                    next = new StateTuple(realState, List.of());
+                    int realState = oldD.get(curr.leftInt()).get(nextStringVal).getInt(0);
+                    next = new IntObjectImmutablePair<>(realState, IntList.of());
                 }
 
                 // If this state is new, register it
@@ -1014,5 +987,23 @@ public class AutomatonLogicalOps {
         UtilityMethods.logMessage(print,
             prefix + "compared (" + operator + "):" + M.getFa().getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
         return M;
+    }
+
+    /**
+     * The operator can be one of "<" ">" "=" "!=" "<=" ">=".
+     * For example if operator = "<" then this method changes the word A
+     * to a DFA that accepts x iff this[x] < o lexicographically.
+     * To be used only when this A is a DFAO (word).
+     */
+    public static void compareWordAutomaton(
+        FA fa, int o, String operator, boolean print, String prefix, StringBuilder log) {
+        long timeBefore = System.currentTimeMillis();
+        UtilityMethods.logMessage(print, prefix + "comparing (" + operator + ") against " + o + ":" + fa.getQ() + " states", log);
+        for (int p = 0; p < fa.getQ(); p++) {
+            fa.getO().set(p, RelationalOperator.compare(operator, fa.getO().getInt(p), o) ? 1 : 0);
+        }
+        fa.determinizeAndMinimize(print, prefix + " ", log);
+        long timeAfter = System.currentTimeMillis();
+        UtilityMethods.logMessage(print, prefix + "compared (" + operator + ") against " + o + ":" + fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
     }
 }

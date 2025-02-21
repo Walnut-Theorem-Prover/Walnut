@@ -134,7 +134,7 @@ public class ArithmeticOperator extends Operator {
             M = new Automaton(true);
             for (int o : word.wordAutomaton.getO()) {
                 Automaton N = word.wordAutomaton.clone();
-                N.fa.compare(o, "=", print, prefix + " ", log);
+                AutomatonLogicalOps.compareWordAutomaton(N.fa, o, "=", print, prefix + " ", log);
                 Automaton C;
                 if (o == 0 && op.equals("*")) {
                     C = ns.get(0);

@@ -79,7 +79,11 @@ public class DeterminizationStrategies {
 
 
     /**
-     * Subset (or powerset) Construction.
+     * Determinization strategies:
+     *   Subset Construction
+     *   Brzozowski double-reversal
+     *   OTF-CCL-no-sim, OTF-CCL'
+     *   Brzozowski + (OTF-CCL-no-sim, OTF-CCL')
      */
     public static void determinize(
             FA fa, IntSet initialState, boolean print, String prefix, StringBuilder log) {

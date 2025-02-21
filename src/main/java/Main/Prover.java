@@ -246,9 +246,13 @@ public class Prover {
   static final Pattern PAT_FOR_draw_CMD = Pattern.compile(RE_FOR_draw_CMD);
   static final int GROUP_draw_DOLLAR_SIGN = 1, GROUP_draw_NAME = 2;
 
-  static final String STRATEGY = "strategy ";
-  static final String STRATEGY_CMD = "^\\[\\s*" + STRATEGY + "\\s*(?:([A-Za-z_-]+)\\s+(\\d+)(?:,\\s*)?)*\\]";
-  static final Pattern PAT_STRATEGY = Pattern.compile(STRATEGY_CMD);
+  // Meta-commands: [...] at the beginning of the command
+  static final String META_CMD = "^\\[([^\\]]*)\\](.*)$";
+  static final Pattern PAT_META_CMD = Pattern.compile(META_CMD);
+  static final int GROUP_META_CMD = 1, GROUP_FINAL_CMD = 2;
+
+  static final String STRATEGY = "strategy";
+  static final String EXPORT = "export";
 
   public static String prefix = ""; // Declare here instead of passing around everywhere
   public static StringBuilder log = new StringBuilder(); // Declare here instead of passing around everywhere
@@ -401,32 +405,41 @@ public class Prover {
     prefix = ""; // reset prefix
     log = new StringBuilder(); // reset log
 
-    s = s.trim(); // remove start and end whitespace
+    s = s.strip(); // remove start and end whitespace, Unicode-aware
+    s = parseMetaCommands(s);
+    return s;
+  }
 
-    Matcher m = PAT_STRATEGY.matcher(s);
-    if (m.find()) {
-      // Extract the full matched strategy
-      String strategy = m.group();
-      strategy = strategy.substring(1, strategy.length() - 1); // Remove '[' and ']'
-      strategy = strategy.replace(STRATEGY, "");
+  /**
+   * Parse meta-commands and then return the remainder of the string.
+   */
+  private static String parseMetaCommands(String s) {
+    Matcher metaCmdMatcher = PAT_META_CMD.matcher(s);
+    if (metaCmdMatcher.find()) {
+      // Remove the matched meta-commands from the string
+      s = metaCmdMatcher.group(GROUP_FINAL_CMD).strip();
 
-      // Split by commas and process each key-value pair
-      String[] entries = strategy.split("\\s*,\\s*"); // Split by ", " or ","
-      for (String entry : entries) {
-        String[] keyValue = entry.split("\\s+"); // Split by space between key and value
-        String key = keyValue[0];
-        int value = Integer.parseInt(keyValue[1]);
+      // split meta-commands based on commas
+      String metaCommandString = metaCmdMatcher.group(GROUP_META_CMD).strip();
+      for (String metaCommand : metaCommandString.split(",")) {
+        metaCommand = metaCommand.strip();
+        if (metaCommand.startsWith(STRATEGY)) {
+          String[] strategyAndIndex = metaCommand.split("\\s+");
+          if (strategyAndIndex.length != 3) {
+            throw ExceptionHelper.invalidCommandUse(metaCommand);
+          }
+          DeterminizationStrategies.getStrategyMap().put(
+              Integer.parseInt(strategyAndIndex[2]),
+              DeterminizationStrategies.Strategy.fromString(strategyAndIndex[1]));
+        } else if (metaCommand.startsWith(EXPORT)) {
 
-        DeterminizationStrategies.getStrategyMap().put(value, DeterminizationStrategies.Strategy.fromString(key));
+        }
+        System.out.println("Parsed strategy: " + DeterminizationStrategies.getStrategyMap());
       }
-
-      System.out.println("Parsed strategy: " + DeterminizationStrategies.getStrategyMap());
-
-      // Remove the matched strategy from the string
-      s = m.replaceFirst("").trim();
     }
     return s;
   }
+
 
   public static TestCase dispatchForIntegrationTest(String s, String msg) throws IOException {
     s = parseSetup(s);

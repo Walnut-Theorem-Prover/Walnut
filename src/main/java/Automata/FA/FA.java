@@ -23,7 +23,6 @@ import MRC.Model.MyDFA;
 import MRC.Model.MyNFA;
 import Main.ExceptionHelper;
 import Main.UtilityMethods;
-import Token.RelationalOperator;
 import dk.brics.automaton.RegExp;
 import dk.brics.automaton.State;
 import dk.brics.automaton.Transition;
@@ -140,27 +139,7 @@ public class FA implements Cloneable {
             "Q:" + Q + ", q0:" + q0 + ", canon: " + canonized + ", O:" + O + ", dfaD:" + dfaD + ", nfaD:" + nfaD;
   }
 
-    /**
-     * The operator can be one of "<" ">" "=" "!=" "<=" ">=".
-     * For example if operator = "<" then this method changes the word A
-     * to a DFA that accepts x iff this[x] < o lexicographically.
-     * To be used only when this A is a DFAO (word).
-     *
-     * @param operator
-     */
-    public void compare(
-            int o, String operator, boolean print, String prefix, StringBuilder log) {
-        long timeBefore = System.currentTimeMillis();
-        UtilityMethods.logMessage(print, prefix + "comparing (" + operator + ") against " + o + ":" + Q + " states", log);
-        for (int p = 0; p < getQ(); p++) {
-            O.set(p, RelationalOperator.compare(operator, O.getInt(p), o) ? 1 : 0);
-        }
-        determinizeAndMinimize(print, prefix + " ", log);
-        long timeAfter = System.currentTimeMillis();
-        UtilityMethods.logMessage(print, prefix + "compared (" + operator + ") against " + o + ":" + Q + " states - " + (timeAfter - timeBefore) + "ms", log);
-    }
-
-    public boolean isTotalized() {
+  public boolean isTotalized() {
       boolean totalized = true;
       for(int q = 0; q < Q; q++){
           for(int x = 0; x < alphabetSize; x++){
