@@ -53,3 +53,5 @@ hs_err_pid*
 # Directory for experiments
 scratch/
 
+# Users sessions shouldn't be tracked with git
+Session
