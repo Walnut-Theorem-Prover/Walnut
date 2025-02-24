@@ -16,12 +16,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Dead states are removed (trim) before determinization.
 - (INCOMPLETE) Bisimulation reduction before determinization.
 - Leveraging the [AutomataLib](https://github.com/LearnLib/automatalib) library.
+- Allow reading and writing NFAs to/from the [BA](https://languageinclusion.org/doku.php?id=tools) format, including intermediates.
 - (INCOMPLETE, UNPUBLISHED) Leveraging the OTF library.
 - (INCOMPLETE, UNPUBLISHED) Additional determinization strategy choices:
   * [Brzozowski's algorithm](https://en.wikipedia.org/wiki/DFA_minimization#Brzozowski's_algorithm)
   * OTF
   * Brzozowski-OTF
-- (INCOMPLETE) Allow reading and writing NFAs to/from the [BA](https://languageinclusion.org/doku.php?id=tools) format, including intermediates.
 
 ### Fixed
 

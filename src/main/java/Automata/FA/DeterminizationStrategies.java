@@ -1,5 +1,6 @@
 package Automata.FA;
 
+import Automata.AutomatonWriter;
 import MRC.Index.AntichainForestIndex;
 import MRC.Index.OTFIndex;
 import MRC.Model.DeterminizeRecord;
@@ -9,12 +10,15 @@ import MRC.Model.Threshold;
 import MRC.NFATrim;
 import MRC.Simulation.ParallelSimulation;
 import Main.EvalComputations.Token.ArithmeticOperator;
+import Main.MetaCommands;
+import Main.Session;
 import Main.UtilityMethods;
 import MRC.OnTheFlyDeterminization;
 import it.unimi.dsi.fastutil.ints.*;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import net.automatalib.alphabet.Alphabet;
+import net.automatalib.automaton.fsa.impl.CompactNFA;
 import net.automatalib.ts.AcceptorPowersetViewTS;
 
 import java.util.*;
@@ -26,11 +30,6 @@ import java.util.*;
  * This is useful for meta-commands like [export] and [strategy]
  */
 public class DeterminizationStrategies {
-  private static final Int2ObjectMap<Strategy> strategyMap = new Int2ObjectOpenHashMap<>();
-
-  public static Int2ObjectMap<Strategy> getStrategyMap() {
-    return strategyMap;
-  }
 
   public enum Strategy {
     SC("SC", false, List.of("SC")),
@@ -88,22 +87,34 @@ public class DeterminizationStrategies {
      */
     public static void determinize(
             FA fa, IntSet initialState, boolean print, String prefix, StringBuilder log) {
-      // Convert to MyNFA representation
-      // then trim
-      // then bisim
 
       long timeBefore = System.currentTimeMillis();
+
+
 
       Strategy strategy = Strategy.SC;
       if (print) {
         // Increment our automata count for use in strategy calculations.
         // Note this is only done when print is true.
         // That's because there are several silent automata creations for NS, Ostrowski, and other caches.
-        int automataIdx = FA.incrementIndex();
-        strategy = strategyMap.getOrDefault(automataIdx, Strategy.SC);
+        int automataIdx = MetaCommands.incrementAutomataIndex();
+        strategy = MetaCommands.strategyMap.getOrDefault(automataIdx, Strategy.SC);
+
+        if (MetaCommands.exportBAMap.contains(automataIdx)) {
+          if (fa.isDFAO()) {
+            System.out.println("Can't export DFAO " + automataIdx + " to BA format; ignoring export request");
+          } else {
+            AutomatonWriter.exportToBA(fa, Session.getAddressForResult() + automataIdx + "_pre.ba", false);
+          }
+        }
+
         UtilityMethods.logMessage(print, prefix +
             "Determinizing " + strategy.outputName(automataIdx) + ": " + fa.getQ() + " states", log);
       }
+
+      // Convert to MyNFA representation
+      // then trim
+      // then bisim
 
       switch (strategy) {
         case SC -> SC(fa, initialState, print, prefix, log);
@@ -112,6 +123,7 @@ public class DeterminizationStrategies {
       }
 
       long timeAfter = System.currentTimeMillis();
+
       UtilityMethods.logMessage(
           print, prefix + "Determinized: " + fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
     }

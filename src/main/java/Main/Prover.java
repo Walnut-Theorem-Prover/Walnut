@@ -27,7 +27,6 @@ import java.util.regex.Pattern;
 
 import Automata.*;
 import Automata.FA.DeterminizationStrategies;
-import Automata.FA.FA;
 import Automata.Numeration.Ostrowski;
 import Main.EvalComputations.Token.ArithmeticOperator;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
@@ -38,7 +37,7 @@ import it.unimi.dsi.fastutil.ints.IntList;
  * and parse and dispatch the command appropriately.
  */
 public class Prover {
-  static final String RE_FOR_THE_LIST_OF_CMDS = "(eval|def|macro|reg|load|ost|exit|quit|cls|clear|combine|morphism|promote|image|inf|split|rsplit|join|test|transduce|reverse|minimize|convert|fixleadzero|fixtrailzero|alphabet|union|intersect|star|concat|rightquo|leftquo|draw|help)";
+  static final String RE_FOR_THE_LIST_OF_CMDS = "(eval|def|macro|reg|load|ost|exit|quit|cls|clear|combine|morphism|promote|image|inf|split|rsplit|join|test|transduce|reverse|minimize|convert|fixleadzero|fixtrailzero|alphabet|union|intersect|star|concat|rightquo|leftquo|draw|export|help)";
   static final String RE_END_CMD = "(;|::|:)$";
   static final String RE_START = "^";
   static final String RE_WORD_OF_CMD_NO_SPC = "([a-zA-Z]\\w*)";
@@ -199,7 +198,7 @@ public class Prover {
   static final Pattern PAT_FOR_fixtrailzero_CMD = Pattern.compile(RE_FOR_fixtrailzero_CMD);
   static final int GROUP_FIXTRAILZERO_NEW_NAME = 1, GROUP_FIXTRAILZERO_OLD_NAME = 3, GROUP_FIXTRAILZERO_END = 4;
 
-  static final String RE_FOR_alphabet_CMD = RE_START + "(alphabet)" + RE_WORD_OF_CMD + "\\s+((((((msd|lsd)_(\\d+|\\w+))|((msd|lsd)(\\d+|\\w+))|(msd|lsd)|(\\d+|\\w+))|(\\{(\\s*(\\+|\\-)?\\s*\\d+)(\\s*,\\s*(\\+|\\-)?\\s*\\d+)*\\s*\\}))\\s+)+)(\\$|\\s*)" + RE_WORD_OF_CMD_NO_SPC + "\\s*" + RE_END_CMD;
+  static final String RE_FOR_alphabet_CMD = RE_START + "(" + ALPHABET + ")" + RE_WORD_OF_CMD + "\\s+((((((msd|lsd)_(\\d+|\\w+))|((msd|lsd)(\\d+|\\w+))|(msd|lsd)|(\\d+|\\w+))|(\\{(\\s*(\\+|\\-)?\\s*\\d+)(\\s*,\\s*(\\+|\\-)?\\s*\\d+)*\\s*\\}))\\s+)+)(\\$|\\s*)" + RE_WORD_OF_CMD_NO_SPC + "\\s*" + RE_END_CMD;
   static final Pattern PAT_FOR_alphabet_CMD = Pattern.compile(RE_FOR_alphabet_CMD);
   static final int GROUP_alphabet_NEW_NAME = 2, GROUP_alphabet_LIST_OF_ALPHABETS = 3, GROUP_alphabet_DOLLAR_SIGN = 20, GROUP_alphabet_OLD_NAME = 21, GROUP_alphabet_END = 22;
 
@@ -239,7 +238,7 @@ public class Prover {
   static final Pattern PAT_FOR_leftquo_CMD = Pattern.compile(RE_FOR_leftquo_CMD);
   static final int GROUP_leftquo_NEW_NAME = 1, GROUP_leftquo_OLD_NAME1 = 2, GROUP_leftquo_OLD_NAME2 = 3, GROUP_leftquo_END = 4;
 
-  static final String RE_FOR_draw_CMD = RE_START + "draw\\s+(\\$|\\s*)" + RE_WORD_OF_CMD_NO_SPC + "\\s*" + RE_END_CMD;
+  static final String RE_FOR_draw_CMD = RE_START + DRAW + "\\s+(\\$|\\s*)" + RE_WORD_OF_CMD_NO_SPC + "\\s*" + RE_END_CMD;
   static final Pattern PAT_FOR_draw_CMD = Pattern.compile(RE_FOR_draw_CMD);
   static final int GROUP_draw_DOLLAR_SIGN = 1, GROUP_draw_NAME = 2;
 
@@ -250,6 +249,10 @@ public class Prover {
 
   static final String STRATEGY = "strategy";
   static final String EXPORT = "export";
+
+  static final String RE_FOR_export_CMD = RE_START + "export\\s+(\\$|\\s*)" + RE_WORD_OF_CMD_NO_SPC + "\\s*" + RE_END_CMD;
+  static final Pattern PAT_FOR_export_CMD = Pattern.compile(RE_FOR_export_CMD);
+  static final int GROUP_export_DOLLAR_SIGN = 1, GROUP_export_NAME = 2;
 
   public static String prefix = ""; // Declare here instead of passing around everywhere
   public static StringBuilder log = new StringBuilder(); // Declare here instead of passing around everywhere
@@ -398,7 +401,7 @@ public class Prover {
   }
 
   private static String parseSetup(String s) {
-    FA.resetIndex();
+    MetaCommands.resetAutomataIndex();
     prefix = ""; // reset prefix
     log = new StringBuilder(); // reset log
 
@@ -425,11 +428,15 @@ public class Prover {
           if (strategyAndIndex.length != 3) {
             throw ExceptionHelper.invalidCommandUse(metaCommand);
           }
-          DeterminizationStrategies.getStrategyMap().put(
+          MetaCommands.addStrategy(
               Integer.parseInt(strategyAndIndex[2]),
               DeterminizationStrategies.Strategy.fromString(strategyAndIndex[1]));
         } else if (metaCommand.startsWith(EXPORT)) {
-
+          String[] strategyAndIndex = metaCommand.split("\\s+");
+          if (strategyAndIndex.length != 2) {
+            throw ExceptionHelper.invalidCommandUse(metaCommand);
+          }
+          MetaCommands.addExportBA(Integer.parseInt(strategyAndIndex[1]));
         }
       }
     }
@@ -550,6 +557,9 @@ public class Prover {
       }
       case DRAW -> {
         return drawCommand(s);
+      }
+      case EXPORT -> {
+        return exportCommand(s);
       }
       case HELP -> HelpMessages.helpCommand(s);
       default -> throw ExceptionHelper.invalidCommand(commandName);
@@ -1332,6 +1342,22 @@ public class Prover {
 
     return new TestCase(M);
   }
+
+  public static TestCase exportCommand(String s) {
+    Matcher m = matchOrFail(PAT_FOR_export_CMD, s, EXPORT);
+
+    String inFileName = m.group(GROUP_export_NAME) + ".txt";
+    boolean isDFAO = !m.group(GROUP_export_DOLLAR_SIGN).equals("$");
+    if (isDFAO) {
+      throw new RuntimeException("Can't export DFAO to BA format");
+    }
+    String inLibrary = Session.getReadFileForAutomataLibrary(inFileName);
+    Automaton M = new Automaton(inLibrary);
+    AutomatonWriter.exportToBA(M.fa, Session.getAddressForResult() + m.group(GROUP_export_NAME) + ".ba", false);
+
+    return new TestCase(M);
+  }
+
 
   private static Matcher matchOrFail(Pattern pattern, String input, String commandName) {
     Matcher m = pattern.matcher(input);

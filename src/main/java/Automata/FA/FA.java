@@ -39,7 +39,6 @@ import java.util.function.Predicate;
  * TODO: fully abstract transitions such that this is easily an NFA, DFA, or anywhere in between.
  */
 public class FA implements Cloneable {
-  private static int AutomataIndex = 0; // Indicates the index of the automata in a particular run
 
   // q0 is the initial state. Multiple initial states aren't supported.
   private int q0;
@@ -81,15 +80,18 @@ public class FA implements Cloneable {
     nfaD = new ArrayList<>();
   }
 
-  /**
-   * Used when we're done with a particular run.
-   */
-  public static void resetIndex() {
-    AutomataIndex = 0;
-    DeterminizationStrategies.getStrategyMap().clear();
+  public boolean isAccepting(int state) {
+    return O.getInt(state) != 0;
   }
-  public static int incrementIndex() {
-    return AutomataIndex++;
+
+  // Check if this is a DFAO.
+  public boolean isDFAO() {
+    for (int i=0;i<Q;i++) {
+      if (O.getInt(i) > 1) {
+        return true;
+      }
+    }
+    return false;
   }
 
   public void alphabetStates(List<List<Integer>> newAlphabet, List<List<Integer>> oldAlphabet, Automaton M) {
@@ -199,7 +201,7 @@ public class FA implements Cloneable {
     N.Q = N.Q + 1;
     Set<Int2ObjectMap.Entry<IntList>> sourceEntrySet = automaton.getEntriesNfaD(automaton.getQ0());
     for (int q = 0; q < N.getQ(); q++) {
-      if (N.O.getInt(q) == 0) continue;  // only handle final states
+      if (!N.isAccepting(q)) continue; // only handle final states
       // Merge transitions from automaton's initial state's transitions
       Int2ObjectRBTreeMap<IntList> destMap = N.nfaD.get(q);
       for (Int2ObjectMap.Entry<IntList> entry : sourceEntrySet) {
@@ -227,7 +229,7 @@ public class FA implements Cloneable {
       // now iterate through all of self's states. If they are final, add a transition to wherever the other's
       // initial state goes.
       for (int q = 0; q < originalQ; q++) {
-        if (N.O.getInt(q) == 0) { // if it is NOT a final state
+        if (!N.isAccepting(q)) { // if it is NOT a final state
           continue;
         }
 
@@ -506,7 +508,7 @@ public class FA implements Cloneable {
       IntSet newInitialStates = new IntOpenHashSet();
       // final states become initial states
       for (int q = 0; q < Q; q++) {
-          if (O.getInt(q) != 0) {
+          if (isAccepting(q)) {
               newInitialStates.add(q);
               O.set(q, 0);
           }
@@ -640,7 +642,7 @@ public class FA implements Cloneable {
     List<dk.brics.automaton.State> setOfStates = new ArrayList<>(Q);
     for (int q = 0; q < Q; q++) {
       setOfStates.add(new dk.brics.automaton.State());
-      if (O.getInt(q) != 0) setOfStates.get(q).setAccept(true);
+      if (isAccepting(q)) setOfStates.get(q).setAccept(true);
     }
     dk.brics.automaton.State initialState = setOfStates.get(getQ0());
     for (int q = 0; q < Q; q++) {
@@ -710,7 +712,7 @@ public class FA implements Cloneable {
           adjacencyList.get(p).add(q);
         }
       }
-      if (O.getInt(q) != 0) queue.add(q);
+      if (isAccepting(q)) queue.add(q);
     }
     while (!queue.isEmpty()) {
       int q = queue.poll();
@@ -820,7 +822,7 @@ public class FA implements Cloneable {
   public IntSet getFinalStates() {
       IntSet finalStates = new IntOpenHashSet();
       for (int q = 0; q < O.size(); q++) {
-          if (O.getInt(q) > 0) {
+          if (isAccepting(q)) {
               finalStates.add(q);
           }
       }
@@ -895,7 +897,7 @@ public class FA implements Cloneable {
   public CompactNFA<Integer> FAtoCompactNFA() {
       CompactNFA<Integer> nfa = new CompactNFA<>(Alphabets.integers(0, this.alphabetSize - 1), this.Q);
       for (int i = 0; i < this.Q; i++) {
-          nfa.addState(this.O.getInt(i) != 0);
+          nfa.addState(isAccepting(i));
       }
       nfa.setInitial(this.q0, true);
       for (int i = 0; i < this.Q; i++) {
@@ -931,7 +933,7 @@ public class FA implements Cloneable {
   public MyNFA<Integer> FAtoMyNFA() {
     MyNFA<Integer> nfa = new MyNFA<>(Alphabets.integers(0, this.alphabetSize - 1), this.Q);
     for (int i = 0; i < this.Q; i++) {
-      nfa.addState(this.O.getInt(i) != 0);
+      nfa.addState(isAccepting(i));
     }
     nfa.setInitial(this.q0, true);
     if (nfaD != null) {
@@ -985,7 +987,7 @@ public class FA implements Cloneable {
     }
     alphabetSize = myDFA.getInputAlphabet().size();
     nfaD = null;
-    dfaD = new ArrayList<>();
+    dfaD = new ArrayList<>(Q);
     for(int i=0;i<Q;i++) {
       Int2IntMap iMap = new Int2IntOpenHashMap();
       dfaD.add(iMap);
@@ -997,6 +999,7 @@ public class FA implements Cloneable {
       }
     }
   }
+
 
     public List<Int2IntMap> getDfaD() {
         return dfaD;
@@ -1082,7 +1085,7 @@ public class FA implements Cloneable {
           if (!cycle.isEmpty()) {
               final int finalI = i;
               String prefix = findPath(this, getQ0(), y -> y == finalI, A);
-              String suffix = findPath(this, finalI, y -> O.getInt(y) != 0, A);
+              String suffix = findPath(this, finalI, this::isAccepting, A);
               return prefix + "(" + cycle + ")*" + suffix;
           }
       }
