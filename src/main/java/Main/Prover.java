@@ -29,6 +29,7 @@ import Automata.*;
 import Automata.FA.DeterminizationStrategies;
 import Automata.FA.FA;
 import Automata.Numeration.Ostrowski;
+import Main.EvalComputations.Token.ArithmeticOperator;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 
@@ -865,7 +866,7 @@ public class Prover {
     boolean hasInput = false;
     while (inputPattern.find()) {
       String t = inputPattern.group(1);
-      hasInput = hasInput || t.equals(ArithOp.PLUS) || t.equals(ArithOp.MINUS);
+      hasInput = hasInput || t.equals(ArithmeticOperator.PLUS) || t.equals(ArithmeticOperator.MINUS);
       inputs.add(t);
     }
     if (!hasInput || inputs.isEmpty()) {

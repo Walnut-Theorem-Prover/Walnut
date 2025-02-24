@@ -20,7 +20,6 @@ package Main.EvalComputations.Token;
 
 import Automata.AutomatonLogicalOps;
 import Automata.Automaton;
-import Main.ArithOp;
 import Main.EvalComputations.Expressions.*;
 import Main.ExceptionHelper;
 import Main.EvalComputations.Expressions.Expression;
@@ -31,6 +30,12 @@ import java.util.Stack;
 
 
 public class RelationalOperator extends Operator {
+    public static final String EQUAL = "=";
+    public static final String NOT_EQUAL = "!=";
+    public static final String LESS_THAN = "<";
+    public static final String GREATER_THAN = ">";
+    public static final String LESS_EQ_THAN = "<=";
+    public static final String GREATER_EQ_THAN = ">=";
     private final NumberSystem ns;
 
     public RelationalOperator(int position, String type, NumberSystem ns) {
@@ -51,7 +56,7 @@ public class RelationalOperator extends Operator {
         Expression a = S.pop();
 
         if ((a instanceof NumberLiteralExpression || a instanceof AlphabetLetterExpression) && (b instanceof NumberLiteralExpression || b instanceof AlphabetLetterExpression)) {
-            S.push(new AutomatonExpression(a + op + b, new Automaton(ArithOp.compare(op, a.constant, b.constant))));
+            S.push(new AutomatonExpression(a + op + b, new Automaton(compare(op, a.constant, b.constant))));
             return;
         }
         UtilityMethods.logAndPrint(print, prefix + "computing " + a + op + b, log);
@@ -77,7 +82,7 @@ public class RelationalOperator extends Operator {
             Automaton M = new Automaton(true);
             for (int o : word.wordAutomaton.getO()) {
                 Automaton N = word.wordAutomaton.clone();
-                AutomatonLogicalOps.compareWordAutomaton(N.fa, o, ArithOp.EQUAL, print, prefix + " ", log);
+                AutomatonLogicalOps.compareWordAutomaton(N.fa, o, EQUAL, print, prefix + " ", log);
                 Automaton C;
                 if (reverse) {
                     C = ns.comparison(arithmetic.identifier, o, op);
@@ -119,7 +124,7 @@ public class RelationalOperator extends Operator {
             AutomatonLogicalOps.quantify(M, ((WordExpression)a).identifiersToQuantify, print, prefix + " ", log);
             S.push(new AutomatonExpression(a + op + b, M));
         } else if ((a instanceof NumberLiteralExpression || a instanceof AlphabetLetterExpression) && b instanceof WordExpression) {
-            AutomatonLogicalOps.compareWordAutomaton(b.wordAutomaton.fa, a.constant, ArithOp.reverseOperator(op), print, prefix + " ", log);
+            AutomatonLogicalOps.compareWordAutomaton(b.wordAutomaton.fa, a.constant, reverseOperator(op), print, prefix + " ", log);
             Automaton M = b.wordAutomaton;
             M = AutomatonLogicalOps.and(M, b.M, print, prefix + " ", log);
             AutomatonLogicalOps.quantify(M, ((WordExpression)b).identifiersToQuantify, print, prefix + " ", log);
@@ -138,4 +143,27 @@ public class RelationalOperator extends Operator {
         return M;
     }
 
+    public static boolean compare(String op, int a, int b) {
+        return switch (op) {
+            case EQUAL -> a == b;
+            case NOT_EQUAL -> a != b;
+            case LESS_THAN -> a < b;
+            case GREATER_THAN -> a > b;
+            case LESS_EQ_THAN -> a <= b;
+            case GREATER_EQ_THAN -> a >= b;
+            default -> throw ExceptionHelper.unexpectedOperator(op);
+        };
+    }
+
+    public static String reverseOperator(String op) {
+        return switch (op) {
+            case EQUAL -> EQUAL;
+            case NOT_EQUAL -> NOT_EQUAL;
+            case LESS_THAN -> GREATER_THAN;
+            case GREATER_THAN -> LESS_THAN;
+            case LESS_EQ_THAN -> GREATER_EQ_THAN;
+            case GREATER_EQ_THAN -> LESS_EQ_THAN;
+            default -> throw ExceptionHelper.unexpectedOperator(op);
+        };
+    }
 }

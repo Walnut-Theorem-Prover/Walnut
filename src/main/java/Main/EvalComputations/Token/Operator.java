@@ -18,7 +18,6 @@
 
 package Main.EvalComputations.Token;
 
-import Main.ArithOp;
 import Main.EvalComputations.Expressions.Expression;
 
 import java.util.List;
@@ -70,13 +69,13 @@ public abstract class Operator extends Token {
             case "_":
                 priority = 5;
                 break;
-            case ArithOp.MULT, ArithOp.DIV:
+            case ArithmeticOperator.MULT, ArithmeticOperator.DIV:
                 priority = 10;
                 break;
-            case ArithOp.PLUS, ArithOp.MINUS:
+            case ArithmeticOperator.PLUS, ArithmeticOperator.MINUS:
                 priority = 20;
                 break;
-            case ArithOp.EQUAL, ArithOp.NOT_EQUAL, ArithOp.LESS_THAN, ArithOp.GREATER_THAN, ArithOp.LESS_EQ_THAN, ArithOp.GREATER_EQ_THAN:
+            case RelationalOperator.EQUAL, RelationalOperator.NOT_EQUAL, RelationalOperator.LESS_THAN, RelationalOperator.GREATER_THAN, RelationalOperator.LESS_EQ_THAN, RelationalOperator.GREATER_EQ_THAN:
                 priority = 40;
                 break;
             case "~", "`":

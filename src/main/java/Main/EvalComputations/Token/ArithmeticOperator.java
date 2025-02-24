@@ -22,7 +22,6 @@ import java.util.List;
 import java.util.Stack;
 
 import Automata.AutomatonLogicalOps;
-import Main.ArithOp;
 import Main.EvalComputations.Expressions.*;
 import Main.ExceptionHelper;
 import Main.EvalComputations.Expressions.Expression;
@@ -32,6 +31,10 @@ import Main.UtilityMethods;
 
 
 public class ArithmeticOperator extends Operator {
+    public static final String PLUS = "+";
+    public static final String MINUS = "-";
+    public static final String DIV = "/";
+    public static final String MULT = "*";
     private final NumberSystem ns;
 
     public ArithmeticOperator(int position, String op, NumberSystem ns) {
@@ -68,14 +71,14 @@ public class ArithmeticOperator extends Operator {
             return;
         }
         if (b instanceof WordExpression) {
-            b.wordAutomaton.applyWordOperator(0, ArithOp.MINUS, false, print, prefix, log);
+            b.wordAutomaton.applyWordOperator(0, MINUS, false, print, prefix, log);
             S.push(b);
             return;
         }
 
         String c = getUniqueString();
         // b + c = 0
-        Automaton M = ns.arithmetic(b.identifier, c, 0, ArithOp.PLUS);
+        Automaton M = ns.arithmetic(b.identifier, c, 0, PLUS);
         UtilityMethods.logAndPrint(print, prefix + "computing " + op + b, log);
         M = andAndQuantifyArithmeticExpression(print, prefix, log, b, M);
         S.push(new ArithmeticExpression("(" + op + b + ")", M, c));
@@ -107,7 +110,7 @@ public class ArithmeticOperator extends Operator {
 
         if (
             (a instanceof NumberLiteralExpression || a instanceof AlphabetLetterExpression) && (b instanceof NumberLiteralExpression)) {
-            int value = ArithOp.arith(op, a.constant, b.constant);
+            int value = arith(op, a.constant, b.constant);
             S.push(new NumberLiteralExpression(Integer.toString(value), value, ns));
             return;
         }
@@ -135,9 +138,9 @@ public class ArithmeticOperator extends Operator {
             M = new Automaton(true);
             for (int o : word.wordAutomaton.getO()) {
                 Automaton N = word.wordAutomaton.clone();
-                AutomatonLogicalOps.compareWordAutomaton(N.fa, o, ArithOp.EQUAL, print, prefix + " ", log);
+                AutomatonLogicalOps.compareWordAutomaton(N.fa, o, RelationalOperator.EQUAL, print, prefix + " ", log);
                 Automaton C;
-                if (o == 0 && op.equals(ArithOp.MULT)) {
+                if (o == 0 && op.equals(MULT)) {
                     C = ns.get(0);
                     C.bind(List.of(c));
                 } else if (reverse) {
@@ -153,13 +156,13 @@ public class ArithmeticOperator extends Operator {
             M = andAndQuantifyArithmeticExpression(print, prefix, log, arithmetic, M);
         } else {
             if (a instanceof NumberLiteralExpression) {
-                if (a.constant == 0 && op.equals(ArithOp.MULT)) {
+                if (a.constant == 0 && op.equals(MULT)) {
                     S.push(new NumberLiteralExpression("0", 0, ns));
                     return;
                 }
                 M = ns.arithmetic(a.constant, b.identifier, c, op);
             } else if (b instanceof NumberLiteralExpression) {
-                if (b.constant == 0 && op.equals(ArithOp.MULT)) {
+                if (b.constant == 0 && op.equals(MULT)) {
                     S.push(new NumberLiteralExpression("0", 0, ns));
                     return;
                 }
@@ -184,6 +187,24 @@ public class ArithmeticOperator extends Operator {
         return M;
     }
 
+    public static int arith(String op, int a, int b) {
+        switch (op) {
+            case PLUS -> {
+                return a + b;
+            }
+            case MINUS -> {
+                return a - b;
+            }
+            case DIV -> {
+                if (b == 0) throw ExceptionHelper.divisionByZero();
+                return Math.floorDiv(a, b);
+            }
+            case MULT -> {
+                return a * b;
+            }
+            default -> throw ExceptionHelper.unexpectedOperator(op);
+        }
+    }
 
     private static boolean isValidArithmeticOperator(Expression a) {
         return (a instanceof AlphabetLetterExpression || a instanceof WordExpression || a instanceof ArithmeticExpression || a instanceof VariableExpression || a instanceof NumberLiteralExpression);
