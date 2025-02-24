@@ -30,43 +30,42 @@ import Main.EvalComputations.Expressions.Expression;
 import Main.EvalComputations.Token.Token;
 
 
-public class Computer {
-    private final Predicate predicateObject;
-    final String predicateString;
+/**
+ * This is used in eval/def commands to compute the predicate.
+ */
+public class EvalComputer {
     Expression result;
     private final StringBuilder log;
     final StringBuilder logDetails;
     private final boolean printSteps;
     private final boolean printDetails;
 
-    public Computer(String predicate, boolean printSteps, boolean printDetails) {
+    public EvalComputer(Predicate predicate, boolean printSteps, boolean printDetails) {
         this.log = new StringBuilder();
         this.logDetails = new StringBuilder();
-        this.predicateString = predicate;
-        predicateObject = new Predicate(predicate);
         this.printSteps = printSteps;
         this.printDetails = printDetails;
-        compute();
+        compute(predicate);
     }
 
     public String toString() {
         return result.toString();
     }
 
-    void writeLogs(String resultName, Computer c, boolean printDetails) throws IOException {
+    void writeLogs(String resultName, boolean printDetails) throws IOException {
         try (PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(resultName + "_log.txt")))) {
-            out.write(c.log.toString());
+            out.write(log.toString());
         }
         if (printDetails) {
             try (PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(resultName + "_detailed_log.txt")))) {
-                out.write(c.logDetails.toString());
+                out.write(logDetails.toString());
             }
         }
     }
 
-    private void compute() {
+    private void compute(Predicate predicate) {
         Stack<Expression> expressions = new Stack<>();
-        List<Token> postOrder = predicateObject.getPostOrder();
+        List<Token> postOrder = predicate.getPostOrder();
         String prefix = "";
         long timeBeginning = System.currentTimeMillis();
         String step;

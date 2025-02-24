@@ -431,7 +431,6 @@ public class Prover {
         } else if (metaCommand.startsWith(EXPORT)) {
 
         }
-        System.out.println("Parsed strategy: " + DeterminizationStrategies.getStrategyMap());
       }
     }
     return s;
@@ -587,20 +586,22 @@ public class Prover {
     boolean printSteps = m.group(ED_ENDING).equals(":");
     boolean printDetails = m.group(ED_ENDING).equals("::");
 
-    Computer c = new Computer(m.group(ED_PREDICATE), printSteps, printDetails);
+    String predicate = m.group(ED_PREDICATE);
+
+    EvalComputer c = new EvalComputer(new Predicate(predicate), printSteps, printDetails);
     Automaton M = c.result.M;
 
     String resultName = Session.getAddressForResult() + m.group(ED_NAME);
     String gvAddress = resultName + ".gv";
 
-    M.writeAutomata(c.predicateString, Session.getWriteAddressForAutomataLibrary(), m.group(ED_NAME), false);
+    M.writeAutomata(predicate, Session.getWriteAddressForAutomataLibrary(), m.group(ED_NAME), false);
 
     if (!free_variables.isEmpty()) {
       mplAddress = resultName + ".mpl";
       AutomatonWriter.writeMatrices(c.result.M, mplAddress, free_variables);
     }
 
-    c.writeLogs(resultName, c, printDetails);
+    c.writeLogs(resultName, printDetails);
 
     if (M.fa.isTRUE_FALSE_AUTOMATON()) {
       System.out.println("____\n" + (M.fa.isTRUE_AUTOMATON() ? "TRUE" : "FALSE"));
