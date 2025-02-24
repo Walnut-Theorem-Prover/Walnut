@@ -22,7 +22,7 @@ import java.io.File;
 import java.util.*;
 
 import Automata.FA.FA;
-import Main.BasicOp;
+import Main.ArithOp;
 import Main.ExceptionHelper;
 import Main.Session;
 import Main.UtilityMethods;
@@ -611,12 +611,12 @@ public class NumberSystem {
      */
     public Automaton comparison(String a, String b, String comparisonOperator) {
       return switch (comparisonOperator) {
-            case "<" -> applyComparison(lessThan, a, b, false, false);
-            case ">" -> applyComparison(lessThan, a, b, true, false);
-            case "=" -> applyComparison(equality, a, b, false, false);
-            case "!=" -> applyComparison(equality, a, b, false, true);
-            case ">=" -> applyComparison(lessThan, a, b, false, true);
-            case "<=" -> applyComparison(lessThan, a, b, true, true);
+            case ArithOp.LESS_THAN -> applyComparison(lessThan, a, b, false, false);
+            case ArithOp.GREATER_THAN -> applyComparison(lessThan, a, b, true, false);
+            case ArithOp.EQUAL -> applyComparison(equality, a, b, false, false);
+            case ArithOp.NOT_EQUAL -> applyComparison(equality, a, b, false, true);
+            case ArithOp.GREATER_EQ_THAN -> applyComparison(lessThan, a, b, false, true);
+            case ArithOp.LESS_EQ_THAN -> applyComparison(lessThan, a, b, true, true);
             default -> throw new RuntimeException("undefined comparison operator:" + comparisonOperator);
         };
     }
@@ -632,14 +632,14 @@ public class NumberSystem {
         String B = "new " + a;//this way, we make sure B != a.
         Automaton N, M;
         if (b < 0) {
-            M = arithmetic(a, -b, B, "+");
+            M = arithmetic(a, -b, B, ArithOp.PLUS);
             N = comparison(B, 0, comparisonOperator);
         } else { // b >= 0
             N = get(b);
-            if (comparisonOperator.equals("=")) {
+            if (comparisonOperator.equals(ArithOp.EQUAL)) {
                 N.bind(List.of(a));
                 return N;
-            } else if (comparisonOperator.equals("!=")) {
+            } else if (comparisonOperator.equals(ArithOp.NOT_EQUAL)) {
                 N.bind(List.of(a));
                 AutomatonLogicalOps.not(N, false, null, null);
                 return N;
@@ -660,7 +660,7 @@ public class NumberSystem {
      */
     public Automaton comparison(int a, String b, String comparisonOperator) {
         validateNeg(a);
-        return comparison(b, a, BasicOp.reverseOperator(comparisonOperator));
+        return comparison(b, a, ArithOp.reverseOperator(comparisonOperator));
     }
 
     /**
@@ -680,13 +680,13 @@ public class NumberSystem {
             String arithmeticOperator) {
         Automaton M = addition.clone();
         switch (arithmeticOperator) {
-            case "+":
+            case ArithOp.PLUS:
                 M.bind(List.of(a, b, c));
                 break;
             case "-":
                 M.bind(List.of(b, c, a));
                 break;
-            case "*", "/":
+            case ArithOp.MULT, ArithOp.DIV:
                 throw ExceptionHelper.operatorTwoVariables(arithmeticOperator);
             default:
                 throw new RuntimeException("undefined arithmetic operator:" + arithmeticOperator);
@@ -711,13 +711,13 @@ public class NumberSystem {
             String arithmeticOperator) {
         validateNeg(b);
         Automaton N;
-        if (arithmeticOperator.equals("*")) {
+        if (arithmeticOperator.equals(ArithOp.MULT)) {
             //note that the case of b = 0 is handled in Computer class
             N = getMultiplication(b);
             N.bind(List.of(a, c));
             return N;
         }
-        if (arithmeticOperator.equals("/")) {
+        if (arithmeticOperator.equals(ArithOp.DIV)) {
             if (b == 0) throw ExceptionHelper.divisionByZero();
             N = getDivision(b);
             N.bind(List.of(a, c));
@@ -729,7 +729,7 @@ public class NumberSystem {
         if (b < 0) { // We rewrite "a-b=c" as "a+(-b)=c" and "a+b=c" as "a-(-b)=c"
             N = get(-b);
             N.bind(List.of(B));
-            M = arithmetic(a, B, c, arithmeticOperator.equals("+") ? "-" : "+");
+            M = arithmetic(a, B, c, arithmeticOperator.equals(ArithOp.PLUS) ? ArithOp.MINUS : ArithOp.PLUS);
         } else { // b >= 0
             N = get(b);
             N.bind(List.of(B));
@@ -757,17 +757,17 @@ public class NumberSystem {
             String arithmeticOperator) {
         validateNeg(a);
         Automaton N;
-        if (arithmeticOperator.equals("*")) {
+        if (arithmeticOperator.equals(ArithOp.MULT)) {
             N = getMultiplication(a);
             N.bind(List.of(b, c));
             return N;
         }
-        if (arithmeticOperator.equals("/"))
+        if (arithmeticOperator.equals(ArithOp.DIV))
             throw new RuntimeException("constants cannot be divided by variables");
 
         Automaton M;
         String A = b + c; //this way we make sure that A is not equal to b or c
-        if (a < 0 && arithmeticOperator.equals("+")) { // We rewrite "a+b=c" and "c+(-a)=b"
+        if (a < 0 && arithmeticOperator.equals(ArithOp.PLUS)) { // We rewrite "a+b=c" and "c+(-a)=b"
             N = get(-a);
             N.bind(List.of(A));
             M = arithmetic(c, A, b, arithmeticOperator);
@@ -799,14 +799,14 @@ public class NumberSystem {
             int c,
             String arithmeticOperator) {
         validateNeg(c);
-        if (arithmeticOperator.equals("*") || arithmeticOperator.equals("/")) {
+        if (arithmeticOperator.equals(ArithOp.MULT) || arithmeticOperator.equals(ArithOp.DIV)) {
             throw ExceptionHelper.operatorTwoVariables(arithmeticOperator);
         }
 
         Automaton N;
         Automaton M;
         String C = a + b; //this way we make sure that A is not equal to a or b
-        if (c < 0 && arithmeticOperator.equals("-")) { // We rewrite "a-b=c" and "a+(-c)=b"
+        if (c < 0 && arithmeticOperator.equals(ArithOp.MINUS)) { // We rewrite "a-b=c" and "a+(-c)=b"
             N = get(-c);
             N.bind(List.of(C));
             M = arithmetic(a, C, b, arithmeticOperator);
@@ -843,7 +843,7 @@ public class NumberSystem {
             Automaton M = get(-n);
             M.bind(List.of(b));
             // Eb, a + b = 0 & b = -n
-            P = arithmetic(a, b, 0, "+");
+            P = arithmetic(a, b, 0, ArithOp.PLUS);
             P = AutomatonLogicalOps.and(P, M, false, null, null);
             AutomatonLogicalOps.quantify(P, b, false, null, null);
         } else { // n > 0
@@ -854,7 +854,7 @@ public class NumberSystem {
             Automaton N = get(n / 2 + (n % 2 == 0 ? 0 : 1));
             N.bind(List.of(b));
             // Ea,Eb, a + b = c & a = floor(n/2) & b = ceil(n/2)
-            P = arithmetic(a, b, c, "+");
+            P = arithmetic(a, b, c, ArithOp.PLUS);
             P = AutomatonLogicalOps.and(P, M, false, null, null);
             P = AutomatonLogicalOps.and(P, N, false, null, null);
             AutomatonLogicalOps.quantify(P, Set.of(a, b), false, null, null);
@@ -883,12 +883,12 @@ public class NumberSystem {
             Automaton M = getMultiplication(-n);
             M.bind(List.of(a, c));
             // Ec b + c = 0 & c = (-n)*a
-            P = arithmetic(b, c, 0, "+");
+            P = arithmetic(b, c, 0, ArithOp.PLUS);
             P = AutomatonLogicalOps.and(P, M, false, null, null);
             AutomatonLogicalOps.quantify(P, c, false, null, null);
             P.sortLabel();
         } else if (n == 2) {
-            P = arithmetic(a, a, d, "+");
+            P = arithmetic(a, a, d, ArithOp.PLUS);
             P.sortLabel();
         } else { // n > 2
             // doubler
@@ -904,7 +904,7 @@ public class NumberSystem {
                 AutomatonLogicalOps.quantify(P, b, false, null, null);
             } else { // n = 2k+1
                 D.bind(List.of(b, c));
-                P = arithmetic(c, a, d, "+");
+                P = arithmetic(c, a, d, ArithOp.PLUS);
                 P = AutomatonLogicalOps.and(P, M, false, null, null);
                 P = AutomatonLogicalOps.and(P, D, false, null, null);
                 AutomatonLogicalOps.quantify(P, Set.of(b, c), false, null, null);
@@ -935,12 +935,12 @@ public class NumberSystem {
         // We want to construct the following expressions
         // a / n = b <=> Er,q a = q + r & q = n*b & n < r <= 0 if n < 0
         // a / n = b <=> Er,q a = q + r & q = n*b & 0 <= r < n if n > 0
-        Automaton M = arithmetic(q, r, a, "+");
-        Automaton N = arithmetic(n, b, q, "*");
+        Automaton M = arithmetic(q, r, a, ArithOp.PLUS);
+        Automaton N = arithmetic(n, b, q, ArithOp.MULT);
 
         // n < 0: n < r <= 0, n > 0: 0 <= r < n
-        Automaton P1 = comparison(r, 0, n < 0 ? "<=" : ">=");
-        Automaton P2 = comparison(r, n, n < 0 ? ">" : "<");
+        Automaton P1 = comparison(r, 0, n < 0 ? ArithOp.LESS_EQ_THAN : ArithOp.GREATER_EQ_THAN);
+        Automaton P2 = comparison(r, n, n < 0 ? ArithOp.GREATER_THAN : ArithOp.LESS_THAN);
 
         Automaton P = AutomatonLogicalOps.and(P1, P2, false, null, null);
         Automaton R = AutomatonLogicalOps.and(M, N, false, null, null);

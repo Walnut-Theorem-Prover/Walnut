@@ -865,7 +865,7 @@ public class Prover {
     boolean hasInput = false;
     while (inputPattern.find()) {
       String t = inputPattern.group(1);
-      hasInput = hasInput || t.equals("+") || t.equals("-");
+      hasInput = hasInput || t.equals(ArithOp.PLUS) || t.equals(ArithOp.MINUS);
       inputs.add(t);
     }
     if (!hasInput || inputs.isEmpty()) {

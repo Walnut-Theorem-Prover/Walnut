@@ -20,7 +20,7 @@ package Main.EvalComputations.Token;
 
 import Automata.AutomatonLogicalOps;
 import Automata.Automaton;
-import Main.BasicOp;
+import Main.ArithOp;
 import Main.EvalComputations.Expressions.*;
 import Main.ExceptionHelper;
 import Main.EvalComputations.Expressions.Expression;
@@ -51,7 +51,7 @@ public class RelationalOperator extends Operator {
         Expression a = S.pop();
 
         if ((a instanceof NumberLiteralExpression || a instanceof AlphabetLetterExpression) && (b instanceof NumberLiteralExpression || b instanceof AlphabetLetterExpression)) {
-            S.push(new AutomatonExpression(a + op + b, new Automaton(BasicOp.compare(op, a.constant, b.constant))));
+            S.push(new AutomatonExpression(a + op + b, new Automaton(ArithOp.compare(op, a.constant, b.constant))));
             return;
         }
         UtilityMethods.logAndPrint(print, prefix + "computing " + a + op + b, log);
@@ -77,7 +77,7 @@ public class RelationalOperator extends Operator {
             Automaton M = new Automaton(true);
             for (int o : word.wordAutomaton.getO()) {
                 Automaton N = word.wordAutomaton.clone();
-                AutomatonLogicalOps.compareWordAutomaton(N.fa, o, "=", print, prefix + " ", log);
+                AutomatonLogicalOps.compareWordAutomaton(N.fa, o, ArithOp.EQUAL, print, prefix + " ", log);
                 Automaton C;
                 if (reverse) {
                     C = ns.comparison(arithmetic.identifier, o, op);
@@ -119,7 +119,7 @@ public class RelationalOperator extends Operator {
             AutomatonLogicalOps.quantify(M, ((WordExpression)a).identifiersToQuantify, print, prefix + " ", log);
             S.push(new AutomatonExpression(a + op + b, M));
         } else if ((a instanceof NumberLiteralExpression || a instanceof AlphabetLetterExpression) && b instanceof WordExpression) {
-            AutomatonLogicalOps.compareWordAutomaton(b.wordAutomaton.fa, a.constant, BasicOp.reverseOperator(op), print, prefix + " ", log);
+            AutomatonLogicalOps.compareWordAutomaton(b.wordAutomaton.fa, a.constant, ArithOp.reverseOperator(op), print, prefix + " ", log);
             Automaton M = b.wordAutomaton;
             M = AutomatonLogicalOps.and(M, b.M, print, prefix + " ", log);
             AutomatonLogicalOps.quantify(M, ((WordExpression)b).identifiersToQuantify, print, prefix + " ", log);

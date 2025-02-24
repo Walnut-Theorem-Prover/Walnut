@@ -18,6 +18,7 @@
 
 package Main.EvalComputations.Token;
 
+import Main.ArithOp;
 import Main.EvalComputations.Expressions.Expression;
 
 import java.util.List;
@@ -69,13 +70,13 @@ public abstract class Operator extends Token {
             case "_":
                 priority = 5;
                 break;
-            case "*", "/":
+            case ArithOp.MULT, ArithOp.DIV:
                 priority = 10;
                 break;
-            case "+", "-":
+            case ArithOp.PLUS, ArithOp.MINUS:
                 priority = 20;
                 break;
-            case "=", "!=", "<", ">", "<=", ">=":
+            case ArithOp.EQUAL, ArithOp.NOT_EQUAL, ArithOp.LESS_THAN, ArithOp.GREATER_THAN, ArithOp.LESS_EQ_THAN, ArithOp.GREATER_EQ_THAN:
                 priority = 40;
                 break;
             case "~", "`":

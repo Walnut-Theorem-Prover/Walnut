@@ -2,7 +2,7 @@ package Automata.FA;
 
 import Automata.Automaton;
 import Automata.NumberSystem;
-import Main.BasicOp;
+import Main.ArithOp;
 import Main.ExceptionHelper;
 import Main.UtilityMethods;
 import it.unimi.dsi.fastutil.ints.*;
@@ -152,8 +152,8 @@ public class ProductStrategies {
             case "^" -> ((aP != 0 && mQ == 0) || (aP == 0 && mQ != 0)) ? 1 : 0;
             case "=>" -> (aP == 0 || mQ != 0) ? 1 : 0;
             case "<=>" -> ((aP == 0 && mQ == 0) || (aP != 0 && mQ != 0)) ? 1 : 0;
-            case "<", ">", "=", "!=", "<=", ">=" -> BasicOp.compare(op, aP, mQ) ? 1 : 0;
-            case "+", "-", "*", "/" -> BasicOp.arith(op, aP, mQ);
+            case ArithOp.LESS_THAN, ArithOp.GREATER_THAN, ArithOp.EQUAL, ArithOp.NOT_EQUAL, ArithOp.LESS_EQ_THAN, ArithOp.GREATER_EQ_THAN -> ArithOp.compare(op, aP, mQ) ? 1 : 0;
+            case ArithOp.PLUS, ArithOp.MINUS, ArithOp.MULT, ArithOp.DIV -> ArithOp.arith(op, aP, mQ);
             case "combine" -> (mQ == 1) ? combineOut : aP;
             case "first" -> aP == 0 ? mQ : aP;
             case "if_other" -> mQ != 0 ? aP : 0;

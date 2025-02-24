@@ -8,6 +8,7 @@ import MRC.Model.MyNFA;
 import MRC.Model.Threshold;
 import MRC.NFATrim;
 import MRC.Simulation.ParallelSimulation;
+import Main.ArithOp;
 import Main.UtilityMethods;
 import MRC.OnTheFlyDeterminization;
 import it.unimi.dsi.fastutil.ints.*;
@@ -52,7 +53,7 @@ public class DeterminizationStrategies {
     }
 
     public static Strategy fromString(String name) {
-      String tempName = name.replace("_","-").replace("-","");
+      String tempName = name.replace("_", ArithOp.MINUS).replace(ArithOp.MINUS,"");
       for (Strategy strategy : Strategy.values()) {
         for (String alias : strategy.aliases) {
           if (tempName.equalsIgnoreCase(alias)) {

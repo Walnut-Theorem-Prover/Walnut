@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.Stack;
 
 import Automata.AutomatonLogicalOps;
-import Main.BasicOp;
+import Main.ArithOp;
 import Main.EvalComputations.Expressions.*;
 import Main.ExceptionHelper;
 import Main.EvalComputations.Expressions.Expression;
@@ -68,14 +68,14 @@ public class ArithmeticOperator extends Operator {
             return;
         }
         if (b instanceof WordExpression) {
-            b.wordAutomaton.applyWordOperator(0, "-", false, print, prefix, log);
+            b.wordAutomaton.applyWordOperator(0, ArithOp.MINUS, false, print, prefix, log);
             S.push(b);
             return;
         }
 
         String c = getUniqueString();
         // b + c = 0
-        Automaton M = ns.arithmetic(b.identifier, c, 0, "+");
+        Automaton M = ns.arithmetic(b.identifier, c, 0, ArithOp.PLUS);
         UtilityMethods.logAndPrint(print, prefix + "computing " + op + b, log);
         M = andAndQuantifyArithmeticExpression(print, prefix, log, b, M);
         S.push(new ArithmeticExpression("(" + op + b + ")", M, c));
@@ -107,7 +107,7 @@ public class ArithmeticOperator extends Operator {
 
         if (
             (a instanceof NumberLiteralExpression || a instanceof AlphabetLetterExpression) && (b instanceof NumberLiteralExpression)) {
-            int value = BasicOp.arith(op, a.constant, b.constant);
+            int value = ArithOp.arith(op, a.constant, b.constant);
             S.push(new NumberLiteralExpression(Integer.toString(value), value, ns));
             return;
         }
@@ -135,9 +135,9 @@ public class ArithmeticOperator extends Operator {
             M = new Automaton(true);
             for (int o : word.wordAutomaton.getO()) {
                 Automaton N = word.wordAutomaton.clone();
-                AutomatonLogicalOps.compareWordAutomaton(N.fa, o, "=", print, prefix + " ", log);
+                AutomatonLogicalOps.compareWordAutomaton(N.fa, o, ArithOp.EQUAL, print, prefix + " ", log);
                 Automaton C;
-                if (o == 0 && op.equals("*")) {
+                if (o == 0 && op.equals(ArithOp.MULT)) {
                     C = ns.get(0);
                     C.bind(List.of(c));
                 } else if (reverse) {
@@ -153,13 +153,13 @@ public class ArithmeticOperator extends Operator {
             M = andAndQuantifyArithmeticExpression(print, prefix, log, arithmetic, M);
         } else {
             if (a instanceof NumberLiteralExpression) {
-                if (a.constant == 0 && op.equals("*")) {
+                if (a.constant == 0 && op.equals(ArithOp.MULT)) {
                     S.push(new NumberLiteralExpression("0", 0, ns));
                     return;
                 }
                 M = ns.arithmetic(a.constant, b.identifier, c, op);
             } else if (b instanceof NumberLiteralExpression) {
-                if (b.constant == 0 && op.equals("*")) {
+                if (b.constant == 0 && op.equals(ArithOp.MULT)) {
                     S.push(new NumberLiteralExpression("0", 0, ns));
                     return;
                 }

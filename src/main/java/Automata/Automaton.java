@@ -20,7 +20,7 @@ package Automata;
 
 import Automata.FA.FA;
 import Automata.FA.ProductStrategies;
-import Main.BasicOp;
+import Main.ArithOp;
 import Main.ExceptionHelper;
 import Main.Session;
 import Main.UtilityMethods;
@@ -607,16 +607,16 @@ public class Automaton {
                 Automaton baseChange = negativeNumberSystem.baseChange.clone();
                 String a = "a" + i, b = "b" + i, c = "c" + i;
 
-                if (inputs.get(i).equals("+")) {
+                if (inputs.get(i).equals(ArithOp.PLUS)) {
                     baseChange.bind(reverse ? List.of(b,a) : List.of(a,b)); // Use ternary for binding logic
                     M = AutomatonLogicalOps.and(M, baseChange, print, prefix, log);
                     quantifiers.add(b);
-                } else { // inputs.get(i).equals("-")
+                } else { // inputs.get(i).equals(BasicOp.MINUS)
                     baseChange.bind(List.of(reverse ? b : a, c)); // Use ternary for binding logic
                     M = AutomatonLogicalOps.and(M, baseChange, print, prefix, log);
                     M = AutomatonLogicalOps.and(
                         M,
-                        negativeNumberSystem.arithmetic(reverse ? a : b, c, 0, "+"), // Use ternary for arithmetic logic
+                        negativeNumberSystem.arithmetic(reverse ? a : b, c, 0, ArithOp.PLUS), // Use ternary for arithmetic logic
                         print, prefix, log
                     );
                     quantifiers.add(b);
@@ -781,7 +781,7 @@ public class Automaton {
             IntList thisO = this.getO();
             int thisP = thisO.getInt(p);
             thisO.set(p,
-                reverse ? BasicOp.arith(operator, thisP, o) : BasicOp.arith(operator, o, thisP));
+                reverse ? ArithOp.arith(operator, thisP, o) : ArithOp.arith(operator, o, thisP));
         }
         minimizeSelfWithOutput(print, prefix + " ", log);
         long timeAfter = System.currentTimeMillis();

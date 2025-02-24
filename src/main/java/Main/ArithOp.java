@@ -4,7 +4,7 @@ package Main;
 Location for basic operation transformations.
 Consider making this strongly-typed.
  */
-public class BasicOp {
+public class ArithOp {
 
     public static final String EQUAL = "=";
     public static final String NOT_EQUAL = "!=";
