@@ -16,29 +16,30 @@
  *   along with Walnut.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package Token;
+package Main.EvalComputations.Token;
 
-import Main.ExceptionHelper;
-import Main.Expression;
-
-import java.util.List;
 import java.util.Stack;
 
+import Automata.NumberSystem;
+import Main.EvalComputations.Expressions.Expression;
+import Main.EvalComputations.Expressions.NumberLiteralExpression;
 
-public class RightParenthesis extends Operator {
-    public RightParenthesis(int position) {
+
+public class NumberLiteral extends Token {
+    private final int value;
+    private final NumberSystem base;
+
+    public NumberLiteral(int position, int value, NumberSystem base) {
         setPositionInPredicate(position);
+        this.value = value;
+        this.base = base;
     }
 
-    public void put(List<Token> postOrder, Stack<Operator> S) {
-        while (!S.isEmpty()) {
-            if (!S.peek().isLeftParenthesis()) {
-                postOrder.add(S.pop());
-            } else {
-                S.pop();
-                return;
-            }
-        }
-        throw ExceptionHelper.unbalancedParen(getPositionInPredicate());
+    public String toString() {
+        return Integer.toString(value);
+    }
+
+    public void act(Stack<Expression> S, boolean print, String prefix, StringBuilder log) {
+        S.push(new NumberLiteralExpression(Integer.toString(value), value, base));
     }
 }

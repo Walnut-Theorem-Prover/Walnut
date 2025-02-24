@@ -19,8 +19,8 @@ package Automata;
 
 import Automata.FA.FA;
 import Automata.FA.ProductStrategies;
+import Main.BasicOp;
 import Main.UtilityMethods;
-import Token.RelationalOperator;
 import it.unimi.dsi.fastutil.ints.*;
 
 import java.util.*;
@@ -1000,7 +1000,7 @@ public class AutomatonLogicalOps {
         long timeBefore = System.currentTimeMillis();
         UtilityMethods.logMessage(print, prefix + "comparing (" + operator + ") against " + o + ":" + fa.getQ() + " states", log);
         for (int p = 0; p < fa.getQ(); p++) {
-            fa.getO().set(p, RelationalOperator.compare(operator, fa.getO().getInt(p), o) ? 1 : 0);
+            fa.getO().set(p, BasicOp.compare(operator, fa.getO().getInt(p), o) ? 1 : 0);
         }
         fa.determinizeAndMinimize(print, prefix + " ", log);
         long timeAfter = System.currentTimeMillis();

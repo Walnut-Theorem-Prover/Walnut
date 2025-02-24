@@ -16,7 +16,7 @@
  *   along with Walnut.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package Main;
+package Main.EvalComputations.Expressions;
 
 import Automata.Automaton;
 

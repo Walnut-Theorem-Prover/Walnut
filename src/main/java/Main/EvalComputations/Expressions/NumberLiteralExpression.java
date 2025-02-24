@@ -15,13 +15,12 @@
  *   You should have received a copy of the GNU General Public License
  *   along with Walnut.  If not, see <http://www.gnu.org/licenses/>.
  */
-package Main.Expressions;
+package Main.EvalComputations.Expressions;
 
 import Automata.Automaton;
 import Automata.AutomatonLogicalOps;
 import Automata.NumberSystem;
-import Main.Expression;
-import Token.Token;
+import Main.EvalComputations.Token.Token;
 
 import java.util.List;
 

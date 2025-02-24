@@ -22,12 +22,12 @@ import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Stack;
 
-import Main.Expressions.AutomatonExpression;
-import Token.Token;
+import Main.EvalComputations.Expressions.AutomatonExpression;
+import Main.EvalComputations.Expressions.Expression;
+import Main.EvalComputations.Token.Token;
 
 
 public class Computer {

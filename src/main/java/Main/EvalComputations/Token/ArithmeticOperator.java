@@ -16,17 +16,18 @@
  *   along with Walnut.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package Token;
+package Main.EvalComputations.Token;
 
 import java.util.List;
 import java.util.Stack;
 
 import Automata.AutomatonLogicalOps;
+import Main.BasicOp;
+import Main.EvalComputations.Expressions.*;
 import Main.ExceptionHelper;
-import Main.Expression;
+import Main.EvalComputations.Expressions.Expression;
 import Automata.Automaton;
 import Automata.NumberSystem;
-import Main.Expressions.*;
 import Main.UtilityMethods;
 
 
@@ -106,7 +107,7 @@ public class ArithmeticOperator extends Operator {
 
         if (
             (a instanceof NumberLiteralExpression || a instanceof AlphabetLetterExpression) && (b instanceof NumberLiteralExpression)) {
-            int value = ArithmeticOperator.arith(op, a.constant, b.constant);
+            int value = BasicOp.arith(op, a.constant, b.constant);
             S.push(new NumberLiteralExpression(Integer.toString(value), value, ns));
             return;
         }
@@ -184,26 +185,7 @@ public class ArithmeticOperator extends Operator {
     }
 
 
-    public static int arith(String op, int a, int b) {
-        switch (op) {
-            case "+" -> {
-                return a + b;
-            }
-            case "-" -> {
-                return a - b;
-            }
-            case "/" -> {
-                if (b == 0) throw ExceptionHelper.divisionByZero();
-                return Math.floorDiv(a, b);
-            }
-            case "*" -> {
-                return a * b;
-            }
-            default -> throw ExceptionHelper.unexpectedOperator(op);
-        }
-    }
-
-    public static boolean isValidArithmeticOperator(Expression a) {
+    private static boolean isValidArithmeticOperator(Expression a) {
         return (a instanceof AlphabetLetterExpression || a instanceof WordExpression || a instanceof ArithmeticExpression || a instanceof VariableExpression || a instanceof NumberLiteralExpression);
     }
 }

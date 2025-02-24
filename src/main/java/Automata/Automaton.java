@@ -20,6 +20,7 @@ package Automata;
 
 import Automata.FA.FA;
 import Automata.FA.ProductStrategies;
+import Main.BasicOp;
 import Main.ExceptionHelper;
 import Main.Session;
 import Main.UtilityMethods;
@@ -30,7 +31,6 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.*;
 
-import Token.ArithmeticOperator;
 import it.unimi.dsi.fastutil.ints.*;
 
 import static Automata.ParseMethods.PATTERN_COMMENT;
@@ -781,7 +781,7 @@ public class Automaton {
             IntList thisO = this.getO();
             int thisP = thisO.getInt(p);
             thisO.set(p,
-                reverse ? ArithmeticOperator.arith(operator, thisP, o) : ArithmeticOperator.arith(operator, o, thisP));
+                reverse ? BasicOp.arith(operator, thisP, o) : BasicOp.arith(operator, o, thisP));
         }
         minimizeSelfWithOutput(print, prefix + " ", log);
         long timeAfter = System.currentTimeMillis();

@@ -16,12 +16,12 @@
  *   along with Walnut.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package Token;
+package Main.EvalComputations.Token;
 
 import java.util.List;
 import java.util.Stack;
 
-import Main.Expression;
+import Main.EvalComputations.Expressions.Expression;
 
 public abstract class Token {
     private int arity;

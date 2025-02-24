@@ -15,28 +15,20 @@
  *   You should have received a copy of the GNU General Public License
  *   along with Walnut.  If not, see <http://www.gnu.org/licenses/>.
  */
-package Main.Expressions;
+package Main.EvalComputations.Expressions;
 
 import Automata.Automaton;
-import Automata.AutomatonLogicalOps;
-import Main.Expression;
 
 import java.util.List;
 
-public class AutomatonExpression extends Expression {
-  public AutomatonExpression(String expressionInString, Automata.Automaton M) {
+public class WordExpression extends Expression {
+  public List<String> identifiersToQuantify;
+
+  public WordExpression(
+      String expressionInString, Automata.Automaton wordAutomaton, Automaton M, List<String> quantify) {
     this.expressionInString = expressionInString;
+    this.wordAutomaton = wordAutomaton;
     this.M = M;
-  }
-  public Automaton act(boolean print, String prefix, String name, StringBuilder log, int i, Automaton M, List<String> identifiers) {
-    if (this.M.getArity() != 1) {
-      throw new RuntimeException("argument " + (i + 1) + " of function " + name + " cannot be an automaton with != 1 inputs");
-    }
-    if (!this.M.isBound()) {
-      throw new RuntimeException("argument " + (i + 1) + " of function " + name + " cannot be an automaton with unlabeled input");
-    }
-    identifiers.add(this.M.getLabel().get(0));
-    M = AutomatonLogicalOps.and(M, this.M, print, prefix + " ", log);
-    return M;
+    identifiersToQuantify = quantify;
   }
 }

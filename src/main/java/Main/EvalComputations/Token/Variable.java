@@ -16,30 +16,27 @@
  *   along with Walnut.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package Token;
+package Main.EvalComputations.Token;
 
 import java.util.Stack;
 
-import Automata.NumberSystem;
-import Main.Expression;
-import Main.Expressions.NumberLiteralExpression;
+import Main.EvalComputations.Expressions.Expression;
+import Main.EvalComputations.Expressions.VariableExpression;
 
 
-public class NumberLiteral extends Token {
-    private final int value;
-    private final NumberSystem base;
+public class Variable extends Token {
+    private final String name;
 
-    public NumberLiteral(int position, int value, NumberSystem base) {
+    public Variable(int position, String name) {
         setPositionInPredicate(position);
-        this.value = value;
-        this.base = base;
+        this.name = name;
     }
 
     public String toString() {
-        return Integer.toString(value);
+        return name;
     }
 
     public void act(Stack<Expression> S, boolean print, String prefix, StringBuilder log) {
-        S.push(new NumberLiteralExpression(Integer.toString(value), value, base));
+        S.push(new VariableExpression(name));
     }
 }

@@ -16,18 +16,18 @@
  *   along with Walnut.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package Token;
+package Main.EvalComputations.Token;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
 
 import Automata.AutomatonLogicalOps;
-import Main.Expression;
-import Main.Expressions.ArithmeticExpression;
-import Main.Expressions.AutomatonExpression;
-import Main.Expressions.NumberLiteralExpression;
-import Main.Expressions.VariableExpression;
+import Main.EvalComputations.Expressions.Expression;
+import Main.EvalComputations.Expressions.ArithmeticExpression;
+import Main.EvalComputations.Expressions.AutomatonExpression;
+import Main.EvalComputations.Expressions.NumberLiteralExpression;
+import Main.EvalComputations.Expressions.VariableExpression;
 import Main.UtilityMethods;
 import Automata.Automaton;
 import Automata.NumberSystem;

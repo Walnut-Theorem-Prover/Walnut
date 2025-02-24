@@ -22,10 +22,10 @@ import java.io.File;
 import java.util.*;
 
 import Automata.FA.FA;
+import Main.BasicOp;
 import Main.ExceptionHelper;
 import Main.Session;
 import Main.UtilityMethods;
-import Token.RelationalOperator;
 import it.unimi.dsi.fastutil.ints.IntList;
 
 /**
@@ -660,7 +660,7 @@ public class NumberSystem {
      */
     public Automaton comparison(int a, String b, String comparisonOperator) {
         validateNeg(a);
-        return comparison(b, a, RelationalOperator.reverseOperator(comparisonOperator));
+        return comparison(b, a, BasicOp.reverseOperator(comparisonOperator));
     }
 
     /**

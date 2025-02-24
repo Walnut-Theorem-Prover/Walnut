@@ -16,14 +16,14 @@
  *   along with Walnut.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package Token;
+package Main.EvalComputations.Token;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
 
-import Main.Expression;
-import Main.Expressions.*;
+import Main.EvalComputations.Expressions.*;
+import Main.EvalComputations.Expressions.Expression;
 import Automata.Automaton;
 import Main.UtilityMethods;
 

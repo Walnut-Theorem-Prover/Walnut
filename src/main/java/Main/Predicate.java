@@ -32,18 +32,18 @@ import java.util.regex.Pattern;
 
 import Automata.NumberSystem;
 import Automata.Automaton;
-import Token.AlphabetLetter;
-import Token.ArithmeticOperator;
-import Token.Function;
-import Token.LeftParenthesis;
-import Token.LogicalOperator;
-import Token.NumberLiteral;
-import Token.Operator;
-import Token.RelationalOperator;
-import Token.RightParenthesis;
-import Token.Token;
-import Token.Variable;
-import Token.Word;
+import Main.EvalComputations.Token.AlphabetLetter;
+import Main.EvalComputations.Token.ArithmeticOperator;
+import Main.EvalComputations.Token.Function;
+import Main.EvalComputations.Token.LeftParenthesis;
+import Main.EvalComputations.Token.LogicalOperator;
+import Main.EvalComputations.Token.NumberLiteral;
+import Main.EvalComputations.Token.Operator;
+import Main.EvalComputations.Token.RelationalOperator;
+import Main.EvalComputations.Token.RightParenthesis;
+import Main.EvalComputations.Token.Token;
+import Main.EvalComputations.Token.Variable;
+import Main.EvalComputations.Token.Word;
 
 import static Automata.ParseMethods.PATTERN_WHITESPACE;
 

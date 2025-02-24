@@ -16,7 +16,7 @@
  *   along with Walnut.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package Token;
+package Main.EvalComputations.Token;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,10 +24,10 @@ import java.util.Stack;
 
 import Automata.AutomatonLogicalOps;
 import Main.ExceptionHelper;
-import Main.Expression;
+import Main.EvalComputations.Expressions.Expression;
 import Automata.Automaton;
-import Main.Expressions.AutomatonExpression;
-import Main.Expressions.VariableExpression;
+import Main.EvalComputations.Expressions.AutomatonExpression;
+import Main.EvalComputations.Expressions.VariableExpression;
 import Main.UtilityMethods;
 
 public class LogicalOperator extends Operator {

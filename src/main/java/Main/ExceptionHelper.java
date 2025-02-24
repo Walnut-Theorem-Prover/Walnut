@@ -1,5 +1,7 @@
 package Main;
 
+import Main.EvalComputations.Expressions.Expression;
+
 /**
  * Exceptions are centralized for easier maintenance.
  * @author jn1z

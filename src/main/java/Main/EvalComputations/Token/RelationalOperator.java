@@ -16,14 +16,15 @@
  *   along with Walnut.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package Token;
+package Main.EvalComputations.Token;
 
 import Automata.AutomatonLogicalOps;
 import Automata.Automaton;
+import Main.BasicOp;
+import Main.EvalComputations.Expressions.*;
 import Main.ExceptionHelper;
-import Main.Expression;
+import Main.EvalComputations.Expressions.Expression;
 import Automata.NumberSystem;
-import Main.Expressions.*;
 import Main.UtilityMethods;
 
 import java.util.Stack;
@@ -50,7 +51,7 @@ public class RelationalOperator extends Operator {
         Expression a = S.pop();
 
         if ((a instanceof NumberLiteralExpression || a instanceof AlphabetLetterExpression) && (b instanceof NumberLiteralExpression || b instanceof AlphabetLetterExpression)) {
-            S.push(new AutomatonExpression(a + op + b, new Automaton(compare(op, a.constant, b.constant))));
+            S.push(new AutomatonExpression(a + op + b, new Automaton(BasicOp.compare(op, a.constant, b.constant))));
             return;
         }
         UtilityMethods.logAndPrint(print, prefix + "computing " + a + op + b, log);
@@ -118,7 +119,7 @@ public class RelationalOperator extends Operator {
             AutomatonLogicalOps.quantify(M, ((WordExpression)a).identifiersToQuantify, print, prefix + " ", log);
             S.push(new AutomatonExpression(a + op + b, M));
         } else if ((a instanceof NumberLiteralExpression || a instanceof AlphabetLetterExpression) && b instanceof WordExpression) {
-            AutomatonLogicalOps.compareWordAutomaton(b.wordAutomaton.fa, a.constant, reverseOperator(op), print, prefix + " ", log);
+            AutomatonLogicalOps.compareWordAutomaton(b.wordAutomaton.fa, a.constant, BasicOp.reverseOperator(op), print, prefix + " ", log);
             Automaton M = b.wordAutomaton;
             M = AutomatonLogicalOps.and(M, b.M, print, prefix + " ", log);
             AutomatonLogicalOps.quantify(M, ((WordExpression)b).identifiersToQuantify, print, prefix + " ", log);
@@ -137,27 +138,4 @@ public class RelationalOperator extends Operator {
         return M;
     }
 
-    public static boolean compare(String op, int a, int b) {
-        return switch (op) {
-            case "=" -> a == b;
-            case "!=" -> a != b;
-            case "<" -> a < b;
-            case ">" -> a > b;
-            case "<=" -> a <= b;
-            case ">=" -> a >= b;
-            default -> throw ExceptionHelper.unexpectedOperator(op);
-        };
-    }
-
-    public static String reverseOperator(String op) {
-        return switch (op) {
-            case "=" -> "=";
-            case "!=" -> "!=";
-            case "<" -> ">";
-            case ">" -> "<";
-            case "<=" -> ">=";
-            case ">=" -> "<=";
-            default -> throw ExceptionHelper.unexpectedOperator(op);
-        };
-    }
 }

@@ -16,9 +16,9 @@
  *   along with Walnut.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package Token;
+package Main.EvalComputations.Token;
 
-import Main.Expression;
+import Main.EvalComputations.Expressions.Expression;
 
 import java.util.List;
 import java.util.Stack;

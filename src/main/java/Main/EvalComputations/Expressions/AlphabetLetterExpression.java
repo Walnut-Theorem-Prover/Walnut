@@ -15,9 +15,7 @@
  *   You should have received a copy of the GNU General Public License
  *   along with Walnut.  If not, see <http://www.gnu.org/licenses/>.
  */
-package Main.Expressions;
-
-import Main.Expression;
+package Main.EvalComputations.Expressions;
 
 public class AlphabetLetterExpression extends Expression {
   public AlphabetLetterExpression(String expressionInString, int value) {

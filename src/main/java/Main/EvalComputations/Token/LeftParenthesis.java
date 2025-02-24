@@ -16,27 +16,13 @@
  *   along with Walnut.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package Token;
+package Main.EvalComputations.Token;
 
-import java.util.Stack;
-
-import Main.Expression;
-import Main.Expressions.VariableExpression;
-
-
-public class Variable extends Token {
-    private final String name;
-
-    public Variable(int position, String name) {
+public class LeftParenthesis extends Operator {
+    public LeftParenthesis(int position) {
+        this.op = "(";
         setPositionInPredicate(position);
-        this.name = name;
-    }
-
-    public String toString() {
-        return name;
-    }
-
-    public void act(Stack<Expression> S, boolean print, String prefix, StringBuilder log) {
-        S.push(new VariableExpression(name));
+        setPriority();
+        leftParenthesis = true;
     }
 }

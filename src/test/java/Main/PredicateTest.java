@@ -3,7 +3,7 @@ package Main;
 import java.util.ArrayList;
 import java.util.List;
 
-import Token.Token;
+import Main.EvalComputations.Token.Token;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.Test;

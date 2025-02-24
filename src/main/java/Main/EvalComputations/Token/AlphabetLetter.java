@@ -16,13 +16,27 @@
  *   along with Walnut.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package Token;
+package Main.EvalComputations.Token;
 
-public class LeftParenthesis extends Operator {
-    public LeftParenthesis(int position) {
-        this.op = "(";
+import java.util.Stack;
+
+import Main.EvalComputations.Expressions.Expression;
+import Main.EvalComputations.Expressions.AlphabetLetterExpression;
+
+
+public class AlphabetLetter extends Token {
+    private final int value;
+
+    public AlphabetLetter(int position, int value) {
         setPositionInPredicate(position);
-        setPriority();
-        leftParenthesis = true;
+        this.value = value;
+    }
+
+    public String toString() {
+        return Integer.toString(value);
+    }
+
+    public void act(Stack<Expression> S, boolean print, String prefix, StringBuilder log) {
+        S.push(new AlphabetLetterExpression("@" + value, value));
     }
 }

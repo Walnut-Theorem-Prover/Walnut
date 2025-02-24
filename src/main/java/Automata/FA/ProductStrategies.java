@@ -2,10 +2,9 @@ package Automata.FA;
 
 import Automata.Automaton;
 import Automata.NumberSystem;
+import Main.BasicOp;
 import Main.ExceptionHelper;
 import Main.UtilityMethods;
-import Token.ArithmeticOperator;
-import Token.RelationalOperator;
 import it.unimi.dsi.fastutil.ints.*;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
@@ -153,8 +152,8 @@ public class ProductStrategies {
             case "^" -> ((aP != 0 && mQ == 0) || (aP == 0 && mQ != 0)) ? 1 : 0;
             case "=>" -> (aP == 0 || mQ != 0) ? 1 : 0;
             case "<=>" -> ((aP == 0 && mQ == 0) || (aP != 0 && mQ != 0)) ? 1 : 0;
-            case "<", ">", "=", "!=", "<=", ">=" -> RelationalOperator.compare(op, aP, mQ) ? 1 : 0;
-            case "+", "-", "*", "/" -> ArithmeticOperator.arith(op, aP, mQ);
+            case "<", ">", "=", "!=", "<=", ">=" -> BasicOp.compare(op, aP, mQ) ? 1 : 0;
+            case "+", "-", "*", "/" -> BasicOp.arith(op, aP, mQ);
             case "combine" -> (mQ == 1) ? combineOut : aP;
             case "first" -> aP == 0 ? mQ : aP;
             case "if_other" -> mQ != 0 ? aP : 0;
