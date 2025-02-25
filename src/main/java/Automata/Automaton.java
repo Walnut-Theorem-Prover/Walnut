@@ -658,16 +658,16 @@ public class Automaton {
 
     public List<String> findAccepted(Integer searchLength, Integer maxNeeded) {
         List<String> accepted = new ArrayList<>();
-        findAcceptedHelper(accepted, maxNeeded, searchLength, 0, "", getQ0());
+        findAcceptedHelper(accepted, maxNeeded, searchLength, 0, new StringBuilder(), getQ0());
         return accepted;
     }
 
     private boolean findAcceptedHelper(
-        List<String> accepted, int maxNeeded, int searchLength, Integer curLength, String path, Integer state) {
+        List<String> accepted, int maxNeeded, int searchLength, Integer curLength, StringBuilder path, Integer state) {
         if (curLength == searchLength) {
             // if we reach an accepting state of desired length, we add the string we've formed to our subautomata list
-            if (getO().getInt(state) != 0) {
-                accepted.add(path);
+            if (getFa().isAccepting(state)) {
+                accepted.add(path.toString());
                 if (accepted.size() >= maxNeeded) {
                     return true;
                 }
@@ -675,20 +675,20 @@ public class Automaton {
                 return false;
             }
         }
+        boolean singleArity = richAlphabet.getA().size() == 1;
         for (Int2ObjectMap.Entry<IntList> entry : getFa().getEntriesNfaD(state)) {
-            for (int y : entry.getValue()) {
-                List<Integer> decodeAx = richAlphabet.decode(entry.getIntKey());
-                String input = decodeAx.toString();
-
-                // we remove brackets if we have a single arity input that is between 0 and 9 (and hence unambiguous)
-                if (getA().size() == 1) {
-                    if (decodeAx.get(0) >= 0 && decodeAx.get(0) <= 9) {
-                        input = input.substring(1, input.length() - 1);
-                    }
+            List<Integer> decodeAx = richAlphabet.decode(entry.getIntKey());
+            String input = decodeAx.toString();
+            // we remove brackets if we have a single arity input that is between 0 and 9 (and hence unambiguous)
+            if (singleArity) {
+                if (decodeAx.get(0) >= 0 && decodeAx.get(0) <= 9) {
+                    input = input.substring(1, input.length() - 1);
                 }
+            }
+            StringBuilder appendPath = path.append(input);
+            for (int y : entry.getValue()) {
                 // if we've already found as much as we need, then there's no need to search further; we propagate the signal
-                if (findAcceptedHelper(
-                    accepted, maxNeeded, searchLength, curLength + 1, path + input, y)) {
+                if (findAcceptedHelper(accepted, maxNeeded, searchLength, curLength + 1, appendPath, y)) {
                     return true;
                 }
             }
