@@ -656,14 +656,17 @@ public class Automaton {
         return first;
     }
 
-    public List<String> findAccepted(Integer searchLength, Integer maxNeeded) {
-        List<String> accepted = new ArrayList<>();
+    public List<String> findAccepted(int searchLength, int maxNeeded) {
+        List<String> accepted = new ArrayList<>(maxNeeded);
         findAcceptedHelper(accepted, maxNeeded, searchLength, 0, new StringBuilder(), getQ0());
         return accepted;
     }
 
+    /*
+    Find accepted inputs.
+     */
     private boolean findAcceptedHelper(
-        List<String> accepted, int maxNeeded, int searchLength, Integer curLength, StringBuilder path, Integer state) {
+        List<String> accepted, int maxNeeded, int searchLength, int curLength, StringBuilder path, int state) {
         if (curLength == searchLength) {
             // if we reach an accepting state of desired length, we add the string we've formed to our subautomata list
             if (getFa().isAccepting(state)) {
