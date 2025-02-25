@@ -466,67 +466,34 @@ public class Prover {
 
   private static TestCase processCommand(String s, String commandName) throws IOException {
     switch (commandName) {
-      case EXIT, QUIT -> {
-        if (s.matches(RE_FOR_exit_CMD)) return null;
-        throw ExceptionHelper.invalidCommand();
+      case ALPHABET -> {
+        return alphabetCommand(s);
       }
-      case LOAD -> {
-        if (!loadCommand(s)) return null;
-      }
-      case EVAL, DEF -> {
-        return eval_def_commands(s);
-      }
-      case MACRO -> {
-        return macroCommand(s);
-      }
-      case REG -> {
-        return regCommand(s);
-      }
-      case OST -> {
-        return ostCommand(s);
-      }
-      case CLS, CLEAR -> {
+      case CLEAR, CLS -> {
         clearScreen();
         return null;
       }
       case COMBINE -> {
         return combineCommand(s);
       }
-      case MORPHISM -> {
-        morphismCommand(s);
-      }
-      case PROMOTE -> {
-        return promoteCommand(s);
-      }
-      case IMAGE -> {
-        return imageCommand(s);
-      }
-      case INF -> {
-        infCommand(s);
-      }
-      case SPLIT -> {
-        return splitCommand(s);
-      }
-      case RSPLIT -> {
-        return rsplitCommand(s);
-      }
-      case JOIN -> {
-        return joinCommand(s);
-      }
-      case TEST -> {
-        testCommand(s);
-      }
-      case TRANSDUCE -> {
-        return transduceCommand(s);
-      }
-      case REVERSE -> {
-        return reverseCommand(s);
-      }
-      case MINIMIZE -> {
-        return minimizeCommand(s);
+      case CONCAT -> {
+        return concatCommand(s);
       }
       case CONVERT -> {
         return convertCommand(s);
+      }
+      case DEF, EVAL -> {
+        return eval_def_commands(s);
+      }
+      case DRAW -> {
+        return drawCommand(s);
+      }
+      case EXIT, QUIT -> {
+        if (s.matches(RE_FOR_exit_CMD)) return null;
+        throw ExceptionHelper.invalidCommand();
+      }
+      case EXPORT -> {
+        return exportCommand(s);
       }
       case FIXLEADZERO -> {
         return fixLeadZeroCommand(s);
@@ -534,34 +501,67 @@ public class Prover {
       case FIXTRAILZERO -> {
         return fixTrailZeroCommand(s);
       }
-      case ALPHABET -> {
-        return alphabetCommand(s);
+      case HELP -> HelpMessages.helpCommand(s);
+      case IMAGE -> {
+        return imageCommand(s);
       }
-      case UNION -> {
-        return unionCommand(s);
+      case INF -> {
+        infCommand(s);
       }
       case INTERSECT -> {
         return intersectCommand(s);
       }
-      case STAR -> {
-        return starCommand(s);
-      }
-      case CONCAT -> {
-        return concatCommand(s);
-      }
-      case RIGHTQUO -> {
-        return rightquoCommand(s);
+      case JOIN -> {
+        return joinCommand(s);
       }
       case LEFTQUO -> {
         return leftquoCommand(s);
       }
-      case DRAW -> {
-        return drawCommand(s);
+      case LOAD -> {
+        if (!loadCommand(s)) return null;
       }
-      case EXPORT -> {
-        return exportCommand(s);
+      case MACRO -> {
+        return macroCommand(s);
       }
-      case HELP -> HelpMessages.helpCommand(s);
+      case MINIMIZE -> {
+        return minimizeCommand(s);
+      }
+      case MORPHISM -> {
+        morphismCommand(s);
+      }
+      case OST -> {
+        return ostCommand(s);
+      }
+      case PROMOTE -> {
+        return promoteCommand(s);
+      }
+      case REG -> {
+        return regCommand(s);
+      }
+      case REVERSE -> {
+        return reverseCommand(s);
+      }
+      case RIGHTQUO -> {
+        return rightquoCommand(s);
+      }
+      case RSPLIT -> {
+        return rsplitCommand(s);
+      }
+      case SPLIT -> {
+        return splitCommand(s);
+      }
+      case STAR -> {
+        return starCommand(s);
+      }
+      case TEST -> {
+        testCommand(s);
+      }
+      case TRANSDUCE -> {
+        return transduceCommand(s);
+      }
+      case UNION -> {
+        return unionCommand(s);
+      }
       default -> throw ExceptionHelper.invalidCommand(commandName);
     }
     return null;
