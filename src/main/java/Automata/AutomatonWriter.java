@@ -135,7 +135,7 @@ public class AutomatonWriter {
         out.println("# set of final states.");
         out.print("w := Vector[column]([");
         for (int q = 0; q != fa.getQ(); ++q) {
-            out.print(fa.getO().getInt(q) != 0 ? "1" : "0");
+            out.print(fa.isAccepting(q) ? "1" : "0");
             if (q < (fa.getQ() - 1)) {
                 out.print(",");
             }
@@ -233,7 +233,7 @@ public class AutomatonWriter {
                 for (int q = 0; q < Q; q++) {
                     if (isDFAO)
                         out.println("node [shape = circle, label=\"" + q + "/" + automaton.getO().getInt(q) + "\", fontsize=12]" + q + ";");
-                    else if (automaton.getO().getInt(q) != 0)
+                    else if (automaton.getFa().isAccepting(q))
                         out.println("node [shape = doublecircle, label=\"" + q + "\", fontsize=12]" + q + ";");
                     else
                         out.println("node [shape = circle, label=\"" + q + "\", fontsize=12]" + q + ";");

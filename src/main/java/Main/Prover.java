@@ -68,6 +68,7 @@ public class Prover {
   public static final String EVAL = "eval";
   public static final String EXIT = "exit";
   public static final String QUIT = "quit";
+  public static final String LEFT_BRACKET = "[";
   /**
    * group for filename in RE_FOR_load_CMD
    */
@@ -243,8 +244,7 @@ public class Prover {
   static final int GROUP_draw_DOLLAR_SIGN = 1, GROUP_draw_NAME = 2;
 
   // Meta-commands: [...] at the beginning of the command
-  static final String META_CMD = "^\\[([^\\]]*)\\](.*)$";
-  static final Pattern PAT_META_CMD = Pattern.compile(META_CMD);
+  static final Pattern PAT_META_CMD = Pattern.compile("^\\[([^]]*)](.*)$");
   static final int GROUP_META_CMD = 1, GROUP_FINAL_CMD = 2;
 
   static final String STRATEGY = "strategy";
@@ -257,6 +257,9 @@ public class Prover {
   public static String prefix = ""; // Declare here instead of passing around everywhere
   public static StringBuilder log = new StringBuilder(); // Declare here instead of passing around everywhere
 
+  public MetaCommands metaCommands = new MetaCommands();
+
+  public static Prover mainProver = new Prover();
   /**
    * if the command line argument is not empty, we treat args[0] as a filename.
    * if this is the case, we read from the file and load its commands before we submit control to user.
@@ -274,7 +277,7 @@ public class Prover {
       File f = UtilityMethods.validateFile(Session.getReadAddressForCommandFiles(args[0]));
       //reading commands from the file with address args[0]
       try (BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(f)))) {
-        if (!readBuffer(in, false)) return;
+        if (!mainProver.readBuffer(in, false)) return;
       } catch (IOException e) {
         e.printStackTrace();
       }
@@ -285,7 +288,7 @@ public class Prover {
         "! Type \"help;\" to see all available commands.");
     System.out.println("Starting Walnut session: " + Session.getName());
     try (BufferedReader in = new BufferedReader(new InputStreamReader(System.in))) {
-      readBuffer(in, true);
+      mainProver.readBuffer(in, true);
     } catch (Exception e) {
       e.printStackTrace();
     }
@@ -295,7 +298,7 @@ public class Prover {
    * Takes a BufferedReader and reads from it until we hit end of file or exit command.
    * @param console = true if in = System.in
    */
-  public static boolean readBuffer(BufferedReader in, boolean console) {
+  public boolean readBuffer(BufferedReader in, boolean console) {
     try {
       StringBuilder buffer = new StringBuilder();
       while (true) {
@@ -368,7 +371,7 @@ public class Prover {
     return index;
   }
 
-  public static boolean dispatch(String s) throws IOException {
+  public boolean dispatch(String s) throws IOException {
     s = parseSetup(s);
     if (s.matches(RE_FOR_EMPTY_CMD)) {
       // If the command is just ; or : do nothing.
@@ -400,51 +403,17 @@ public class Prover {
     return true;
   }
 
-  private static String parseSetup(String s) {
-    MetaCommands.resetAutomataIndex();
+  private String parseSetup(String s) {
+    metaCommands = new MetaCommands();
     prefix = ""; // reset prefix
     log = new StringBuilder(); // reset log
 
     s = s.strip(); // remove start and end whitespace, Unicode-aware
-    s = parseMetaCommands(s);
+    s = metaCommands.parseMetaCommands(s);
     return s;
   }
 
-  /**
-   * Parse meta-commands and then return the remainder of the string.
-   */
-  private static String parseMetaCommands(String s) {
-    Matcher metaCmdMatcher = PAT_META_CMD.matcher(s);
-    if (metaCmdMatcher.find()) {
-      // Remove the matched meta-commands from the string
-      s = metaCmdMatcher.group(GROUP_FINAL_CMD).strip();
-
-      // split meta-commands based on commas
-      String metaCommandString = metaCmdMatcher.group(GROUP_META_CMD).strip();
-      for (String metaCommand : metaCommandString.split(",")) {
-        metaCommand = metaCommand.strip();
-        if (metaCommand.startsWith(STRATEGY)) {
-          String[] strategyAndIndex = metaCommand.split("\\s+");
-          if (strategyAndIndex.length != 3) {
-            throw ExceptionHelper.invalidCommandUse(metaCommand);
-          }
-          MetaCommands.addStrategy(
-              Integer.parseInt(strategyAndIndex[2]),
-              DeterminizationStrategies.Strategy.fromString(strategyAndIndex[1]));
-        } else if (metaCommand.startsWith(EXPORT)) {
-          String[] strategyAndIndex = metaCommand.split("\\s+");
-          if (strategyAndIndex.length != 2) {
-            throw ExceptionHelper.invalidCommandUse(metaCommand);
-          }
-          MetaCommands.addExportBA(Integer.parseInt(strategyAndIndex[1]));
-        }
-      }
-    }
-    return s;
-  }
-
-
-  public static TestCase dispatchForIntegrationTest(String s, String msg) throws IOException {
+  public TestCase dispatchForIntegrationTest(String s, String msg) throws IOException {
     s = parseSetup(s);
 
     System.out.println("Running integration test: " + msg);
@@ -464,7 +433,7 @@ public class Prover {
     return processCommand(s, commandName);
   }
 
-  private static TestCase processCommand(String s, String commandName) throws IOException {
+  private TestCase processCommand(String s, String commandName) throws IOException {
     switch (commandName) {
       case ALPHABET -> {
         return alphabetCommand(s);
@@ -572,7 +541,7 @@ public class Prover {
    * The user don't get a warning if the x.p contains load x.p but the program might end up in an infinite loop.
    * Note that the file can contain load y.p; whenever y != x and y exist.
    */
-  public static boolean loadCommand(String s) {
+  public boolean loadCommand(String s) {
     Matcher m = matchOrFail(PAT_FOR_load_CMD, s, LOAD);
 
     File f = UtilityMethods.validateFile(Session.getReadAddressForCommandFiles(m.group(L_FILENAME)));
@@ -967,18 +936,20 @@ public class Prover {
 
     int needed = Integer.parseInt(m.group(GROUP_TEST_NUM));
 
+    String testName = m.group(GROUP_TEST_NAME);
+
     // We find the first n inputs accepted by our automaton, lexicographically. If less than n inputs are accepted,
     // we output all that are.
-    Automaton M = Automaton.readAutomatonFromFile(m.group(GROUP_TEST_NAME));
+    Automaton M = Automaton.readAutomatonFromFile(testName);
 
     // we don't want to count multiple representations of the same value as distinct accepted values
     M = M.removeLeadTrailZeroes();
 
-    String infSubcommand = "inf " + m.group(GROUP_TEST_NAME) + ";";
+    String infSubcommand = "inf " + testName + ";";
     boolean infinite = infCommand(infSubcommand);
 
     StringBuilder incLengthReg = new StringBuilder();
-    incLengthReg.append("reg ").append(m.group(GROUP_TEST_NAME)).append("_len ");
+    incLengthReg.append("reg ").append(testName).append("_len ");
     for (int i = 0; i < M.getA().size(); i++) {
       String alphaString = M.getA().get(i).toString();
       alphaString = alphaString.substring(1, alphaString.length() - 1);
@@ -1010,7 +981,7 @@ public class Prover {
       }
     }
     if (accepted.size() < needed) {
-      System.out.println(m.group(GROUP_TEST_NAME) + " only accepts " + accepted.size() + " inputs, which are as follows: ");
+      System.out.println(testName + " only accepts " + accepted.size() + " inputs, which are as follows: ");
     }
     for (String input : accepted) {
       System.out.println(input);
@@ -1098,8 +1069,10 @@ public class Prover {
   public static TestCase convertCommand(String s) {
     Matcher m = matchOrFail(PAT_FOR_convert_CMD, s, CONVERT);
 
-    if (m.group(GROUP_CONVERT_NEW_DOLLAR_SIGN).equals("$")
-        && !m.group(GROUP_CONVERT_OLD_DOLLAR_SIGN).equals("$")) {
+    String newDollarSign = m.group(GROUP_CONVERT_NEW_DOLLAR_SIGN);
+    String oldDollarSign = m.group(GROUP_CONVERT_OLD_DOLLAR_SIGN);
+    if (newDollarSign.equals("$")
+        && !oldDollarSign.equals("$")) {
       throw new RuntimeException("Cannot convert a Word Automaton into a function");
     }
 
@@ -1107,7 +1080,7 @@ public class Prover {
 
     String inFileName = m.group(GROUP_CONVERT_OLD_NAME) + ".txt";
     String inLibrary = Session.getReadFileForWordsLibrary(inFileName);
-    if (m.group(GROUP_CONVERT_OLD_DOLLAR_SIGN).equals("$")) {
+    if (oldDollarSign.equals("$")) {
       inLibrary = Session.getReadFileForAutomataLibrary(inFileName);
     }
     Automaton M = new Automaton(inLibrary);
@@ -1117,7 +1090,7 @@ public class Prover {
         prefix, log);
 
     String outLibrary = Session.getWriteAddressForWordsLibrary();
-    if (m.group(GROUP_CONVERT_NEW_DOLLAR_SIGN).equals("$")) {
+    if (newDollarSign.equals("$")) {
       outLibrary = Session.getWriteAddressForAutomataLibrary();
     }
 

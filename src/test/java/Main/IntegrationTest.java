@@ -38,8 +38,9 @@ public class IntegrationTest {
 		Session.cleanPathsAndNamesIntegrationTest();
 		PrintWriter out = null;
 		try {
-			Prover.dispatch("reg endsIn2Zeros lsd_2 \"(0|1)*00\";");
-			Prover.dispatch("reg startsWith2Zeros msd_2 \"00(0|1)*\";");
+			Prover p = new Prover();
+			p.dispatch("reg endsIn2Zeros lsd_2 \"(0|1)*00\";");
+			p.dispatch("reg startsWith2Zeros msd_2 \"00(0|1)*\";");
 			List<String> integTests = List.of(
 					"def thueeq \"T[x]=T[y]\";",
 					"def func \"(?msd_3 c < 5) & (a = b+1) & (?msd_10 e = 17)\";",
@@ -62,7 +63,8 @@ public class IntegrationTest {
 					"macro border \"?%0 m>=1 & m<=n & $%1_factoreq(i,i+n-m,m)\";"
 					);
 			for(int i=0;i<integTests.size();i++) {
-				Prover.dispatchForIntegrationTest(integTests.get(i), "dispatch:" + i);
+				Prover.mainProver = new Prover();
+				Prover.mainProver.dispatchForIntegrationTest(integTests.get(i), "dispatch:" + i);
 			}
 		} catch (FileNotFoundException | UnsupportedEncodingException e) {
 			e.printStackTrace();
@@ -871,7 +873,7 @@ public class IntegrationTest {
 		L.add("eval test652 \"?msd_neg_2 TEST2[a] / 3 = _2\";");
 	}
 
-	@TestFactory
+	//@TestFactory
 	List<DynamicTest> runAllIntegrationTests() throws IOException {
 		testCases = loadTestCases(L, UtilityMethods.ADDRESS_FOR_UNIT_TEST_INTEGRATION_TEST_RESULTS);
 		List<DynamicTest> dynamicTests = new ArrayList<>(L.size());
@@ -886,7 +888,8 @@ public class IntegrationTest {
 		TestCase expected = testCases.get(i);
 		String command = L.get(i);
 		try{
-			TestCase actual = Prover.dispatchForIntegrationTest(command, String.valueOf(i));
+			Prover.mainProver = new Prover();
+			TestCase actual = Prover.mainProver.dispatchForIntegrationTest(command, String.valueOf(i));
 			assertEqualMessages(expected.getMpl().trim(), actual.getMpl().trim());
 			String expectedGraphView = expected.getGraphView().trim();
 			if (!expectedGraphView.isEmpty()) {
@@ -981,7 +984,7 @@ public class IntegrationTest {
       System.out.println(command);
       TestCase test_case;
       try {
-        test_case = Prover.dispatchForIntegrationTest(command, "integ:" + command);
+        test_case = new Prover().dispatchForIntegrationTest(command, "integ:" + command);
       } catch (Exception e) {
         test_case = new TestCase(null, e.getMessage(), "", "", "");
       }

@@ -11,6 +11,7 @@ import MRC.NFATrim;
 import MRC.Simulation.ParallelSimulation;
 import Main.EvalComputations.Token.ArithmeticOperator;
 import Main.MetaCommands;
+import Main.Prover;
 import Main.Session;
 import Main.UtilityMethods;
 import MRC.OnTheFlyDeterminization;
@@ -18,7 +19,6 @@ import it.unimi.dsi.fastutil.ints.*;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import net.automatalib.alphabet.Alphabet;
-import net.automatalib.automaton.fsa.impl.CompactNFA;
 import net.automatalib.ts.AcceptorPowersetViewTS;
 
 import java.util.*;
@@ -97,14 +97,16 @@ public class DeterminizationStrategies {
         // Increment our automata count for use in strategy calculations.
         // Note this is only done when print is true.
         // That's because there are several silent automata creations for NS, Ostrowski, and other caches.
-        int automataIdx = MetaCommands.incrementAutomataIndex();
-        strategy = MetaCommands.strategyMap.getOrDefault(automataIdx, Strategy.SC);
+        MetaCommands mc = Prover.mainProver.metaCommands;
+        int automataIdx = mc.incrementAutomataIndex();
+        strategy = mc.getStrategy(automataIdx);
 
-        if (MetaCommands.exportBAMap.contains(automataIdx)) {
+        String exportName = mc.getExportBAName(automataIdx);
+        if (exportName != null) {
           if (fa.isDFAO()) {
             System.out.println("Can't export DFAO " + automataIdx + " to BA format; ignoring export request");
           } else {
-            AutomatonWriter.exportToBA(fa, Session.getAddressForResult() + automataIdx + "_pre.ba", false);
+            AutomatonWriter.exportToBA(fa, Session.getAddressForResult() + exportName + "_pre.ba", false);
           }
         }
 

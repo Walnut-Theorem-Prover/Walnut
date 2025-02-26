@@ -160,7 +160,7 @@ public class AutomatonLogicalOps {
 
         A.fa.totalize(print, prefix + " ", log);
         for (int q = 0; q < A.getQ(); q++)
-            A.getO().set(q, A.getO().getInt(q) != 0 ? 0 : 1);
+            A.getO().set(q, A.getFa().isAccepting(q) ? 0 : 1);
 
         A.fa.determinizeAndMinimize(print, prefix + " ", log);
         A.applyAllRepresentations();
@@ -932,7 +932,7 @@ public class AutomatonLogicalOps {
         // In an A without output, every non-zero output value represents an accepting state
         // we change this to correspond to the value assigned to the first A by our command
         for (int q = 0; q < first.getQ(); q++) {
-            if (first.getO().getInt(q) != 0) {
+            if (first.getFa().isAccepting(q)) {
                 first.getO().set(q, outputs.getInt(0));
             }
         }
