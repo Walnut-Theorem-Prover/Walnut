@@ -106,7 +106,7 @@ public class DeterminizationStrategies {
           if (fa.isDFAO()) {
             System.out.println("Can't export DFAO " + automataIdx + " to BA format; ignoring export request");
           } else {
-            AutomatonWriter.exportToBA(fa, Session.getAddressForResult() + exportName + "_pre.ba", false);
+            AutomatonWriter.exportToBA(fa, Session.getAddressForResult() + exportName + "_" + automataIdx + "_pre.ba", false);
           }
         }
 

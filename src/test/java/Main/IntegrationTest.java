@@ -873,7 +873,7 @@ public class IntegrationTest {
 		L.add("eval test652 \"?msd_neg_2 TEST2[a] / 3 = _2\";");
 	}
 
-	//@TestFactory
+	@TestFactory
 	List<DynamicTest> runAllIntegrationTests() throws IOException {
 		testCases = loadTestCases(L, UtilityMethods.ADDRESS_FOR_UNIT_TEST_INTEGRATION_TEST_RESULTS);
 		List<DynamicTest> dynamicTests = new ArrayList<>(L.size());

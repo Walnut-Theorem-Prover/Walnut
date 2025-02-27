@@ -25,6 +25,7 @@ public class ProductStrategies {
             boolean print, String prefix, StringBuilder log, long timeBefore) {
         List<IntIntPair> statesList = new ArrayList<>();
         Object2IntMap<IntIntPair> statesHash = new Object2IntOpenHashMap<>();
+        statesHash.defaultReturnValue(-1);
         AxB.setQ0(0);
         statesList.add(new IntIntImmutablePair(A.getQ0(), B.getQ0()));
         statesHash.put(new IntIntImmutablePair(A.getQ0(), B.getQ0()), 0);
@@ -57,15 +58,17 @@ public class ProductStrategies {
                     if (z == -1) {
                         continue;
                     }
-                    IntList dest = new IntArrayList();
+                    IntList dest = new IntArrayList(entryA.getValue().size() * entryB.getValue().size());
                     stateTransitions.put(z, dest);
                     for (int destA : entryA.getValue()) {
                         for (int destB : entryB.getValue()) {
                             // Note: since A and B are DFAs, there's only one value ever here.
                             IntIntPair dest3 = new IntIntImmutablePair(destA, destB);
-                            if (!statesHash.containsKey(dest3)) {
+                            int statesHashVal = statesHash.getInt(dest3);
+                            if (statesHashVal == -1) {
+                                statesHashVal = statesList.size();
+                                statesHash.put(dest3, statesHashVal);
                                 statesList.add(dest3);
-                                statesHash.put(dest3, statesList.size() - 1);
                             }
                             dest.add(statesHash.getInt(dest3));
                         }
@@ -88,6 +91,7 @@ public class ProductStrategies {
             boolean print, String prefix, StringBuilder log, long timeBefore) {
         List<IntIntPair> statesList = new ArrayList<>();
         Object2IntMap<IntIntPair> statesHash = new Object2IntOpenHashMap<>();
+        statesHash.defaultReturnValue(-1);
         AxB.setQ0(0);
         AxB.setNfaD(null);
         AxB.setDfaD(new ArrayList<>());
@@ -126,11 +130,13 @@ public class ProductStrategies {
                         for (int destB : entryB.getValue()) {
                             // Note: since A and B are DFAs, there's only one value ever here.
                             IntIntPair dest3 = new IntIntImmutablePair(destA, destB);
-                            if (!statesHash.containsKey(dest3)) {
+                            int statesHashVal = statesHash.getInt(dest3);
+                            if (statesHashVal == -1) {
+                                statesHashVal = statesList.size();
+                                statesHash.put(dest3, statesHashVal);
                                 statesList.add(dest3);
-                                statesHash.put(dest3, statesList.size() - 1);
                             }
-                            stateTransitions.put(z, statesHash.getInt(dest3));
+                            stateTransitions.put(z, statesHashVal);
                         }
                     }
                 }
