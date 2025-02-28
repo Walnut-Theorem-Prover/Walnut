@@ -70,7 +70,7 @@ public class AutomatonWriter {
             out.print(String.join("_", Collections.nCopies(free_variables.size(), "0")));
             out.println("; od; #fix up v by multiplying");
         } catch (IOException e) {
-            e.printStackTrace();
+            UtilityMethods.printTruncatedStackTrace(e);
         }
     }
 
@@ -151,7 +151,7 @@ public class AutomatonWriter {
         try (PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter((address))))) {
             writeToStream(automaton, out);
         } catch (IOException e) {
-            e.printStackTrace();
+            UtilityMethods.printTruncatedStackTrace(e);
         }
     }
 
@@ -265,7 +265,7 @@ public class AutomatonWriter {
                 out.println("}");
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            UtilityMethods.printTruncatedStackTrace(e);
         }
     }
 
@@ -299,7 +299,7 @@ public class AutomatonWriter {
         try (BufferedOutputStream os = new BufferedOutputStream(new FileOutputStream(address))) {
             baWriter.writeModel(os, myNFA, myNFA.getInputAlphabet());
         } catch (IOException e) {
-          e.printStackTrace();
+          UtilityMethods.printTruncatedStackTrace(e);
         }
     }
 }

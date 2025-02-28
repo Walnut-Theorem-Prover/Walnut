@@ -179,4 +179,18 @@ public class UtilityMethods {
         }
         return output.toString();
     }
+
+
+    /**
+     * Create a truncated stack trace so users don't see a full screen stack dump
+     */
+    public static void printTruncatedStackTrace(Exception e) {
+        printTruncatedStackTrace(e, 4); // vaguely friendly stack length
+    }
+    public static void printTruncatedStackTrace(Exception e, int length) {
+        // Create a truncated stack trace
+        StackTraceElement[] fullStack = e.getStackTrace();
+        e.setStackTrace(Arrays.copyOf(fullStack, Math.min(fullStack.length, length)));
+        e.printStackTrace();
+    }
 }

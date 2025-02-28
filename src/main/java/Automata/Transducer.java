@@ -152,7 +152,7 @@ public class Transducer extends Automaton {
             }
 
         } catch (IOException e) {
-            e.printStackTrace();
+            UtilityMethods.printTruncatedStackTrace(e);
             throw ExceptionHelper.fileDoesNotExist(address);
         }
     }

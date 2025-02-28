@@ -68,7 +68,7 @@ public class Automaton {
             Files.copy(Paths.get(firstAddress), Paths.get(outLibrary + name + ".txt"),
                 StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException e) {
-            e.printStackTrace();
+            UtilityMethods.printTruncatedStackTrace(e);
         }
     }
 
@@ -223,7 +223,7 @@ public class Automaton {
 
             this.fa.setFieldsFromFile(Q, q0, output, transitions);
         } catch (IOException e) {
-            e.printStackTrace();
+            UtilityMethods.printTruncatedStackTrace(e);
             throw ExceptionHelper.fileDoesNotExist(address);
         }
     }

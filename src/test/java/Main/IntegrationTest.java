@@ -67,9 +67,9 @@ public class IntegrationTest {
 				Prover.mainProver.dispatchForIntegrationTest(integTests.get(i), "dispatch:" + i);
 			}
 		} catch (FileNotFoundException | UnsupportedEncodingException e) {
-			e.printStackTrace();
+			UtilityMethods.printTruncatedStackTrace(e);
 		} catch(Exception e){
-			e.printStackTrace();
+			UtilityMethods.printTruncatedStackTrace(e);
 		} finally {
 	        if(out != null){
 	            out.close();

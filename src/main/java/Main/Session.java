@@ -67,7 +67,7 @@ public class Session {
           .filter(Files::isRegularFile) // Select only files
           .forEach(path -> path.toFile().delete()); // Delete each file
     } catch (IOException ex) {
-      ex.printStackTrace();
+      UtilityMethods.printTruncatedStackTrace(ex);
     }
   }
 
@@ -84,7 +84,7 @@ public class Session {
             .filter(path -> !filesToKeep.contains(path.getFileName().toString())) // Exclude files to keep
             .forEach(path -> path.toFile().delete()); // Delete each file
       } catch (IOException ex) {
-        ex.printStackTrace();
+        UtilityMethods.printTruncatedStackTrace(ex);
       }
     }
   }

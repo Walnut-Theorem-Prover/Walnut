@@ -279,7 +279,7 @@ public class Prover {
       try (BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(f)))) {
         if (!mainProver.readBuffer(in, false)) return;
       } catch (IOException e) {
-        e.printStackTrace();
+        UtilityMethods.printTruncatedStackTrace(e);
       }
     }
 
@@ -290,7 +290,7 @@ public class Prover {
     try (BufferedReader in = new BufferedReader(new InputStreamReader(System.in))) {
       mainProver.readBuffer(in, true);
     } catch (Exception e) {
-      e.printStackTrace();
+      UtilityMethods.printTruncatedStackTrace(e);
     }
   }
 
@@ -326,7 +326,7 @@ public class Prover {
               return false;
             }
           } catch (RuntimeException e) {
-            e.printStackTrace();
+            UtilityMethods.printTruncatedStackTrace(e);
           }
 
           buffer = new StringBuilder();
@@ -335,7 +335,7 @@ public class Prover {
         }
       }
     } catch (IOException e) {
-      e.printStackTrace();
+      UtilityMethods.printTruncatedStackTrace(e);
     }
 
     return true;
@@ -551,7 +551,7 @@ public class Prover {
         return false;
       }
     } catch (IOException e) {
-      e.printStackTrace();
+      UtilityMethods.printTruncatedStackTrace(e);
     }
     return true;
   }

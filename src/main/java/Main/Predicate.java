@@ -533,7 +533,7 @@ public class Predicate {
                 macro.append(line);
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            UtilityMethods.printTruncatedStackTrace(e);
             throw new RuntimeException("Macro does not exist: " + filename, e);
         }
         return macro;
