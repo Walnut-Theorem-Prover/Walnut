@@ -307,28 +307,32 @@ public class Prover {
         if (s == null) {
           return true;
         }
+        s = s.strip(); // Remove spaces, Unicode-aware
+        if (s.startsWith("#")) {
+          System.out.println(s);
+          continue;
+        }
 
-        int index = determineIndex(s);
+        buffer.append(s);
 
-        if (index != -1) {
-          s = s.substring(0, index + 1);
-          buffer.append(s);
-          s = buffer.toString();
-          if (!console) {
-            System.out.println(s);
+        if (!(s.endsWith(";") || s.endsWith(":"))) {
+          // keep appending
+          continue;
+        }
+
+        s = buffer.toString();
+        buffer = new StringBuilder();
+
+        if (!console) {
+          System.out.println(s);
+        }
+
+        try {
+          if (!dispatch(s)) {
+            return false;
           }
-
-          try {
-            if (!dispatch(s)) {
-              return false;
-            }
-          } catch (RuntimeException e) {
-            UtilityMethods.printTruncatedStackTrace(e);
-          }
-
-          buffer = new StringBuilder();
-        } else {
-          buffer.append(s);
+        } catch (RuntimeException e) {
+          UtilityMethods.printTruncatedStackTrace(e);
         }
       }
     } catch (IOException e) {
@@ -336,36 +340,6 @@ public class Prover {
     }
 
     return true;
-  }
-
-  /**
-   * Determines the index of the first delimiter (';' or ':') in the given string.
-   * If both are present, the smaller index is returned. If only one is present, its index is returned.
-   * If no delimiters are found, -1 is returned.
-   * Additionally, if the character following the found index is a colon (':'),
-   * the index is incremented to include it.
-   *
-   * @param s the input string to search.
-   * @return the index of the first delimiter or -1 if no delimiters are found.
-   * If the character following the found index is a colon, the index
-   * is incremented by one.
-   */
-  private static int determineIndex(String s) {
-    int index1 = s.indexOf(';');
-    int index2 = s.indexOf(':');
-    int index;
-    if (index1 != -1 && index2 != -1) {
-      index = Math.min(index1, index2);
-    } else if (index1 != -1) {
-      index = index1;
-    } else {
-      index = index2;
-    }
-
-    if ((s.length() - 1) > index && s.charAt(index + 1) == ':') {
-      index++;
-    }
-    return index;
   }
 
   public boolean dispatch(String s) throws IOException {
@@ -402,7 +376,6 @@ public class Prover {
     log = new StringBuilder(); // reset log
     printSteps = printDetails = printFlag = false; // reset flags
 
-    s = s.strip(); // remove start and end whitespace, Unicode-aware
     s = metaCommands.parseMetaCommands(s);
 
     if (!s.endsWith(";") && !s.endsWith(":")) {
@@ -423,10 +396,11 @@ public class Prover {
   }
 
   public TestCase dispatchForIntegrationTest(String s, String msg) throws IOException {
+    s = s.strip(); // remove start and end whitespace, Unicode-aware
     s = parseSetup(s);
 
     System.out.println("Running integration test: " + msg);
-    if (s.isEmpty()) {
+    if (s.isEmpty() || s.startsWith("#")) {
       return null;
     }
 
