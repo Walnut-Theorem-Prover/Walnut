@@ -37,15 +37,15 @@ public class EvalComputer {
     Expression result;
     private final StringBuilder log;
     final StringBuilder logDetails;
-    private final boolean printSteps;
+    private final boolean printStepsOrDetails;
     private final boolean printDetails;
 
-    public EvalComputer(Predicate predicate, boolean printSteps, boolean printDetails) {
+    public EvalComputer(String predicate, boolean printSteps, boolean printDetails) {
         this.log = new StringBuilder();
         this.logDetails = new StringBuilder();
-        this.printSteps = printSteps;
+        this.printStepsOrDetails = printSteps || printDetails;
         this.printDetails = printDetails;
-        compute(predicate);
+        compute(new Predicate(predicate));
     }
 
     public String toString() {
@@ -81,7 +81,7 @@ public class EvalComputer {
                         nextExpression.M.getQ() + " states - " + (timeAfter - timeBefore) + "ms";
                     log.append(step).append(System.lineSeparator());
                     logDetails.append(step).append(System.lineSeparator());
-                    if (printSteps || printDetails) {
+                    if (printStepsOrDetails) {
                         System.out.println(step);
                     }
 
@@ -99,7 +99,7 @@ public class EvalComputer {
         step = "Total computation time: " + (timeEnd - timeBeginning) + "ms.";
         log.append(step);
         logDetails.append(step);
-        if (printSteps || printDetails) {
+        if (printStepsOrDetails) {
             System.out.println(step);
         }
 

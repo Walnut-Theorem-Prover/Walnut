@@ -106,9 +106,6 @@ public class AutomatonLogicalOps {
                 return A;
             }
         }
-
-        System.out.println("IMPLY");
-
       return totalizeCrossProduct(A, B, print, prefix, log, friendlyOp);
     }
 

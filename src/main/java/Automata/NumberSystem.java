@@ -369,10 +369,9 @@ public class NumberSystem {
     /**
      * Initializes equality of the positive base and negative base if not already set. Equality has two inputs (a,b),
      * and it accepts iff a in the positive base equals b in the negative base. The current number system can be either
-     * the postive or negative one. This is not initialized for all number systems by default. You should call this
-     * function to initialize as required. If no base_change file is found in the custom bases, we leave the baseChange
+     * the positive or negative one. This is not initialized for all number systems by default. You should call this
+     * function to initialize as required. If no baseChange file is found in the custom bases, we leave the baseChange
      * automaton unset.
-     *
      */
     private void setBaseChangeAutomaton() {
         if (baseChange != null) return;
@@ -402,8 +401,6 @@ public class NumberSystem {
     /**
      * Initializes addition to base n addition. addition has three inputs, and it accepts
      * iff the third is the sum of the first two. So the input is ordered!
-     *
-     * @param n
      */
     private Automaton baseNadditionAutomaton(int n) {
         List<Integer> alphabet = buildAlphabet(n);
@@ -441,8 +438,6 @@ public class NumberSystem {
     /**
      * Initializes addition to base negative n addition. addition has three inputs, and it accepts
      * iff the third is the sum of the first two. So the input is ordered!
-     *
-     * @param n
      */
     private Automaton baseNegNAddition(int n) {
         List<Integer> alphabet = buildAlphabet(n);
@@ -514,8 +509,6 @@ public class NumberSystem {
      * Initializes equality of base n and base -n. Equality has two inputs (a,b), and it accepts
      * iff [a]_n = [b]_-n (a is a base n representation and b is a base -n representation of
      * the same integer).
-     *
-     * @param n
      */
     private Automaton baseNBaseChange(int n) {
         List<Integer> alphabet = buildAlphabet(n);
@@ -574,7 +567,6 @@ public class NumberSystem {
     }
 
     /**
-     * @param n
      * @return an automaton that accepts only n.
      * If n < 0 and the current number system does not contain negative numbers, then we always return
      * the false automata. So BE CAREFUL when calling on n < 0.
@@ -824,7 +816,6 @@ public class NumberSystem {
     }
 
     /**
-     * @param n
      * @return an Automaton with one input. It accepts when the input equals n.
      */
     private Automaton constant(int n) {
@@ -923,9 +914,6 @@ public class NumberSystem {
 
     /**
      * The returned automaton has two inputs, and it accepts iff the second is one nth of the first. So the input is ordered!
-     *
-     * @param n
-     * @return
      */
     // a / n = b <=> Er,q a = q + r & q = n*b & n < r <= 0 if n < 0
     private Automaton division(int n) {
