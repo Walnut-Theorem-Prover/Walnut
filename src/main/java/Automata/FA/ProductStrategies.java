@@ -299,8 +299,8 @@ public class ProductStrategies {
     /**
      * For example, suppose that first = [1,2,3], second = [-1,4,2], and equalIndices = [-1,-1,1].
      * Then the result is [1,2,3,-1,4].
-     * However if second = [-1,4,3] then the result is null
-     * because 3rd element of second is not equal two 2nd element of first.
+     * However, if second = [-1,4,3] then the result is null
+     * because 3rd element of the second does not equal the 2nd element of the first.
      *
      * @param first
      * @param second

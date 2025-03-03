@@ -6,6 +6,8 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.Arrays;
 
+import static Main.Prover.TXT_EXTENSION;
+
 public class HelpMessages {
   /**
    * Main entry point for the "help" command.
@@ -122,7 +124,7 @@ public class HelpMessages {
     Arrays.sort(directories, (d1, d2) -> d1.getName().compareToIgnoreCase(d2.getName()));
     for (File dir : directories) {
       System.out.println("Group: " + dir.getName());
-      File[] txtFiles = dir.listFiles((d, name) -> name.endsWith(".txt"));
+      File[] txtFiles = dir.listFiles((d, name) -> name.endsWith(TXT_EXTENSION));
       if (txtFiles != null && txtFiles.length > 0) {
         Arrays.sort(txtFiles, (f1, f2) -> f1.getName().compareToIgnoreCase(f2.getName()));
         System.out.println("  Commands:");
@@ -139,7 +141,7 @@ public class HelpMessages {
    */
   private static void listCommandsInGroup(String helpRoot, String groupName) {
     File groupDir = new File(helpRoot, groupName);
-    File[] txtFiles = groupDir.listFiles((dir, name) -> name.endsWith(".txt"));
+    File[] txtFiles = groupDir.listFiles((dir, name) -> name.endsWith(TXT_EXTENSION));
 
     System.out.println("Commands in group \"" + groupName + "\":");
     if (txtFiles == null || txtFiles.length == 0) {
@@ -177,7 +179,7 @@ public class HelpMessages {
 
     File foundFile = null;
     for (File groupDir : groups) {
-      File candidate = new File(groupDir, commandName + ".txt");
+      File candidate = new File(groupDir, commandName + TXT_EXTENSION);
       if (candidate.isFile()) {
         foundFile = candidate;
         break;
@@ -198,7 +200,7 @@ public class HelpMessages {
    * This is used when we already know which group we're in.
    */
   private static void showCommandHelp(String groupPath, String command) throws IOException {
-    File file = new File(groupPath + command + ".txt");
+    File file = new File(groupPath + command + TXT_EXTENSION);
     if (!file.isFile()) {
       System.out.println("No documentation found for command \"" + command + "\" in this group.");
       return;

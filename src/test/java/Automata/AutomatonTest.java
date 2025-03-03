@@ -1,5 +1,6 @@
 package Automata;
 
+import Main.MetaCommands;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -25,17 +26,22 @@ class AutomatonTest {
   }
 
   @Test
-  void testDecode() {
-    List<List<Integer>> A = new ArrayList<>();
-    A.add(List.of(0,1));
-    A.add(List.of(-1,2,3));
-    RichAlphabet r = new RichAlphabet();
-    r.setA(A);
-    Assertions.assertEquals(List.of(0,-1), r.decode(0));
-    Assertions.assertEquals(List.of(1,-1), r.decode(1));
-    Assertions.assertEquals(List.of(0,2), r.decode(2));
-    Assertions.assertEquals(List.of(1,2), r.decode(3));
-    Assertions.assertEquals(List.of(0,3), r.decode(4));
-    Assertions.assertEquals(List.of(1,3), r.decode(5));
+  void testTrueAutomaton() {
+    Automaton A = new Automaton(true);
+    Assertions.assertFalse(A.isEmpty());
+    Assertions.assertTrue(A.isBound());
+    Assertions.assertEquals(0, A.getArity());
+    A.sortLabel();
+    Assertions.assertThrows(RuntimeException.class, () -> A.bind(List.of()));
+  }
+
+  @Test
+  void testFalseAutomaton() {
+    Automaton A = new Automaton(false);
+    Assertions.assertTrue(A.isEmpty());
+    Assertions.assertTrue(A.isBound());
+    Assertions.assertEquals(0, A.getArity());
+    A.sortLabel();
+    Assertions.assertThrows(RuntimeException.class, () -> A.bind(List.of()));
   }
 }

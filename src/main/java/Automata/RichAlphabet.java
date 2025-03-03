@@ -27,14 +27,6 @@ public class RichAlphabet {
     this.A = new ArrayList<>();
   }
 
-  public static int encode(List<Integer> l, List<List<Integer>> A, List<Integer> encoder) {
-    int encoding = 0;
-    for (int i = 0; i < l.size(); i++) {
-      encoding += encoder.get(i) * A.get(i).indexOf(l.get(i));
-    }
-    return encoding;
-  }
-
   int determineAlphabetSize() {
     int alphabetSize = 1;
     for (List<Integer> x : A) {
@@ -43,41 +35,34 @@ public class RichAlphabet {
     return alphabetSize;
   }
 
-  public void setupEncoder() {
-    encoder = new ArrayList<>(A.size());
-    encoder.add(1);
-    for (int i = 0; i < A.size() - 1; i++) {
-      encoder.add(encoder.get(i) * A.get(i).size());
-    }
-  }
-
   /**
    * Input to dk.brics.automaton.Automata is a char. Input to Automata.Automaton is List<Integer>.
    * Thus, this method transforms a List<Integer> to its corresponding integer.
-   * The other application of this function is when we use the transition function d in State. Note that the transtion function
+   * The other application of this function is when we use the transition function d in State. Note that the transition function
    * maps an integer (encoding of List<Integer>) to a set of states.
-   * <p>
-   * Example: A = [[0,1],[-1,2,3]] and if
-   * l = [0,-1] then we return 0
-   * l = [1,-1] then we return 1
-   * l = [0,2] then we return 2
-   * l = [1,2] then we return 3
-   * l = [0,3] then we return 4
-   * l = [1,3] then we return 5
-   * Second Example: A = [[-2,-1,-3],[0,1],[-1,0,3],[7,8]] and if
-   * l = [-2,0,-1,7] then we return 0
-   * l = [-1,0,-1,7] then we return 1
-   * l = [-3,0,-1,7] then we return 2
-   * l = [-2,1,-1,7] then we return 3
-   * l = [-1,1,-1,7] then we return 4
-   * l = [-3,1,-1,7] then we return 5
-   * l = [-2,0,0,7] then we return 6
-   * ...
+   * See unit tests for examples.
    */
   public int encode(List<Integer> l) {
     if (encoder == null) {
       setupEncoder();
     }
+    return encode(l, A, encoder);
+  }
+
+  public void setupEncoder() {
+    encoder = determineEncoder(A);
+  }
+
+  public static List<Integer> determineEncoder(List<List<Integer>> A) {
+    List<Integer> encoder = new ArrayList<>(A.size());
+    encoder.add(1);
+    for (int i = 0; i < A.size() - 1; i++) {
+      encoder.add(encoder.get(i) * A.get(i).size());
+    }
+    return encoder;
+  }
+
+  public static int encode(List<Integer> l, List<List<Integer>> A, List<Integer> encoder) {
     int encoding = 0;
     for (int i = 0; i < l.size(); i++) {
       encoding += encoder.get(i) * A.get(i).indexOf(l.get(i));
@@ -92,13 +77,7 @@ public class RichAlphabet {
   /**
    * Input to dk.brics.automaton.Automata is a char. Input to Automaton is List<Integer>.
    * Thus, this method transforms an integer to its corresponding List<Integer>
-   * Example: A = [[0,1],[-1,2,3]] and if
-   * n = 0 then we return [0,-1]
-   * n = 1 then we return [1,-1]
-   * n = 2 then we return [0,2]
-   * n = 3 then we return [1,2]
-   * n = 4 then we return [0,3]
-   * n = 5 then we return [1,3]
+   * See unit tests for examples.
    */
   public static List<Integer> decode(List<List<Integer>> A, int n) {
       List<Integer> l = new ArrayList<>(A.size());
@@ -113,7 +92,7 @@ public class RichAlphabet {
    * This is used in the encode method.
    * When A = [l1,l2,l3,...,ln] then
    * encoder = [1,|l1|,|l1|*|l2|,...,|l1|*|l2|*...*|ln-1|].
-   * It is useful, as mentioned earlier, in the encode method. encode method gets a list x, which represents a viable
+   * It is useful, in the encode method. encode method gets a list x, which represents a viable
    * input to this automaton, and returns a non-negative integer, which is the integer represented by x, in base encoder.
    * Note that encoder is a mixed-radix base. We use the encoded integer, returned by encode(), to store transitions.
    * So we don't store the list x.
@@ -136,9 +115,8 @@ public class RichAlphabet {
   }
 
   /**
-   * A wildcard is denoted by null in L. What do we mean by expanding wildcard?
-   * Here is an example: suppose that A = [[1,2],[0,-1],[3,4,5]] and L = [1,*,4]. Then the method would return
-   * [[1,0,4],[1,-1,4]]. In other words, it'll replace * in the second position with 0 and -1.
+   * A wildcard is denoted by null in L.
+   * See unit tests for examples.
    */
   public List<List<Integer>> expandWildcard(List<Integer> L) {
     List<List<Integer>> R = new ArrayList<>();
@@ -156,15 +134,6 @@ public class RichAlphabet {
       }
     }
     return R;
-  }
-
-  public List<Integer> getPermutedEncoder(List<List<Integer>> permuted_A) {
-    List<Integer> permuted_encoder = new ArrayList<>();
-    permuted_encoder.add(1);
-    for (int i = 0; i < A.size() - 1; i++) {
-      permuted_encoder.add(permuted_encoder.get(i) * permuted_A.get(i).size());
-    }
-    return permuted_encoder;
   }
 
   List<Integer> determineReducedDimensionMap(int alphabetSize, List<Integer> I) {
@@ -210,11 +179,8 @@ public class RichAlphabet {
   public RichAlphabet clone() {
     RichAlphabet r = new RichAlphabet();
     r.A.addAll(A);
-    for (int i = 0; i < A.size(); i++) {
-      if (encoder != null && !encoder.isEmpty()) {
-        if (r.encoder == null) r.encoder = new ArrayList<>();
-        r.encoder.add(encoder.get(i));
-      }
+    if (encoder != null && !encoder.isEmpty()) {
+      r.encoder = new ArrayList<>(encoder);
     }
     return r;
   }

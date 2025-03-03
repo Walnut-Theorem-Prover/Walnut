@@ -44,7 +44,7 @@ public class AutomataTest {
 
     RichAlphabet r = new RichAlphabet();
     r.setA(A);
-    Assertions.assertEquals(List.of(1,2,6), r.getPermutedEncoder(permutedA));
+    Assertions.assertEquals(List.of(1,2,6), r.determineEncoder(permutedA));
   }
 
 }

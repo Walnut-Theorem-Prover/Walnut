@@ -35,6 +35,8 @@ import it.unimi.dsi.fastutil.ints.*;
 
 import static Automata.ParseMethods.PATTERN_COMMENT;
 import static Automata.ParseMethods.PATTERN_WHITESPACE;
+import static Main.Prover.GV_EXTENSION;
+import static Main.Prover.TXT_EXTENSION;
 
 /**
  * This class can represent different NFA, NFAO, DFA, DFAO.
@@ -60,12 +62,12 @@ public class Automaton {
     IntList combineOutputs;
 
     public void writeAutomata(String predicate, String outLibrary, String name, boolean isDFAO) {
-        AutomatonWriter.draw(this, Session.getAddressForResult() + name + ".gv", predicate, isDFAO);
-        String firstAddress = Session.getAddressForResult() + name + ".txt";
+        AutomatonWriter.draw(this, Session.getAddressForResult() + name + GV_EXTENSION, predicate, isDFAO);
+        String firstAddress = Session.getAddressForResult() + name + TXT_EXTENSION;
         AutomatonWriter.write(this, firstAddress);
         // Copy to second location, rather than rewriting.
         try {
-            Files.copy(Paths.get(firstAddress), Paths.get(outLibrary + name + ".txt"),
+            Files.copy(Paths.get(firstAddress), Paths.get(outLibrary + name + TXT_EXTENSION),
                 StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException e) {
             UtilityMethods.printTruncatedStackTrace(e);
@@ -595,7 +597,7 @@ public class Automaton {
         for (int i = 0; i < getA().size(); i++) {
             names.add("b" + i);
         }
-        M.setLabels(names);
+        M.setLabel(names);
 
         for (int i = 0; i < inputs.size(); i++) {
             if (!inputs.get(i).isEmpty()) {
@@ -745,15 +747,11 @@ public class Automaton {
     }
 
     public void randomLabel() {
-        List<String> randomNames = new ArrayList<>(getA().size());
-        for(int i=0;i<getA().size();i++) {
+        int aSize = richAlphabet.getA().size();
+        List<String> randomNames = new ArrayList<>(aSize);
+        for(int i=0;i<aSize;i++) {
             randomNames.add(Integer.toString(i));}
-        setLabels(randomNames);
-    }
-
-    private void setLabels(List<String> names) {
-        if (getLabel() == null || !getLabel().isEmpty()) setLabel(new ArrayList<>());
-        this.getLabel().addAll(names);
+        setLabel(randomNames);
     }
 
     private void unlabel() {
@@ -821,10 +819,10 @@ public class Automaton {
         if (fa.isTRUE_FALSE_AUTOMATON()) return;
         if (!isBound()) return;
         if (UtilityMethods.isSorted(this.getLabel())) return;
-        List<String> sorted_label = new ArrayList<>(getLabel());
-        Collections.sort(sorted_label);
+        List<String> sortedLabel = new ArrayList<>(getLabel());
+        Collections.sort(sortedLabel);
 
-        int[] label_permutation = getLabelPermutation(getLabel(), sorted_label);
+        int[] labelPermutation = getLabelPermutation(getLabel(), sortedLabel);
 
         /*
          * permuted_A is going to hold the alphabet of the sorted inputs.
@@ -832,23 +830,23 @@ public class Automaton {
          * then label_permutation = [2,0,1] and permuted_A = [[0,1],[1,2,3],[-1,2]].
          * The same logic is behind permuted_encoder.
          */
-        List<List<Integer>> permuted_A = permute(getA(), label_permutation);
-        List<Integer> permuted_encoder = richAlphabet.getPermutedEncoder(permuted_A);
+        List<List<Integer>> permutedA = permute(getA(), labelPermutation);
+        List<Integer> permutedEncoder = RichAlphabet.determineEncoder(permutedA);
 
         //For example encoded_input_permutation[2] = 5 means that encoded input 2 becomes 5 after sorting.
-        int[] encoded_input_permutation = new int[getAlphabetSize()];
+        int[] encodedInputPermutation = new int[getAlphabetSize()];
         for (int i = 0; i < getAlphabetSize(); i++) {
             List<Integer> input = richAlphabet.decode(i);
-            List<Integer> permuted_input = permute(input, label_permutation);
-            encoded_input_permutation[i] = RichAlphabet.encode(permuted_input, permuted_A, permuted_encoder);
+            List<Integer> permutedInput = permute(input, labelPermutation);
+            encodedInputPermutation[i] = RichAlphabet.encode(permutedInput, permutedA, permutedEncoder);
         }
 
-        setLabel(sorted_label);
-        setA(permuted_A);
-        richAlphabet.setEncoder(permuted_encoder);
-        setNS(permute(getNS(), label_permutation));
+        setLabel(sortedLabel);
+        setA(permutedA);
+        richAlphabet.setEncoder(permutedEncoder);
+        setNS(permute(getNS(), labelPermutation));
 
-        this.fa.permuteD(encoded_input_permutation);
+        this.fa.permuteD(encodedInputPermutation);
     }
 
     /**
@@ -873,17 +871,17 @@ public class Automaton {
      * For example if label = ["z","a","c"], and A = [[-1,2],[0,1],[1,2,3]],
      * then label_permutation = [2,0,1] and permuted_A = [[0,1],[1,2,3],[-1,2]].
      */
-    static int[] getLabelPermutation(List<String> label, List<String> sorted_label) {
-        int[] label_permutation = new int[label.size()];
+    static int[] getLabelPermutation(List<String> label, List<String> sortedLabel) {
+        int[] labelPermutation = new int[label.size()];
         for (int i = 0; i < label.size(); i++) {
-            label_permutation[i] = sorted_label.indexOf(label.get(i));
+            labelPermutation[i] = sortedLabel.indexOf(label.get(i));
         }
-        return label_permutation;
+        return labelPermutation;
     }
 
     public void bind(List<String> names) {
         if (fa.isTRUE_FALSE_AUTOMATON() || getA().size() != names.size()) throw ExceptionHelper.invalidBind();
-        setLabels(names);
+        setLabel(new ArrayList<>(names));
         labelSorted = false;
         fa.setCanonized(false);
         AutomatonLogicalOps.removeSameInputs(this, 0);
@@ -913,7 +911,7 @@ public class Automaton {
         if (fa.isTRUE_FALSE_AUTOMATON()) {
             return !fa.isTRUE_AUTOMATON();
         }
-        return this.fa.to_dk_brics_automaton().isEmpty();
+        return this.fa.toDkBricsAutomaton().isEmpty();
     }
 
     public int getQ0() {

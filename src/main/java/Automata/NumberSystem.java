@@ -25,6 +25,7 @@ import Automata.FA.FA;
 import Main.EvalComputations.Token.ArithmeticOperator;
 import Main.EvalComputations.Token.RelationalOperator;
 import Main.ExceptionHelper;
+import Main.Prover;
 import Main.Session;
 import Main.UtilityMethods;
 import it.unimi.dsi.fastutil.ints.IntList;
@@ -64,6 +65,8 @@ import it.unimi.dsi.fastutil.ints.IntList;
  * MODIFICATION ON THE CLONE.
  */
 public class NumberSystem {
+    public static final String MSD = "msd";
+    public static final String LSD = "lsd";
     /**
      * Examples: msd_2, lsd_3, lsd_fib, ...
      */
@@ -121,7 +124,7 @@ public class NumberSystem {
             int indexOfUnderscore = NS.getName().indexOf("_");
             String msd_or_lsd = NS.getName().substring(0, indexOfUnderscore);
             String suffix = NS.getName().substring(indexOfUnderscore);
-            String newName = (msd_or_lsd.equals("msd") ? "lsd" : "msd") + suffix;
+            String newName = (msd_or_lsd.equals(MSD) ? LSD : MSD) + suffix;
             numberSystems.set(i, new NumberSystem(newName));
         }
     }
@@ -193,7 +196,7 @@ public class NumberSystem {
     public NumberSystem(String name) {
         this.name = name;
         String msd_or_lsd = name.substring(0, name.indexOf("_"));
-        isMsd = msd_or_lsd.equals("msd");
+        isMsd = msd_or_lsd.equals(MSD);
         is_neg = name.contains("neg");
         String base = name.substring(name.indexOf("_") + 1);
 
@@ -217,7 +220,7 @@ public class NumberSystem {
         // When the number system does not exist, we try to see whether its complement exists or not.
         // For example lsd_2 is the complement of msd_2.
         String mainName = Session.getReadAddressForCustomBases(name + extension);
-        String complementName = Session.getReadAddressForCustomBases((isMsd ? "lsd" : "msd") + "_" + base + extension);
+        String complementName = Session.getReadAddressForCustomBases((isMsd ? LSD : MSD) + "_" + base + extension);
         File fMain = new File(mainName);
         File fComplement = new File(complementName);
         if (fMain.isFile()) {
@@ -317,7 +320,7 @@ public class NumberSystem {
     private void setAllRepAutomaton(
         String name, String base) {
         //the set of all representations
-        allRepresentations = loadAutomatonOrNull(name, ".txt", base);
+        allRepresentations = loadAutomatonOrNull(name, Prover.TXT_EXTENSION, base);
         if (allRepresentations == null) {
             flagUseAllRepresentations = false;
         } else {

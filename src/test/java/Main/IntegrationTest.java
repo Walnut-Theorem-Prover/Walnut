@@ -29,6 +29,9 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
 
+import static Main.Prover.GV_EXTENSION;
+import static Main.Prover.TXT_EXTENSION;
+
 public class IntegrationTest {
 	List<TestCase> testCases;//list of test cases
 	List<String> L;//list of commands
@@ -964,15 +967,15 @@ public class IntegrationTest {
 		List<TestCase> testCases = new ArrayList<>();
 		for(int i = 0 ; i < L.size();i++) {
 			Automaton M = null;
-			String automatonFilePath = directoryAddress + "automaton" + i + ".txt";
+			String automatonFilePath = directoryAddress + "automaton" + i + TXT_EXTENSION;
 			if (new File(automatonFilePath).isFile()) {
 				M = new Automaton(automatonFilePath);
 			}
-			String error = UtilityMethods.readFromFile(directoryAddress + "error" + i + ".txt");
-			String details = UtilityMethods.readFromFile(directoryAddress+"details"+ i +".txt");
+			String error = UtilityMethods.readFromFile(directoryAddress + "error" + i + TXT_EXTENSION);
+			String details = UtilityMethods.readFromFile(directoryAddress+"details"+ i + TXT_EXTENSION);
 			testCases.add(new TestCase(
 					M,error,directoryAddress + "mpl" + i + ".mpl",
-					directoryAddress + "gv" + i + ".gv",details));
+					directoryAddress + "gv" + i + GV_EXTENSION,details));
 		}
 		return testCases;
 	}
@@ -997,16 +1000,16 @@ public class IntegrationTest {
 		for(int i = 0 ; i < testCases.size();i++){
 			TestCase t = testCases.get(i);
 			if(t.getResult() != null){
-				AutomatonWriter.write(t.getResult(), directory+"automaton" + i + ".txt");
+				AutomatonWriter.write(t.getResult(), directory+"automaton" + i + TXT_EXTENSION);
 			}
 			if(t.getError() != null && !t.getError().isEmpty()){
-				writeToFile(directory, "error", i, ".txt", t.getError());
+				writeToFile(directory, "error", i, TXT_EXTENSION, t.getError());
 			}
 			if(t.getMpl() != null && !t.getMpl().isEmpty()){
 				writeToFile(directory, "mpl", i, ".mpl", t.getMpl());
 			}
 			if(t.getDetails() != null && !t.getDetails().isEmpty()){
-				writeToFile(directory, "details", i, ".txt", t.getDetails());
+				writeToFile(directory, "details", i, TXT_EXTENSION, t.getDetails());
 			}
 		}
 	}

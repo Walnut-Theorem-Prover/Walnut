@@ -46,6 +46,7 @@ import Main.EvalComputations.Token.Variable;
 import Main.EvalComputations.Token.Word;
 
 import static Automata.ParseMethods.PATTERN_WHITESPACE;
+import static Main.Prover.TXT_EXTENSION;
 
 public class Predicate {
     String predicate;
@@ -316,7 +317,7 @@ public class Predicate {
 
         Matcher m_leftBracket = PATTERN_LEFT_BRACKET.matcher(predicate);
 
-        Automaton A = new Automaton(Session.getReadFileForWordsLibrary(matcher.group(1) + ".txt"));
+        Automaton A = new Automaton(Session.getReadFileForWordsLibrary(matcher.group(1) + TXT_EXTENSION));
 
         Stack<Character> bracketStack = new Stack<>();
         bracketStack.push('[');
@@ -526,7 +527,7 @@ public class Predicate {
         try (BufferedReader in = new BufferedReader(
             new InputStreamReader(
                 new FileInputStream(
-                    Session.getReadFileForMacroLibrary(filename + ".txt")),
+                    Session.getReadFileForMacroLibrary(filename + TXT_EXTENSION)),
                 StandardCharsets.UTF_8))) {
             String line;
             while ((line = in.readLine()) != null) {

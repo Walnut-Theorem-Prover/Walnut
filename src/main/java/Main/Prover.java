@@ -64,6 +64,9 @@ public class Prover {
   public static final String EXIT = "exit";
   public static final String QUIT = "quit";
   public static final String LEFT_BRACKET = "[";
+  public static final String TXT_EXTENSION = ".txt";
+  public static final String GV_EXTENSION = ".gv";
+  public static final String BA_EXTENSION = ".ba";
   /**
    * group for filename in RE_FOR_load_CMD
    */
@@ -550,7 +553,7 @@ public class Prover {
     Automaton M = c.result.M;
 
     String resultName = Session.getAddressForResult() + evalName;
-    String gvAddress = resultName + ".gv";
+    String gvAddress = resultName + GV_EXTENSION;
 
     M.writeAutomata(predicate, Session.getWriteAddressForAutomataLibrary(), evalName, false);
 
@@ -584,7 +587,7 @@ public class Prover {
 
   public static TestCase macroCommand(String s) {
     Matcher m = matchOrFail(PAT_FOR_macro_CMD, s, MACRO);
-    File f = new File(Session.getWriteAddressForMacroLibrary() + m.group(M_NAME) + ".txt");
+    File f = new File(Session.getWriteAddressForMacroLibrary() + m.group(M_NAME) + TXT_EXTENSION);
     try (BufferedWriter out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(f)))) {
       out.write(m.group(M_DEFINITION));
     } catch (IOException o) {
@@ -735,14 +738,14 @@ public class Prover {
     System.out.print(M.mapping.keySet());
     System.out.print(" and range ");
     System.out.print(M.range);
-    M.write(Session.getAddressForResult() + name + ".txt");
-    M.write(Session.getWriteAddressForMorphismLibrary() + name + ".txt");
+    M.write(Session.getAddressForResult() + name + TXT_EXTENSION);
+    M.write(Session.getWriteAddressForMorphismLibrary() + name + TXT_EXTENSION);
   }
 
   public static TestCase promoteCommand(String s) throws IOException {
     Matcher m = matchOrFail(PAT_FOR_promote_CMD, s, PROMOTE);
 
-    Morphism h = new Morphism(Session.getReadFileForMorphismLibrary(m.group(GROUP_PROMOTE_MORPHISM) + ".txt"));
+    Morphism h = new Morphism(Session.getReadFileForMorphismLibrary(m.group(GROUP_PROMOTE_MORPHISM) + TXT_EXTENSION));
     Automaton P = h.toWordAutomaton();
 
     P.writeAutomata(s, Session.getWriteAddressForWordsLibrary(), m.group(GROUP_PROMOTE_NAME), true);
@@ -752,14 +755,14 @@ public class Prover {
   public TestCase imageCommand(String s) throws IOException {
     Matcher m = matchOrFail(PAT_FOR_image_CMD, s, IMAGE);
 
-    Morphism h = new Morphism(Session.getReadFileForMorphismLibrary(m.group(GROUP_IMAGE_MORPHISM) + ".txt"));
+    Morphism h = new Morphism(Session.getReadFileForMorphismLibrary(m.group(GROUP_IMAGE_MORPHISM) + TXT_EXTENSION));
     if (!h.isUniform()) {
       throw new RuntimeException("A morphism applied to a word automaton must be uniform.");
     }
     StringBuilder combineString = new StringBuilder("combine " + m.group(GROUP_IMAGE_NEW_NAME));
 
     // We need to know the number system of our old automaton: the new one should match, as should intermediary expressions
-    Automaton M = new Automaton(Session.getReadFileForWordsLibrary(m.group(GROUP_IMAGE_OLD_NAME) + ".txt"));
+    Automaton M = new Automaton(Session.getReadFileForWordsLibrary(m.group(GROUP_IMAGE_OLD_NAME) + TXT_EXTENSION));
     String numSysName = "";
     if (!M.getNS().isEmpty()) {
       numSysName = M.getNS().get(0).toString();
@@ -799,7 +802,7 @@ public class Prover {
       String automatonName, String name, Matcher inputPattern) {
 
     String addressForWordAutomaton =
-        Session.getReadFileForWordsLibrary(automatonName + ".txt");
+        Session.getReadFileForWordsLibrary(automatonName + TXT_EXTENSION);
 
     Automaton M;
     boolean isDFAO;
@@ -808,7 +811,7 @@ public class Prover {
       isDFAO = true;
     } else {
       String addressForAutomaton =
-          Session.getReadFileForAutomataLibrary(automatonName + ".txt");
+          Session.getReadFileForAutomataLibrary(automatonName + TXT_EXTENSION);
       if ((new File(addressForAutomaton)).isFile()) {
         M = new Automaton(addressForAutomaton);
         isDFAO = false;
@@ -866,14 +869,14 @@ public class Prover {
     while (m1.find()) {
       String automatonName = m1.group(GROUP_JOIN_AUTOMATON_NAME);
       String addressForWordAutomaton
-          = Session.getReadFileForWordsLibrary(automatonName + ".txt");
+          = Session.getReadFileForWordsLibrary(automatonName + TXT_EXTENSION);
       Automaton M;
       if ((new File(addressForWordAutomaton)).isFile()) {
         M = new Automaton(addressForWordAutomaton);
         isDFAO = true;
       } else {
         String addressForAutomaton
-            = Session.getReadFileForAutomataLibrary(automatonName + ".txt");
+            = Session.getReadFileForAutomataLibrary(automatonName + TXT_EXTENSION);
         if ((new File(addressForAutomaton)).isFile()) {
           M = new Automaton(addressForAutomaton);
         } else {
@@ -966,7 +969,7 @@ public class Prover {
 
     String name = m.group(GROUP_OST_NAME);
     Ostrowski ostr = new Ostrowski(name, m.group(GROUP_OST_PREPERIOD), m.group(GROUP_OST_PERIOD));
-    Ostrowski.writeAutomaton(name, "msd_" + name + ".txt", ostr.createRepresentationAutomaton());
+    Ostrowski.writeAutomaton(name, "msd_" + name + TXT_EXTENSION, ostr.createRepresentationAutomaton());
     Automaton adder = ostr.createAdderAutomaton();
     Ostrowski.writeAutomaton(name, "msd_" + name + "_addition.txt", adder);
     return new TestCase(adder);
@@ -975,8 +978,8 @@ public class Prover {
   public TestCase transduceCommand(String s) {
     Matcher m = matchOrFail(PAT_FOR_transduce_CMD, s, TRANSDUCE);
     
-    Transducer T = new Transducer(Session.getTransducerFile(m.group(GROUP_TRANSDUCE_TRANSDUCER) + ".txt"));
-    String inFileName = m.group(GROUP_TRANSDUCE_OLD_NAME) + ".txt";
+    Transducer T = new Transducer(Session.getTransducerFile(m.group(GROUP_TRANSDUCE_TRANSDUCER) + TXT_EXTENSION));
+    String inFileName = m.group(GROUP_TRANSDUCE_OLD_NAME) + TXT_EXTENSION;
     String inLibrary = Session.getReadFileForWordsLibrary(inFileName);
     if (m.group(GROUP_TRANSDUCE_DOLLAR_SIGN).equals("$")) {
       inLibrary = Session.getReadFileForAutomataLibrary(inFileName);
@@ -994,7 +997,7 @@ public class Prover {
     
     boolean isDFAO = true;
 
-    String inFileName = m.group(GROUP_REVERSE_OLD_NAME) + ".txt";
+    String inFileName = m.group(GROUP_REVERSE_OLD_NAME) + TXT_EXTENSION;
     String inLibrary = Session.getReadFileForWordsLibrary(inFileName);
     if (m.group(GROUP_REVERSE_DOLLAR_SIGN).equals("$")) {
       inLibrary = Session.getReadFileForAutomataLibrary(inFileName);
@@ -1021,7 +1024,7 @@ public class Prover {
     Matcher m = matchOrFail(PAT_FOR_minimize_CMD, s, MINIMIZE);
     
     Automaton M = new Automaton(
-        Session.getReadFileForWordsLibrary(m.group(GROUP_MINIMIZE_OLD_NAME) + ".txt"));
+        Session.getReadFileForWordsLibrary(m.group(GROUP_MINIMIZE_OLD_NAME) + TXT_EXTENSION));
 
     M.minimizeSelfWithOutput(printFlag, prefix, log);
 
@@ -1039,14 +1042,14 @@ public class Prover {
       throw new RuntimeException("Cannot convert a Word Automaton into a function");
     }
     
-    String inFileName = m.group(GROUP_CONVERT_OLD_NAME) + ".txt";
+    String inFileName = m.group(GROUP_CONVERT_OLD_NAME) + TXT_EXTENSION;
     String inLibrary = Session.getReadFileForWordsLibrary(inFileName);
     if (oldDollarSign.equals("$")) {
       inLibrary = Session.getReadFileForAutomataLibrary(inFileName);
     }
     Automaton M = new Automaton(inLibrary);
 
-    AutomatonLogicalOps.convertNS(M, m.group(GROUP_CONVERT_MSD_OR_LSD).equals("msd"),
+    AutomatonLogicalOps.convertNS(M, m.group(GROUP_CONVERT_MSD_OR_LSD).equals(NumberSystem.MSD),
         Integer.parseInt(m.group(GROUP_CONVERT_BASE)), printFlag,
         prefix, log);
 
@@ -1091,7 +1094,7 @@ public class Prover {
     
     boolean isDFAO = true;
 
-    String inFileName = m.group(GROUP_alphabet_OLD_NAME) + ".txt";
+    String inFileName = m.group(GROUP_alphabet_OLD_NAME) + TXT_EXTENSION;
     String inLibrary = Session.getReadFileForWordsLibrary(inFileName);
     if (m.group(GROUP_alphabet_DOLLAR_SIGN).equals("$")) {
       inLibrary = Session.getReadFileForAutomataLibrary(inFileName);
@@ -1189,7 +1192,7 @@ public class Prover {
     Matcher m = matchOrFail(PAT_FOR_star_CMD, s, STAR);
     
     Automaton M = new Automaton(
-        Session.getReadFileForAutomataLibrary(m.group(GROUP_STAR_OLD_NAME) + ".txt"));
+        Session.getReadFileForAutomataLibrary(m.group(GROUP_STAR_OLD_NAME) + TXT_EXTENSION));
 
     Automaton C = M.star(printFlag, prefix, log);
 
@@ -1248,13 +1251,13 @@ public class Prover {
   public static TestCase drawCommand(String s) {
     Matcher m = matchOrFail(PAT_FOR_draw_CMD, s, DRAW);
 
-    String inFileName = m.group(GROUP_draw_NAME) + ".txt";
+    String inFileName = m.group(GROUP_draw_NAME) + TXT_EXTENSION;
     String inLibrary = Session.getReadFileForWordsLibrary(inFileName);
     if (m.group(GROUP_draw_DOLLAR_SIGN).equals("$")) {
       inLibrary = Session.getReadFileForAutomataLibrary(inFileName);
     }
     Automaton M = new Automaton(inLibrary);
-    AutomatonWriter.draw(M, Session.getAddressForResult() + m.group(GROUP_draw_NAME) + ".gv", s, false);
+    AutomatonWriter.draw(M, Session.getAddressForResult() + m.group(GROUP_draw_NAME) + GV_EXTENSION, s, false);
 
     return new TestCase(M);
   }
@@ -1262,14 +1265,14 @@ public class Prover {
   public static TestCase exportCommand(String s) {
     Matcher m = matchOrFail(PAT_FOR_export_CMD, s, EXPORT);
 
-    String inFileName = m.group(GROUP_export_NAME) + ".txt";
+    String inFileName = m.group(GROUP_export_NAME) + TXT_EXTENSION;
     boolean isDFAO = !m.group(GROUP_export_DOLLAR_SIGN).equals("$");
     if (isDFAO) {
       throw new RuntimeException("Can't export DFAO to BA format");
     }
     String inLibrary = Session.getReadFileForAutomataLibrary(inFileName);
     Automaton M = new Automaton(inLibrary);
-    AutomatonWriter.exportToBA(M.fa, Session.getAddressForResult() + m.group(GROUP_export_NAME) + ".ba", false);
+    AutomatonWriter.exportToBA(M.fa, Session.getAddressForResult() + m.group(GROUP_export_NAME) + BA_EXTENSION, false);
 
     return new TestCase(M);
   }

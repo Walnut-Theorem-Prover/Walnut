@@ -130,8 +130,8 @@ public class FA implements Cloneable {
     if (isTRUE_FALSE_AUTOMATON() && M.isTRUE_FALSE_AUTOMATON()) {
       return isTRUE_AUTOMATON() == M.isTRUE_AUTOMATON();
     }
-    dk.brics.automaton.Automaton Y = M.to_dk_brics_automaton();
-    dk.brics.automaton.Automaton X = this.to_dk_brics_automaton();
+    dk.brics.automaton.Automaton Y = M.toDkBricsAutomaton();
+    dk.brics.automaton.Automaton X = this.toDkBricsAutomaton();
     return X.equals(Y);
   }
 
@@ -175,11 +175,29 @@ public class FA implements Cloneable {
       return newD;
   }
 
+  /**
+   * Extend morphism by applying the automaton transitions again.
+   */
   public void updateTransitionsFromMorphism(int exponent) {
       List<List<Integer>> prevMorphism = buildInitialMorphism();
       // Repeatedly extend the morphism exponent-1 more times
       for (int i = 2; i <= exponent; i++) {
-          prevMorphism = extendMorphism(prevMorphism);
+        List<List<Integer>> newMorphism = new ArrayList<>(Q);
+        for (int j = 0; j < Q; j++) {
+          List<Integer> extendedRow = new ArrayList<>();
+          for (int k = 0; k < prevMorphism.get(j).size(); k++) {
+            // For each digit di in state j:
+            for (int di : nfaD.get(j).keySet()) {
+              int nextState = nfaD
+                  .get(prevMorphism.get(j).get(k))
+                  .get(di)
+                  .getInt(0);
+              extendedRow.add(nextState);
+            }
+          }
+          newMorphism.add(extendedRow);
+        }
+        prevMorphism = newMorphism;
       }
       // Create new transitions from the final morphism
       nfaD = buildTransitionsFromMorphism(prevMorphism);
@@ -194,51 +212,45 @@ public class FA implements Cloneable {
   public static void starStates(FA automaton, FA N) {
     // N is a clone of automaton.
     // We add a new state which will be our new initial state.
-    int newState = N.Q;
+    N.q0 = N.Q++;;
     N.O.add(1); // The newly added state is a final state.
     N.nfaD.add(new Int2ObjectRBTreeMap<>());
-    N.setQ0(newState);
-    N.Q = N.Q + 1;
-    Set<Int2ObjectMap.Entry<IntList>> sourceEntrySet = automaton.getEntriesNfaD(automaton.getQ0());
-    for (int q = 0; q < N.getQ(); q++) {
-      if (!N.isAccepting(q)) continue; // only handle final states
-      // Merge transitions from automaton's initial state's transitions
-      Int2ObjectRBTreeMap<IntList> destMap = N.nfaD.get(q);
-      for (Int2ObjectMap.Entry<IntList> entry : sourceEntrySet) {
-        destMap.computeIfAbsent(entry.getIntKey(), k -> new IntArrayList()).addAll(entry.getValue());
-      }
-    }
+    N.mergeInTransitions(N.Q, automaton.getEntriesNfaD(automaton.q0));
   }
 
   public static void concatStates(FA other, FA N, int originalQ) {
       // to access the other's states, just do q. To access the other's states in N, do originalQ + q.
-      for (int q = 0; q < other.getQ(); q++) {
+      for (int q = 0; q < other.Q; q++) {
         N.O.add(other.O.getInt(q)); // add the output
         N.nfaD.add(new Int2ObjectRBTreeMap<>());
         for (Int2ObjectMap.Entry<IntList> entry : other.getEntriesNfaD(q)) {
-          int symbol = entry.getIntKey();
-          IntList oldDestinations = entry.getValue();
-          IntArrayList newTransitionMap = new IntArrayList(oldDestinations.size());
-          for (int i = 0; i < oldDestinations.size(); i++) {
-            newTransitionMap.add(oldDestinations.getInt(i) + originalQ);
+          IntArrayList newTransitionMap = new IntArrayList(entry.getValue().size());
+          for(int i: entry.getValue()) {
+            newTransitionMap.add(originalQ + i);
           }
-          N.nfaD.get(originalQ + q).put(symbol, newTransitionMap);
+          N.nfaD.get(originalQ + q).put(entry.getIntKey(), newTransitionMap);
         }
       }
 
-      // now iterate through all of self's states. If they are final, add a transition to wherever the other's
-      // initial state goes.
-      for (int q = 0; q < originalQ; q++) {
-        if (!N.isAccepting(q)) { // if it is NOT a final state
-          continue;
-        }
+    N.mergeInTransitions(originalQ, N.getEntriesNfaD(originalQ));
 
-        // otherwise, it is a final state, and we add our transitions.
-        for (Int2ObjectMap.Entry<IntList> entry : N.getEntriesNfaD(originalQ)) {
-          N.nfaD.get(q).computeIfAbsent(entry.getIntKey(), s -> new IntArrayList()).addAll(entry.getValue());
-        }
+    N.Q = originalQ + other.Q;
+  }
+
+  /**
+   * Iterate through all of self's states. If they are final, add a transition to wherever the other's initial state goes.
+   */
+  private void mergeInTransitions(int originalQ, Set<Int2ObjectMap.Entry<IntList>> sourceEntrySet) {
+    for (int q = 0; q < originalQ; q++) {
+      if (!isAccepting(q)) {
+        continue;
       }
-      N.setQ(originalQ + other.getQ());
+      // otherwise, it is a final state, and we add our transitions.
+      Int2ObjectRBTreeMap<IntList> destMap = nfaD.get(q);
+      for (Int2ObjectMap.Entry<IntList> entry : sourceEntrySet) {
+        destMap.computeIfAbsent(entry.getIntKey(), s -> new IntArrayList()).addAll(entry.getValue());
+      }
+    }
   }
 
   public void canonizeInternal() {
@@ -388,18 +400,12 @@ public class FA implements Cloneable {
     for (int q = 0; q < Q; q++) {
       State state = setOfStates.get(q);
       O.add(state.isAccept() ? 1 : 0);
-      Int2ObjectRBTreeMap<IntList> currentStatesTransitions = new Int2ObjectRBTreeMap<>();
-      nfaD.add(currentStatesTransitions);
+      nfaD.add(new Int2ObjectRBTreeMap<>());
       for (Transition t : state.getTransitions()) {
-        // Note: For convertBrics we only want to iterate in the range '0'-'9'
-        // while the setFromBricsAutomaton uses the full range.
         for (char a = t.getMin(); a <= t.getMax(); a++) {
           int key = keyMapper.apply(t, a);
-          // the lambda returns -1 to indicate a character to skip.
           if (key != -1) {
-            IntList dest = new IntArrayList();
-            dest.add(setOfStates.indexOf(t.getDest()));
-            currentStatesTransitions.put(key, dest);
+            addTransition(nfaD, q, key, setOfStates.indexOf(t.getDest()));
           }
         }
       }
@@ -419,34 +425,6 @@ public class FA implements Cloneable {
     UtilityMethods.logMessage(print, prefix + "totalized:" + Q + " states - " + (timeAfter - timeBefore) + "ms", log);
   }
 
-  private void totalize() {
-    //we first check if the automaton is totalized
-    boolean totalized = true;
-    int deadState = Q; // may or may not be created
-
-    for (int q = 0; q < Q; q++) {
-      for (int x = 0; x < alphabetSize; x++) {
-        if (!nfaD.get(q).containsKey(x)) {
-          // point missing transitions to new state
-          IntList nullState = new IntArrayList();
-          nullState.add(deadState);
-          nfaD.get(q).put(x, nullState);
-          totalized = false;
-        }
-      }
-    }
-    if (!totalized) {
-      // Add new non-accepting state that points to itself
-      O.add(0);
-      Q++;
-      nfaD.add(new Int2ObjectRBTreeMap<>());
-      for (int x = 0; x < alphabetSize; x++) {
-        IntList nullState = new IntArrayList();
-        nullState.add(deadState);
-        nfaD.get(deadState).put(x, nullState);
-      }
-    }
-  }
 
   /**
    * This method adds a dead state with an output one less than the minimum output number of the word automaton.
@@ -470,18 +448,6 @@ public class FA implements Cloneable {
     return !totalized;
   }
 
-  int obtainMinimumOutput() {
-    int min = determineMinOutput();
-    O.add(min - 1);
-    Q++;
-    nfaD.add(new Int2ObjectRBTreeMap<>());
-    for (int x = 0; x < alphabetSize; x++) {
-      IntList nullState = new IntArrayList();
-      nullState.add(Q - 1);
-      nfaD.get(Q - 1).put(x, nullState);
-    }
-    return min;
-  }
 
   /**
    * Reverse NFA (or DFA), replacing with NFA.
@@ -497,7 +463,7 @@ public class FA implements Cloneable {
       for (int q = 0; q < Q; q++) {
         for (Int2ObjectMap.Entry<IntList> entry : this.getEntriesNfaD(q)) {
           for (int dest : entry.getValue()) {
-            addNewTransition(newNfaD, dest, entry.getIntKey(), q);
+            addTransition(newNfaD, dest, entry.getIntKey(), q);
           }
         }
       }
@@ -519,30 +485,63 @@ public class FA implements Cloneable {
       return newInitialStates;
   }
 
-  private static void addNewTransition(List<Int2ObjectRBTreeMap<IntList>> newNfaD, int dest, int symbol, int q) {
-    if (newNfaD.get(dest).containsKey(symbol))
-      newNfaD.get(dest).get(symbol).add(q);
-    else {
-      IntList destinationSet = new IntArrayList();
-      destinationSet.add(q);
-      newNfaD.get(dest).put(symbol, destinationSet);
+  private static void addTransition(List<Int2ObjectRBTreeMap<IntList>> transitions,
+                                    int state, int symbol, int destination) {
+    IntList destList = transitions.get(state).get(symbol);
+    if (destList == null) {
+      destList = new IntArrayList();
+      transitions.get(state).put(symbol, destList);
+    }
+    destList.add(destination);
+  }
+
+  private void totalize() {
+    //we first check if the automaton is totalized
+    int sinkState = Q; // potential new dead state
+    if (!totalizeStates(sinkState)) {
+      addSinkState(0, sinkState);
     }
   }
 
   boolean totalizeIfNecessary() {
-      //we first check if the automaton is totalized
-      boolean totalized = true;
-      for (int q = 0; q < Q; q++) {
-          for (int x = 0; x < alphabetSize; x++) {
-              if (!nfaD.get(q).containsKey(x)) {
-                  IntList nullState = new IntArrayList();
-                  nullState.add(Q);
-                  nfaD.get(q).put(x, nullState);
-                  totalized = false;
-              }
-          }
+    return totalizeStates(Q);
+  }
+
+  int obtainMinimumOutput() {
+    int min = determineMinOutput();
+    addSinkState(min - 1, Q);
+    return min;
+  }
+
+  private void addSinkState(int i, int sinkState) {
+    // Add new non-accepting state that points to itself
+    O.add(i);
+    Q++;
+    nfaD.add(new Int2ObjectRBTreeMap<>());
+    addMissingTransitionsForState(nfaD.get(sinkState), sinkState);
+  }
+
+  private boolean totalizeStates(int sinkState) {
+    boolean totalized = true;
+    for (int q = 0; q < Q; q++) {
+      if (addMissingTransitionsForState(nfaD.get(q), sinkState)) {
+        totalized = false;
       }
-      return totalized;
+    }
+    return totalized;
+  }
+
+  private boolean addMissingTransitionsForState(Int2ObjectRBTreeMap<IntList> iMap, int sinkState) {
+    boolean added = false;
+    for (int x = 0; x < alphabetSize; x++) {
+      if (!iMap.containsKey(x)) {
+        IntList pointToSink = new IntArrayList();
+        pointToSink.add(sinkState);
+        iMap.put(x, pointToSink);
+        added = true;
+      }
+    }
+    return added;
   }
 
   public int getQ0() {
@@ -629,7 +628,7 @@ public class FA implements Cloneable {
    *
    * @return
    */
-  public dk.brics.automaton.Automaton to_dk_brics_automaton() {
+  public dk.brics.automaton.Automaton toDkBricsAutomaton() {
     /**
      * Since the dk.brics.automaton uses char as its input alphabet for an automaton, then in order to transform
      * Automata.Automaton to dk.brics.automaton.Automata we've got to make sure, the input alphabet is less than
@@ -766,29 +765,6 @@ public class FA implements Cloneable {
       result.add(row);
     }
     return result;
-  }
-
-  /**
-   * Extend morphism by applying the automaton transitions again.
-   * (Used in convertMsdBaseToExponent)
-   */
-  private List<List<Integer>> extendMorphism(List<List<Integer>> prev) {
-    List<List<Integer>> newMorphism = new ArrayList<>();
-    for (int j = 0; j < Q; j++) {
-      List<Integer> extendedRow = new ArrayList<>();
-      for (int k = 0; k < prev.get(j).size(); k++) {
-        // For each digit di in state j:
-        for (int di : nfaD.get(j).keySet()) {
-          int nextState = nfaD
-              .get(prev.get(j).get(k))
-              .get(di)
-              .getInt(0);
-          extendedRow.add(nextState);
-        }
-      }
-      newMorphism.add(extendedRow);
-    }
-    return newMorphism;
   }
 
   public int determineMinOutput() {

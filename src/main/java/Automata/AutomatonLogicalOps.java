@@ -773,24 +773,25 @@ public class AutomatonLogicalOps {
      */
     private static void convertMsdBaseToExponent(Automaton A, int exponent,
                                                  boolean print, String prefix, StringBuilder log) {
-        int base = A.getNS().get(0).parseBase();
-
-        long timeBefore = System.currentTimeMillis();
-        UtilityMethods.logMessage(
-                print,
-                prefix + "Converting: msd_" + base + " to msd_" + (int) Math.pow(base, exponent)
-                        + ", " + A.getQ() + " states",
-                log
-        );
-
         if (!A.fa.isDeterministic()) {
             throw new RuntimeException("Automaton must be deterministic for msd_k^j conversion");
         }
 
+        int base = A.getNS().get(0).parseBase();
+
+        long timeBefore = System.currentTimeMillis();
+        int newBase = (int) Math.pow(base, exponent);
+
+        UtilityMethods.logMessage(
+                print,
+                prefix + "Converting: msd_" + base + " to msd_" + newBase
+                        + ", " + A.fa.getQ() + " states",
+                log
+        );
+
         A.fa.updateTransitionsFromMorphism(exponent);
 
         // Update number system: msd_{base^exponent}
-        int newBase = (int) Math.pow(base, exponent);
         A.getNS().set(0, new NumberSystem("msd_" + newBase));
         setAutomatonAlphabet(A, newBase);
 
