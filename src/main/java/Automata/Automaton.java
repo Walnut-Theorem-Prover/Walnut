@@ -21,7 +21,9 @@ package Automata;
 import Automata.FA.FA;
 import Automata.FA.ProductStrategies;
 import Main.EvalComputations.Token.ArithmeticOperator;
+import Main.EvalComputations.Token.LogicalOperator;
 import Main.ExceptionHelper;
+import Main.Prover;
 import Main.Session;
 import Main.UtilityMethods;
 
@@ -74,16 +76,8 @@ public class Automaton {
         }
     }
 
-    public Automaton removeLeadTrailZeroes() {
-      // When dealing with enumerating values (e.g. inf and test commands), we remove leading zeroes in the case of msd
-      // and trailing zeroes in the case of lsd. To do this, we construct a reg subcommand that generates the complement
-      // of zero-prefixed strings for msd and zero suffixed strings for lsd, then intersect this with our original automaton.
-      randomLabel();
-      return AutomatonLogicalOps.removeLeadingZeroes(this, getLabel(), false, null, null);
-    }
-
     public int determineCombineOutVal(String op) {
-      return op.equals("combine") ? this.combineOutputs.getInt(this.combineIndex) : -1;
+      return op.equals(Prover.COMBINE) ? this.combineOutputs.getInt(this.combineIndex) : -1;
     }
 
     /**
@@ -361,7 +355,7 @@ public class Automaton {
             N.setLabel(first.getLabel());
 
             if (op.equals("union")) {
-                first = AutomatonLogicalOps.or(first, N, print, prefix, log, "|");
+                first = AutomatonLogicalOps.or(first, N, print, prefix, log, LogicalOperator.OR);
             } else if (op.equals("intersect")) {
                 first = AutomatonLogicalOps.and(first, N, print, prefix, log);
             } else {
@@ -545,7 +539,7 @@ public class Automaton {
         M.determineAlphabetSize();
         M.richAlphabet.setupEncoder();
 
-        this.getFa().alphabetStates(alphabet, this.getA(), M);
+        this.getFa().alphabetStates(this.richAlphabet, M);
 
         if (isDFAO) {
             M.minimizeSelfWithOutput(print, prefix, log);
@@ -822,14 +816,13 @@ public class Automaton {
         List<String> sortedLabel = new ArrayList<>(getLabel());
         Collections.sort(sortedLabel);
 
-        int[] labelPermutation = getLabelPermutation(getLabel(), sortedLabel);
-
         /*
-         * permuted_A is going to hold the alphabet of the sorted inputs.
+         * permutedA is going to hold the alphabet of the sorted inputs.
          * For example if label = ["z","a","c"], and A = [[-1,2],[0,1],[1,2,3]],
-         * then label_permutation = [2,0,1] and permuted_A = [[0,1],[1,2,3],[-1,2]].
-         * The same logic is behind permuted_encoder.
+         * then labelPermutation = [2,0,1] and permutedA = [[0,1],[1,2,3],[-1,2]].
+         * The same logic is behind permutedEncoder.
          */
+        int[] labelPermutation = getLabelPermutation(getLabel(), sortedLabel);
         List<List<Integer>> permutedA = permute(getA(), labelPermutation);
         List<Integer> permutedEncoder = RichAlphabet.determineEncoder(permutedA);
 

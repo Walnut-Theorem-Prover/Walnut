@@ -19,7 +19,10 @@ package Automata;
 
 import Automata.FA.FA;
 import Automata.FA.ProductStrategies;
+import Main.EvalComputations.Token.LogicalOperator;
+import Main.EvalComputations.Token.Operator;
 import Main.EvalComputations.Token.RelationalOperator;
+import Main.Prover;
 import Main.UtilityMethods;
 import it.unimi.dsi.fastutil.ints.*;
 
@@ -35,7 +38,7 @@ public class AutomatonLogicalOps {
                                 boolean print,
                                 String prefix,
                                 StringBuilder log) {
-        return and(A, B, print, prefix, log, "&");
+        return and(A, B, print, prefix, log, LogicalOperator.AND);
     }
     public static Automaton and(Automaton A,
                                 Automaton B,
@@ -131,9 +134,9 @@ public class AutomatonLogicalOps {
      */
     public static Automaton iff(Automaton A, Automaton B, boolean print, String prefix, StringBuilder log, String friendlyOp) {
         if (A.fa.isTRUE_FALSE_AUTOMATON() || B.fa.isTRUE_FALSE_AUTOMATON()) {
-            Automaton C = imply(A, B, print, prefix, log, "=>");
-            Automaton D = imply(B, A, print, prefix, log, "=>");
-            return and(C, D, print, prefix, log, "&");
+            Automaton C = imply(A, B, print, prefix, log, LogicalOperator.IMPLY);
+            Automaton D = imply(B, A, print, prefix, log, LogicalOperator.IMPLY);
+            return and(C, D, print, prefix, log, LogicalOperator.AND);
         }
 
       return totalizeCrossProduct(A, B, print, prefix, log, friendlyOp);
@@ -143,7 +146,7 @@ public class AutomatonLogicalOps {
      * @return negation of A
      */
     public static void not(Automaton A, boolean print, String prefix, StringBuilder log) {
-        not(A, print, prefix, log, "~");
+        not(A, print, prefix, log, Operator.NEGATE);
     }
 
     private static void not(Automaton A, boolean print, String prefix, StringBuilder log, String friendlyOp) {
@@ -347,7 +350,7 @@ public class AutomatonLogicalOps {
         Automaton M = new Automaton(false);
         for (int n : listOfInputs) {
             Automaton N = removeLeadingZeroesHelper(A, n, print, prefix + " ", log);
-            M = or(M, N, print, prefix + " ", log, "|");
+            M = or(M, N, print, prefix + " ", log, LogicalOperator.OR);
         }
         M = and(A, M, print, prefix + " ", log);
 
@@ -486,8 +489,7 @@ public class AutomatonLogicalOps {
          * This is why we mandate that an input of type arithmetic must have 0 in its alphabet, also that
          * every number system must use 0 to denote its additive identity.
          *
-         * @param A
-         * @param labelsToQuantify must contain at least one elemen, and must be a subset of this.label.
+         * @param labelsToQuantify must contain at least one element, and must be a subset of this.label.
          */
     public static void quantify(Automaton A, Set<String> labelsToQuantify, boolean print, String prefix, StringBuilder log) {
         quantifyHelper(A, labelsToQuantify, print, prefix, log);
@@ -588,6 +590,7 @@ public class AutomatonLogicalOps {
     public static void reverse(
         Automaton A, boolean print, String prefix, StringBuilder log, boolean reverseMsd) {
         if (A.fa.isTRUE_FALSE_AUTOMATON()) return;
+        System.out.println("REVERSING");
         long timeBefore = System.currentTimeMillis();
         UtilityMethods.logMessage(print, prefix + "Reversing:" + A.getQ() + " states", log);
 
@@ -609,6 +612,8 @@ public class AutomatonLogicalOps {
         if (A.fa.isTRUE_FALSE_AUTOMATON()) {
             return;
         }
+        System.out.println("REVERSING");
+
         long timeBefore = System.currentTimeMillis();
         UtilityMethods.logMessage(print, prefix + "reversing: " + A.getQ() + " states", log);
 
@@ -948,7 +953,7 @@ public class AutomatonLogicalOps {
             // crossProduct requires both automata to be totalized, otherwise it has no idea which cartesian states to transition to
             first.fa.totalize(print, prefix + " ", log);
             next.fa.totalize(print, prefix + " ", log);
-            Automaton product = ProductStrategies.crossProduct(first, next, "combine", print, prefix + " ", log);
+            Automaton product = ProductStrategies.crossProduct(first, next, Prover.COMBINE, print, prefix + " ", log);
             product.combineIndex = first.combineIndex + 1;
             product.combineOutputs = first.combineOutputs;
             first = product;

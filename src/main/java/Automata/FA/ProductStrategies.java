@@ -2,9 +2,12 @@ package Automata.FA;
 
 import Automata.Automaton;
 import Automata.NumberSystem;
+import Automata.RichAlphabet;
 import Main.EvalComputations.Token.ArithmeticOperator;
+import Main.EvalComputations.Token.LogicalOperator;
 import Main.EvalComputations.Token.RelationalOperator;
 import Main.ExceptionHelper;
+import Main.Prover;
 import Main.UtilityMethods;
 import it.unimi.dsi.fastutil.ints.*;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
@@ -154,14 +157,14 @@ public class ProductStrategies {
 
     private static int determineOutput(int aP, int mQ, String op, int combineOut) {
         return switch (op) {
-            case "&" -> (aP != 0 && mQ != 0) ? 1 : 0;
-            case "|" -> (aP != 0 || mQ != 0) ? 1 : 0;
-            case "^" -> ((aP != 0 && mQ == 0) || (aP == 0 && mQ != 0)) ? 1 : 0;
-            case "=>" -> (aP == 0 || mQ != 0) ? 1 : 0;
-            case "<=>" -> ((aP == 0 && mQ == 0) || (aP != 0 && mQ != 0)) ? 1 : 0;
+            case LogicalOperator.AND -> (aP != 0 && mQ != 0) ? 1 : 0;
+            case LogicalOperator.OR -> (aP != 0 || mQ != 0) ? 1 : 0;
+            case LogicalOperator.XOR -> ((aP != 0 && mQ == 0) || (aP == 0 && mQ != 0)) ? 1 : 0;
+            case LogicalOperator.IMPLY -> (aP == 0 || mQ != 0) ? 1 : 0;
+            case LogicalOperator.IFF -> ((aP == 0 && mQ == 0) || (aP != 0 && mQ != 0)) ? 1 : 0;
             case RelationalOperator.LESS_THAN, RelationalOperator.GREATER_THAN, RelationalOperator.EQUAL, RelationalOperator.NOT_EQUAL, RelationalOperator.LESS_EQ_THAN, RelationalOperator.GREATER_EQ_THAN -> RelationalOperator.compare(op, aP, mQ) ? 1 : 0;
             case ArithmeticOperator.PLUS, ArithmeticOperator.MINUS, ArithmeticOperator.MULT, ArithmeticOperator.DIV -> ArithmeticOperator.arith(op, aP, mQ);
-            case "combine" -> (mQ == 1) ? combineOut : aP;
+            case Prover.COMBINE -> (mQ == 1) ? combineOut : aP;
             case "first" -> aP == 0 ? mQ : aP;
             case "if_other" -> mQ != 0 ? aP : 0;
             default -> throw ExceptionHelper.unexpectedOperator(op);
@@ -181,8 +184,6 @@ public class ProductStrategies {
      * and in B we go from 1 to 0 by reading (p=-1,q=-2,j=2).
      * Then in N we go from (0,1) to (1,0) by reading (i=1,j=2,p=-1,q=-2).
      *
-     * @param A
-     * @param B
      * @return A cross product B.
      */
     public static Automaton crossProduct(Automaton A,
@@ -236,87 +237,107 @@ public class ProductStrategies {
                     "the automata for this method cannot be true or false automata.");
         }
 
-        if (A.getLabel() == null ||
-                B.getLabel() == null ||
-                A.getLabel().size() != A.getA().size() ||
-                B.getLabel().size() != B.getA().size()
-        ) {
+        List<String> aLabel = A.getLabel(), bLabel = B.getLabel();
+        List<List<Integer>> aA = A.getA(), bA = B.getA();
+
+        if (aLabel== null || bLabel == null ||
+            aLabel.size() != aA.size() || bLabel.size() != bA.size()) {
             throw new RuntimeException("Invalid use of the crossProduct method: " +
                     "the automata for this method must have labeled inputs.");
         }
 
+        int[] sameInputsInAAndB = computeSameInputs(aLabel, aA, bLabel, bA);
+        updateAxBFields(aLabel, aA, A.getNS(), bLabel, bA, B.getNS(), AxB, sameInputsInAAndB);
 
-        /**
-         * for example when sameLabelsInMAndThis[2] = 3, then input 2 of B has the same label as input 3 of this
-         * and when sameLabelsInMAndThis[2] = -1, it means that input 2 of B is not an input of this
-         */
-        int[] sameInputsInMAndThis = new int[B.getA().size()];
-        for (int i = 0; i < B.getLabel().size(); i++) {
+        return computeAllInputsOfAxB(A.getAlphabetSize(), A.richAlphabet, B.getAlphabetSize(), B.richAlphabet,
+            AxB.richAlphabet, sameInputsInAAndB);
+    }
+
+    /*
+     * for example when sameLabelsInAAndB[2] = 3, then input 2 of A has the same label as input 3 of B
+     * and when sameLabelsInAAndB[2] = -1, it means that input 2 of A is not an input of B
+     */
+    private static int[] computeSameInputs(
+        List<String> aLabel, List<List<Integer>> aA, List<String> bLabel, List<List<Integer>> bA) {
+        int[] sameInputsInMAndThis = new int[bLabel.size()];
+        for (int i = 0; i < bLabel.size(); i++) {
             sameInputsInMAndThis[i] = -1;
-            if (A.getLabel().contains(B.getLabel().get(i))) {
-                int j = A.getLabel().indexOf(B.getLabel().get(i));
-                if (!UtilityMethods.areEqual(A.getA().get(j), B.getA().get(i))) {
+            int j = aLabel.indexOf(bLabel.get(i));
+            if (j >= 0) {
+                if (!UtilityMethods.areEqual(aA.get(j), bA.get(i))) {
                     throw new RuntimeException("in computing cross product of two automaton, "
                             + "variables with the same label must have the same alphabet");
                 }
                 sameInputsInMAndThis[i] = j;
             }
         }
-        for (int i = 0; i < A.getA().size(); i++) {
-            AxB.getA().add(A.getA().get(i));
-            AxB.getLabel().add(A.getLabel().get(i));
-            AxB.getNS().add(A.getNS().get(i));
+        return sameInputsInMAndThis;
+    }
+
+    private static void updateAxBFields(
+        List<String> aLabel, List<List<Integer>> aA, List<NumberSystem> aNS,
+        List<String> bLabel, List<List<Integer>> bA, List<NumberSystem> bNS,
+        Automaton AxB, int[] sameInputsInMAndThis) {
+        for (int i = 0; i < aLabel.size(); i++) {
+            AxB.getA().add(aA.get(i));
+            AxB.getLabel().add(aLabel.get(i));
+            AxB.getNS().add(aNS.get(i));
         }
-        for (int i = 0; i < B.getA().size(); i++) {
-            NumberSystem bNS = B.getNS().get(i);
+        for (int i = 0; i < bLabel.size(); i++) {
             if (sameInputsInMAndThis[i] == -1) {
-                AxB.getA().add(new ArrayList<>(B.getA().get(i)));
-                AxB.getLabel().add(B.getLabel().get(i));
-                AxB.getNS().add(bNS);
+                AxB.getA().add(new ArrayList<>(bA.get(i)));
+                AxB.getLabel().add(bLabel.get(i));
+                AxB.getNS().add(bNS.get(i));
             } else {
                 int j = sameInputsInMAndThis[i];
-                if (bNS != null && AxB.getNS().get(j) == null) {
-                    AxB.getNS().set(j, bNS);
+                if (bNS.get(i) != null && AxB.getNS().get(j) == null) {
+                    AxB.getNS().set(j, bNS.get(i));
                 }
             }
         }
         AxB.determineAlphabetSize();
+    }
 
-        IntList allInputsOfN = new IntArrayList();
-        for (int i = 0; i < A.getAlphabetSize(); i++) {
-            for (int j = 0; j < B.getAlphabetSize(); j++) {
+    /**
+     * Compute all inputs of AxB.
+     */
+    private static int[] computeAllInputsOfAxB(
+        int aAlphSize, RichAlphabet aRichAlphabet, int bAlphSize, RichAlphabet bRichAlphabet,
+        RichAlphabet AxBRichAlphabet, int[] sameInputsInMAndThis) {
+        IntList allInputsOfN = new IntArrayList(aAlphSize * bAlphSize);
+        for (int i = 0; i < aAlphSize; i++) {
+            List<Integer> aDecodeI = aRichAlphabet.decode(i);
+            for (int j = 0; j < bAlphSize; j++) {
                 List<Integer> inputForN = joinTwoInputsForCrossProduct(
-                    A.richAlphabet.decode(i), B.richAlphabet.decode(j), sameInputsInMAndThis);
+                    aDecodeI, bRichAlphabet.decode(j), sameInputsInMAndThis);
                 if (inputForN == null)
                     allInputsOfN.add(-1);
                 else
-                    allInputsOfN.add(AxB.richAlphabet.encode(inputForN));
+                    allInputsOfN.add(AxBRichAlphabet.encode(inputForN));
             }
         }
         return allInputsOfN.toArray(new int[0]);
     }
 
     /**
-     * For example, suppose that first = [1,2,3], second = [-1,4,2], and equalIndices = [-1,-1,1].
-     * Then the result is [1,2,3,-1,4].
-     * However, if second = [-1,4,3] then the result is null
-     * because 3rd element of the second does not equal the 2nd element of the first.
-     *
-     * @param first
-     * @param second
-     * @param equalIndices
-     * @return
+     * Join inputs for cross product.
+     * Add all of first, then nonequal ones of second...
+     * unless there's a nonequal element that shouldn't be there.
+     * See unit tests for examples.
      */
-    private static List<Integer> joinTwoInputsForCrossProduct(
+    static List<Integer> joinTwoInputsForCrossProduct(
         List<Integer> first, List<Integer> second, int[] equalIndices) {
         List<Integer> R = new ArrayList<>(first);
-        for (int i = 0; i < second.size(); i++)
-            if (equalIndices[i] == -1)
-                R.add(second.get(i));
+        for (int i = 0; i < second.size(); i++) {
+            int equalIndexI = equalIndices[i];
+            int secondI = second.get(i);
+            if (equalIndexI == -1)
+                R.add(secondI);
             else {
-                if (!first.get(equalIndices[i]).equals(second.get(i)))
+                if (!first.get(equalIndexI).equals(secondI))
                     return null;
             }
+        }
         return R;
     }
 }

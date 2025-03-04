@@ -19,8 +19,11 @@
 package Main.EvalComputations.Token;
 
 public class LeftParenthesis extends Operator {
+
+    public static final String LEFT_PAREN = "(";
+
     public LeftParenthesis(int position) {
-        this.op = "(";
+        this.op = LEFT_PAREN;
         setPositionInPredicate(position);
         setPriority();
         leftParenthesis = true;

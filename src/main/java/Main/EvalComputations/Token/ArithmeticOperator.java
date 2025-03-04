@@ -35,12 +35,13 @@ public class ArithmeticOperator extends Operator {
     public static final String MINUS = "-";
     public static final String DIV = "/";
     public static final String MULT = "*";
+    public static final String UNARY_NEGATIVE = "_";
     private final NumberSystem ns;
 
     public ArithmeticOperator(int position, String op, NumberSystem ns) {
         this.op = op;
         setPriority();
-        setArity(op.equals("_") ? 1 : 2);
+        setArity(op.equals(UNARY_NEGATIVE) ? 1 : 2);
         setPositionInPredicate(position);
         this.ns = ns;
     }
@@ -54,7 +55,7 @@ public class ArithmeticOperator extends Operator {
         Expression b = S.pop();
         if (!isValidArithmeticOperator(b))
             throw ExceptionHelper.invalidOperator(op, b);
-        if (op.equals("_")) {
+        if (op.equals(ArithmeticOperator.UNARY_NEGATIVE)) {
             processUnaryOperator(b, S, print, prefix, log);
         } else {
             processBinaryOperator(b, S, print, prefix, log);
@@ -148,7 +149,7 @@ public class ArithmeticOperator extends Operator {
                 } else {
                     C = ns.arithmetic(o, arithmetic.identifier, c, op);
                 }
-                N = AutomatonLogicalOps.imply(N, C, print, prefix + " ", log, "=>");
+                N = AutomatonLogicalOps.imply(N, C, print, prefix + " ", log, LogicalOperator.IMPLY);
                 M = AutomatonLogicalOps.and(M, N, print, prefix + " ", log);
             }
             M = AutomatonLogicalOps.and(M, word.M, print, prefix + " ", log);

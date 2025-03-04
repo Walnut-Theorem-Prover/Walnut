@@ -94,13 +94,13 @@ public class FA implements Cloneable {
     return false;
   }
 
-  public void alphabetStates(List<List<Integer>> newAlphabet, List<List<Integer>> oldAlphabet, Automaton M) {
+  public void alphabetStates(RichAlphabet oldAlphabet, Automaton M) {
       List<Int2ObjectRBTreeMap<IntList>> newD = new ArrayList<>(M.getQ());
       for (int q = 0; q < M.getQ(); q++) {
           Int2ObjectRBTreeMap<IntList> newMap = new Int2ObjectRBTreeMap<>();
           for (Int2ObjectMap.Entry<IntList> entry: getEntriesNfaD(q)) {
-            List<Integer> decoded = RichAlphabet.decode(oldAlphabet, entry.getIntKey());
-            if (isInNewAlphabet(newAlphabet, decoded)) {
+            List<Integer> decoded = oldAlphabet.decode(entry.getIntKey());
+            if (isInNewAlphabet(M.getA(), decoded)) {
               newMap.put(M.richAlphabet.encode(decoded), entry.getValue());
             }
           }
@@ -611,15 +611,13 @@ public class FA implements Cloneable {
     }
   }
 
-
-
-  public void permuteD(int[] encoded_input_permutation) {
+  public void permuteD(int[] encodedInputPermutation) {
     for (int q = 0; q < Q; q++) {
-      Int2ObjectRBTreeMap<IntList> permuted_d = new Int2ObjectRBTreeMap<>();
+      Int2ObjectRBTreeMap<IntList> permutedD = new Int2ObjectRBTreeMap<>();
       for (Int2ObjectMap.Entry<IntList> entry : getEntriesNfaD(q)) {
-        permuted_d.put(encoded_input_permutation[entry.getIntKey()], entry.getValue());
+        permutedD.put(encodedInputPermutation[entry.getIntKey()], entry.getValue());
       }
-      nfaD.set(q, permuted_d);
+      nfaD.set(q, permutedD);
     }
   }
   /**
@@ -888,7 +886,7 @@ public class FA implements Cloneable {
       return nfa;
   }
 
-  /*
+  /**
   Convert FA to MyNFA representation, allowing additional initialState
    */
   public MyNFA<Integer> FAtoMyNFA(IntSet initialState) {
@@ -903,7 +901,7 @@ public class FA implements Cloneable {
     return nfa;
   }
 
-  /*
+  /**
   Convert FA to MyNFA representation
   */
   public MyNFA<Integer> FAtoMyNFA() {
@@ -1028,7 +1026,7 @@ public class FA implements Cloneable {
   }
 
   // helper function for our DFS to facilitate recursion
-  public String infiniteHelper(List<List<Integer>> A, IntSet visited, int started, int state, String result) {
+  public String infiniteHelper(RichAlphabet r, IntSet visited, int started, int state, String result) {
       if (visited.contains(state)) {
           if (state == started) {
               return result;
@@ -1039,7 +1037,7 @@ public class FA implements Cloneable {
       for (Int2ObjectMap.Entry<IntList> entry : getEntriesNfaD(state)) {
           for (int y: entry.getValue()) {
               // this adds brackets even when inputs have arity 1 - this is fine, since we just want a usable infinite regex
-              String cycle = infiniteHelper(A, visited, started, y, result + RichAlphabet.decode(A, entry.getIntKey()));
+              String cycle = infiniteHelper(r, visited, started, y, result + r.decode(entry.getIntKey()));
               if (!cycle.isEmpty()) {
                   return cycle;
               }
@@ -1053,33 +1051,30 @@ public class FA implements Cloneable {
   // Determines whether an automaton accepts infinitely many values. If it does, a regex of infinitely many accepted values (not all)
   // is given. This is true iff there exists a cycle in a minimized version of the automaton, which previously had leading or
   // trailing zeroes removed according to whether it was msd or lsd
-  public String infinite(List<List<Integer>> A) {
+  public String infinite(RichAlphabet r) {
       for (int i = 0; i < Q; i++) {
           IntSet visited = new IntOpenHashSet(); // states we have visited
-          String cycle = infiniteHelper(A, visited, i, i, "");
+          String cycle = infiniteHelper(r, visited, i, i, "");
           // once a cycle is detected, compute a prefix leading to state i and a suffix from state i to an accepting state
           if (!cycle.isEmpty()) {
               final int finalI = i;
-              String prefix = findPath(this, getQ0(), y -> y == finalI, A);
-              String suffix = findPath(this, finalI, this::isAccepting, A);
+              String prefix = this.findPath(getQ0(), y -> y == finalI, r);
+              String suffix = this.findPath(finalI, this::isAccepting, r);
               return prefix + "(" + cycle + ")*" + suffix;
           }
       }
       return ""; // an empty string signals that we have failed to find a cycle
   }
+
   // Core pathfinding logic
-  private static String findPath(
-      FA automaton,
-      int startState,
-      Predicate<Integer> isFoundCondition,
-      List<List<Integer>> A) {
+  private String findPath(int startState, Predicate<Integer> isFoundCondition, RichAlphabet r) {
     // Early exit if the start state meets the condition
     if (isFoundCondition.test(startState)) {
       return "";
     }
-    List<Integer> distance = new ArrayList<>(Collections.nCopies(automaton.getQ(), -1));
-    List<Integer> prev = new ArrayList<>(Collections.nCopies(automaton.getQ(), -1));
-    List<Integer> input = new ArrayList<>(Collections.nCopies(automaton.getQ(), -1));
+    List<Integer> distance = new ArrayList<>(Collections.nCopies(getQ(), -1));
+    List<Integer> prev = new ArrayList<>(Collections.nCopies(getQ(), -1));
+    List<Integer> input = new ArrayList<>(Collections.nCopies(getQ(), -1));
     distance.set(startState, 0);
 
     Queue<Integer> queue = new LinkedList<>();
@@ -1092,7 +1087,7 @@ public class FA implements Cloneable {
     while (!queue.isEmpty() && !found) {
       int current = queue.poll();
 
-      for (Int2ObjectMap.Entry<IntList> entry : automaton.getEntriesNfaD(current)) {
+      for (Int2ObjectMap.Entry<IntList> entry : getEntriesNfaD(current)) {
         int x = entry.getIntKey();
         IntList transitions = entry.getValue();
 
@@ -1123,7 +1118,7 @@ public class FA implements Cloneable {
     // Convert the path to a string
     StringBuilder result = new StringBuilder();
     for (Integer node : path) {
-      result.append(RichAlphabet.decode(A, node));
+      result.append(r.decode(node));
     }
     return result.toString();
   }

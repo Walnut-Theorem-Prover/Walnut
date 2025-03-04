@@ -52,7 +52,8 @@ public class DeterminizationStrategies {
     }
 
     public static Strategy fromString(String name) {
-      String tempName = name.replace("_", ArithmeticOperator.MINUS).replace(ArithmeticOperator.MINUS,"");
+      // ignore underscores and dashes
+      String tempName = name.replace("_", "-").replace("-","");
       for (Strategy strategy : Strategy.values()) {
         for (String alias : strategy.aliases) {
           if (tempName.equalsIgnoreCase(alias)) {

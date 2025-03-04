@@ -166,7 +166,7 @@ public class Predicate {
             if (MATCHER_FOR_LOGICAL_OPERATORS.find(index)) {
                 lastTokenWasOperator = true;
                 Matcher matcher = MATCHER_FOR_LOGICAL_OPERATORS;
-                if (matcher.group(1).equals("E") || matcher.group(1).equals("A") || matcher.group(1).equals("I")) {
+                if (matcher.group(1).equals(Operator.EXISTS) || matcher.group(1).equals(Operator.FORALL) || matcher.group(1).equals(Operator.INFINITE)) {
                     if (!MATCHER_FOR_LIST_OF_QUANTIFIED_VARIABLES.find(matcher.end())) {
                         throw new RuntimeException(
                                 "Operator " + matcher.group(1) +

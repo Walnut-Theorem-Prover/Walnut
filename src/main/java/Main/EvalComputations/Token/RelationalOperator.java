@@ -89,7 +89,7 @@ public class RelationalOperator extends Operator {
                 } else {
                     C = ns.comparison(o, arithmetic.identifier, op);
                 }
-                N = AutomatonLogicalOps.imply(N, C, print, prefix + " ", log, "=>");
+                N = AutomatonLogicalOps.imply(N, C, print, prefix + " ", log, LogicalOperator.IMPLY);
                 M = AutomatonLogicalOps.and(M, N, print, prefix + " ", log);
             }
             M = AutomatonLogicalOps.and(M, word.M, print, prefix + " ", log);

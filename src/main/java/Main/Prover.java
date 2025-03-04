@@ -786,8 +786,9 @@ public class Prover {
     Matcher m = matchOrFail(PAT_FOR_inf_CMD, s, INF);
 
     Automaton M = Automaton.readAutomatonFromFile(m.group(GROUP_INF_NAME));
-    M = M.removeLeadTrailZeroes();
-    String infReg = M.fa.infinite(M.getA());
+    M.randomLabel();
+    M = AutomatonLogicalOps.removeLeadingZeroes(M, M.getLabel(), false, null, null);
+    String infReg = M.fa.infinite(M.richAlphabet);
     if (infReg.isEmpty()) {
       System.out.println("Automaton " + m.group(GROUP_INF_NAME) + " accepts finitely many values.");
       return false;
@@ -919,7 +920,8 @@ public class Prover {
     Automaton M = Automaton.readAutomatonFromFile(testName);
 
     // we don't want to count multiple representations of the same value as distinct accepted values
-    M = M.removeLeadTrailZeroes();
+    M.randomLabel();
+    M = AutomatonLogicalOps.removeLeadingZeroes(M, M.getLabel(), false, null, null);
 
     String infSubcommand = "inf " + testName + ";";
     boolean infinite = infCommand(infSubcommand);

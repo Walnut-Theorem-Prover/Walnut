@@ -31,13 +31,18 @@ import Main.EvalComputations.Expressions.VariableExpression;
 import Main.UtilityMethods;
 
 public class LogicalOperator extends Operator {
+    public static final String AND = "&";
+    public static final String OR = "|";
+    public static final String XOR = "^";
+    public static final String IMPLY = "=>";
+    public static final String IFF = "<=>";
     private int quantifiedVariableCount;
 
     public LogicalOperator(int position, String op) {
         this.op = op;
         setPriority();
 
-        if (this.isNegation(op) || op.equals("`")) setArity(1);
+        if (this.isNegation(op) || op.equals(Operator.REVERSE)) setArity(1);
         else setArity(2);
         setPositionInPredicate(position);
     }
@@ -54,11 +59,11 @@ public class LogicalOperator extends Operator {
     public void act(Stack<Expression> S, boolean print, String prefix, StringBuilder log) {
         super.validateArity(S);
 
-        if (this.isNegation(op) || op.equals("`")) {
+        if (this.isNegation(op) || op.equals(Operator.REVERSE)) {
             actNegationOrReverse(S, print, prefix, log);
             return;
         }
-        if (op.equals("E") || op.equals("A") || op.equals("I")) {
+        if (op.equals(Operator.EXISTS) || op.equals(Operator.FORALL) || op.equals(Operator.INFINITE)) {
             actQuantifier(S, print, prefix, log);
             return;
         }
@@ -70,14 +75,14 @@ public class LogicalOperator extends Operator {
             UtilityMethods.logAndPrint(print, prefix + "computing " + a + op + b, log);
             String opString = "(" + a + op + b + ")";
             AutomatonExpression ae = switch (op) {
-              case "&" ->
+              case AND ->
                   new AutomatonExpression(opString, AutomatonLogicalOps.and(a.M, b.M, print, prefix + " ", log, op));
-              case "|" -> new AutomatonExpression(opString, AutomatonLogicalOps.or(a.M, b.M, print, prefix + " ", log, op));
-              case "^" ->
+              case OR -> new AutomatonExpression(opString, AutomatonLogicalOps.or(a.M, b.M, print, prefix + " ", log, op));
+              case XOR ->
                   new AutomatonExpression(opString, AutomatonLogicalOps.xor(a.M, b.M, print, prefix + " ", log, op));
-              case "=>" ->
+              case IMPLY ->
                   new AutomatonExpression(opString, AutomatonLogicalOps.imply(a.M, b.M, print, prefix + " ", log, op));
-              case "<=>" ->
+              case IFF ->
                   new AutomatonExpression(opString, AutomatonLogicalOps.iff(a.M, b.M, print, prefix + " ", log, op));
               default -> throw new RuntimeException("Unexpected logical operator: " + op);
             };
@@ -93,7 +98,7 @@ public class LogicalOperator extends Operator {
         Expression a = S.pop();
         if (a instanceof AutomatonExpression) {
             UtilityMethods.logAndPrint(print, prefix + "computing " + op + a, log);
-            if (op.equals("`"))
+            if (op.equals(Operator.REVERSE))
                 AutomatonLogicalOps.reverse(a.M, print, prefix + " ", log, true);
             if (this.isNegation(op))
                 AutomatonLogicalOps.not(a.M, print, prefix + " ", log);
@@ -126,16 +131,18 @@ public class LogicalOperator extends Operator {
                 if (!(operand instanceof AutomatonExpression))
                     throw new RuntimeException("the last operand of " + op + " can only be of type automaton");
                 M = operand.M;
-                if (op.equals("E")) {
+                if (op.equals(Operator.EXISTS)) {
                     AutomatonLogicalOps.quantify(M, identifiersToQuantify, print, prefix + " ", log);
-                } else if (op.equals("A")) {
+                } else if (op.equals(Operator.FORALL)) {
+                    // A == ~ E ~
                     AutomatonLogicalOps.not(M, print, prefix + " ", log);
                     AutomatonLogicalOps.quantify(M, identifiersToQuantify, print, prefix + " ", log);
                     AutomatonLogicalOps.not(M, print, prefix + " ", log);
                 } else {
+                    // op == I
                     M = AutomatonLogicalOps.removeLeadingZeroes(M, identifiersToQuantify, print, prefix + " ", log);
-                    String infReg = M.fa.infinite(M.getA());
-                    M = infReg.isEmpty() ? new Automaton(false) : new Automaton(true);
+                    String infReg = M.fa.infinite(M.richAlphabet);
+                    M = new Automaton(!infReg.isEmpty());
                 }
             }
         }

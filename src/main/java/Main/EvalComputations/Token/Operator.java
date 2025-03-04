@@ -25,6 +25,11 @@ import java.util.Stack;
 
 
 public abstract class Operator extends Token {
+    public static final String REVERSE = "`";
+    public static final String EXISTS = "E";
+    public static final String FORALL = "A";
+    public static final String INFINITE = "I";
+    public static final String NEGATE = "~";
     protected boolean leftParenthesis = false;
     private int priority;
     protected String op;
@@ -34,7 +39,7 @@ public abstract class Operator extends Token {
     }
 
     public void put(List<Token> postOrder, Stack<Operator> S) {
-        if (op.equals("(") || op.equals("E") || op.equals("A") || op.equals("I")) {
+        if (op.equals(LeftParenthesis.LEFT_PAREN) || op.equals(EXISTS) || op.equals(FORALL) || op.equals(INFINITE)) {
             S.push(this);
             return;
         }
@@ -61,12 +66,12 @@ public abstract class Operator extends Token {
     }
 
     public boolean rightAssociativity() {
-        return op.equals("`") || this.isNegation(op);
+        return op.equals(REVERSE) || this.isNegation(op);
     }
 
     public void setPriority() {
         switch (op) {
-            case "_":
+            case ArithmeticOperator.UNARY_NEGATIVE:
                 priority = 5;
                 break;
             case ArithmeticOperator.MULT, ArithmeticOperator.DIV:
@@ -78,22 +83,22 @@ public abstract class Operator extends Token {
             case RelationalOperator.EQUAL, RelationalOperator.NOT_EQUAL, RelationalOperator.LESS_THAN, RelationalOperator.GREATER_THAN, RelationalOperator.LESS_EQ_THAN, RelationalOperator.GREATER_EQ_THAN:
                 priority = 40;
                 break;
-            case "~", "`":
+            case NEGATE, REVERSE:
                 priority = 80;
-                break;
-            case "&", "|", "^":
+                break;  
+            case LogicalOperator.AND, LogicalOperator.OR, LogicalOperator.XOR:
                 priority = 90;
                 break;
-            case "=>":
+            case LogicalOperator.IMPLY:
                 priority = 100;
                 break;
-            case "<=>":
+            case LogicalOperator.IFF:
                 priority = 110;
                 break;
-            case "E", "A", "I":
+            case EXISTS, FORALL, INFINITE:
                 priority = 150;
                 break;
-            case "(":
+            case LeftParenthesis.LEFT_PAREN:
                 priority = 200;
                 break;
             default:
@@ -123,7 +128,7 @@ public abstract class Operator extends Token {
             specialNegation = hexString.equals("2dc") || hexString.equals("303");
         }
 
-        return specialNegation || op.equals("~");
+        return specialNegation || op.equals(NEGATE);
     }
 
     protected void validateArity(Stack<Expression> S) {
