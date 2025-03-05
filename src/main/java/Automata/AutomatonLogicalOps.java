@@ -590,7 +590,7 @@ public class AutomatonLogicalOps {
     public static void reverse(
         Automaton A, boolean print, String prefix, StringBuilder log, boolean reverseMsd) {
         if (A.fa.isTRUE_FALSE_AUTOMATON()) return;
-        System.out.println("REVERSING");
+
         long timeBefore = System.currentTimeMillis();
         UtilityMethods.logMessage(print, prefix + "Reversing:" + A.getQ() + " states", log);
 
@@ -612,7 +612,6 @@ public class AutomatonLogicalOps {
         if (A.fa.isTRUE_FALSE_AUTOMATON()) {
             return;
         }
-        System.out.println("REVERSING");
 
         long timeBefore = System.currentTimeMillis();
         UtilityMethods.logMessage(print, prefix + "reversing: " + A.getQ() + " states", log);

@@ -37,7 +37,7 @@ public class ProductStrategies {
             if (print) {
                 int statesSoFar = currentState + 1;
                 long timeAfter = System.currentTimeMillis();
-                UtilityMethods.logMessage(statesSoFar == 1e2 || statesSoFar == 1e3 || statesSoFar % 1e4 == 0,
+                UtilityMethods.logMessage(statesSoFar == 1e2 || statesSoFar == 1e3 || statesSoFar == 1e4 || statesSoFar % 1e5 == 0,
                         prefix + "  Progress: Added " + statesSoFar + " states - "
                     + (statesList.size() - statesSoFar) + " states left in queue - "
                     + statesList.size() + " reachable states - " + (timeAfter - timeBefore) + "ms", log);

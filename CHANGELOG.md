@@ -1,8 +1,6 @@
 # Changelog
 
-All notable changes to the Walnut project will be documented in this file.
-
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
+All notable changes to Walnut will be documented here. Format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased] - Author: John Nicol
 
@@ -12,11 +10,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - Versioning output to Walnut.
 - Session functionality. Each run of Walnut writes to a new session, making it easier to organize and not overwrite previous results.
-- Walnut .txt files now allow comments.
+- Ability to specify session and home directories from command line.
+- Walnut .txt files and scripts allow comments.
 - Dead states are removed (trim) before determinization.
 - (INCOMPLETE) Bisimulation reduction before determinization.
 - Leveraging the [AutomataLib](https://github.com/LearnLib/automatalib) library.
-- Allow reading and writing NFAs to/from the [BA](https://languageinclusion.org/doku.php?id=tools) format, including intermediates.
+- Allow reading and writing NFAs to the [BA](https://languageinclusion.org/doku.php?id=tools) format, including intermediates.
 - (INCOMPLETE, UNPUBLISHED) Leveraging the OTF library.
 - (INCOMPLETE, UNPUBLISHED) Additional determinization strategy choices:
   * [Brzozowski's algorithm](https://en.wikipedia.org/wiki/DFA_minimization#Brzozowski's_algorithm)
@@ -25,7 +24,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 
-- Major performance improvements, particularly in product automata construction and Walnut file I/O.
+- Major performance improvements, particularly in product automata construction, Walnut file I/O, and the `test` command.
 - Fixed OOM error when writing large Graphview files (reported by Pierre Ganty).
 - Removed unnecessary determinizations when handling leading/trailing zeros.
 - Increased testing and code coverage.

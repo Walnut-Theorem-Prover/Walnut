@@ -277,20 +277,18 @@ public class DeterminizationStrategies {
     Deque<Integer> stateBuffer = new ArrayDeque<>();
 
     int numInputs = fa.getAlphabetSize();
-    int totalPrints = 0;
 
-    int statesExplored = 0;
+    long statesExplored = 0;
 
     while (!stack.isEmpty()) {
       if (print) {
-        if (statesExplored++ / 1000 > totalPrints) {
+        if (statesExplored % 1e5 == 0) {
           int statesSoFar = out.size() - stateBuffer.size();
-          totalPrints++;
           int queueSize = stack.size();
           long timeAfter = System.currentTimeMillis();
           UtilityMethods.logMessage(true,
-              prefix + "  Progress: Added " + statesSoFar + " states - "
-                  + queueSize + " states left in queue - " + (timeAfter - timeBefore) + "ms", log);
+              prefix + "  Progress: " + statesExplored + " states explored - " + statesSoFar + " current states - "
+                  + queueSize + " states in queue - " + (timeAfter - timeBefore) + "ms", log);
         }
       }
       DeterminizeRecord<BitSet> curr = stack.pop();
@@ -314,6 +312,7 @@ public class DeterminizationStrategies {
           stack.push(new DeterminizeRecord<>(prune, outSucc));
         }
         out.setTransition(outState, inputs.getSymbolIndex(i), outSucc);
+        statesExplored++;
       }
 
       finishedStates.set(outState);

@@ -268,14 +268,38 @@ public class Prover {
    * if the file contains the exit command we terminate the program.
    **/
   public static void main(String[] args) {
-    Session.setPathsAndNames();
-    run(args);
+    String filename = parseArgs(args);
+    run(filename);
   }
 
-  public static void run(String[] args) {
-    if (args.length >= 1) {
-      File f = UtilityMethods.validateFile(Session.getReadAddressForCommandFiles(args[0]));
-      //reading commands from the file with address args[0]
+  private static String parseArgs(String[] args) {
+    String filename = null;
+    String sessionDir = null;
+    String homeDir = null;
+
+    for (String arg : args) {
+      if (arg.startsWith("--session-dir=")) {
+        sessionDir = arg.substring("--session-dir=".length());
+        if (!sessionDir.endsWith("/")) {
+          sessionDir += "/";
+        }
+      } else if (arg.startsWith("--home-dir=")) {
+        homeDir = arg.substring("--home-dir=".length());
+        if (!homeDir.endsWith("/")) {
+          homeDir += "/";
+        }
+      } else if (filename == null) {
+        filename = arg; // Assume the first non-flag argument is the filename
+        UtilityMethods.validateFile(Session.getReadAddressForCommandFiles(filename));
+      }
+    }
+    Session.setPathsAndNames(sessionDir, homeDir);
+    return filename;
+  }
+  public static void run(String filename) {
+    if (filename != null) {
+      File f = UtilityMethods.validateFile(Session.getReadAddressForCommandFiles(filename));
+      // read commands from file
       try (BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(f)))) {
         if (!mainProver.readBuffer(in, false)) return;
       } catch (IOException e) {
@@ -283,7 +307,7 @@ public class Prover {
       }
     }
 
-    // Now we parse commands from the console.
+    // Parse commands from the console.
     System.out.println("Welcome to Walnut v" + Session.WALNUT_VERSION +
         "! Type \"help;\" to see all available commands.");
     System.out.println("Starting Walnut session: " + Session.getName());
@@ -392,6 +416,7 @@ public class Prover {
         printDetails = true;
       }
     }
+    printFlag = printSteps || printDetails;
     s = s.substring(0, s.length() - endingToRemove); // remove ;|:|::
     s = s.strip(); // remove end whitespace, Unicode-aware
 

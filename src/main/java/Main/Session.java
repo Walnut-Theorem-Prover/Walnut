@@ -45,14 +45,23 @@ public class Session {
   private static final String GLOBAL_NAME = "Global";
   private static final String SESSION_NAME = "Session";
 
-  public static void setPathsAndNames() {
-    String path = System.getProperty("user.dir");
-    if (path.endsWith("bin"))
-      mainWalnutDir = "../";
-    name = SESSION_NAME + "/" +
-        LocalDateTime.now().format(DateTimeFormatter.ofPattern(FRIENDLY_DATE_TIME_PATTERN)) + "/";
-    if (sessionWalnutDir == null) {
-      sessionWalnutDir = mainWalnutDir + name;
+  public static void setPathsAndNames(String sessionDir, String homeDir) {
+    if (homeDir == null) {
+      String path = System.getProperty("user.dir");
+      if (path.endsWith("bin"))
+        mainWalnutDir = "../";
+    } else {
+      mainWalnutDir = homeDir;
+    }
+
+    if (sessionDir == null) {
+      name = SESSION_NAME + "/" +
+          LocalDateTime.now().format(DateTimeFormatter.ofPattern(FRIENDLY_DATE_TIME_PATTERN)) + "/";
+      if (sessionWalnutDir == null) {
+        sessionWalnutDir = mainWalnutDir + name;
+      }
+    } else {
+      sessionWalnutDir = name = sessionDir;
     }
     createSubdirectories();
   }
