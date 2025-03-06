@@ -25,7 +25,7 @@ public class AutomataTest {
 
   @Test
   void testLabelPermutation() {
-    /**
+    /*
      * For example if label_permutation[1]=[3], then input number 1 becomes input number 3 after sorting.
      * For example if label = ["z","a","c"], and A = [[-1,2],[0,1],[1,2,3]],
      * then label_permutation = [2,0,1] and permuted_A = [[0,1],[1,2,3],[-1,2]].
@@ -43,8 +43,8 @@ public class AutomataTest {
     Assertions.assertEquals(expectedPermutedA, permutedA);
 
     RichAlphabet r = new RichAlphabet();
-    r.setA(A);
-    Assertions.assertEquals(List.of(1,2,6), r.determineEncoder(permutedA));
+    r.setA(permutedA);
+    r.setupEncoder();
+    Assertions.assertEquals(List.of(1,2,6), r.getEncoder());
   }
-
 }

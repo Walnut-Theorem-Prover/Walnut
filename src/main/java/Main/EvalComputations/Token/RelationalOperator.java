@@ -26,20 +26,52 @@ import Main.EvalComputations.Expressions.Expression;
 import Automata.NumberSystem;
 import Main.UtilityMethods;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Stack;
 
 
 public class RelationalOperator extends Operator {
-    public static final String EQUAL = "=";
-    public static final String NOT_EQUAL = "!=";
-    public static final String LESS_THAN = "<";
-    public static final String GREATER_THAN = ">";
-    public static final String LESS_EQ_THAN = "<=";
-    public static final String GREATER_EQ_THAN = ">=";
     private final NumberSystem ns;
+    private final Ops opp;
+    public static final Map<String, Ops> RELATIONAL_OPERATORS = new HashMap<>();
+    static {
+        for (RelationalOperator.Ops op : RelationalOperator.Ops.values()) {
+            RELATIONAL_OPERATORS.put(op.getSymbol(), op);
+        }
+    }
+    public enum Ops {
+        EQUAL("="),
+        NOT_EQUAL("!="),
+        LESS_THAN("<"),
+        GREATER_THAN(">"),
+        LESS_EQ_THAN("<="),
+        GREATER_EQ_THAN(">=");
+
+        private final String symbol;
+
+        Ops(String symbol) {
+            this.symbol = symbol;
+        }
+
+        public String getSymbol() {
+            return symbol;
+        }
+
+        public static Ops fromSymbol(String symbol) {
+            for (Ops op : values()) {
+                if (op.symbol.equals(symbol)) {
+                    return op;
+                }
+            }
+            throw new IllegalArgumentException("Unknown comparison operator: " + symbol);
+        }
+    }
+
 
     public RelationalOperator(int position, String type, NumberSystem ns) {
         this.op = type;
+        this.opp = Ops.fromSymbol(type);
         setPriority();
         setArity(2);
         setPositionInPredicate(position);
@@ -56,7 +88,7 @@ public class RelationalOperator extends Operator {
         Expression a = S.pop();
 
         if ((a instanceof NumberLiteralExpression || a instanceof AlphabetLetterExpression) && (b instanceof NumberLiteralExpression || b instanceof AlphabetLetterExpression)) {
-            S.push(new AutomatonExpression(a + op + b, new Automaton(compare(op, a.constant, b.constant))));
+            S.push(new AutomatonExpression(a + op + b, new Automaton(compare(opp, a.constant, b.constant))));
             return;
         }
         UtilityMethods.logAndPrint(print, prefix + "computing " + a + op + b, log);
@@ -82,12 +114,12 @@ public class RelationalOperator extends Operator {
             Automaton M = new Automaton(true);
             for (int o : word.wordAutomaton.getO()) {
                 Automaton N = word.wordAutomaton.clone();
-                AutomatonLogicalOps.compareWordAutomaton(N.fa, o, EQUAL, print, prefix + " ", log);
+                AutomatonLogicalOps.compareWordAutomaton(N.fa, o, Ops.EQUAL, print, prefix + " ", log);
                 Automaton C;
                 if (reverse) {
-                    C = ns.comparison(arithmetic.identifier, o, op);
+                    C = ns.comparison(arithmetic.identifier, o, opp);
                 } else {
-                    C = ns.comparison(o, arithmetic.identifier, op);
+                    C = ns.comparison(o, arithmetic.identifier, opp);
                 }
                 N = AutomatonLogicalOps.imply(N, C, print, prefix + " ", log, LogicalOperator.IMPLY);
                 M = AutomatonLogicalOps.and(M, N, print, prefix + " ", log);
@@ -98,16 +130,16 @@ public class RelationalOperator extends Operator {
             S.push(new AutomatonExpression(word.toString(), M));
         } else if ((a instanceof ArithmeticExpression || a instanceof VariableExpression)
                 && (b instanceof ArithmeticExpression || b instanceof VariableExpression)) {
-            Automaton M = ns.comparison(a.identifier, b.identifier, op);
+            Automaton M = ns.comparison(a.identifier, b.identifier, opp);
             M = andQuantifyIfArithmetic(print, prefix, log, a, M);
             M = andQuantifyIfArithmetic(print, prefix, log, b, M);
             S.push(new AutomatonExpression(a + op + b, M));
         } else if ((a instanceof NumberLiteralExpression || a instanceof AlphabetLetterExpression) && (b instanceof ArithmeticExpression || b instanceof VariableExpression)) {
-            Automaton M = ns.comparison(a.constant, b.identifier, op);
+            Automaton M = ns.comparison(a.constant, b.identifier, opp);
             M = andQuantifyIfArithmetic(print, prefix, log, b, M);
             S.push(new AutomatonExpression(a + op + b, M));
         } else if ((a instanceof ArithmeticExpression || a instanceof VariableExpression) && (b instanceof NumberLiteralExpression || b instanceof AlphabetLetterExpression)) {
-            Automaton M = ns.comparison(a.identifier, b.constant, op);
+            Automaton M = ns.comparison(a.identifier, b.constant, opp);
             M = andQuantifyIfArithmetic(print, prefix, log, a, M);
             S.push(new AutomatonExpression(a + op + b, M));
         } else if (a instanceof WordExpression && b instanceof WordExpression) {
@@ -118,13 +150,13 @@ public class RelationalOperator extends Operator {
             AutomatonLogicalOps.quantify(M, ((WordExpression)b).identifiersToQuantify, print, prefix + " ", log);
             S.push(new AutomatonExpression(a + op + b, M));
         } else if (a instanceof WordExpression && (b instanceof NumberLiteralExpression|| b instanceof AlphabetLetterExpression)) {
-            AutomatonLogicalOps.compareWordAutomaton(a.wordAutomaton.fa, b.constant, op, print, prefix + " ", log);
+            AutomatonLogicalOps.compareWordAutomaton(a.wordAutomaton.fa, b.constant, opp, print, prefix + " ", log);
             Automaton M = a.wordAutomaton;
             M = AutomatonLogicalOps.and(M, a.M, print, prefix + " ", log);
             AutomatonLogicalOps.quantify(M, ((WordExpression)a).identifiersToQuantify, print, prefix + " ", log);
             S.push(new AutomatonExpression(a + op + b, M));
         } else if ((a instanceof NumberLiteralExpression || a instanceof AlphabetLetterExpression) && b instanceof WordExpression) {
-            AutomatonLogicalOps.compareWordAutomaton(b.wordAutomaton.fa, a.constant, reverseOperator(op), print, prefix + " ", log);
+            AutomatonLogicalOps.compareWordAutomaton(b.wordAutomaton.fa, a.constant, reverseOperator(opp), print, prefix + " ", log);
             Automaton M = b.wordAutomaton;
             M = AutomatonLogicalOps.and(M, b.M, print, prefix + " ", log);
             AutomatonLogicalOps.quantify(M, ((WordExpression)b).identifiersToQuantify, print, prefix + " ", log);
@@ -143,7 +175,7 @@ public class RelationalOperator extends Operator {
         return M;
     }
 
-    public static boolean compare(String op, int a, int b) {
+    public static boolean compare(Ops op, int a, int b) {
         return switch (op) {
             case EQUAL -> a == b;
             case NOT_EQUAL -> a != b;
@@ -151,19 +183,17 @@ public class RelationalOperator extends Operator {
             case GREATER_THAN -> a > b;
             case LESS_EQ_THAN -> a <= b;
             case GREATER_EQ_THAN -> a >= b;
-            default -> throw ExceptionHelper.unexpectedOperator(op);
         };
     }
 
-    public static String reverseOperator(String op) {
+    public static Ops reverseOperator(Ops op) {
         return switch (op) {
-            case EQUAL -> EQUAL;
-            case NOT_EQUAL -> NOT_EQUAL;
-            case LESS_THAN -> GREATER_THAN;
-            case GREATER_THAN -> LESS_THAN;
-            case LESS_EQ_THAN -> GREATER_EQ_THAN;
-            case GREATER_EQ_THAN -> LESS_EQ_THAN;
-            default -> throw ExceptionHelper.unexpectedOperator(op);
+            case EQUAL -> Ops.EQUAL;
+            case NOT_EQUAL -> Ops.NOT_EQUAL;
+            case LESS_THAN -> Ops.GREATER_THAN;
+            case GREATER_THAN -> Ops.LESS_THAN;
+            case LESS_EQ_THAN -> Ops.GREATER_EQ_THAN;
+            case GREATER_EQ_THAN -> Ops.LESS_EQ_THAN;
         };
     }
 }

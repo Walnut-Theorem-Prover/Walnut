@@ -846,14 +846,18 @@ public class Prover {
       }
     }
 
-    List<String> inputs = new ArrayList<>();
+    List<ArithmeticOperator.Ops> plusMinusInputs = new ArrayList<>();
     boolean hasInput = false;
     while (inputPattern.find()) {
       String t = inputPattern.group(1);
-      hasInput = hasInput || t.equals(ArithmeticOperator.PLUS) || t.equals(ArithmeticOperator.MINUS);
-      inputs.add(t);
+      ArithmeticOperator.Ops tOp = t.isEmpty() ? null : ArithmeticOperator.Ops.fromSymbol(t);
+      if (tOp != null && tOp != ArithmeticOperator.Ops.PLUS && tOp != ArithmeticOperator.Ops.MINUS) {
+        throw ExceptionHelper.invalidCommand(t);
+      }
+      hasInput = hasInput || (tOp != null);
+      plusMinusInputs.add(tOp);
     }
-    if (!hasInput || inputs.isEmpty()) {
+    if (!hasInput || plusMinusInputs.isEmpty()) {
       throw new RuntimeException("Cannot split without inputs.");
     }
 
@@ -861,7 +865,7 @@ public class Prover {
     UtilityMethods.removeDuplicates(outputs);
     List<Automaton> subautomata = M.uncombine(outputs);
 
-    subautomata.replaceAll(automaton -> automaton.processSplit(inputs, isReverse, printFlag, prefix, log));
+    subautomata.replaceAll(automaton -> automaton.processSplit(plusMinusInputs, isReverse, printFlag, prefix, log));
 
     Automaton N = subautomata.remove(0);
     N = AutomatonLogicalOps.combine(N, new LinkedList<>(subautomata), outputs, printFlag, prefix, log);

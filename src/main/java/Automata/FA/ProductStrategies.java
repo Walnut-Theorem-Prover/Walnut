@@ -156,14 +156,18 @@ public class ProductStrategies {
     }
 
     private static int determineOutput(int aP, int mQ, String op, int combineOut) {
+        if (RelationalOperator.RELATIONAL_OPERATORS.containsKey(op)) {
+            return RelationalOperator.compare(RelationalOperator.Ops.fromSymbol(op), aP, mQ) ? 1 : 0;
+        }
+        if (ArithmeticOperator.ARITHMETIC_OPERATORS.containsKey(op)) {
+            return ArithmeticOperator.arith(ArithmeticOperator.Ops.fromSymbol(op), aP, mQ);
+        }
         return switch (op) {
             case LogicalOperator.AND -> (aP != 0 && mQ != 0) ? 1 : 0;
             case LogicalOperator.OR -> (aP != 0 || mQ != 0) ? 1 : 0;
             case LogicalOperator.XOR -> ((aP != 0 && mQ == 0) || (aP == 0 && mQ != 0)) ? 1 : 0;
             case LogicalOperator.IMPLY -> (aP == 0 || mQ != 0) ? 1 : 0;
             case LogicalOperator.IFF -> ((aP == 0 && mQ == 0) || (aP != 0 && mQ != 0)) ? 1 : 0;
-            case RelationalOperator.LESS_THAN, RelationalOperator.GREATER_THAN, RelationalOperator.EQUAL, RelationalOperator.NOT_EQUAL, RelationalOperator.LESS_EQ_THAN, RelationalOperator.GREATER_EQ_THAN -> RelationalOperator.compare(op, aP, mQ) ? 1 : 0;
-            case ArithmeticOperator.PLUS, ArithmeticOperator.MINUS, ArithmeticOperator.MULT, ArithmeticOperator.DIV -> ArithmeticOperator.arith(op, aP, mQ);
             case Prover.COMBINE -> (mQ == 1) ? combineOut : aP;
             case "first" -> aP == 0 ? mQ : aP;
             case "if_other" -> mQ != 0 ? aP : 0;

@@ -70,22 +70,28 @@ public abstract class Operator extends Token {
     }
 
     public void setPriority() {
+        if (RelationalOperator.RELATIONAL_OPERATORS.containsKey(op)) {
+            priority = 40;
+            return;
+        }
+        if (ArithmeticOperator.ARITHMETIC_OPERATORS.containsKey(op)) {
+            switch (ArithmeticOperator.Ops.fromSymbol(op)) {
+                case UNARY_NEGATIVE:
+                    priority = 5;
+                    break;
+                case MULT, DIV:
+                    priority = 10;
+                    break;
+                case PLUS, MINUS:
+                    priority = 20;
+                    break;
+            }
+            return;
+        }
         switch (op) {
-            case ArithmeticOperator.UNARY_NEGATIVE:
-                priority = 5;
-                break;
-            case ArithmeticOperator.MULT, ArithmeticOperator.DIV:
-                priority = 10;
-                break;
-            case ArithmeticOperator.PLUS, ArithmeticOperator.MINUS:
-                priority = 20;
-                break;
-            case RelationalOperator.EQUAL, RelationalOperator.NOT_EQUAL, RelationalOperator.LESS_THAN, RelationalOperator.GREATER_THAN, RelationalOperator.LESS_EQ_THAN, RelationalOperator.GREATER_EQ_THAN:
-                priority = 40;
-                break;
             case NEGATE, REVERSE:
                 priority = 80;
-                break;  
+                break;
             case LogicalOperator.AND, LogicalOperator.OR, LogicalOperator.XOR:
                 priority = 90;
                 break;

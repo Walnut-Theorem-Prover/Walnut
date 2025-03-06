@@ -561,7 +561,7 @@ public class Automaton {
     }
 
     /**
-     * @param inputs A list of "+", "-" or "". Indicating how our input will be interpreted in the output automata.
+     * @param inputs A list of "+", "-" or null. Indicating how our input will be interpreted in the output automata.
      *               Inputs must correspond to inputs of the current automaton
      *               which can be compared to some corresponding negative base.
      * @return The automaton which replaces inputs in negative base with an input in corresponding comparable positive base.
@@ -572,11 +572,11 @@ public class Automaton {
     /**
      * Generalized method to handle split and reverse split operations on the automaton.
      *
-     * @param inputs A list of "+", "-" or "". Indicating how our input will be interpreted in the output automata.
+     * @param inputs A list of "+", "-" or null. Indicating how our input will be interpreted in the output automata.
      * @param reverse Whether to perform the reverse split operation.
      * @return The modified automaton after the split/reverse split operation.
      */
-    public Automaton processSplit(List<String> inputs, boolean reverse, boolean print, String prefix, StringBuilder log) {
+    public Automaton processSplit(List<ArithmeticOperator.Ops> inputs, boolean reverse, boolean print, String prefix, StringBuilder log) {
         if (getAlphabetSize() == 0) {
             throw new RuntimeException("Cannot process split automaton with no inputs.");
         }
@@ -594,30 +594,33 @@ public class Automaton {
         M.setLabel(names);
 
         for (int i = 0; i < inputs.size(); i++) {
-            if (!inputs.get(i).isEmpty()) {
-                NumberSystem ns = getNS().get(i);
-                if (ns == null)
-                    throw new RuntimeException("Number system for input " + i + " must be defined.");
-                NumberSystem negativeNumberSystem = ns.determineNegativeNS();
+            // input is "", "+", or "-"
+            ArithmeticOperator.Ops input = inputs.get(i);
+            if (input == null) {
+                continue;
+            }
+            NumberSystem ns = getNS().get(i);
+            if (ns == null)
+                throw new RuntimeException("Number system for input " + i + " must be defined.");
+            NumberSystem negativeNumberSystem = ns.determineNegativeNS();
 
-                Automaton baseChange = negativeNumberSystem.baseChange.clone();
-                String a = "a" + i, b = "b" + i, c = "c" + i;
+            Automaton baseChange = negativeNumberSystem.baseChange.clone();
+            String a = "a" + i, b = "b" + i, c = "c" + i;
 
-                if (inputs.get(i).equals(ArithmeticOperator.PLUS)) {
-                    baseChange.bind(reverse ? List.of(b,a) : List.of(a,b)); // Use ternary for binding logic
-                    M = AutomatonLogicalOps.and(M, baseChange, print, prefix, log);
-                    quantifiers.add(b);
-                } else { // inputs.get(i).equals(BasicOp.MINUS)
-                    baseChange.bind(List.of(reverse ? b : a, c)); // Use ternary for binding logic
-                    M = AutomatonLogicalOps.and(M, baseChange, print, prefix, log);
-                    M = AutomatonLogicalOps.and(
-                        M,
-                        negativeNumberSystem.arithmetic(reverse ? a : b, c, 0, ArithmeticOperator.PLUS), // Use ternary for arithmetic logic
-                        print, prefix, log
-                    );
-                    quantifiers.add(b);
-                    quantifiers.add(c);
-                }
+            if (input.equals(ArithmeticOperator.Ops.PLUS)) {
+                baseChange.bind(reverse ? List.of(b, a) : List.of(a, b)); // Use ternary for binding logic
+                M = AutomatonLogicalOps.and(M, baseChange, print, prefix, log);
+                quantifiers.add(b);
+            } else { // inputs.get(i).equals(BasicOp.MINUS)
+                baseChange.bind(List.of(reverse ? b : a, c)); // Use ternary for binding logic
+                M = AutomatonLogicalOps.and(M, baseChange, print, prefix, log);
+                M = AutomatonLogicalOps.and(
+                    M,
+                    negativeNumberSystem.arithmetic(reverse ? a : b, c, 0, ArithmeticOperator.Ops.PLUS), // Use ternary for arithmetic logic
+                    print, prefix, log
+                );
+                quantifiers.add(b);
+                quantifiers.add(c);
             }
         }
         AutomatonLogicalOps.quantify(M, quantifiers, print, prefix, log);
@@ -769,18 +772,19 @@ public class Automaton {
      * a DFAO that outputs o+this[x] (or this[x]+p) on input x.
      * To be used only when this automaton and M are DFAOs (words).
      */
-    public void applyWordOperator(int o, String operator, boolean reverse, boolean print, String prefix, StringBuilder log) {
+    public void applyWordArithOperator(int o, ArithmeticOperator.Ops op, boolean reverse, boolean print, String prefix, StringBuilder log) {
+        String opStr = op.getSymbol();
         long timeBefore = System.currentTimeMillis();
-        UtilityMethods.logMessage(print, prefix + "applying operator (" + operator + "):" + getQ() + " states", log);
+        UtilityMethods.logMessage(print, prefix + "applying operator (" + opStr + "):" + getQ() + " states", log);
         for (int p = 0; p < getQ(); p++) {
             IntList thisO = this.getO();
             int thisP = thisO.getInt(p);
             thisO.set(p,
-                reverse ? ArithmeticOperator.arith(operator, thisP, o) : ArithmeticOperator.arith(operator, o, thisP));
+                reverse ? ArithmeticOperator.arith(op, thisP, o) : ArithmeticOperator.arith(op, o, thisP));
         }
         minimizeSelfWithOutput(print, prefix + " ", log);
         long timeAfter = System.currentTimeMillis();
-        UtilityMethods.logMessage(print, prefix + "applied operator (" + operator + "):" + getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
+        UtilityMethods.logMessage(print, prefix + "applied operator (" + opStr + "):" + getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
     }
 
 

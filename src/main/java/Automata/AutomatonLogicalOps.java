@@ -998,14 +998,15 @@ public class AutomatonLogicalOps {
      * To be used only when this A is a DFAO (word).
      */
     public static void compareWordAutomaton(
-        FA fa, int o, String operator, boolean print, String prefix, StringBuilder log) {
+        FA fa, int o, RelationalOperator.Ops operator, boolean print, String prefix, StringBuilder log) {
+        String opStr = operator.getSymbol();
         long timeBefore = System.currentTimeMillis();
-        UtilityMethods.logMessage(print, prefix + "comparing (" + operator + ") against " + o + ":" + fa.getQ() + " states", log);
+        UtilityMethods.logMessage(print, prefix + "comparing (" + opStr + ") against " + o + ":" + fa.getQ() + " states", log);
         for (int p = 0; p < fa.getQ(); p++) {
             fa.getO().set(p, RelationalOperator.compare(operator, fa.getO().getInt(p), o) ? 1 : 0);
         }
         fa.determinizeAndMinimize(print, prefix + " ", log);
         long timeAfter = System.currentTimeMillis();
-        UtilityMethods.logMessage(print, prefix + "compared (" + operator + ") against " + o + ":" + fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
+        UtilityMethods.logMessage(print, prefix + "compared (" + opStr + ") against " + o + ":" + fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
     }
 }

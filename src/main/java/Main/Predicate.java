@@ -84,7 +84,7 @@ public class Predicate {
     private static final String RIGHT_PAREN = "\\)";
     private static final String LEFT_BRACKET = "\\[";
     private static final String RELATIONAL_OPERATORS = "(>=|<=|<|>|=|!=)"; // Relational operators
-    private static final String ARITHMETIC_OPERATORS = "(_|/|\\*|\\+|\\-)"; // Arithmetic operators
+    private static final String ARITHMETIC_OPERATORS = "([_/*+\\-])"; // Arithmetic operators
     private static final String LOGICAL_OPERATORS = "(?<!\\.)(`|\\^|\\&|\\~|\\||=>|<=>|E|A|I|\\u02DC|\\u0303)";
     // Matches number systems like msd_5, lsd_fib, msd5, lsd, or standalone numbers/words like 42, fib
     private static final String NUMBER_SYSTEM =
@@ -111,7 +111,7 @@ public class Predicate {
     static Pattern PATTERN_FOR_MACRO = Pattern.compile(ANCHOR + "(\\s*)\\#" + ALPHANUMERIC + WHITESPACE + LEFT_PAREN);
     static Pattern PATTERN_FOR_VARIABLE = Pattern.compile(ANCHOR + WHITESPACE + ALPHANUMERIC);
     static Pattern PATTERN_FOR_NUMBER_LITERAL = Pattern.compile(ANCHOR + WHITESPACE + "(\\d+)");
-    static Pattern PATTERN_FOR_ALPHABET_LETTER = Pattern.compile(ANCHOR + WHITESPACE + "@(\\s*(\\+|\\-)?\\s*\\d+)");
+    static Pattern PATTERN_FOR_ALPHABET_LETTER = Pattern.compile(ANCHOR + WHITESPACE + "@(\\s*([+\\-])?\\s*\\d+)");
     static Pattern PATTERN_FOR_LEFT_PARENTHESIS = Pattern.compile(ANCHOR + WHITESPACE + LEFT_PAREN);
     static Pattern PATTERN_FOR_RIGHT_PARENTHESIS = Pattern.compile(ANCHOR + WHITESPACE + RIGHT_PAREN);
     static Pattern PATTERN_FOR_WHITESPACE = Pattern.compile(ANCHOR + "\\s+");
