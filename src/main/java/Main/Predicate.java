@@ -168,7 +168,7 @@ public class Predicate {
                 Matcher matcher = MATCHER_FOR_LOGICAL_OPERATORS;
                 if (matcher.group(1).equals(Operator.EXISTS) || matcher.group(1).equals(Operator.FORALL) || matcher.group(1).equals(Operator.INFINITE)) {
                     if (!MATCHER_FOR_LIST_OF_QUANTIFIED_VARIABLES.find(matcher.end())) {
-                        throw new RuntimeException(
+                        throw new WalnutException(
                                 "Operator " + matcher.group(1) +
                                         " requires a list of variables: char at " +
                                         (realStartingPosition + index));
@@ -199,28 +199,28 @@ public class Predicate {
                 op.put(postOrder, operatorStack);
                 index = matcher.end();
             } else if (MATCHER_FOR_WORD.find(index)) {
-                if (!lastTokenWasOperator) throw ExceptionHelper.operatorMissing(realStartingPosition + index);
+                if (!lastTokenWasOperator) throw WalnutException.operatorMissing(realStartingPosition + index);
                 lastTokenWasOperator = false;
                 index = putWord(currentNumberSystem, false);
             } else if (MATCHER_FOR_WORD_WITH_DELIMITER.find(index)) {
-                if (!lastTokenWasOperator) throw ExceptionHelper.operatorMissing(realStartingPosition + index);
+                if (!lastTokenWasOperator) throw WalnutException.operatorMissing(realStartingPosition + index);
                 lastTokenWasOperator = false;
                 index = putWord(currentNumberSystem, true);
             } else if (MATCHER_FOR_FUNCTION.find(index)) {
-                if (!lastTokenWasOperator) throw ExceptionHelper.operatorMissing(realStartingPosition + index);
+                if (!lastTokenWasOperator) throw WalnutException.operatorMissing(realStartingPosition + index);
                 lastTokenWasOperator = false;
                 index = putFunction(currentNumberSystem);
             } else if (MATCHER_FOR_MACRO.find(index)) {
-                if (!lastTokenWasOperator) throw ExceptionHelper.operatorMissing(realStartingPosition + index);
+                if (!lastTokenWasOperator) throw WalnutException.operatorMissing(realStartingPosition + index);
                 index = putMacro();
             } else if (MATCHER_FOR_VARIABLE.find(index)) {
-                if (!lastTokenWasOperator) throw ExceptionHelper.operatorMissing(realStartingPosition + index);
+                if (!lastTokenWasOperator) throw WalnutException.operatorMissing(realStartingPosition + index);
                 lastTokenWasOperator = false;
                 t = new Variable(realStartingPosition + MATCHER_FOR_VARIABLE.start(1), MATCHER_FOR_VARIABLE.group(1));
                 t.put(postOrder);
                 index = MATCHER_FOR_VARIABLE.end();
             } else if (MATCHER_FOR_NUMBER_LITERAL.find(index)) {
-                if (!lastTokenWasOperator) throw ExceptionHelper.operatorMissing(realStartingPosition + index);
+                if (!lastTokenWasOperator) throw WalnutException.operatorMissing(realStartingPosition + index);
                 lastTokenWasOperator = false;
                 if (!numberSystemHash.containsKey(currentNumberSystem))
                     numberSystemHash.put(currentNumberSystem, new NumberSystem(currentNumberSystem));
@@ -228,7 +228,7 @@ public class Predicate {
                 t.put(postOrder);
                 index = MATCHER_FOR_NUMBER_LITERAL.end();
             } else if (MATCHER_FOR_ALPHABET_LETTER.find(index)) {
-                if (!lastTokenWasOperator) throw ExceptionHelper.operatorMissing(index);
+                if (!lastTokenWasOperator) throw WalnutException.operatorMissing(index);
                 lastTokenWasOperator = false;
                 t = new AlphabetLetter(realStartingPosition + MATCHER_FOR_ALPHABET_LETTER.start(1), UtilityMethods.parseInt(MATCHER_FOR_ALPHABET_LETTER.group(1)));
                 t.put(postOrder);
@@ -251,14 +251,14 @@ public class Predicate {
             } else if (MATCHER_FOR_WHITESPACE.find(index)) {
                 index = MATCHER_FOR_WHITESPACE.end();
             } else {
-                throw ExceptionHelper.undefinedToken(realStartingPosition + index);
+                throw WalnutException.undefinedToken(realStartingPosition + index);
             }
         }
 
         while (!operatorStack.isEmpty()) {
             op = operatorStack.pop();
             if (op.isLeftParenthesis()) {
-                throw ExceptionHelper.unbalancedParen(op.getPositionInPredicate());
+                throw WalnutException.unbalancedParen(op.getPositionInPredicate());
             } else {
                 postOrder.add(op);
             }
@@ -329,7 +329,7 @@ public class Predicate {
             char ch = predicate.charAt(i);
             if (ch == ']') {
                 if (bracketStack.isEmpty())
-                    throw new RuntimeException("unbalanced bracket: chat at " + (realStartingPosition + i));
+                    throw new WalnutException("unbalanced bracket: chat at " + (realStartingPosition + i));
                 bracketStack.pop();
                 if (bracketStack.isEmpty()) {
                     indices.add(new Predicate(defaultNumberSystem, buf.toString(), realStartingPosition + startingPosition));
@@ -353,7 +353,7 @@ public class Predicate {
         for (Predicate p : indices) {
             List<Token> tmp = p.getPostOrder();
             if (tmp.isEmpty())
-                throw new RuntimeException("index " + (indices.indexOf(p) + 1) + " of the word " + matcher.group(1) + " cannot be empty: char at " + matcher.start(1));
+                throw new WalnutException("index " + (indices.indexOf(p) + 1) + " of the word " + matcher.group(1) + " cannot be empty: char at " + matcher.start(1));
             postOrder.addAll(tmp);
         }
         Word w = new Word(realStartingPosition + matcher.start(1), matcher.group(1), A, indices.size());
@@ -391,13 +391,13 @@ public class Predicate {
 
             // Check for invalid macro characters
             if (ch == '#' || ch == '$') {
-                throw ExceptionHelper.internalMacro(realStartingPosition + i);
+                throw WalnutException.internalMacro(realStartingPosition + i);
             }
 
             // Closing parenthesis
             if (ch == ')') {
                 if (parenthesisStack.isEmpty()) {
-                    throw ExceptionHelper.unbalancedParen(realStartingPosition + i);
+                    throw WalnutException.unbalancedParen(realStartingPosition + i);
                 }
                 parenthesisStack.pop();
 
@@ -434,7 +434,7 @@ public class Predicate {
 
         // If we exit the loop but the stack isn't empty, we have unbalanced parentheses
         if (!parenthesisStack.isEmpty()) {
-            throw ExceptionHelper.unbalancedParen(realStartingPosition + i);
+            throw WalnutException.unbalancedParen(realStartingPosition + i);
         }
 
         return result;
@@ -502,7 +502,7 @@ public class Predicate {
         for (Predicate p : arguments) {
             List<Token> tmp = p.getPostOrder();
             if (tmp.isEmpty() && arguments.size() > 1) {
-                throw new RuntimeException(
+                throw new WalnutException(
                     "argument " + (arguments.indexOf(p) + 1)
                         + " of the function " + functionName + " cannot be empty: char at " + matcher.start(1)
                 );
@@ -535,7 +535,7 @@ public class Predicate {
             }
         } catch (IOException e) {
             UtilityMethods.printTruncatedStackTrace(e);
-            throw new RuntimeException("Macro does not exist: " + filename, e);
+            throw new WalnutException("Macro does not exist: " + filename, e);
         }
         return macro;
     }

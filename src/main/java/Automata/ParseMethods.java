@@ -27,6 +27,7 @@ import java.util.regex.Pattern;
 
 import Main.Predicate;
 import Main.UtilityMethods;
+import Main.WalnutException;
 
 public class ParseMethods {
     static final int ALPHABET_SET = 12;
@@ -205,7 +206,7 @@ public class ParseMethods {
             mapping.put(Integer.parseInt(input), image);
         }
         if (mapping.isEmpty()) {
-            throw new RuntimeException("Morphism has no valid mappings.");
+            throw new WalnutException("Morphism has no valid mappings.");
         }
         return mapping;
     }

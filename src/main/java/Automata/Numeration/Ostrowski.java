@@ -24,6 +24,7 @@ import java.io.File;
 import Automata.*;
 import Automata.FA.FA;
 import Main.Session;
+import Main.WalnutException;
 import it.unimi.dsi.fastutil.ints.Int2ObjectRBTreeMap;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
@@ -144,9 +145,9 @@ public class Ostrowski {
         performReprBfs();
         repr.fa.setQ(this.totalNodes);
         for (int q = 0; q < this.totalNodes; ++q) {
-            repr.fa.getO().add(isReprFinal(q) ? 1 : 0);
+            repr.fa.addOutput(isReprFinal(q));
             this.stateTransitions.putIfAbsent(q, new Int2ObjectRBTreeMap<>());
-            repr.fa.getNfaD().add(this.stateTransitions.get(q));
+            repr.fa.addToNfaD(this.stateTransitions.get(q));
         }
 
         repr.fa.determinizeAndMinimize(false, "", null);
@@ -167,7 +168,7 @@ public class Ostrowski {
         System.out.println("Writing to: " + repr_file_name);
         File f = new File(repr_file_name);
         if (f.exists()) {
-            throw new RuntimeException("Error: number system " + name + " already exists.");
+            throw new WalnutException("Error: number system " + name + " already exists.");
         }
         AutomatonWriter.write(a, repr_file_name);
     }
@@ -178,9 +179,9 @@ public class Ostrowski {
         performAdderBfs();
         adder.fa.setQ(this.totalNodes);
         for (int q = 0; q < this.totalNodes; q++) {
-            adder.fa.getO().add(isAdderFinal(q) ? 1 : 0);
+            adder.fa.addOutput(isAdderFinal(q));
             this.stateTransitions.putIfAbsent(q, new Int2ObjectRBTreeMap<>());
-            adder.fa.getNfaD().add(this.stateTransitions.get(q));
+            adder.fa.addToNfaD(this.stateTransitions.get(q));
         }
 
         adder.fa.determinizeAndMinimize(false, "", null);
@@ -243,11 +244,11 @@ public class Ostrowski {
 
     private void assertValues(IntList list) {
         if (list.isEmpty()) {
-            throw new RuntimeException("The period cannot be empty.");
+            throw new WalnutException("The period cannot be empty.");
         }
         for (int d : list) {
             if (d <= 0) {
-                throw new RuntimeException(
+                throw new WalnutException(
                         "Error: All digits of the continued fraction must be positive integers.");
             }
         }

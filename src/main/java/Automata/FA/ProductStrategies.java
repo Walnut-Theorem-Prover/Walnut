@@ -6,7 +6,7 @@ import Automata.RichAlphabet;
 import Main.EvalComputations.Token.ArithmeticOperator;
 import Main.EvalComputations.Token.LogicalOperator;
 import Main.EvalComputations.Token.RelationalOperator;
-import Main.ExceptionHelper;
+import Main.WalnutException;
 import Main.Prover;
 import Main.UtilityMethods;
 import it.unimi.dsi.fastutil.ints.*;
@@ -50,7 +50,7 @@ public class ProductStrategies {
             int p = s.leftInt();
             int q = s.rightInt();
             Int2ObjectRBTreeMap<IntList> stateTransitions = new Int2ObjectRBTreeMap<>();
-            AxB.getNfaD().add(stateTransitions);
+            AxB.addToNfaD(stateTransitions);
             AxB.getO().add(determineOutput(A.getO().getInt(p), B.getO().getInt(q), op, combineOut));
 
             Set<Int2ObjectMap.Entry<IntList>> Bset = B.getEntriesNfaD(q);
@@ -171,7 +171,7 @@ public class ProductStrategies {
             case Prover.COMBINE -> (mQ == 1) ? combineOut : aP;
             case "first" -> aP == 0 ? mQ : aP;
             case "if_other" -> mQ != 0 ? aP : 0;
-            default -> throw ExceptionHelper.unexpectedOperator(op);
+            default -> throw WalnutException.unexpectedOperator(op);
         };
     }
 
@@ -221,7 +221,7 @@ public class ProductStrategies {
                 A.fa, B.fa, AxB.fa, combineOut, allInputsOfN, op, print, prefix, log, timeBefore);
         AxB.fa.justMinimize(print, prefix, log);
         if (AxB.fa.getNfaD() == null) {
-            throw new RuntimeException("Unexpected null");
+            throw new WalnutException("Unexpected null");
         }
         return AxB;
     }
@@ -237,7 +237,7 @@ public class ProductStrategies {
     private static int[] createBasicAutomaton(
             Automaton A, Automaton B, Automaton AxB) {
         if (A.fa.isTRUE_FALSE_AUTOMATON() || B.fa.isTRUE_FALSE_AUTOMATON()) {
-            throw new RuntimeException("Invalid use of the crossProduct method: " +
+            throw new WalnutException("Invalid use of the crossProduct method: " +
                     "the automata for this method cannot be true or false automata.");
         }
 
@@ -246,7 +246,7 @@ public class ProductStrategies {
 
         if (aLabel== null || bLabel == null ||
             aLabel.size() != aA.size() || bLabel.size() != bA.size()) {
-            throw new RuntimeException("Invalid use of the crossProduct method: " +
+            throw new WalnutException("Invalid use of the crossProduct method: " +
                     "the automata for this method must have labeled inputs.");
         }
 
@@ -269,7 +269,7 @@ public class ProductStrategies {
             int j = aLabel.indexOf(bLabel.get(i));
             if (j >= 0) {
                 if (!UtilityMethods.areEqual(aA.get(j), bA.get(i))) {
-                    throw new RuntimeException("in computing cross product of two automaton, "
+                    throw new WalnutException("in computing cross product of two automaton, "
                             + "variables with the same label must have the same alphabet");
                 }
                 sameInputsInMAndThis[i] = j;

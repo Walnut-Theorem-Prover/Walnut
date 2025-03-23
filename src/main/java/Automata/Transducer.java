@@ -31,7 +31,7 @@ import java.util.Queue;
 import java.util.Set;
 
 import Automata.FA.FA;
-import Main.ExceptionHelper;
+import Main.WalnutException;
 import Main.UtilityMethods;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectRBTreeMap;
@@ -127,7 +127,7 @@ public class Transducer extends Automaton {
                 } else if (ParseMethods.parseTransducerTransition(line, input, dest, output)) {
                     validateTransition(address, currentState, lineNumber, input);
                     if (output.size() != 1) {
-                        throw new RuntimeException("Transducers must have one output for each transition: line "
+                        throw new WalnutException("Transducers must have one output for each transition: line "
                             + lineNumber + " of file " + address);
                     }
                     setOfDestinationStates.addAll(dest);
@@ -140,7 +140,7 @@ public class Transducer extends Automaton {
                     dest = new IntArrayList();
                     output = new ArrayList<>();
                 } else {
-                    throw ExceptionHelper.undefinedStatement(lineNumber, address);
+                    throw WalnutException.undefinedStatement(lineNumber, address);
                 }
             }
 
@@ -153,7 +153,7 @@ public class Transducer extends Automaton {
 
         } catch (IOException e) {
             UtilityMethods.printTruncatedStackTrace(e);
-            throw ExceptionHelper.fileDoesNotExist(address);
+            throw WalnutException.fileDoesNotExist(address);
         }
     }
 
@@ -321,7 +321,7 @@ public class Transducer extends Automaton {
             N.fa.getO().add((int) sigma.get(currState.iterates.get(0).get(
                 this.fa.getQ0())).get(richAlphabet.encode(List.of(M.fa.getO().getInt(currState.state)))));
 
-            N.fa.getNfaD().add(new Int2ObjectRBTreeMap<>());
+            N.fa.addToNfaD(new Int2ObjectRBTreeMap<>());
 
             // get h(w) where w = currState.string .
             List<Integer> newString = getDestinationForDFA(M, currState.iList);
@@ -357,9 +357,7 @@ public class Transducer extends Automaton {
                 }
 
                 // set up the transition.
-                IntList newList = new IntArrayList();
-                newList.add((int) statesHash.get(newState));
-                N.fa.getNfaD().get(N.fa.getNfaD().size() - 1).put(di, newList);
+                N.fa.addNewTransition(N.fa.getNfaD().size() - 1, statesHash.get(newState), di);
             }
         }
 
@@ -408,7 +406,7 @@ public class Transducer extends Automaton {
 
         // check that the input automaton only has one input!
         if (M.getNS().size() != 1) {
-            throw new RuntimeException("Automata with only one input can be transduced.");
+            throw new WalnutException("Automata with only one input can be transduced.");
         }
 
         // Check that the output alphabet of the automaton is compatible with the input alphabet of the transducer.
@@ -416,7 +414,7 @@ public class Transducer extends Automaton {
         for (int i = 0; i < O.size(); i++) {
             int encoded = richAlphabet.encode(List.of(O.getInt(i)));
             if (!fa.getNfaD().get(0).containsKey(encoded)) {
-                throw new RuntimeException("Output alphabet of automaton must be compatible with the transducer input alphabet");
+                throw new WalnutException("Output alphabet of automaton must be compatible with the transducer input alphabet");
             }
         }
 
@@ -448,7 +446,7 @@ public class Transducer extends Automaton {
             for (int q = 0; q < Tnew.fa.getQ(); q++) {
                 IntList newList = new IntArrayList();
                 newList.add(q);
-                Tnew.fa.getNfaD().get(q).put(minOutput, newList);
+                Tnew.fa.setTransition(q, newList, minOutput);
                 Tnew.sigma.get(q).put(minOutput, minOutput);
             }
 

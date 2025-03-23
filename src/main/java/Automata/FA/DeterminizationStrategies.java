@@ -9,11 +9,8 @@ import MRC.Model.MyNFA;
 import MRC.Model.Threshold;
 import MRC.NFATrim;
 import MRC.Simulation.ParallelSimulation;
+import Main.*;
 import Main.EvalComputations.Token.ArithmeticOperator;
-import Main.MetaCommands;
-import Main.Prover;
-import Main.Session;
-import Main.UtilityMethods;
 import MRC.OnTheFlyDeterminization;
 import it.unimi.dsi.fastutil.ints.*;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
@@ -73,7 +70,7 @@ public class DeterminizationStrategies {
         case BRZ -> SC;
         case OTF_BRZ -> OTF;
         case OTF_BRZ_NOSIM -> OTF_NOSIM;
-        default -> throw new RuntimeException("Unexpected strategy:" + this.name);
+        default -> throw new WalnutException("Unexpected strategy:" + this.name);
       };
     }
   }

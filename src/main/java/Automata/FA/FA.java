@@ -21,7 +21,7 @@ import Automata.Automaton;
 import Automata.RichAlphabet;
 import MRC.Model.MyDFA;
 import MRC.Model.MyNFA;
-import Main.ExceptionHelper;
+import Main.WalnutException;
 import Main.UtilityMethods;
 import dk.brics.automaton.RegExp;
 import dk.brics.automaton.State;
@@ -121,7 +121,7 @@ public class FA implements Cloneable {
     this.O = new IntArrayList(O);
     Q = O.size();
     for(int i = 0; i < Q; i++) {
-      nfaD.add(new Int2ObjectRBTreeMap<>());
+      this.addToNfaD(new Int2ObjectRBTreeMap<>());
     }
   }
 
@@ -149,7 +149,7 @@ public class FA implements Cloneable {
                   totalized = false;
               }
               else if (nfaD.get(q).get(x).size() > 1) {
-                  throw new RuntimeException("Automaton must have at most one transition per input per state.");
+                  throw new WalnutException("Automaton must have at most one transition per input per state.");
               }
           }
       }
@@ -213,8 +213,8 @@ public class FA implements Cloneable {
     // N is a clone of automaton.
     // We add a new state which will be our new initial state.
     N.q0 = N.Q++;;
-    N.O.add(1); // The newly added state is a final state.
-    N.nfaD.add(new Int2ObjectRBTreeMap<>());
+    N.addOutput(true);  // The newly added state is a final state.
+    N.addToNfaD(new Int2ObjectRBTreeMap<>());
     N.mergeInTransitions(N.Q, automaton.getEntriesNfaD(automaton.q0));
   }
 
@@ -222,13 +222,13 @@ public class FA implements Cloneable {
       // to access the other's states, just do q. To access the other's states in N, do originalQ + q.
       for (int q = 0; q < other.Q; q++) {
         N.O.add(other.O.getInt(q)); // add the output
-        N.nfaD.add(new Int2ObjectRBTreeMap<>());
+        N.addToNfaD(new Int2ObjectRBTreeMap<>());
         for (Int2ObjectMap.Entry<IntList> entry : other.getEntriesNfaD(q)) {
           IntArrayList newTransitionMap = new IntArrayList(entry.getValue().size());
           for(int i: entry.getValue()) {
             newTransitionMap.add(originalQ + i);
           }
-          N.nfaD.get(originalQ + q).put(entry.getIntKey(), newTransitionMap);
+          N.setTransition(originalQ + q, newTransitionMap, entry.getIntKey());
         }
       }
 
@@ -307,7 +307,7 @@ public class FA implements Cloneable {
         }
 
         if (!newDestination.isEmpty()) {
-          nfaD.get(q).put(entry.getIntKey(), newDestination);
+          this.setTransition(q, newDestination, entry.getIntKey());
         } else {
           nfaD.get(q).remove(entry.getIntKey());
         }
@@ -322,7 +322,7 @@ public class FA implements Cloneable {
     StringBuilder intersectingRegExp = new StringBuilder("[");
     for (int x : alphabet) {
       if (x < 0 || x > 9) {
-        throw new RuntimeException("the input alphabet of an automaton generated from a regular expression must be a subset of {0,1,...,9}");
+        throw new WalnutException("the input alphabet of an automaton generated from a regular expression must be a subset of {0,1,...,9}");
       }
       intersectingRegExp.append(x);
     }
@@ -348,7 +348,7 @@ public class FA implements Cloneable {
 
   public void setFromBricsAutomaton(int alphabetSize, String regularExpression) {
     if (alphabetSize > ((1 << Character.SIZE) - 1)) {
-      throw new RuntimeException("size of input alphabet exceeds the limit of " + ((1 << Character.SIZE) - 1));
+      throw new WalnutException("size of input alphabet exceeds the limit of " + ((1 << Character.SIZE) - 1));
     }
     long timeBefore = System.currentTimeMillis();
     StringBuilder intersectingRegExp = new StringBuilder("[");
@@ -365,7 +365,7 @@ public class FA implements Cloneable {
 
     // We use packagedk.brics.automaton for automata minimization.
     if (!M.isDeterministic())
-      throw ExceptionHelper.bricsNFA();
+      throw WalnutException.bricsNFA();
 
     // Here, each character 'a' is used directly as the key.
     convertBricsAutomatonToInternalRepresentation(M, (t, a) -> (int) a);
@@ -399,8 +399,8 @@ public class FA implements Cloneable {
     nfaD = new ArrayList<>(Q);
     for (int q = 0; q < Q; q++) {
       State state = setOfStates.get(q);
-      O.add(state.isAccept() ? 1 : 0);
-      nfaD.add(new Int2ObjectRBTreeMap<>());
+      this.addOutput(state.isAccept());
+      this.addToNfaD(new Int2ObjectRBTreeMap<>());
       for (Transition t : state.getTransitions()) {
         for (char a = t.getMin(); a <= t.getMax(); a++) {
           int key = keyMapper.apply(t, a);
@@ -476,11 +476,11 @@ public class FA implements Cloneable {
       for (int q = 0; q < Q; q++) {
           if (isAccepting(q)) {
               newInitialStates.add(q);
-              O.set(q, 0);
+              this.setOutput(q, false);
           }
       }
       for(int initState: oldInitialStates) {
-        O.set(initState, 1); // initial states become final.
+        this.setOutput(initState, true); // initial states become final.
       }
       return newInitialStates;
   }
@@ -568,6 +568,25 @@ public class FA implements Cloneable {
     O = o;
   }
 
+  /**
+   * Strong-type for NFA/DFA.
+   * @param output
+   */
+  public void addOutput(boolean output) {
+    O.add(output ? 1 : 0);
+  }
+  public void setOutput(int idx, boolean output) {
+    O.set(idx, output ? 1 : 0);
+  }
+
+  /**
+   * Flip output.
+   */
+  public void flipOutput() {
+    for (int q = 0; q < Q; q++)
+      setOutput(q, !isAccepting(q));
+  }
+
   public int getAlphabetSize() {
     return alphabetSize;
   }
@@ -587,6 +606,9 @@ public class FA implements Cloneable {
   public void setNfaD(List<Int2ObjectRBTreeMap<IntList>> nfaD) {
     this.nfaD = nfaD;
   }
+  public void addToNfaD(Int2ObjectRBTreeMap<IntList> entry) {
+    nfaD.add(entry);
+  }
 
   public FA clone() {
     FA fa = new FA();
@@ -597,9 +619,9 @@ public class FA implements Cloneable {
     fa.nfaD = new ArrayList<>();
     fa.canonized = this.canonized;
     for (int q = 0; q < fa.Q; q++) {
-      fa.nfaD.add(new Int2ObjectRBTreeMap<>());
+      fa.addToNfaD(new Int2ObjectRBTreeMap<>());
       for (Int2ObjectMap.Entry<IntList> entry : this.getEntriesNfaD(q)) {
-        fa.nfaD.get(q).put(entry.getIntKey(), new IntArrayList(entry.getValue()));
+        fa.setTransition(q, new IntArrayList(entry.getValue()), entry.getIntKey());
       }
     }
     return fa;
@@ -607,17 +629,21 @@ public class FA implements Cloneable {
 
   public void setOutput(int output) {
     for (int j = 0; j < O.size(); j++) {
-      O.set(j, O.getInt(j) == output ? 1 : 0);
+      this.setOutput(j, O.getInt(j) == output);
     }
   }
 
-  public void permuteD(int[] encodedInputPermutation) {
+  /**
+   * Permute entries of nfaD.
+   * @param encodedInputPermutation
+   */
+  public void permuteNfaD(int[] encodedInputPermutation) {
     for (int q = 0; q < Q; q++) {
-      Int2ObjectRBTreeMap<IntList> permutedD = new Int2ObjectRBTreeMap<>();
+      Int2ObjectRBTreeMap<IntList> permutedNfaD = new Int2ObjectRBTreeMap<>();
       for (Int2ObjectMap.Entry<IntList> entry : getEntriesNfaD(q)) {
-        permutedD.put(encodedInputPermutation[entry.getIntKey()], entry.getValue());
+        permutedNfaD.put(encodedInputPermutation[entry.getIntKey()], entry.getValue());
       }
-      nfaD.set(q, permutedD);
+      nfaD.set(q, permutedNfaD);
     }
   }
   /**
@@ -633,7 +659,7 @@ public class FA implements Cloneable {
      * size of char which 2^16 - 1
      */
     if (getAlphabetSize() > MAX_BRICS_CHARACTER) {
-      throw ExceptionHelper.alphabetExceedsSize(MAX_BRICS_CHARACTER);
+      throw WalnutException.alphabetExceedsSize(MAX_BRICS_CHARACTER);
     }
     boolean deterministic = true;
     List<dk.brics.automaton.State> setOfStates = new ArrayList<>(Q);
@@ -721,7 +747,7 @@ public class FA implements Cloneable {
     boolean altered = false;
     for (int q : result) {
       altered = altered || (O.getInt(q) != 1);
-      O.set(q, 1);
+      this.setOutput(q, true);
     }
     return altered;
   }
@@ -732,7 +758,7 @@ public class FA implements Cloneable {
     q0 = newQ0;
     for (int q = 0; q < newQ; q++) {
       O.add((int) stateOutput.get(q));
-      nfaD.add(stateTransition.get(q));
+      this.addToNfaD(stateTransition.get(q));
     }
     reduceNfaDMemory(nfaD);
   }
@@ -767,7 +793,7 @@ public class FA implements Cloneable {
 
   public int determineMinOutput() {
     if (O.isEmpty()) {
-      throw ExceptionHelper.alphabetIsEmpty();
+      throw WalnutException.alphabetIsEmpty();
     }
     int minOutput = 0;
     for (int i = 0; i < O.size(); i++) {
@@ -790,7 +816,10 @@ public class FA implements Cloneable {
   public void addNewTransition(int src, int dest, int inp) {
       IntList destStates = new IntArrayList();
       destStates.add(dest);
-      nfaD.get(src).put(inp, destStates);
+      setTransition(src, destStates, inp);
+  }
+  public void setTransition(int src, IntList destStates, int inp) {
+    nfaD.get(src).put(inp, destStates);
   }
 
   public IntSet getFinalStates() {
@@ -931,16 +960,16 @@ public class FA implements Cloneable {
     fa.Q = cNFA.size();
     Set<Integer> initialStates = cNFA.getInitialStates();
     if (initialStates.size() > 1) {
-      throw new RuntimeException("Unexpected initial states from CompactNFA:" + initialStates);
+      throw new WalnutException("Unexpected initial states from CompactNFA:" + initialStates);
     }
     fa.setQ0(initialStates.iterator().next());
     for(int i=0;i<fa.Q;i++) {
-      fa.O.add(cNFA.isAccepting(i) ? 1 : 0);
+      fa.addOutput(cNFA.isAccepting(i));
     }
     fa.alphabetSize = cNFA.getInputAlphabet().size();
     for(int i=0;i<fa.Q;i++) {
       Int2ObjectRBTreeMap<IntList> iMap = new Int2ObjectRBTreeMap<>();
-      fa.nfaD.add(iMap);
+      fa.addToNfaD(iMap);
       for(int in=0;in<fa.alphabetSize;in++) {
         Set<Integer> transDest = cNFA.getTransitions(i, in);
         if (transDest != null && !transDest.isEmpty()) {
@@ -957,7 +986,7 @@ public class FA implements Cloneable {
     q0 = myDFA.getInitialState();
     O.clear();
     for(int i=0;i<Q;i++) {
-      O.add(myDFA.isAccepting(i) ? 1 : 0);
+      this.addOutput(myDFA.isAccepting(i));
     }
     alphabetSize = myDFA.getInputAlphabet().size();
     nfaD = null;
@@ -1017,7 +1046,7 @@ public class FA implements Cloneable {
       dfaD.add(iMap);
       for(Int2ObjectMap.Entry<IntList> entry : sourceEntrySet) {
         if (entry.getValue().size() > 1) {
-          throw new RuntimeException("Unexpected NFA instead of DFA.");
+          throw new WalnutException("Unexpected NFA instead of DFA.");
         }
         iMap.put(entry.getIntKey(), entry.getValue().iterator().nextInt());
       }

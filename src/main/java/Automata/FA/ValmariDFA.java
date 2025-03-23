@@ -17,7 +17,7 @@
  */
 package Automata.FA;
 
-import Main.ExceptionHelper;
+import Main.WalnutException;
 import it.unimi.dsi.fastutil.ints.*;
 
 import java.util.ArrayList;
@@ -50,7 +50,7 @@ public class ValmariDFA {
             numTransitionsLong += dfaD.get(q).keySet().size();
         }
         if (numTransitionsLong > Integer.MAX_VALUE) {
-            throw ExceptionHelper.arrayOverflow("the number of transitions", numTransitionsLong);
+            throw WalnutException.arrayOverflow("the number of transitions", numTransitionsLong);
         }
         numTransitions = (int)numTransitionsLong;
 
@@ -179,13 +179,13 @@ public class ValmariDFA {
         _A = _F = blocks.E = blocks.P = null;
         ValmariPartition.M = ValmariPartition.W = null; // this fixes an actual leak
         cords = null;
-        f.setNfaD(determineD()); // needs blocks.(L,F,S), L, T, H
+        f.setNfaD(determineNfaD()); // needs blocks.(L,F,S), L, T, H
         FA.reduceNfaDMemory(f.getNfaD());
         L = T = H = blocks.L = blocks.S = null;
         f.setO(determineO()); // needs blocks.F
     }
 
-    private List<Int2ObjectRBTreeMap<IntList>> determineD() {
+    private List<Int2ObjectRBTreeMap<IntList>> determineNfaD() {
         List<Int2ObjectRBTreeMap<IntList>> d = new ArrayList<>(blocks.z);
         for(int q = 0; q < blocks.z; ++q){
             d.add(new Int2ObjectRBTreeMap<>());

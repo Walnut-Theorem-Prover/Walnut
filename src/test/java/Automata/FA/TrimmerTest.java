@@ -12,10 +12,10 @@ public class TrimmerTest {
         FA a = new FA();
         a.setAlphabetSize(2);
         // 4 states: 0: a -> 1, a,b -> 2. 1: a -> 3. 2: a,b -> 3. 3: accept.
-        a.getO().add(0);
-        a.getO().add(0);
-        a.getO().add(0);
-        a.getO().add(1); // accepting
+        a.addOutput(false);
+        a.addOutput(false);
+        a.addOutput(false);
+        a.addOutput(true); // accepting
         a.setQ(4);
 
         Int2ObjectRBTreeMap<IntList> s0 = new Int2ObjectRBTreeMap<>();
@@ -30,10 +30,10 @@ public class TrimmerTest {
         s2.put(0, new IntArrayList(List.of(3))); // 2: a -> 3
         s2.put(1, new IntArrayList(List.of(3))); // 2: b -> 3
 
-        a.getNfaD().add(s0);
-        a.getNfaD().add(s1);
-        a.getNfaD().add(s2);
-        a.getNfaD().add(new Int2ObjectRBTreeMap<>()); // s3
+        a.addToNfaD(s0);
+        a.addToNfaD(s1);
+        a.addToNfaD(s2);
+        a.addToNfaD(new Int2ObjectRBTreeMap<>()); // s3
 
         a.setQ(a.getO().size());
         Assertions.assertEquals(a.getQ(), a.getNfaD().size());
@@ -54,10 +54,10 @@ public class TrimmerTest {
         FA a = new FA();
         a.setAlphabetSize(1);
         // 0: a->{1,2}. 3 accepting but nothing reaches it.
-        a.getO().add(1);
-        a.getO().add(1);
-        a.getO().add(1);
-        a.getO().add(1);
+        a.addOutput(true);
+        a.addOutput(true);
+        a.addOutput(true);
+        a.addOutput(true);
         a.setQ(4);
 
         Int2ObjectRBTreeMap<IntList> s0 = new Int2ObjectRBTreeMap<>();
@@ -67,10 +67,10 @@ public class TrimmerTest {
         Int2ObjectRBTreeMap<IntList> s2 = new Int2ObjectRBTreeMap<>();
         Int2ObjectRBTreeMap<IntList> s3 = new Int2ObjectRBTreeMap<>();
 
-        a.getNfaD().add(s0);
-        a.getNfaD().add(s1);
-        a.getNfaD().add(s2);
-        a.getNfaD().add(s3);
+        a.addToNfaD(s0);
+        a.addToNfaD(s1);
+        a.addToNfaD(s2);
+        a.addToNfaD(s3);
 
         IntSet initialStates = new IntOpenHashSet(IntSet.of(0));
         IntSet rTrim = Trimmer.rightTrim(1, a.getNfaD(), initialStates);
@@ -90,10 +90,10 @@ public class TrimmerTest {
         FA a = new FA();
         a.setAlphabetSize(1);
         // 0: a->{2,3}. 1 accepting but nothing reaches it.
-        a.getO().add(1);
-        a.getO().add(1);
-        a.getO().add(1);
-        a.getO().add(1);
+        a.addOutput(true);
+        a.addOutput(true);
+        a.addOutput(true);
+        a.addOutput(true);
         a.setQ(4);
 
         Int2ObjectRBTreeMap<IntList> s0 = new Int2ObjectRBTreeMap<>();
@@ -103,10 +103,10 @@ public class TrimmerTest {
         Int2ObjectRBTreeMap<IntList> s2 = new Int2ObjectRBTreeMap<>();
         Int2ObjectRBTreeMap<IntList> s3 = new Int2ObjectRBTreeMap<>();
 
-        a.getNfaD().add(s0);
-        a.getNfaD().add(s1);
-        a.getNfaD().add(s2);
-        a.getNfaD().add(s3);
+        a.addToNfaD(s0);
+        a.addToNfaD(s1);
+        a.addToNfaD(s2);
+        a.addToNfaD(s3);
 
         IntSet initialStates = new IntOpenHashSet(IntSet.of(0));
         IntSet rTrim = Trimmer.rightTrim(1, a.getNfaD(), initialStates);
@@ -125,10 +125,10 @@ public class TrimmerTest {
     void testTrimInvalidDest() {
         FA a = new FA();
         a.setAlphabetSize(1);
-        a.getO().add(1);
-        a.getO().add(0);
-        a.getO().add(0);
-        a.getO().add(0);
+        a.addOutput(true);
+        a.addOutput(false);
+        a.addOutput(false);
+        a.addOutput(false);
         a.setQ(4);
         Int2ObjectRBTreeMap<IntList> s0 = new Int2ObjectRBTreeMap<>();
         s0.put(0, new IntArrayList(List.of(2, 3))); // 0: a -> {1,2}
@@ -137,10 +137,11 @@ public class TrimmerTest {
         Int2ObjectRBTreeMap<IntList> s2 = new Int2ObjectRBTreeMap<>();
         Int2ObjectRBTreeMap<IntList> s3 = new Int2ObjectRBTreeMap<>();
 
-        a.getNfaD().add(s0);
-        a.getNfaD().add(s1);
-        a.getNfaD().add(s2);
-        a.getNfaD().add(s3);
+        a.addToNfaD(s0);
+        a.addToNfaD(s1);
+        a.addToNfaD(s2);
+        a.addToNfaD(s3);
+
         Trimmer.trimAutomaton(a);
         Assertions.assertEquals(1, a.getQ());
         Assertions.assertTrue(a.getNfaD().get(0).get(0).isEmpty());
@@ -156,13 +157,13 @@ public class TrimmerTest {
     void testTrimAll() {
         FA a = new FA();
         a.setAlphabetSize(1);
-        a.getO().add(0);
-        a.getO().add(0);
+        a.addOutput(false);
+        a.addOutput(false);
         a.setQ(2);
         Int2ObjectRBTreeMap<IntList> s0 = new Int2ObjectRBTreeMap<>();
         Int2ObjectRBTreeMap<IntList> s1 = new Int2ObjectRBTreeMap<>();
-        a.getNfaD().add(s0);
-        a.getNfaD().add(s1);
+        a.addToNfaD(s0);
+        a.addToNfaD(s1);
 
         Trimmer.trimAutomaton(a);
         Assertions.assertEquals(1, a.getQ());

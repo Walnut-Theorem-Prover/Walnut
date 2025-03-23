@@ -19,6 +19,7 @@
 package Automata;
 
 import Main.UtilityMethods;
+import Main.WalnutException;
 import it.unimi.dsi.fastutil.ints.Int2ObjectRBTreeMap;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
@@ -103,7 +104,7 @@ public class Morphism {
         for(Map.Entry<Integer, List<Integer>> entry: mapping.entrySet()) {
             for (int y : entry.getValue()) {
                 if (y < 0) {
-                    throw new RuntimeException("Cannot promote a morphism with negative values.");
+                    throw new WalnutException("Cannot promote a morphism with negative values.");
                 } else if (y > maxEntry) {
                     maxEntry = y;
                 }

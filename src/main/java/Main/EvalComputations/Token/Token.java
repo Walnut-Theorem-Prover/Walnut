@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Stack;
 
 import Main.EvalComputations.Expressions.Expression;
+import Main.WalnutException;
 
 public abstract class Token {
     private int arity;
@@ -64,11 +65,11 @@ public abstract class Token {
     }
 
     protected void validateArity(Stack<Expression> S, String name1, String name2) {
-        if (S.size() < getArity()) throw new RuntimeException(name1 + this + " requires " + getArity() + name2);
+        if (S.size() < getArity()) throw new WalnutException(name1 + this + " requires " + getArity() + name2);
     }
 
     public void validateArity(String name, int otherArity) {
-        if (otherArity != getArity()) throw new RuntimeException(
+        if (otherArity != getArity()) throw new WalnutException(
                 "function " + name + " requires " + otherArity + " arguments: char at " + getPositionInPredicate());
     }
 

@@ -19,6 +19,7 @@
 package Main.EvalComputations.Token;
 
 import Main.EvalComputations.Expressions.Expression;
+import Main.WalnutException;
 
 import java.util.List;
 import java.util.Stack;
@@ -138,6 +139,6 @@ public abstract class Operator extends Token {
     }
 
     protected void validateArity(Stack<Expression> S) {
-        if (S.size() < getArity()) throw new RuntimeException("operator " + op + " requires " + getArity() + " operands");
+        if (S.size() < getArity()) throw new WalnutException("operator " + op + " requires " + getArity() + " operands");
     }
 }

@@ -18,7 +18,7 @@
 
 package Main.EvalComputations.Token;
 
-import Main.ExceptionHelper;
+import Main.WalnutException;
 
 import java.util.List;
 import java.util.Stack;
@@ -38,6 +38,6 @@ public class RightParenthesis extends Operator {
                 return;
             }
         }
-        throw ExceptionHelper.unbalancedParen(getPositionInPredicate());
+        throw WalnutException.unbalancedParen(getPositionInPredicate());
     }
 }

@@ -31,7 +31,7 @@ public class Trimmer {
             a.getO().clear();
             a.getO().add(0);
             a.getNfaD().clear();
-            a.getNfaD().add(new Int2ObjectRBTreeMap<>());
+            a.addToNfaD(new Int2ObjectRBTreeMap<>());
             a.setQ0(0);
             a.setQ(1);
             return;

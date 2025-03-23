@@ -20,6 +20,7 @@ package Automata;
 import Automata.FA.FA;
 import MRC.Model.MyNFA;
 import Main.UtilityMethods;
+import Main.WalnutException;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectRBTreeMap;
 import it.unimi.dsi.fastutil.ints.IntList;
@@ -39,7 +40,7 @@ public class AutomatonWriter {
      */
     public static void writeMatrices(Automaton automaton, String address, List<String> free_variables) {
         if (automaton.fa.isTRUE_FALSE_AUTOMATON()) {
-            throw new RuntimeException("incidence matrices cannot be calculated, because the automaton does not have a free variable.");
+            throw new WalnutException("incidence matrices cannot be calculated, because the automaton does not have a free variable.");
         }
         automaton.canonize();
 
@@ -54,7 +55,7 @@ public class AutomatonWriter {
             out.println("# transitions with i=x from p to q.");
             for (String variable : free_variables) {
                 if (!automaton.getLabel().contains(variable)) {
-                    throw new RuntimeException("incidence matrices for the variable " + variable + " cannot be calculated, because " + variable + " is not a free variable.");
+                    throw new WalnutException("incidence matrices for the variable " + variable + " cannot be calculated, because " + variable + " is not a free variable.");
                 }
             }
             List<Integer> indices = free_variables.stream().map(variable -> automaton.getLabel().indexOf(variable)).collect(Collectors.toList());
@@ -291,7 +292,7 @@ public class AutomatonWriter {
 
     public static void exportToBA(FA a, String address, boolean isDFAO) {
         if (isDFAO) {
-            throw new RuntimeException("Can't export DFAO to BA format");
+            throw new WalnutException("Can't export DFAO to BA format");
         }
         System.out.println("Exporting to:" + address);
         MyNFA<Integer> myNFA = a.FAtoMyNFA();

@@ -22,6 +22,7 @@ import Main.EvalComputations.Token.LogicalOperator;
 import Main.EvalComputations.Token.Operator;
 import Main.Prover;
 import Main.UtilityMethods;
+import Main.WalnutException;
 import it.unimi.dsi.fastutil.ints.*;
 
 import java.util.*;
@@ -157,8 +158,7 @@ public class AutomatonLogicalOps {
         UtilityMethods.logMessage(print, prefix + "computing " + friendlyOp + ":" + A.fa.getQ() + " states", log);
 
         A.fa.totalize(print, prefix + " ", log);
-        for (int q = 0; q < A.fa.getQ(); q++)
-            A.fa.getO().set(q, A.fa.isAccepting(q) ? 0 : 1);
+        A.fa.flipOutput();
 
         A.fa.determinizeAndMinimize(print, prefix + " ", log);
         A.applyAllRepresentations();
@@ -180,7 +180,7 @@ public class AutomatonLogicalOps {
         if (!skipSubsetCheck) {
             // check whether the alphabet of B is a subset of the alphabet of self. If not, throw an error.
             if (!isSubsetA(B.richAlphabet.getA(), A.richAlphabet.getA())) {
-                throw new RuntimeException("Second A's alphabet must be a subset of the first A's alphabet for right quotient.");
+                throw new WalnutException("Second A's alphabet must be a subset of the first A's alphabet for right quotient.");
             }
         }
 
@@ -221,7 +221,7 @@ public class AutomatonLogicalOps {
 
             Automaton I = and(T, otherClone, print, prefix, log);
 
-            M.fa.getO().set(i, I.isEmpty() ? 0 : 1);
+            M.fa.setOutput(i, !I.isEmpty());
         }
 
         M.fa.determinizeAndMinimize(print, prefix, log);
@@ -241,7 +241,7 @@ public class AutomatonLogicalOps {
 
         // check whether the alphabet of self is a subset of the alphabet of B. If not, throw an error.
         if (!isSubsetA(A.richAlphabet.getA(), B.richAlphabet.getA())) {
-            throw new RuntimeException("First A's alphabet must be a subset of the second A's alphabet for left quotient.");
+            throw new WalnutException("First A's alphabet must be a subset of the second A's alphabet for left quotient.");
         }
 
         Automaton M1 = reverseAndCanonize(A, print, prefix, log);
@@ -331,7 +331,7 @@ public class AutomatonLogicalOps {
     public static Automaton removeLeadingZeroes(Automaton A, List<String> listOfLabels, boolean print, String prefix, StringBuilder log) {
         for (String s : listOfLabels) {
             if (!A.getLabel().contains(s)) {
-                throw new RuntimeException("Variable " + s + " in the list of quantified variables is not a free variable.");
+                throw new WalnutException("Variable " + s + " in the list of quantified variables is not a free variable.");
             }
         }
         if (listOfLabels.isEmpty()) {
@@ -370,7 +370,7 @@ public class AutomatonLogicalOps {
     private static Automaton removeLeadingZeroesHelper(
         Automaton A, int n, boolean print, String prefix, StringBuilder log) {
         if (n >= A.richAlphabet.getA().size() || n < 0) {
-            throw new RuntimeException("Cannot remove leading zeroes for the "
+            throw new WalnutException("Cannot remove leading zeroes for the "
                     + (n + 1) + "-th input when A only has " + A.richAlphabet.getA().size() + " inputs.");
         }
 
@@ -390,9 +390,9 @@ public class AutomatonLogicalOps {
         for (int i = 0; i < A.getAlphabetSize(); i++) {
             List<Integer> list = A.richAlphabet.decode(i);
             if (list.get(n) != 0) {
-                M.fa.getNfaD().get(0).put(i, new IntArrayList(dest));
+                M.fa.setTransition(0, new IntArrayList(dest), i);
             }
-            M.fa.getNfaD().get(1).put(i, new IntArrayList(dest));
+            M.fa.setTransition(1, new IntArrayList(dest), i);
         }
         if (!A.getNS().get(n).isMsd()) {
             reverse(M, print, prefix, log, false);
@@ -416,7 +416,7 @@ public class AutomatonLogicalOps {
         for (int j = i + 1; j < A.richAlphabet.getA().size(); j++) {
             if (A.getLabel().get(i).equals(A.getLabel().get(j))) {
                 if (!UtilityMethods.areEqual(A.richAlphabet.getA().get(i), A.richAlphabet.getA().get(j))) {
-                    throw new RuntimeException("Inputs " + i + " and " + j + " have the same label but different alphabets.");
+                    throw new WalnutException("Inputs " + i + " and " + j + " have the same label but different alphabets.");
                 }
                 I.add(j);
             }
@@ -515,7 +515,7 @@ public class AutomatonLogicalOps {
     public static void convertNS(Automaton A, boolean toMsd, int toBase,
                                  boolean print, String prefix, StringBuilder log) {
         if (A.getNS().size() != 1) {
-            throw new RuntimeException("Automaton must have exactly one input to be converted.");
+            throw new WalnutException("Automaton must have exactly one input to be converted.");
         }
 
         NumberSystem ns = A.getNS().get(0);
@@ -525,7 +525,7 @@ public class AutomatonLogicalOps {
         // If the old and new bases are the same, check if only MSD/LSD is changing
         if (fromBase == toBase) {
             if (ns.isMsd() == toMsd) {
-                throw new RuntimeException("New and old number systems are identical: " + ns.getName());
+                throw new WalnutException("New and old number systems are identical: " + ns.getName());
             } else {
                 // If only msd <-> lsd differs, just reverse the A
                 WordAutomaton.reverseWithOutput(A, true, print, prefix + " ", log);
@@ -536,7 +536,7 @@ public class AutomatonLogicalOps {
         // 2) Check if fromBase and toBase are powers of the same root
         int commonRoot = UtilityMethods.commonRoot(fromBase, toBase);
         if (commonRoot == -1) {
-            throw new RuntimeException("New and old number systems must have bases k^i and k^j for some integer k.");
+            throw new WalnutException("New and old number systems must have bases k^i and k^j for some integer k.");
         }
 
         // If originally LSD, we need to reverse to treat it as MSD for the conversions
@@ -582,7 +582,7 @@ public class AutomatonLogicalOps {
     private static void convertMsdBaseToExponent(Automaton A, int exponent,
                                                  boolean print, String prefix, StringBuilder log) {
         if (!A.fa.isDeterministic()) {
-            throw new RuntimeException("Automaton must be deterministic for msd_k^j conversion");
+            throw new WalnutException("Automaton must be deterministic for msd_k^j conversion");
         }
 
         int base = A.getNS().get(0).parseBase();
@@ -617,7 +617,7 @@ public class AutomatonLogicalOps {
         int base = A.getNS().get(0).parseBase();
         double expected = Math.pow(root, exponent);
         if (base != (int) expected) {
-            throw new RuntimeException("Base mismatch: expected " + (int) expected + ", found " + base);
+            throw new WalnutException("Base mismatch: expected " + (int) expected + ", found " + base);
         }
 
         long timeBefore = System.currentTimeMillis();

@@ -58,7 +58,7 @@ public class MetaCommands {
     while (s.startsWith(Prover.LEFT_BRACKET)) {
       Matcher metaCmdMatcher = Prover.PAT_META_CMD.matcher(s);
       if (!metaCmdMatcher.find()) {
-        throw ExceptionHelper.invalidCommand(s);
+        throw WalnutException.invalidCommand(s);
       }
       // Get the current meta command block and process it
       String metaCommandString = metaCmdMatcher.group(Prover.GROUP_META_CMD).strip();
@@ -67,19 +67,19 @@ public class MetaCommands {
         if (metaCommand.startsWith(Prover.STRATEGY)) {
           String[] strategyAndIndex = metaCommand.split("\\s+");
           if (strategyAndIndex.length != 3) {
-            throw ExceptionHelper.invalidCommandUse(metaCommand);
+            throw WalnutException.invalidCommandUse(metaCommand);
           }
           addStrategy(strategyAndIndex[2], DeterminizationStrategies.Strategy.fromString(strategyAndIndex[1])
           );
         } else if (metaCommand.startsWith(Prover.EXPORT)) {
           String[] parts = metaCommand.split("\\s+");
           if (parts.length != 2) {
-            throw ExceptionHelper.invalidCommandUse(metaCommand);
+            throw WalnutException.invalidCommandUse(metaCommand);
           }
           // TODO: determine automata name to pass in here
           addExportBA(parts[1], DEFAULT_EXPORT_NAME);
         } else {
-          throw ExceptionHelper.invalidCommand(metaCommand);
+          throw WalnutException.invalidCommand(metaCommand);
         }
       }
       // Remove the processed meta command block from s and trim any whitespace

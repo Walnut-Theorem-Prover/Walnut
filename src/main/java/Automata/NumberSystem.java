@@ -24,7 +24,7 @@ import java.util.*;
 import Automata.FA.FA;
 import Main.EvalComputations.Token.ArithmeticOperator;
 import Main.EvalComputations.Token.RelationalOperator;
-import Main.ExceptionHelper;
+import Main.WalnutException;
 import Main.Prover;
 import Main.Session;
 import Main.UtilityMethods;
@@ -243,7 +243,7 @@ public class NumberSystem {
             } else if (UtilityMethods.parseNegNumber(base) > 1) {
                 addition = baseNegNAddition(UtilityMethods.parseNegNumber(base));
             } else {
-                throw new RuntimeException("Number system " + name + " is not defined.");
+                throw new WalnutException("Number system " + name + " is not defined.");
             }
             if (!isMsd) {
                 AutomatonLogicalOps.reverse(addition, false, null, null, false);
@@ -256,23 +256,23 @@ public class NumberSystem {
          * All 3 inputs must be of type arithmetic.
          */
         if (addition.richAlphabet.getA() == null || addition.richAlphabet.getA().size() != 3) {
-            throw new RuntimeException(
+            throw new WalnutException(
                     "The addition automaton must have exactly 3 inputs: base " + name);
         }
 
         if (!getAlphabet().contains(0)) {
-            throw new RuntimeException(
+            throw new WalnutException(
                     "The input alphabet of addition automaton must contain 0: base " + name);
         }
 
         if (!getAlphabet().contains(1)) {
-            throw new RuntimeException(
+            throw new WalnutException(
                     "The input alphabet of addition automaton must contain 1: base " + name);
         }
 
         for (int i = 1; i < addition.richAlphabet.getA().size(); i++) {
             if (!UtilityMethods.areEqual(addition.richAlphabet.getA().get(i), getAlphabet())) {
-                throw new RuntimeException(
+                throw new WalnutException(
                         "All 3 inputs of the addition automaton " +
                                 "must have the same alphabet: base " + name);
             }
@@ -302,13 +302,13 @@ public class NumberSystem {
          * Inputs must have the same alphabet as the addition automaton.
          */
         if (lessThan.richAlphabet.getA() == null || lessThan.richAlphabet.getA().size() != 2) {
-            throw new RuntimeException(
+            throw new WalnutException(
                 "The less_than automaton must have exactly 2 inputs: base " + name);
         }
 
         for (int i = 0; i < lessThan.richAlphabet.getA().size(); i++) {
             if (!UtilityMethods.areEqual(lessThan.richAlphabet.getA().get(i), getAlphabet())) {
-                throw new RuntimeException(
+                throw new WalnutException(
                     "Inputs of the less_than automaton must have the same alphabet " +
                         "as the alphabet of inputs of addition automaton: base " + name);
             }
@@ -389,7 +389,7 @@ public class NumberSystem {
                 }
             }
             if (baseChange == null) {
-                throw new RuntimeException("Number system cannot be compared.");
+                throw new WalnutException("Number system cannot be compared.");
             }
         }
         baseChange.applyAllRepresentations();
@@ -682,9 +682,9 @@ public class NumberSystem {
                 M.bind(List.of(b, c, a));
                 break;
             case MULT, DIV:
-                throw ExceptionHelper.operatorTwoVariables(arithmeticOperator.getSymbol());
+                throw WalnutException.operatorTwoVariables(arithmeticOperator.getSymbol());
             default:
-                throw new RuntimeException("unexpected arithmetic operator:" + arithmeticOperator);
+                throw new WalnutException("unexpected arithmetic operator:" + arithmeticOperator);
         }
         return M;
     }
@@ -713,7 +713,7 @@ public class NumberSystem {
             return N;
         }
         if (arithmeticOperator.equals(ArithmeticOperator.Ops.DIV)) {
-            if (b == 0) throw ExceptionHelper.divisionByZero();
+            if (b == 0) throw WalnutException.divisionByZero();
             N = getDivision(b);
             N.bind(List.of(a, c));
             return N;
@@ -759,7 +759,7 @@ public class NumberSystem {
             return N;
         }
         if (arithmeticOperator.equals(ArithmeticOperator.Ops.DIV))
-            throw new RuntimeException("constants cannot be divided by variables");
+            throw new WalnutException("constants cannot be divided by variables");
 
         Automaton M;
         String A = b + c; //this way we make sure that A is not equal to b or c
@@ -796,7 +796,7 @@ public class NumberSystem {
             ArithmeticOperator.Ops arithmeticOperator) {
         validateNeg(c);
         if (arithmeticOperator.equals(ArithmeticOperator.Ops.MULT) || arithmeticOperator.equals(ArithmeticOperator.Ops.DIV)) {
-            throw ExceptionHelper.operatorTwoVariables(arithmeticOperator.getSymbol());
+            throw WalnutException.operatorTwoVariables(arithmeticOperator.getSymbol());
         }
 
         Automaton N;
@@ -866,7 +866,7 @@ public class NumberSystem {
      */
     private Automaton multiplication(int n) {
         validateNeg(n);
-        if (n == 0) throw new RuntimeException("multiplication(0)");
+        if (n == 0) throw new WalnutException("multiplication(0)");
         if (multiplicationsDynamicTable.containsKey(n)) return multiplicationsDynamicTable.get(n);
         //note that the case of n==0 is handled in Computer class
         Automaton P;
@@ -912,7 +912,7 @@ public class NumberSystem {
     }
 
     private void validateNeg(int n) {
-        if (!is_neg && n < 0) throw ExceptionHelper.negativeConstant(n);
+        if (!is_neg && n < 0) throw WalnutException.negativeConstant(n);
     }
 
     /**
@@ -921,7 +921,7 @@ public class NumberSystem {
     // a / n = b <=> Er,q a = q + r & q = n*b & n < r <= 0 if n < 0
     private Automaton division(int n) {
         validateNeg(n);
-        if (n == 0) throw ExceptionHelper.divisionByZero();
+        if (n == 0) throw WalnutException.divisionByZero();
         if (divisionsDynamicTable.containsKey(n)) return divisionsDynamicTable.get(n);
         String a = "a", b = "b", r = "r", q = "q";
         // We want to construct the following expressions
@@ -971,7 +971,7 @@ public class NumberSystem {
     public int parseBase() {
         String baseStr = name.substring(name.indexOf("_") + 1);
         if (!UtilityMethods.isNumber(baseStr) || Integer.parseInt(baseStr) <= 1) {
-            throw new RuntimeException("Base of automaton's number system must be > 1 and int, found: " + baseStr);
+            throw new WalnutException("Base of automaton's number system must be > 1 and int, found: " + baseStr);
         }
         return Integer.parseInt(baseStr);
     }

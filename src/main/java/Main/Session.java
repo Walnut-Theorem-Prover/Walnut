@@ -109,7 +109,7 @@ public class Session {
         getWriteAddressForWordsLibrary())) {
       File f = new File(s);
       if (!f.isDirectory() && !f.mkdir()) {
-        throw new RuntimeException("Couldn't create directory:" + s);
+        throw new WalnutException("Couldn't create directory:" + s);
       }
     }
   }

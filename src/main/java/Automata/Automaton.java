@@ -22,7 +22,7 @@ import Automata.FA.FA;
 import Automata.FA.ProductStrategies;
 import Main.EvalComputations.Token.ArithmeticOperator;
 import Main.EvalComputations.Token.LogicalOperator;
-import Main.ExceptionHelper;
+import Main.WalnutException;
 import Main.Prover;
 import Main.Session;
 import Main.UtilityMethods;
@@ -130,7 +130,7 @@ public class Automaton {
             List<Integer> alphabet,
             NumberSystem numSys) {
         this();
-        if (alphabet == null || alphabet.isEmpty()) throw new RuntimeException("empty alphabet is not accepted");
+        if (alphabet == null || alphabet.isEmpty()) throw new WalnutException("empty alphabet is not accepted");
         alphabet = new ArrayList<>(alphabet);
         //The alphabet is a set and does not allow repeated elements. However, the user might enter the command
         //reg myreg {1,1,0,0,0} "10*"; and therefore alphabet = [1,1,0,0,0]. So remove duplicates.
@@ -208,7 +208,7 @@ public class Automaton {
                     input = new ArrayList<>();
                     dest = new IntArrayList();
                 } else {
-                    throw ExceptionHelper.undefinedStatement(lineNumber, address);
+                    throw WalnutException.undefinedStatement(lineNumber, address);
                 }
             }
             if (outputLongFile) {
@@ -220,7 +220,7 @@ public class Automaton {
             this.fa.setFieldsFromFile(Q, q0, output, transitions);
         } catch (IOException e) {
             UtilityMethods.printTruncatedStackTrace(e);
-            throw ExceptionHelper.fileDoesNotExist(address);
+            throw WalnutException.fileDoesNotExist(address);
         }
     }
 
@@ -237,13 +237,13 @@ public class Automaton {
 
     protected void validateTransition(String address, int currentState, long lineNumber, List<Integer> input) {
         if (currentState == -1) {
-            throw new RuntimeException(
+            throw new WalnutException(
                     "Must declare a state before declaring a list of transitions: line " +
                         lineNumber + " of file " + address);
         }
 
         if (input.size() != this.richAlphabet.getA().size()) {
-            throw new RuntimeException("This automaton requires a " + richAlphabet.getA().size() +
+            throw new WalnutException("This automaton requires a " + richAlphabet.getA().size() +
                     "-tuple as input: line " + lineNumber + " of file " + address);
         }
     }
@@ -269,7 +269,7 @@ public class Automaton {
                 for (int i = 0; i < this.richAlphabet.getA().size(); i++) {
                     if (getNS().get(i) != null &&
                         (!this.richAlphabet.getA().get(i).contains(0) || !this.richAlphabet.getA().get(i).contains(1))) {
-                        throw new RuntimeException(
+                        throw new WalnutException(
                             "The " + (i + 1) + "th input of type arithmetic " +
                                 "of the automaton declared in file " + address +
                                 " requires 0 and 1 in its input alphabet: line " +
@@ -280,7 +280,7 @@ public class Automaton {
                 this.determineAlphabetSize();
                 break;
             } else {
-                throw ExceptionHelper.undefinedStatement(lineNumber, address);
+                throw WalnutException.undefinedStatement(lineNumber, address);
             }
         }
         return lineNumber;
@@ -294,7 +294,7 @@ public class Automaton {
     protected void validateDeclaredStates(Set<Integer> destinationStates, Map<Integer, ?> declaredStates, String address) {
         for (Integer q : destinationStates) {
             if (!declaredStates.containsKey(q)) {
-                throw new RuntimeException("State " + q + " is used but never declared anywhere in file: " + address);
+                throw new WalnutException("State " + q + " is used but never declared anywhere in file: " + address);
             }
         }
     }
@@ -346,7 +346,7 @@ public class Automaton {
 
             // ensure that N has the same number system as first.
             if (NumberSystem.isNSDiffering(N.getNS(), first.getNS(), N.richAlphabet.getA(), first.richAlphabet.getA())) {
-                throw new RuntimeException("Automata to be unioned must have the same number system(s).");
+                throw new WalnutException("Automata to be unioned must have the same number system(s).");
             }
 
             // crossProduct requires labelling; make an arbitrary labelling and use it for both: this is valid since
@@ -359,7 +359,7 @@ public class Automaton {
             } else if (op.equals("intersect")) {
                 first = AutomatonLogicalOps.and(first, N, print, prefix, log);
             } else {
-                throw new RuntimeException("Internal union/intersect error");
+                throw new WalnutException("Internal union/intersect error");
             }
 
             long timeAfter = System.currentTimeMillis();
@@ -452,7 +452,7 @@ public class Automaton {
 
         // ensure that N has the same number system as first.
         if (NumberSystem.isNSDiffering(other.getNS(), this.getNS(), this.richAlphabet.getA(), other.richAlphabet.getA())) {
-            throw new RuntimeException("Automata to be concatenated must have the same number system(s).");
+            throw new WalnutException("Automata to be concatenated must have the same number system(s).");
         }
 
         Automaton N = this.clone();
@@ -476,10 +476,10 @@ public class Automaton {
     public void setAlphabet(boolean isDFAO, List<NumberSystem> numberSystems, List<List<Integer>> alphabet, boolean print, String prefix, StringBuilder log) {
 
         if (alphabet.size() != richAlphabet.getA().size()) {
-            throw new RuntimeException("The number of alphabets must match the number of alphabets in the input automaton.");
+            throw new WalnutException("The number of alphabets must match the number of alphabets in the input automaton.");
         }
         if (alphabet.size() != numberSystems.size()) {
-            throw new RuntimeException("The number of alphabets must match the number of number systems.");
+            throw new WalnutException("The number of alphabets must match the number of number systems.");
         }
 
         long timeBefore = System.currentTimeMillis();
@@ -538,10 +538,10 @@ public class Automaton {
      */
     public Automaton processSplit(List<ArithmeticOperator.Ops> inputs, boolean reverse, boolean print, String prefix, StringBuilder log) {
         if (getAlphabetSize() == 0) {
-            throw new RuntimeException("Cannot process split automaton with no inputs.");
+            throw new WalnutException("Cannot process split automaton with no inputs.");
         }
         if (inputs.size() != richAlphabet.getA().size()) {
-            throw new RuntimeException("Split automaton has incorrect number of inputs.");
+            throw new WalnutException("Split automaton has incorrect number of inputs.");
         }
 
         Automaton M = clone();
@@ -561,7 +561,7 @@ public class Automaton {
             }
             NumberSystem ns = getNS().get(i);
             if (ns == null)
-                throw new RuntimeException("Number system for input " + i + " must be defined.");
+                throw new WalnutException("Number system for input " + i + " must be defined.");
             NumberSystem negativeNumberSystem = ns.determineNegativeNS();
 
             Automaton baseChange = negativeNumberSystem.baseChange.clone();
@@ -782,7 +782,7 @@ public class Automaton {
         richAlphabet.setEncoder(permutedEncoder);
         setNS(permute(getNS(), labelPermutation));
 
-        this.fa.permuteD(encodedInputPermutation);
+        this.fa.permuteNfaD(encodedInputPermutation);
     }
 
     /**
@@ -816,7 +816,7 @@ public class Automaton {
     }
 
     public void bind(List<String> names) {
-        if (fa.isTRUE_FALSE_AUTOMATON() || richAlphabet.getA().size() != names.size()) throw ExceptionHelper.invalidBind();
+        if (fa.isTRUE_FALSE_AUTOMATON() || richAlphabet.getA().size() != names.size()) throw WalnutException.invalidBind();
         setLabel(new ArrayList<>(names));
         labelSorted = false;
         fa.setCanonized(false);

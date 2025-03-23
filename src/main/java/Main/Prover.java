@@ -377,12 +377,12 @@ public class Prover {
 
     Matcher matcher_for_command = PAT_FOR_CMD.matcher(s);
     if (!matcher_for_command.find()) {
-      throw ExceptionHelper.invalidCommand();
+      throw WalnutException.invalidCommand();
     }
 
     String commandName = matcher_for_command.group(1);
     if (!commandName.matches(RE_FOR_THE_LIST_OF_CMDS)) {
-      throw ExceptionHelper.noSuchCommand();
+      throw WalnutException.noSuchCommand();
     }
 
     switch (commandName) {
@@ -406,7 +406,7 @@ public class Prover {
     s = metaCommands.parseMetaCommands(s);
 
     if (!s.endsWith(";") && !s.endsWith(":")) {
-      throw ExceptionHelper.invalidCommand();
+      throw WalnutException.invalidCommand();
     }
     int endingToRemove = 1;
     if (s.endsWith(":")) {
@@ -433,11 +433,11 @@ public class Prover {
     }
 
     Matcher matcher_for_command = PAT_FOR_CMD.matcher(s);
-    if (!matcher_for_command.find()) throw ExceptionHelper.invalidCommand();
+    if (!matcher_for_command.find()) throw WalnutException.invalidCommand();
 
     String commandName = matcher_for_command.group(1);
     if (!commandName.matches(RE_FOR_THE_LIST_OF_CMDS)) {
-      throw ExceptionHelper.noSuchCommand();
+      throw WalnutException.noSuchCommand();
     }
 
     return processCommand(s, commandName);
@@ -540,7 +540,7 @@ public class Prover {
       case UNION -> {
         return unionCommand(s);
       }
-      default -> throw ExceptionHelper.invalidCommand(commandName);
+      default -> throw WalnutException.invalidCommand(commandName);
     }
     return null;
   }
@@ -670,7 +670,7 @@ public class Prover {
         L.add(UtilityMethods.parseInt(m3.group()));
       }
       if (L.size() != inputLength) {
-        throw new RuntimeException("Mismatch between vector length in regex and specified number of inputs to automaton");
+        throw new WalnutException("Mismatch between vector length in regex and specified number of inputs to automaton");
       }
       int vectorEncoding = r.encode(L);
       // dk.brics regex has several reserved characters - we cannot use these or the method that generates the automaton will
@@ -712,7 +712,7 @@ public class Prover {
       numSys.add(Predicate.numberSystemHash.get(base));
       return ns;
     } catch (RuntimeException e) {
-      throw new RuntimeException("number system " + base + " does not exist: char at " + m.start(R_NUMBER_SYSTEM) + System.lineSeparator() + "\t:" + e.getMessage());
+      throw new WalnutException("number system " + base + " does not exist: char at " + m.start(R_NUMBER_SYSTEM) + System.lineSeparator() + "\t:" + e.getMessage());
     }
   }
 
@@ -740,7 +740,7 @@ public class Prover {
     }
 
     if (automataNames.isEmpty()) {
-      throw new RuntimeException("Combine requires at least one automaton as input.");
+      throw new WalnutException("Combine requires at least one automaton as input.");
     }
     Automaton first = Automaton.readAutomatonFromFile(automataNames.get(0));
     automataNames.remove(0);
@@ -782,7 +782,7 @@ public class Prover {
 
     Morphism h = new Morphism(Session.getReadFileForMorphismLibrary(m.group(GROUP_IMAGE_MORPHISM) + TXT_EXTENSION));
     if (!h.isUniform()) {
-      throw new RuntimeException("A morphism applied to a word automaton must be uniform.");
+      throw new WalnutException("A morphism applied to a word automaton must be uniform.");
     }
     StringBuilder combineString = new StringBuilder("combine " + m.group(GROUP_IMAGE_NEW_NAME));
 
@@ -842,7 +842,7 @@ public class Prover {
         M = new Automaton(addressForAutomaton);
         isDFAO = false;
       } else {
-        throw new RuntimeException("Automaton " + automatonName + " does not exist.");
+        throw new WalnutException("Automaton " + automatonName + " does not exist.");
       }
     }
 
@@ -852,13 +852,13 @@ public class Prover {
       String t = inputPattern.group(1);
       ArithmeticOperator.Ops tOp = t.isEmpty() ? null : ArithmeticOperator.Ops.fromSymbol(t);
       if (tOp != null && tOp != ArithmeticOperator.Ops.PLUS && tOp != ArithmeticOperator.Ops.MINUS) {
-        throw ExceptionHelper.invalidCommand(t);
+        throw WalnutException.invalidCommand(t);
       }
       hasInput = hasInput || (tOp != null);
       plusMinusInputs.add(tOp);
     }
     if (!hasInput || plusMinusInputs.isEmpty()) {
-      throw new RuntimeException("Cannot split without inputs.");
+      throw new WalnutException("Cannot split without inputs.");
     }
 
     IntList outputs = new IntArrayList(M.fa.getO());
@@ -910,7 +910,7 @@ public class Prover {
         if ((new File(addressForAutomaton)).isFile()) {
           M = new Automaton(addressForAutomaton);
         } else {
-          throw new RuntimeException("Automaton " + automatonName + " does not exist.");
+          throw new WalnutException("Automaton " + automatonName + " does not exist.");
         }
       }
 
@@ -922,7 +922,7 @@ public class Prover {
         label.add(t);
       }
       if (label.size() != M.richAlphabet.getA().size()) {
-        throw new RuntimeException("Number of inputs of word automata " + automatonName + " does not match number of inputs specified.");
+        throw new WalnutException("Number of inputs of word automata " + automatonName + " does not match number of inputs specified.");
       }
       M.setLabel(label);
       subautomata.add(M);
@@ -1070,7 +1070,7 @@ public class Prover {
     String oldDollarSign = m.group(GROUP_CONVERT_OLD_DOLLAR_SIGN);
     if (newDollarSign.equals("$")
         && !oldDollarSign.equals("$")) {
-      throw new RuntimeException("Cannot convert a Word Automaton into a function");
+      throw new WalnutException("Cannot convert a Word Automaton into a function");
     }
     
     String inFileName = m.group(GROUP_CONVERT_OLD_NAME) + TXT_EXTENSION;
@@ -1120,7 +1120,7 @@ public class Prover {
     Matcher m = matchOrFail(PAT_FOR_alphabet_CMD, s, ALPHABET);
 
     if (m.group(GROUP_alphabet_LIST_OF_ALPHABETS) == null) {
-      throw new RuntimeException("List of alphabets for alphabet command must not be empty.");
+      throw new WalnutException("List of alphabets for alphabet command must not be empty.");
     }
     
     boolean isDFAO = true;
@@ -1166,7 +1166,7 @@ public class Prover {
         alphabets.add(determineAlphabet(m1.group(R_SET)));
         NS.add(null);
       } else {
-        throw new RuntimeException("Alphabet at position " + counter + " not recognized in alphabet command");
+        throw new WalnutException("Alphabet at position " + counter + " not recognized in alphabet command");
       }
       counter += 1;
     }
@@ -1183,7 +1183,7 @@ public class Prover {
     }
 
     if (automataNames.isEmpty()) {
-      throw new RuntimeException("Union requires at least one automaton as input.");
+      throw new WalnutException("Union requires at least one automaton as input.");
     }
     Automaton C = Automaton.readAutomatonFromFile(automataNames.get(0));
 
@@ -1206,7 +1206,7 @@ public class Prover {
     }
 
     if (automataNames.isEmpty()) {
-      throw new RuntimeException("Intersect requires at least one automaton as input.");
+      throw new WalnutException("Intersect requires at least one automaton as input.");
     }
     Automaton C = Automaton.readAutomatonFromFile(automataNames.get(0));
 
@@ -1242,7 +1242,7 @@ public class Prover {
     }
 
     if (automataNames.size() < 2) {
-      throw new RuntimeException("Concatenation requires at least two automata as input.");
+      throw new WalnutException("Concatenation requires at least two automata as input.");
     }
     Automaton C = Automaton.readAutomatonFromFile(automataNames.get(0));
 
@@ -1299,7 +1299,7 @@ public class Prover {
     String inFileName = m.group(GROUP_export_NAME) + TXT_EXTENSION;
     boolean isDFAO = !m.group(GROUP_export_DOLLAR_SIGN).equals("$");
     if (isDFAO) {
-      throw new RuntimeException("Can't export DFAO to BA format");
+      throw new WalnutException("Can't export DFAO to BA format");
     }
     String inLibrary = Session.getReadFileForAutomataLibrary(inFileName);
     Automaton M = new Automaton(inLibrary);
@@ -1312,7 +1312,7 @@ public class Prover {
   private static Matcher matchOrFail(Pattern pattern, String input, String commandName) {
     Matcher m = pattern.matcher(input);
     if (!m.find()) {
-      throw ExceptionHelper.invalidCommandUse(commandName);
+      throw WalnutException.invalidCommandUse(commandName);
     }
     return m;
   }

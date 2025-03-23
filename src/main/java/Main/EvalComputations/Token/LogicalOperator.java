@@ -24,7 +24,7 @@ import java.util.Stack;
 
 import Automata.AutomatonLogicalOps;
 import Automata.AutomatonQuantification;
-import Main.ExceptionHelper;
+import Main.WalnutException;
 import Main.EvalComputations.Expressions.Expression;
 import Automata.Automaton;
 import Main.EvalComputations.Expressions.AutomatonExpression;
@@ -85,14 +85,14 @@ public class LogicalOperator extends Operator {
                   new AutomatonExpression(opString, AutomatonLogicalOps.imply(a.M, b.M, print, prefix + " ", log, op));
               case IFF ->
                   new AutomatonExpression(opString, AutomatonLogicalOps.iff(a.M, b.M, print, prefix + " ", log, op));
-              default -> throw new RuntimeException("Unexpected logical operator: " + op);
+              default -> throw new WalnutException("Unexpected logical operator: " + op);
             };
             S.push(ae);
 
             UtilityMethods.logAndPrint(print, prefix + "computed " + a + op + b, log);
             return;
         }
-        throw ExceptionHelper.invalidDualOperators(op, a, b);
+        throw WalnutException.invalidDualOperators(op, a, b);
     }
 
     private void actNegationOrReverse(Stack<Expression> S, boolean print, String prefix, StringBuilder log) {
@@ -107,7 +107,7 @@ public class LogicalOperator extends Operator {
             UtilityMethods.logAndPrint(print, prefix + "computed " + op + a, log);
             return;
         }
-        throw ExceptionHelper.invalidOperator(op, a);
+        throw WalnutException.invalidOperator(op, a);
     }
 
     private void actQuantifier(Stack<Expression> S, boolean print, String prefix, StringBuilder log) {
@@ -124,13 +124,13 @@ public class LogicalOperator extends Operator {
                 else
                     stringValue.append(", ").append(operand).append(" ");
                 if (!(operand instanceof VariableExpression))
-                    throw new RuntimeException("operator " + op + " requires a list of " + quantifiedVariableCount + " variables");
+                    throw new WalnutException("operator " + op + " requires a list of " + quantifiedVariableCount + " variables");
 
                 identifiersToQuantify.add(operand.identifier);
             } else if (i == getArity() - 1) {
                 stringValue.append(operand);
                 if (!(operand instanceof AutomatonExpression))
-                    throw new RuntimeException("the last operand of " + op + " can only be of type automaton");
+                    throw new WalnutException("the last operand of " + op + " can only be of type automaton");
                 M = operand.M;
                 if (op.equals(Operator.EXISTS)) {
                     AutomatonQuantification.quantify(M, identifiersToQuantify, print, prefix + " ", log);

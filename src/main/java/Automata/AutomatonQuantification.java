@@ -1,6 +1,7 @@
 package Automata;
 
 import Main.UtilityMethods;
+import Main.WalnutException;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectRBTreeMap;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
@@ -56,7 +57,7 @@ public class AutomatonQuantification {
 
       for (String s : labelsToQuantify) {
           if (!A.getLabel().contains(s)) {
-              throw new RuntimeException(
+              throw new WalnutException(
                       "Variable " + s + " in the list of quantified variables is not a free variable.");
           }
       }

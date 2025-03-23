@@ -19,6 +19,7 @@
 package Main.EvalComputations.Expressions;
 
 import Automata.Automaton;
+import Main.WalnutException;
 
 /**
  * Examples of expression: a,a+b, a+b > 2,c=a+b, W[a]!=W[b], Ea W[a]!=W[a+1],...<br>
@@ -71,6 +72,6 @@ public class Expression {
     }
 
     public boolean act(String begin) {
-        throw new RuntimeException(begin + " cannot be of type " + this.getClass().getName());
+        throw new WalnutException(begin + " cannot be of type " + this.getClass().getName());
     }
 }

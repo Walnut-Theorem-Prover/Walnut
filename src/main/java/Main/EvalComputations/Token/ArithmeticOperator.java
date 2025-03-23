@@ -25,7 +25,7 @@ import java.util.Stack;
 
 import Automata.*;
 import Main.EvalComputations.Expressions.*;
-import Main.ExceptionHelper;
+import Main.WalnutException;
 import Main.EvalComputations.Expressions.Expression;
 import Main.UtilityMethods;
 
@@ -84,7 +84,7 @@ public class ArithmeticOperator extends Operator {
         super.validateArity(S);
         Expression b = S.pop();
         if (!isValidArithmeticOperator(b))
-            throw ExceptionHelper.invalidOperator(op, b);
+            throw WalnutException.invalidOperator(op, b);
         if (opp.equals(Ops.UNARY_NEGATIVE)) {
             processUnaryOperator(b, S, print, prefix, log);
         } else {
@@ -119,7 +119,7 @@ public class ArithmeticOperator extends Operator {
     private void processBinaryOperator(Expression b, Stack<Expression> S, boolean print, String prefix, StringBuilder log) {
         Expression a = S.pop();
         if (!isValidArithmeticOperator(a))
-            throw ExceptionHelper.invalidOperator(op, a);
+            throw WalnutException.invalidOperator(op, a);
 
         if (a instanceof WordExpression && b instanceof WordExpression) {
             a.wordAutomaton = AutomatonLogicalOps.applyOperator(a.wordAutomaton, b.wordAutomaton, op, print, prefix, log);
@@ -227,13 +227,13 @@ public class ArithmeticOperator extends Operator {
                 return a - b;
             }
             case DIV -> {
-                if (b == 0) throw ExceptionHelper.divisionByZero();
+                if (b == 0) throw WalnutException.divisionByZero();
                 return Math.floorDiv(a, b);
             }
             case MULT -> {
                 return a * b;
             }
-            default -> throw ExceptionHelper.unexpectedOperator(op.getSymbol());
+            default -> throw WalnutException.unexpectedOperator(op.getSymbol());
         }
     }
 

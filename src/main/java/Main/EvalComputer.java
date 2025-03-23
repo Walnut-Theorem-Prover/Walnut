@@ -91,7 +91,7 @@ public class EvalComputer {
                 UtilityMethods.printTruncatedStackTrace(e);
                 String message = e.getMessage();
                 message += System.lineSeparator() + "\t: char at " + t.getPositionInPredicate();
-                throw new RuntimeException(message);
+                throw new WalnutException(message);
             }
         }
 
@@ -118,13 +118,13 @@ public class EvalComputer {
             }
 
             message.append("Probably some operators are missing.");
-            throw new RuntimeException(message.toString());
+            throw new WalnutException(message.toString());
         } else if (expressions.isEmpty()) {
-            throw new RuntimeException("Evaluation ended in no result.");
+            throw new WalnutException("Evaluation ended in no result.");
         } else {
             result = expressions.pop();
             if (!(result instanceof AutomatonExpression)) {
-                throw new RuntimeException("The final result of the evaluation is not of type automaton");
+                throw new WalnutException("The final result of the evaluation is not of type automaton");
             }
         }
     }

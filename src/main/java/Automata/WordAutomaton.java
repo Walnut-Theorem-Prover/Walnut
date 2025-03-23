@@ -4,6 +4,7 @@ import Automata.FA.FA;
 import Main.EvalComputations.Token.ArithmeticOperator;
 import Main.EvalComputations.Token.RelationalOperator;
 import Main.UtilityMethods;
+import Main.WalnutException;
 import it.unimi.dsi.fastutil.ints.Int2ObjectRBTreeMap;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
@@ -27,7 +28,7 @@ public class WordAutomaton {
       long timeBefore = System.currentTimeMillis();
       UtilityMethods.logMessage(print, prefix + "comparing (" + opStr + ") against " + o + ":" + fa.getQ() + " states", log);
       for (int p = 0; p < fa.getQ(); p++) {
-          fa.getO().set(p, RelationalOperator.compare(operator, fa.getO().getInt(p), o) ? 1 : 0);
+          fa.setOutput(p, RelationalOperator.compare(operator, fa.getO().getInt(p), o));
       }
       fa.determinizeAndMinimize(print, prefix + " ", log);
       long timeAfter = System.currentTimeMillis();
@@ -81,7 +82,7 @@ public class WordAutomaton {
           newD.add(new Int2ObjectRBTreeMap<>());
 
           if (A.fa.getNfaD().get(A.fa.getQ0()).keySet().size() != A.getAlphabetSize()) {
-              throw new RuntimeException("Automaton should be deterministic!");
+              throw new WalnutException("Automaton should be deterministic!");
           }
           for (int l : A.fa.getNfaD().get(A.fa.getQ0()).keySet()) {
               Map<Integer, Integer> toState = new HashMap<>();

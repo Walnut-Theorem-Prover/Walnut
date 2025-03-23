@@ -20,7 +20,7 @@ package Main.EvalComputations.Token;
 
 import Automata.*;
 import Main.EvalComputations.Expressions.*;
-import Main.ExceptionHelper;
+import Main.WalnutException;
 import Main.EvalComputations.Expressions.Expression;
 import Main.UtilityMethods;
 
@@ -160,7 +160,7 @@ public class RelationalOperator extends Operator {
             AutomatonQuantification.quantify(M, ((WordExpression)b).identifiersToQuantify, print, prefix + " ", log);
             S.push(new AutomatonExpression(a + op + b, M));
         } else {
-            throw ExceptionHelper.invalidDualOperators(op, a, b);
+            throw WalnutException.invalidDualOperators(op, a, b);
         }
         UtilityMethods.logAndPrint(print, prefix + "computed " + a + op + b, log);
     }
