@@ -1,5 +1,6 @@
 package Automata.Numeration;
 
+import Automata.Automaton;
 import Automata.AutomatonWriter;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -13,7 +14,6 @@ public class OstrowskiTest {
     void createOstrowski() {
         // alpha = sqrt(3) - 1, pre-period = [] and period = [1, 2].
         Ostrowski on = new Ostrowski("testOstrowski", "", "1,2");
-        Assertions.assertEquals("testOstrowski", on.getName());
         String onString = on.toString().replace(" ","");
         Assertions.assertEquals("name:testOstrowski,alpha:[0,3,1,2],periodindex:2", onString);
         Assertions.assertEquals(1, on.preperiod.size()); // huh?
@@ -25,9 +25,8 @@ public class OstrowskiTest {
     void testNode() {
         // extra coverage
         NodeState nodeState = new NodeState(0,1,2);
-        Assertions.assertFalse(nodeState.equals("x"));
+        Assertions.assertNotEquals("x", nodeState);
         Assertions.assertEquals("[0 1 2]", nodeState.toString());
-        Assertions.assertEquals(66065, nodeState.hashCode());
         NodeState nodeState2 = new NodeState(1,1,2);
         Assertions.assertEquals(-1, nodeState.compareTo(nodeState2));
     }
@@ -38,18 +37,18 @@ public class OstrowskiTest {
         Assertions.assertEquals(List.of(2),ost.preperiod);
         Assertions.assertEquals(List.of(1),ost.period);
 
-        ost.createRepresentationAutomaton();
+        Automaton repr = ost.createRepresentationAutomaton();
         StringWriter stringWriter = new StringWriter();
         PrintWriter printWriter = new PrintWriter(stringWriter);
-        AutomatonWriter.writeToStream(ost.repr, printWriter);
+        AutomatonWriter.writeToStream(repr, printWriter);
         String reprString = stringWriter.toString();
         reprString = reprString.replace(" ","").replace("\n","");
         Assertions.assertEquals("{0,1}010->01->1110->0", reprString);
 
-        ost.createAdderAutomaton();
+        Automaton adder = ost.createAdderAutomaton();
         stringWriter = new StringWriter();
         printWriter = new PrintWriter(stringWriter);
-        AutomatonWriter.writeToStream(ost.adder, printWriter);
+        AutomatonWriter.writeToStream(adder, printWriter);
         String adderString = stringWriter.toString();
         adderString = adderString.replace(" ","").replace("\n","");
         Assertions.assertEquals(

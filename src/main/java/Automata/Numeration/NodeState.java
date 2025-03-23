@@ -1,4 +1,4 @@
-/*   Copyright 2019 Aseem Baranwal
+/*   Copyright 2019 Aseem Baranwal, 2025 John Nicol
  *
  *   This file is part of Walnut.
  *
@@ -18,50 +18,22 @@
 
 package Automata.Numeration;
 
-public class NodeState implements Comparable<NodeState> {
-
-    private final int state;
-    private final int start_index;
-    private final int seen_index;
-
-    public NodeState(int state, int start_index, int seen_index) {
-        this.state = state;
-        this.start_index = start_index;
-        this.seen_index = seen_index;
-    }
-
-    public int getState() {
-        return state;
-    }
-
-    public int getStartIndex() {
-        return start_index;
-    }
-
-    public int getSeenIndex() {
-        return seen_index;
-    }
-
-    @Override
-    public int hashCode() {
-        // Randomly chosen prime numbers.
-        return state * 12553 + start_index * 19423 + seen_index * 23321;
-    }
+public record NodeState(int state, int startIndex, int seenIndex) implements Comparable<NodeState> {
 
     @Override
     public boolean equals(Object obj) {
         return (obj instanceof NodeState) &&
-                ((NodeState) obj).state == state &&
-                ((NodeState) obj).start_index == start_index &&
-                ((NodeState) obj).seen_index == seen_index;
+            ((NodeState) obj).state == state &&
+            ((NodeState) obj).startIndex == startIndex &&
+            ((NodeState) obj).seenIndex == seenIndex;
     }
 
     public int compareTo(NodeState obj) {
         if (this.equals(obj)) {
             return 0;
         } else if ((obj.state > state) ||
-                (obj.state == state && obj.start_index > start_index) ||
-                (obj.state == state && obj.start_index == start_index && obj.seen_index > seen_index)) {
+            (obj.state == state && obj.startIndex > startIndex) ||
+            (obj.state == state && obj.startIndex == startIndex && obj.seenIndex > seenIndex)) {
             return -1;
         } else {
             return 1;
@@ -69,6 +41,6 @@ public class NodeState implements Comparable<NodeState> {
     }
 
     public String toString() {
-        return "[" + state + " " + start_index + " " + seen_index + "]";
+        return "[" + state + " " + startIndex + " " + seenIndex + "]";
     }
 }

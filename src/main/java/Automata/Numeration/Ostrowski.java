@@ -20,6 +20,7 @@ package Automata.Numeration;
 
 import java.util.*;
 import java.io.File;
+import java.util.function.Predicate;
 
 import Automata.*;
 import Automata.FA.FA;
@@ -58,9 +59,6 @@ public class Ostrowski {
     // preperiod and period.
     private final IntList alpha;
 
-    // Size of the list alpha.
-    private final int sz_alpha;
-
     // Maximum value in the continued fraction
     private int dMax;
 
@@ -79,13 +77,6 @@ public class Ostrowski {
 
     int totalNodes;
 
-    Automaton adder;
-    Automaton repr;
-
-    String getName() {
-        return name;
-    }
-
     public Ostrowski(String name, String preperiod, String period) {
         this.name = name;
         this.preperiod = new IntArrayList();
@@ -93,12 +84,8 @@ public class Ostrowski {
         ParseMethods.parseList(preperiod, this.preperiod);
         ParseMethods.parseList(period, this.period);
 
-
         // Remove leading 0's in the preperiod.
-        Iterator<Integer> it = this.preperiod.iterator();
-        int first_non_zero = 0;
-        while (it.hasNext() && it.next() == 0) ++first_non_zero;
-        this.preperiod.subList(0, first_non_zero).clear();
+        removeLeadingZeroes(this.preperiod);
 
         if (this.preperiod.isEmpty()) {
             // Easier implementation.
@@ -126,10 +113,9 @@ public class Ostrowski {
         this.alpha.addAll(this.preperiod);
         this.alpha.addAll(this.period);
         this.periodIndex = this.preperiod.size() + 1;
-        this.sz_alpha = alpha.size();
 
         dMax = alpha.getInt(1) - 1;
-        for (int i = 2; i < sz_alpha; ++i) {
+        for (int i = 2; i < alpha.size(); ++i) {
             dMax = Math.max(alpha.getInt(i), dMax);
         }
 
@@ -139,75 +125,51 @@ public class Ostrowski {
         this.totalNodes = 0;
     }
 
+    private void removeLeadingZeroes(IntList iList) {
+        Iterator<Integer> it = iList.iterator();
+        int firstNonZero = 0;
+        while (it.hasNext() && it.next() == 0) ++firstNonZero;
+        iList.subList(0, firstNonZero).clear();
+    }
+
     public Automaton createRepresentationAutomaton() {
-        repr = initAutomaton(1);
-
+        Automaton repr = initAutomaton(1);
         performReprBfs();
-        repr.fa.setQ(this.totalNodes);
-        for (int q = 0; q < this.totalNodes; ++q) {
-            repr.fa.addOutput(isReprFinal(q));
-            this.stateTransitions.putIfAbsent(q, new Int2ObjectRBTreeMap<>());
-            repr.fa.addToNfaD(this.stateTransitions.get(q));
-        }
-
-        repr.fa.determinizeAndMinimize(false, "", null);
-        repr.canonize();
-
-        handleZeroState(repr.fa);
+        populateAutomaton(repr, this::isReprFinal);
         return repr;
     }
 
-    private boolean isReprFinal(int q) {
-        NodeState node = indexToNode.get(q);
-        return node != null && node.getState() == 0 && node.getSeenIndex() == 1;
-    }
-
-    public static void writeAutomaton(String name, String fullName, Automaton a) {
-        String repr_file_name =
-            Session.getWriteAddressForCustomBases() + fullName;
-        System.out.println("Writing to: " + repr_file_name);
-        File f = new File(repr_file_name);
-        if (f.exists()) {
-            throw new WalnutException("Error: number system " + name + " already exists.");
-        }
-        AutomatonWriter.write(a, repr_file_name);
-    }
-
     public Automaton createAdderAutomaton() {
-        adder = initAutomaton(3);
-
+        Automaton adder = initAutomaton(3);
         performAdderBfs();
-        adder.fa.setQ(this.totalNodes);
-        for (int q = 0; q < this.totalNodes; q++) {
-            adder.fa.addOutput(isAdderFinal(q));
-            this.stateTransitions.putIfAbsent(q, new Int2ObjectRBTreeMap<>());
-            adder.fa.addToNfaD(this.stateTransitions.get(q));
-        }
-
-        adder.fa.determinizeAndMinimize(false, "", null);
-
-        // We need to canonize and remove the first state.
-        // The automaton will work with this state as well, but it is useless. This happens
-        // because the Automaton class does not support an epsilon transition for NFAs.
-        adder.canonize();
-
-        handleZeroState(adder.fa);
+        populateAutomaton(adder, this::isAdderFinal);
         return adder;
     }
 
+    private boolean isReprFinal(NodeState node ) {
+        return node != null && node.state() == 0 && node.seenIndex() == 1;
+    }
+
+    private boolean isAdderFinal(NodeState node) {
+        return (node.state() == 0 || node.state() == 2 || node.state() == 6) && node.seenIndex() == 1;
+    }
 
     private Automaton initAutomaton(int inputs) {
-        resetAutomaton();
+        // reset global fields.
+        this.nodeToIndex.clear();
+        this.indexToNode.clear();
+        this.stateTransitions = new TreeMap<>();
+        this.totalNodes = 0;
 
         // Declare the alphabet.
-        IntList list = new IntArrayList(dMax +1);
+        IntList list = new IntArrayList(dMax + 1);
         for (int i = 0; i <= dMax; i++) {
             list.add(i);
         }
-        // 3 inputs to the adder, all have the same alphabet and the null NumberSystem.
+        // Inputs all have the same alphabet and the null NumberSystem.
         List<List<Integer>> A = new ArrayList<>(inputs);
         List<NumberSystem> ns = new ArrayList<>(inputs);
-        for(int i=0;i<inputs;i++) {
+        for (int i = 0; i < inputs; i++) {
             A.add(list);
             ns.add(null);
         }
@@ -219,23 +181,51 @@ public class Ostrowski {
         return automaton;
     }
 
-    private static void handleZeroState(FA adder) {
+    private void populateAutomaton(Automaton automaton, Predicate<NodeState> isStateFinal) {
+        automaton.fa.setQ(this.totalNodes);
+        for (int q = 0; q < automaton.fa.getQ(); ++q) {
+            automaton.fa.addOutput(isStateFinal.test(indexToNode.get(q)));
+            this.stateTransitions.putIfAbsent(q, new Int2ObjectRBTreeMap<>());
+            automaton.fa.addToNfaD(this.stateTransitions.get(q));
+        }
+
+        automaton.fa.determinizeAndMinimize(false, "", null);
+
+        // We need to canonize and remove the first state.
+        // The automaton will work with this state as well, but it is useless. This happens
+        // because the Automaton class does not support an epsilon transition for NFAs.
+        automaton.canonize();
+
+        handleZeroState(automaton.fa);
+    }
+
+    private static void handleZeroState(FA fa) {
         boolean zeroStateNeeded =
-            adder.getNfaD().stream().anyMatch(
+            fa.getNfaD().stream().anyMatch(
                 tm -> tm.int2ObjectEntrySet().stream().anyMatch(
                     es -> es.getValue().getInt(0) == 0));
 
         if (!zeroStateNeeded) {
-            adder.getNfaD().remove(0);
-            adder.getO().removeInt(0);
-            adder.setQ(adder.getQ() - 1);
-            adder.getNfaD().forEach(tm -> {
+            fa.getNfaD().remove(0);
+            fa.getO().removeInt(0);
+            fa.setQ(fa.getQ() - 1);
+            fa.getNfaD().forEach(tm -> {
                 tm.forEach((k, v) -> {
                     int dest = v.getInt(0) - 1;
                     v.set(0, dest);
                 });
             });
         }
+    }
+
+    public static void writeAutomaton(String name, String fullName, Automaton a) {
+        String automatonFileName = Session.getWriteAddressForCustomBases() + fullName;
+        System.out.println("Writing to: " + automatonFileName);
+        File f = new File(automatonFileName);
+        if (f.exists()) {
+            throw new WalnutException("Error: number system " + name + " already exists.");
+        }
+        AutomatonWriter.write(a, automatonFileName);
     }
 
     public String toString() {
@@ -248,27 +238,28 @@ public class Ostrowski {
         }
         for (int d : list) {
             if (d <= 0) {
-                throw new WalnutException(
-                        "Error: All digits of the continued fraction must be positive integers.");
+                throw new WalnutException("Error: All digits of the continued fraction must be positive integers.");
             }
         }
     }
 
     private int alphaI(int i) {
-        int index = i < sz_alpha ? i : this.periodIndex + ((i - sz_alpha) % (sz_alpha - this.periodIndex));
+        int alphaSize = alpha.size();
+        int index = i < alphaSize ? i : this.periodIndex + ((i - alphaSize) % (alphaSize - this.periodIndex));
         return alpha.getInt(index);
     }
 
-    /** The transition matrix defines the behavior of the "4-input adder" automaton, which is used
+    /**
+     * The transition matrix defines the behavior of the "4-input adder" automaton, which is used
      * in constructing the Ostrowski addition automaton. Each transition is parameterized by two
      * integers (r, s).
      * Conceptually:
-     *   The automaton states (0 through 6) represent different "carry" or "configuration" conditions
-     *   in the addition process under Ostrowski numeration.
-     *   The transitions encode how to update the automaton's state given certain inputs and the
-     *   Ostrowski system's arithmetic rules.
+     * The automaton states (0 through 6) represent different "carry" or "configuration" conditions
+     * in the addition process under Ostrowski numeration.
+     * The transitions encode how to update the automaton's state given certain inputs and the
+     * Ostrowski system's arithmetic rules.
      */
-     private void initTransitions() {
+    private void initTransitions() {
         transition = new int[NUM_STATES][NUM_STATES][2];
         for (int i = 0; i < NUM_STATES; i++) {
             for (int j = 0; j < NUM_STATES; j++) {
@@ -324,71 +315,46 @@ public class Ostrowski {
         // 1: The C.F. index at which the input started.
         // 2: The C.F. index that is currently active in the input.
 
-        // This is the start state.
-        NodeState start_node = new NodeState(0, 0, 0);
-        this.nodeToIndex.put(start_node, 0);
-        this.indexToNode.put(0, start_node);
-        ++this.totalNodes;
-
-        Queue<Integer> queue = new LinkedList<>();
-        this.stateTransitions = new TreeMap<>();
-
-        // These are the "0" states.
-        this.stateTransitions.put(0, new Int2ObjectRBTreeMap<>());
-        for (int i = 1; i < this.sz_alpha; i++) {
+        Queue<Integer> queue = initialiszeBfs();
+        int alphaSize = this.alpha.size();
+        for (int i = 1; i < alphaSize; i++) {
             addNodeWithNewTransitions(new NodeState(0, i, i), 0, queue, 0);
         }
 
-        int r, s;
         while (!queue.isEmpty()) {
-            int cur_node_idx = queue.remove();
-            NodeState cur_node = indexToNode.get(cur_node_idx);
-            int state = cur_node.getState();
-            int start_index = cur_node.getStartIndex();
-            int seen_index = cur_node.getSeenIndex();
+            int curNodeIdx = queue.remove();
+            NodeState curNode = indexToNode.get(curNodeIdx);
+            int state = curNode.state();
+            int startIndex = curNode.startIndex();
+            int seenIndex = curNode.seenIndex();
 
-            if (seen_index == 1 && this.sz_alpha > 2 && this.periodIndex > 1) {
+            if (seenIndex == 1 && alphaSize > 2 && this.periodIndex > 1) {
                 // The input ends here.
                 continue;
             }
 
             for (int st = 0; st < NUM_STATES; st++) {
-                r = this.transition[state][st][0];
-                s = this.transition[state][st][1];
+                int r = this.transition[state][st][0];
+                int s = this.transition[state][st][1];
 
                 if (r == NONE || s == NONE) {
                     continue;
                 }
 
-                if (seen_index > 1) {
-                    addTransitionsAndNode(new NodeState(st, start_index, seen_index - 1),
-                        cur_node_idx, alphaI(seen_index - 1), r, s, queue);
+                if (seenIndex > 1) {
+                    addTransitionsAndNode(new NodeState(st, startIndex, seenIndex - 1),
+                        curNodeIdx, alphaI(seenIndex - 1), r, s, queue);
                 }
 
-                if (seen_index == this.periodIndex) {
+                if (seenIndex == this.periodIndex) {
                     // There is another possibility.
-                    // Next index could also be sz_alpha - 1.
-                    addTransitionsAndNode(new NodeState(st, start_index, sz_alpha - 1),
-                        cur_node_idx, alphaI(sz_alpha - 1), r, s, queue);
+                    // Next index could also be alphaSize - 1.
+                    addTransitionsAndNode(new NodeState(st, startIndex, alphaSize - 1),
+                        curNodeIdx, alphaI(alphaSize - 1), r, s, queue);
                 }
             }
         }
     }
-
-    private void addTransitionsAndNode(NodeState node, int cur_node_idx, int a, int r, int s, Queue<Integer> queue) {
-        this.stateTransitions.putIfAbsent(cur_node_idx, new Int2ObjectRBTreeMap<>());
-        if (nodeToIndex.containsKey(node)) {
-            // This node already exists, don't create a new NodeState.
-            addTransitions(
-                this.stateTransitions.get(cur_node_idx),
-                a * r + s,
-                nodeToIndex.get(node),
-                dMax);
-        } else {
-            addNodeWithNewTransitions(node, cur_node_idx, queue, a * r + s);
-        }
-    }
-
 
     private void performReprBfs() {
         // In a node, the indices mean the following.
@@ -396,20 +362,10 @@ public class Ostrowski {
         // 1: The C.F. index at which the input started.
         // 2: The C.F. index that is currently active in the input.
 
-        // This is the start state.
-        NodeState start_node = new NodeState(0, 0, 0);
-        this.nodeToIndex.put(start_node, 0);
-        this.indexToNode.put(0, start_node);
-        ++this.totalNodes;
-
-        Queue<Integer> queue = new LinkedList<>();
-        this.stateTransitions = new TreeMap<>();
-        int a;
-
-        // These are the "0" states.
-        this.stateTransitions.put(0, new Int2ObjectRBTreeMap<>());
-        for (int i = 1; i < this.sz_alpha; ++i) {
-            a = alphaI(i);
+        Queue<Integer> queue = initialiszeBfs();
+        int alphaSize = this.alpha.size();
+        for (int i = 1; i < alphaSize; ++i) {
+            int a = alphaI(i);
             addNodeIndices(new NodeState(0, i, i));
             for (int inp = 0; inp < a; ++inp) {
                 putStateTransition(0, inp, this.totalNodes);
@@ -420,57 +376,77 @@ public class Ostrowski {
         }
 
         while (!queue.isEmpty()) {
-            int cur_node_idx = queue.remove();
+            int curNodeIdx = queue.remove();
 
-            NodeState cur_node = indexToNode.get(cur_node_idx);
-            int state = cur_node.getState();
-            int start_index = cur_node.getStartIndex();
-            int seen_index = cur_node.getSeenIndex();
+            NodeState curNode = indexToNode.get(curNodeIdx);
+            int state = curNode.state();
+            int startIndex = curNode.startIndex();
+            int seenIndex = curNode.seenIndex();
 
-            if (seen_index == 1 && this.sz_alpha > 2 && this.periodIndex > 1) {
+            if (seenIndex == 1 && alphaSize > 2 && this.periodIndex > 1) {
                 // The input ends here.
                 continue;
             }
 
-            if (seen_index > 1) {
-                a = alphaI(seen_index - 1);
-                if (state == 1) {
-                    // Can only take a "0" transition from a "1" state.
-                    a = 1;
-                }
+            if (seenIndex > 1) {
+                // Can only take a "0" transition from a "1" state.
+                int a = state == 1 ? 1 : alphaI(seenIndex - 1);
 
-                this.stateTransitions.putIfAbsent(cur_node_idx, new Int2ObjectRBTreeMap<>());
+                this.stateTransitions.putIfAbsent(curNodeIdx, new Int2ObjectRBTreeMap<>());
 
                 // Will go to state 0 for all transitions < a.
-                pointToNode(a, new NodeState(0, start_index, seen_index - 1), cur_node_idx, queue);
+                pointToNode(a, new NodeState(0, startIndex, seenIndex - 1), curNodeIdx, queue);
 
-                // Go to state 1 from this state 0 for transition = a (only if seen_index > 2).
-                if (state == 0 && seen_index > 2) {
+                // Go to state 1 from this state 0 for transition = a (only if seenIndex > 2).
+                if (state == 0 && seenIndex > 2) {
                     pointSymbolToNode(
-                        new NodeState(1, start_index, seen_index - 1), cur_node_idx, queue, a);
+                        new NodeState(1, startIndex, seenIndex - 1), curNodeIdx, queue, a);
                 }
             }
 
-            if (seen_index == this.periodIndex) {
+            if (seenIndex == this.periodIndex) {
                 // There is another possibility.
-                // Next index could also be sz_alpha - 1.
-                a = alphaI(sz_alpha - 1);
-                if (state == 1) {
-                    // Can only take a "0" transition from a "1" state.
-                    a = 1;
-                }
+                // Next index could also be alphaSize - 1.
+                int a = state == 1 ? 1 : alphaI(alphaSize - 1);
 
                 // Create the map if does not exist.
-                this.stateTransitions.putIfAbsent(cur_node_idx, new Int2ObjectRBTreeMap<>());
-                NodeState node = new NodeState(0, start_index, sz_alpha - 1);
-                pointToNode(a, node, cur_node_idx, queue);
+                this.stateTransitions.putIfAbsent(curNodeIdx, new Int2ObjectRBTreeMap<>());
+                NodeState node = new NodeState(0, startIndex, alphaSize - 1);
+                pointToNode(a, node, curNodeIdx, queue);
 
                 // Go to state 1 from this state 0 for transition = a.
                 if (state == 0) {
                     pointSymbolToNode(
-                        new NodeState(1, start_index, sz_alpha - 1), cur_node_idx, queue, a);
+                        new NodeState(1, startIndex, alphaSize - 1), curNodeIdx, queue, a);
                 }
             }
+        }
+    }
+
+    private Queue<Integer> initialiszeBfs() {
+        // This is the start state.
+        NodeState startNode = new NodeState(0, 0, 0);
+        this.nodeToIndex.put(startNode, 0);
+        this.indexToNode.put(0, startNode);
+        ++this.totalNodes;
+
+        this.stateTransitions = new TreeMap<>();
+        // These are the "0" states.
+        this.stateTransitions.put(0, new Int2ObjectRBTreeMap<>());
+        return new LinkedList<>();
+    }
+
+    private void addTransitionsAndNode(NodeState node, int curNodeIdx, int a, int r, int s, Queue<Integer> queue) {
+        this.stateTransitions.putIfAbsent(curNodeIdx, new Int2ObjectRBTreeMap<>());
+        if (nodeToIndex.containsKey(node)) {
+            // This node already exists, don't create a new NodeState.
+            addTransitions(
+                this.stateTransitions.get(curNodeIdx),
+                a * r + s,
+                nodeToIndex.get(node),
+                dMax);
+        } else {
+            addNodeWithNewTransitions(node, curNodeIdx, queue, a * r + s);
         }
     }
 
@@ -479,76 +455,51 @@ public class Ostrowski {
         indexToNode.put(this.totalNodes, node);
     }
 
-    private void pointToNode(int a, NodeState node, int cur_node_idx, Queue<Integer> queue) {
+    private void pointToNode(int a, NodeState node, int curNodeIdx, Queue<Integer> queue) {
         for (int inp = 0; inp < a; ++inp) {
-            pointSymbolToNode(node, cur_node_idx, queue, inp);
+            pointSymbolToNode(node, curNodeIdx, queue, inp);
         }
     }
 
-    private void pointSymbolToNode(NodeState node, int cur_node_idx, Queue<Integer> queue, int inp) {
+    private void pointSymbolToNode(NodeState node, int curNodeIdx, Queue<Integer> queue, int inp) {
         if (nodeToIndex.containsKey(node)) {
-            putStateTransition(cur_node_idx, inp, nodeToIndex.get(node));
+            putStateTransition(curNodeIdx, inp, nodeToIndex.get(node));
         } else {
-            addNode(node, cur_node_idx, queue, inp);
+            addNode(node, curNodeIdx, queue, inp);
         }
     }
 
     // Create a new NodeState.
-    private void addNode(NodeState node, int cur_node_idx, Queue<Integer> queue, int inp) {
+    private void addNode(NodeState node, int curNodeIdx, Queue<Integer> queue, int inp) {
         addNodeIndices(node);
-        putStateTransition(cur_node_idx, inp, this.totalNodes);
+        putStateTransition(curNodeIdx, inp, this.totalNodes);
         queue.add(this.totalNodes++);
     }
 
     // Create a new NodeState.
-    private void addNodeWithNewTransitions(NodeState node, int cur_node_idx, Queue<Integer> queue, int inp) {
+    private void addNodeWithNewTransitions(NodeState node, int curNodeIdx, Queue<Integer> queue, int inp) {
         addNodeIndices(node);
-        addTransitions(this.stateTransitions.get(cur_node_idx), inp, this.totalNodes, dMax);
+        addTransitions(this.stateTransitions.get(curNodeIdx), inp, this.totalNodes, dMax);
         queue.add(this.totalNodes++);
     }
 
-    private void putStateTransition(int cur_node_idx, int inp, int value) {
-        this.stateTransitions
-            .get(cur_node_idx)
-            .putIfAbsent(inp, new IntArrayList());
-        this.stateTransitions
-            .get(cur_node_idx)
-            .get(inp)
-            .add(value);
+    private void putStateTransition(int curNodeIdx, int inp, int value) {
+        this.stateTransitions.get(curNodeIdx).putIfAbsent(inp, new IntArrayList());
+        this.stateTransitions.get(curNodeIdx).get(inp).add(value);
     }
 
     private static void addTransitions(
-            Int2ObjectRBTreeMap<IntList> current_state_transitions,
-            int diff,
-            int encodedDestination,
-            int d_max) {
-        for (int x = 0; x <= d_max; ++x) {
-            for (int y = 0; y <= d_max; ++y) {
-                for (int z = 0; z <= d_max; ++z) {
-                    if (z - x - y == diff) {
-                        current_state_transitions.computeIfAbsent(
-                            inputEncode(d_max+1, x, y, z), k -> new IntArrayList()).add(encodedDestination);
-                    }
+        Int2ObjectRBTreeMap<IntList> currentStateTransitions, int diff, int encodedDestination, int dMax) {
+        int base = dMax + 1;
+        for (int x = 0; x <= dMax; ++x) {
+            for (int y = 0; y <= dMax; ++y) {
+                int z = diff + x + y; // Only one possible value for z
+                if (z >= 0 && z <= dMax) {
+                    int inputEncode = x + base * y + base * base * z;
+                    currentStateTransitions.computeIfAbsent(
+                        inputEncode, k -> new IntArrayList()).add(encodedDestination);
                 }
             }
         }
-    }
-
-    private static int inputEncode(int base, int x, int y, int z) {
-        return x + base * y + base * base * z;
-    }
-
-    private boolean isAdderFinal(int node_index) {
-        NodeState node = indexToNode.get(node_index);
-        return (
-                ((node.getState() == 0 || node.getState() == 2 || node.getState() == 6) &&
-                        node.getSeenIndex() == 1));
-    }
-
-    private void resetAutomaton() {
-        this.nodeToIndex.clear();
-        this.indexToNode.clear();
-        this.stateTransitions = new TreeMap<>();
-        this.totalNodes = 0;
     }
 }
