@@ -175,14 +175,13 @@ public class ValmariDFA {
     void replaceFields(FA f) {
         f.setQ(blocks.z);
         f.setQ0(blocks.S[f.getQ0()]);
-        f.setO(null);
         _A = _F = blocks.E = blocks.P = null;
         ValmariPartition.M = ValmariPartition.W = null; // this fixes an actual leak
         cords = null;
         f.setNfaD(determineNfaD()); // needs blocks.(L,F,S), L, T, H
         FA.reduceNfaDMemory(f.getNfaD());
         L = T = H = blocks.L = blocks.S = null;
-        f.setO(determineO()); // needs blocks.F
+        determineO(f);
     }
 
     private List<Int2ObjectRBTreeMap<IntList>> determineNfaD() {
@@ -201,17 +200,10 @@ public class ValmariDFA {
         return d;
     }
 
-    private IntList determineO() {
-        IntList O = new IntArrayList(blocks.z);
-        for(int q = 0; q < blocks.z; ++q ){
-            if( blocks.F[q] < numFinalstates){
-                O.add(1);
-            }
-            else {
-                O.add(0);
-            }
+    private void determineO(FA f) {
+        f.initO(blocks.z);
+        for(int q = 0; q < blocks.z; ++q) {
+            f.addOutput(blocks.F[q] < numFinalstates);
         }
-        return O;
     }
-
 }

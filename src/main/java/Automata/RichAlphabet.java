@@ -27,6 +27,15 @@ public class RichAlphabet {
     this.A = new ArrayList<>();
   }
 
+  public boolean isInNewAlphabet(List<Integer> decoded) {
+    for (int i = 0; i < decoded.size(); i++) {
+      if (!this.A.get(i).contains(decoded.get(i))) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   int determineAlphabetSize() {
     int alphabetSize = 1;
     for (List<Integer> x : A) {

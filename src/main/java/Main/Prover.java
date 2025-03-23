@@ -26,6 +26,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import Automata.*;
+import Automata.FA.Infinite;
 import Automata.Numeration.Ostrowski;
 import Main.EvalComputations.Token.ArithmeticOperator;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
@@ -813,7 +814,7 @@ public class Prover {
     Automaton M = Automaton.readAutomatonFromFile(m.group(GROUP_INF_NAME));
     M.randomLabel();
     M = AutomatonLogicalOps.removeLeadingZeroes(M, M.getLabel(), false, null, null);
-    String infReg = M.fa.infinite(M.richAlphabet);
+    String infReg = Infinite.infinite(M.fa, M.richAlphabet);
     if (infReg.isEmpty()) {
       System.out.println("Automaton " + m.group(GROUP_INF_NAME) + " accepts finitely many values.");
       return false;

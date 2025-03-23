@@ -10,7 +10,6 @@ import MRC.Model.Threshold;
 import MRC.NFATrim;
 import MRC.Simulation.ParallelSimulation;
 import Main.*;
-import Main.EvalComputations.Token.ArithmeticOperator;
 import MRC.OnTheFlyDeterminization;
 import it.unimi.dsi.fastutil.ints.*;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
@@ -222,7 +221,8 @@ public class DeterminizationStrategies {
     }
     fa.setQ(stateCount);
     fa.setQ0(0);
-    fa.setO(calculateNewStateOutput(fa.getO(), metastateList));
+    IntList oldO = new IntArrayList(fa.getO());
+    fa.calculateNewStateOutput(oldO, metastateList);
     fa.setNfaD(null);
     fa.setDfaD(dfaD);
   }
@@ -325,28 +325,4 @@ public class DeterminizationStrategies {
     }
     fa.setFromMyDFA(out);
   }
-  
-    /**
-     * Calculate new state output (O), from previous O and metastates.
-     * @param O          - previous O
-     * @param metastates - list of metastates
-     * @return new O
-     */
-    private static IntList calculateNewStateOutput(IntList O, List<IntSet> metastates) {
-        IntList newO = new IntArrayList(metastates.size());
-        for (IntSet metastate : metastates) {
-            boolean flag = false;
-            for (int q : metastate) {
-                if (O.getInt(q) != 0) {
-                    newO.add(1);
-                    flag = true;
-                    break;
-                }
-            }
-            if (!flag) {
-                newO.add(0);
-            }
-        }
-        return newO;
-    }
 }

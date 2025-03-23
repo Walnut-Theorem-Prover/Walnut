@@ -32,7 +32,6 @@ import net.automatalib.automaton.fsa.impl.CompactNFA;
 
 import java.util.*;
 import java.util.function.BiFunction;
-import java.util.function.Predicate;
 
 /**
  * Abstraction of NFA/DFA/DFAO code from Automaton.
@@ -79,7 +78,6 @@ public class FA implements Cloneable {
     O = new IntArrayList();
     nfaD = new ArrayList<>();
   }
-
   public boolean isAccepting(int state) {
     return O.getInt(state) != 0;
   }
@@ -100,21 +98,13 @@ public class FA implements Cloneable {
           Int2ObjectRBTreeMap<IntList> newMap = new Int2ObjectRBTreeMap<>();
           for (Int2ObjectMap.Entry<IntList> entry: getEntriesNfaD(q)) {
             List<Integer> decoded = oldAlphabet.decode(entry.getIntKey());
-            if (isInNewAlphabet(M.richAlphabet.getA(), decoded)) {
+            if (M.richAlphabet.isInNewAlphabet(decoded)) {
               newMap.put(M.richAlphabet.encode(decoded), entry.getValue());
             }
           }
           newD.add(newMap);
       }
       M.fa.nfaD = newD;
-  }
-  private static boolean isInNewAlphabet(List<List<Integer>> alphabet, List<Integer> decoded) {
-    for (int i = 0; i < decoded.size(); i++) {
-      if (!alphabet.get(i).contains(decoded.get(i))) {
-        return false;
-      }
-    }
-    return true;
   }
 
   public void initBasicFA(IntList O) {
@@ -395,7 +385,7 @@ public class FA implements Cloneable {
     List<State> setOfStates = new ArrayList<>(M.getStates());
     Q = setOfStates.size();
     q0 = setOfStates.indexOf(M.getInitialState());
-    O = new IntArrayList(Q);
+    this.initO(Q);
     nfaD = new ArrayList<>(Q);
     for (int q = 0; q < Q; q++) {
       State state = setOfStates.get(q);
@@ -564,8 +554,8 @@ public class FA implements Cloneable {
     return O;
   }
 
-  public void setO(IntList o) {
-    O = o;
+  public void initO(int size) {
+    this.O = new IntArrayList(size);
   }
 
   /**
@@ -956,13 +946,14 @@ public class FA implements Cloneable {
   }
 
   public static FA compactNFAToFA(CompactNFA<Integer> cNFA) {
-    FA fa = new FA();
-    fa.Q = cNFA.size();
     Set<Integer> initialStates = cNFA.getInitialStates();
     if (initialStates.size() > 1) {
       throw new WalnutException("Unexpected initial states from CompactNFA:" + initialStates);
     }
-    fa.setQ0(initialStates.iterator().next());
+
+    FA fa = new FA();
+    fa.Q = cNFA.size();
+    fa.q0 = initialStates.iterator().next();
     for(int i=0;i<fa.Q;i++) {
       fa.addOutput(cNFA.isAccepting(i));
     }
@@ -1054,101 +1045,20 @@ public class FA implements Cloneable {
     nfaD = null;
   }
 
-  // helper function for our DFS to facilitate recursion
-  public String infiniteHelper(RichAlphabet r, IntSet visited, int started, int state, String result) {
-      if (visited.contains(state)) {
-          if (state == started) {
-              return result;
-          }
-          return "";
-      }
-      visited.add(state);
-      for (Int2ObjectMap.Entry<IntList> entry : getEntriesNfaD(state)) {
-          for (int y: entry.getValue()) {
-              // this adds brackets even when inputs have arity 1 - this is fine, since we just want a usable infinite regex
-              String cycle = infiniteHelper(r, visited, started, y, result + r.decode(entry.getIntKey()));
-              if (!cycle.isEmpty()) {
-                  return cycle;
-              }
-          }
-      }
-
-      visited.remove(state);
-      return "";
-  }
-
-  // Determines whether an automaton accepts infinitely many values. If it does, a regex of infinitely many accepted values (not all)
-  // is given. This is true iff there exists a cycle in a minimized version of the automaton, which previously had leading or
-  // trailing zeroes removed according to whether it was msd or lsd
-  public String infinite(RichAlphabet r) {
-      for (int i = 0; i < Q; i++) {
-          IntSet visited = new IntOpenHashSet(); // states we have visited
-          String cycle = infiniteHelper(r, visited, i, i, "");
-          // once a cycle is detected, compute a prefix leading to state i and a suffix from state i to an accepting state
-          if (!cycle.isEmpty()) {
-              final int finalI = i;
-              String prefix = this.findPath(getQ0(), y -> y == finalI, r);
-              String suffix = this.findPath(finalI, this::isAccepting, r);
-              return prefix + "(" + cycle + ")*" + suffix;
-          }
-      }
-      return ""; // an empty string signals that we have failed to find a cycle
-  }
-
-  // Core pathfinding logic
-  private String findPath(int startState, Predicate<Integer> isFoundCondition, RichAlphabet r) {
-    // Early exit if the start state meets the condition
-    if (isFoundCondition.test(startState)) {
-      return "";
-    }
-    List<Integer> distance = new ArrayList<>(Collections.nCopies(getQ(), -1));
-    List<Integer> prev = new ArrayList<>(Collections.nCopies(getQ(), -1));
-    List<Integer> input = new ArrayList<>(Collections.nCopies(getQ(), -1));
-    distance.set(startState, 0);
-
-    Queue<Integer> queue = new LinkedList<>();
-    queue.add(startState);
-
-    boolean found = false;
-    int endState = -1;
-
-    // BFS to find the path
-    while (!queue.isEmpty() && !found) {
-      int current = queue.poll();
-
-      for (Int2ObjectMap.Entry<IntList> entry : getEntriesNfaD(current)) {
-        int x = entry.getIntKey();
-        IntList transitions = entry.getValue();
-
-        for (int y : transitions) {
-          if (isFoundCondition.test(y)) {
-            found = true;
-            endState = y;
-          }
-          if (distance.get(y) == -1) { // Unvisited state
-            distance.set(y, distance.get(current) + 1);
-            prev.set(y, current);
-            input.set(y, x);
-            queue.add(y);
-          }
+  /**
+   * Calculate new state output from previous O and metastates.
+   */
+  void calculateNewStateOutput(IntList oldO, List<IntSet> metastates) {
+    this.initO(metastates.size());
+    for (IntSet metastate : metastates) {
+      boolean flag = false;
+      for (int q : metastate) {
+        if (oldO.getInt(q) != 0) {
+          flag = true;
+          break;
         }
       }
+      this.addOutput(flag);
     }
-
-    // Reconstruct the path
-    List<Integer> path = new ArrayList<>();
-    int current = found ? endState : startState;
-    while (current != startState) {
-      path.add(input.get(current));
-      current = prev.get(current);
-    }
-    Collections.reverse(path);
-
-    // Convert the path to a string
-    StringBuilder result = new StringBuilder();
-    for (Integer node : path) {
-      result.append(r.decode(node));
-    }
-    return result.toString();
   }
 }

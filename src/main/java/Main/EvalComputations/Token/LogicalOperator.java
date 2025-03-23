@@ -24,6 +24,7 @@ import java.util.Stack;
 
 import Automata.AutomatonLogicalOps;
 import Automata.AutomatonQuantification;
+import Automata.FA.Infinite;
 import Main.WalnutException;
 import Main.EvalComputations.Expressions.Expression;
 import Automata.Automaton;
@@ -142,7 +143,7 @@ public class LogicalOperator extends Operator {
                 } else {
                     // op == I
                     M = AutomatonLogicalOps.removeLeadingZeroes(M, identifiersToQuantify, print, prefix + " ", log);
-                    String infReg = M.fa.infinite(M.richAlphabet);
+                    String infReg = Infinite.infinite(M.fa, M.richAlphabet);
                     M = new Automaton(!infReg.isEmpty());
                 }
             }
