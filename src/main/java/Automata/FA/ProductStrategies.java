@@ -200,7 +200,7 @@ public class ProductStrategies {
         Automaton AxB = new Automaton();
         int[] allInputsOfN = createBasicAutomaton(A, B, AxB);
         int combineOut = A.determineCombineOutVal(op);
-        printAndUpdateIndex(A.getQ(), B.getQ(), print, prefix, log);
+        printAndUpdateIndex(A.fa.getQ(), B.fa.getQ(), print, prefix, log);
         crossProductInternal(
             A.fa, B.fa, AxB.fa, combineOut, allInputsOfN, op, print, prefix, log, timeBefore);
         return AxB;
@@ -216,7 +216,7 @@ public class ProductStrategies {
         Automaton AxB = new Automaton();
         int[] allInputsOfN = createBasicAutomaton(A, B, AxB);
         int combineOut = A.determineCombineOutVal(op);
-        printAndUpdateIndex(A.getQ(), B.getQ(), print, prefix, log);
+        printAndUpdateIndex(A.fa.getQ(), B.fa.getQ(), print, prefix, log);
         crossProductInternalDFA(
                 A.fa, B.fa, AxB.fa, combineOut, allInputsOfN, op, print, prefix, log, timeBefore);
         AxB.fa.justMinimize(print, prefix, log);

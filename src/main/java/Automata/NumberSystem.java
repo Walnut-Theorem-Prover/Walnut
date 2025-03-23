@@ -186,7 +186,7 @@ public class NumberSystem {
     }
 
     public List<Integer> getAlphabet() {
-        return addition.getA().get(0);
+        return addition.richAlphabet.getA().get(0);
     }
 
     public Automaton getAllRepresentations() {
@@ -954,8 +954,8 @@ public class NumberSystem {
     private Automaton makeConstant(String regex, int constant) {
         List<Integer> alph = buildAlphabet(2);
         Automaton M = new Automaton(regex, alph, this);
-        M.setA(new ArrayList<>());
-        M.getA().add(new ArrayList<>(getAlphabet()));
+        M.richAlphabet.setA(new ArrayList<>());
+        M.richAlphabet.getA().add(new ArrayList<>(getAlphabet()));
         M.determineAlphabetSize();
         M.richAlphabet.setEncoder(new ArrayList<>());
         M.richAlphabet.getEncoder().add(1);

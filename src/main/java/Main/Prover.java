@@ -638,13 +638,13 @@ public class Prover {
     // with our sequence of number systems in order to access it. After the regex automaton is created, we set its alphabet to be the
     // one requested, instead of the unicode alphabet that dk.brics uses.
     Automaton M = new Automaton();
-    M.setA(alphabets);
+    M.richAlphabet.setA(alphabets);
     M.determineAlphabetSize();
 
     String baseExp = determineBaseExp(m.group(R_REGEXP), M.getA().size(), M.richAlphabet);
 
     Automaton R = new Automaton(baseExp, M.getAlphabetSize());
-    R.setA(M.getA());
+    R.richAlphabet.setA(M.richAlphabet.getA());
     R.determineAlphabetSize();
     R.setNS(NS);
 
@@ -861,7 +861,7 @@ public class Prover {
       throw new RuntimeException("Cannot split without inputs.");
     }
 
-    IntList outputs = new IntArrayList(M.getO());
+    IntList outputs = new IntArrayList(M.fa.getO());
     UtilityMethods.removeDuplicates(outputs);
     List<Automaton> subautomata = WordAutomaton.uncombine(M, outputs);
 
@@ -983,7 +983,7 @@ public class Prover {
 
       // If our automaton accepts finitely many inputs, it does not have a non-redundant cycle, and so the highest length input that could be
       // accepted is equal to the number of states in the automaton
-      if (!(infinite) && (searchLength >= M.getQ())) {
+      if (!(infinite) && (searchLength >= M.fa.getQ())) {
         break;
       }
     }

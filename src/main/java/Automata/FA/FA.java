@@ -95,8 +95,8 @@ public class FA implements Cloneable {
   }
 
   public void alphabetStates(RichAlphabet oldAlphabet, Automaton M) {
-      List<Int2ObjectRBTreeMap<IntList>> newD = new ArrayList<>(M.getQ());
-      for (int q = 0; q < M.getQ(); q++) {
+      List<Int2ObjectRBTreeMap<IntList>> newD = new ArrayList<>(M.fa.getQ());
+      for (int q = 0; q < M.fa.getQ(); q++) {
           Int2ObjectRBTreeMap<IntList> newMap = new Int2ObjectRBTreeMap<>();
           for (Int2ObjectMap.Entry<IntList> entry: getEntriesNfaD(q)) {
             List<Integer> decoded = oldAlphabet.decode(entry.getIntKey());

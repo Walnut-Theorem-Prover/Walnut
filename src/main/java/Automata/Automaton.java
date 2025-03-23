@@ -363,7 +363,7 @@ public class Automaton {
             }
 
             long timeAfter = System.currentTimeMillis();
-            UtilityMethods.logMessage(print, prefix + "computed =>:" + first.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
+            UtilityMethods.logMessage(print, prefix + "computed =>:" + first.fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
         }
         return first;
     }
@@ -414,7 +414,7 @@ public class Automaton {
 
     public Automaton star(boolean print, String prefix, StringBuilder log) {
         long timeBefore = System.currentTimeMillis();
-        UtilityMethods.logMessage(print, prefix + "star: " + getQ() + " state automaton", log);
+        UtilityMethods.logMessage(print, prefix + "star: " + fa.getQ() + " state automaton", log);
 
         Automaton N = clone();
         FA.starStates(this.fa, N.fa);
@@ -425,7 +425,7 @@ public class Automaton {
         N.applyAllRepresentations();
 
         long timeAfter = System.currentTimeMillis();
-        UtilityMethods.logMessage(print, prefix + "star complete: " + N.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
+        UtilityMethods.logMessage(print, prefix + "star complete: " + N.fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
 
         return N;
     }
@@ -441,14 +441,14 @@ public class Automaton {
             first = first.concat(N, print, prefix, log);
 
             long timeAfter = System.currentTimeMillis();
-            UtilityMethods.logMessage(print, prefix + "concatenated =>:" + first.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
+            UtilityMethods.logMessage(print, prefix + "concatenated =>:" + first.fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
         }
         return first;
     }
 
     private Automaton concat(Automaton other, boolean print, String prefix, StringBuilder log) {
         long timeBefore = System.currentTimeMillis();
-        UtilityMethods.logMessage(print, prefix + "concat: " + getQ() + " state automaton with " + other.getQ() + " state automaton", log);
+        UtilityMethods.logMessage(print, prefix + "concat: " + this.fa.getQ() + " state automaton with " + other.fa.getQ() + " state automaton", log);
 
         // ensure that N has the same number system as first.
         if (NumberSystem.isNSDiffering(other.getNS(), this.getNS(), this.getA(), other.getA())) {
@@ -457,7 +457,7 @@ public class Automaton {
 
         Automaton N = this.clone();
 
-        int originalQ = this.getQ();
+        int originalQ = this.fa.getQ();
 
         FA.concatStates(other.fa, N.fa, originalQ);
 
@@ -467,7 +467,7 @@ public class Automaton {
         N.applyAllRepresentations();
 
         long timeAfter = System.currentTimeMillis();
-        UtilityMethods.logMessage(print, prefix + "concat complete: " + N.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
+        UtilityMethods.logMessage(print, prefix + "concat complete: " + N.fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
 
         return N;
     }
@@ -494,7 +494,7 @@ public class Automaton {
         }
 
         Automaton M = clone();
-        M.setA(alphabet);
+        M.richAlphabet.setA(alphabet);
         M.setNS(numberSystems);
         M.determineAlphabetSize();
         M.richAlphabet.setupEncoder();
@@ -601,7 +601,7 @@ public class Automaton {
         while (!subautomata.isEmpty()) {
             Automaton next = subautomata.remove();
             long timeBefore = System.currentTimeMillis();
-            UtilityMethods.logMessage(print, prefix + "computing =>:" + first.getQ() + " states - " + next.getQ() + " states", log);
+            UtilityMethods.logMessage(print, prefix + "computing =>:" + first.fa.getQ() + " states - " + next.fa.getQ() + " states", log);
 
             // crossProduct requires both automata to be totalized, otherwise it has no idea which cartesian states to transition to
             first.fa.totalize(print, prefix + " ", log);
@@ -610,14 +610,14 @@ public class Automaton {
             first = WordAutomaton.minimizeWithOutput(first, print, prefix + " ", log);
 
             long timeAfter = System.currentTimeMillis();
-            UtilityMethods.logMessage(print, prefix + "computed =>:" + first.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
+            UtilityMethods.logMessage(print, prefix + "computed =>:" + first.fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
         }
         return first;
     }
 
     public List<String> findAccepted(int searchLength, int maxNeeded) {
         List<String> accepted = new ArrayList<>(maxNeeded);
-        findAcceptedHelper(accepted, maxNeeded, searchLength, 0, new StringBuilder(), getQ0());
+        findAcceptedHelper(accepted, maxNeeded, searchLength, 0, new StringBuilder(), this.fa.getQ0());
         return accepted;
     }
 
@@ -778,7 +778,7 @@ public class Automaton {
         }
 
         setLabel(sortedLabel);
-        setA(permutedA);
+        richAlphabet.setA(permutedA);
         richAlphabet.setEncoder(permutedEncoder);
         setNS(permute(getNS(), labelPermutation));
 
@@ -850,34 +850,6 @@ public class Automaton {
         return this.fa.toDkBricsAutomaton().isEmpty();
     }
 
-    public int getQ0() {
-        return fa.getQ0();
-    }
-
-    public void setQ0(int q0) {
-        this.fa.setQ0(q0);
-    }
-
-    public int getQ() {
-        return this.fa.getQ();
-    }
-
-    public void setQ(int q) {
-        this.fa.setQ(q);
-    }
-
-    public IntList getO() {
-        return this.fa.getO();
-    }
-
-    public List<Int2ObjectRBTreeMap<IntList>> getD() {
-        return this.fa.getNfaD();
-    }
-
-    public void setD(List<Int2ObjectRBTreeMap<IntList>> d) {
-        this.fa.setNfaD(d);
-    }
-
     public void setLabel(List<String> label) {
         this.label = label;
     }
@@ -923,10 +895,6 @@ public class Automaton {
      */
     public List<List<Integer>> getA() {
         return richAlphabet.getA();
-    }
-
-    public void setA(List<List<Integer>> a) {
-        richAlphabet.setA(a);
     }
 
     public FA getFa() {

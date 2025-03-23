@@ -110,7 +110,7 @@ public class RelationalOperator extends Operator {
             }
 
             Automaton M = new Automaton(true);
-            for (int o : word.wordAutomaton.getO()) {
+            for (int o : word.wordAutomaton.fa.getO()) {
                 Automaton N = word.wordAutomaton.clone();
                 WordAutomaton.compareWordAutomaton(N.fa, o, Ops.EQUAL, print, prefix + " ", log);
                 Automaton C;

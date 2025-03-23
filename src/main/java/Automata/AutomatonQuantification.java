@@ -61,7 +61,7 @@ public class AutomatonQuantification {
           }
       }
       long timeBefore = System.currentTimeMillis();
-      UtilityMethods.logMessage(print, prefix + "quantifying:" + A.getQ() + " states", log);
+      UtilityMethods.logMessage(print, prefix + "quantifying:" + A.fa.getQ() + " states", log);
 
       //If this is the case, then the quantified automaton is either the true or false automaton.
       //It is true if the language is not empty.
@@ -107,10 +107,10 @@ public class AutomatonQuantification {
               }
           }
       }
-      A.setD(newD);
+      A.fa.setNfaD(newD);
       A.fa.determinizeAndMinimize(print, prefix + " ", log);
       long timeAfter = System.currentTimeMillis();
-      UtilityMethods.logMessage(print, prefix + "quantified:" + A.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
+      UtilityMethods.logMessage(print, prefix + "quantified:" + A.fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
   }
 
   /**

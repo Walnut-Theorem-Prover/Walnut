@@ -142,17 +142,17 @@ public class Ostrowski {
         repr = initAutomaton(1);
 
         performReprBfs();
-        repr.setQ(this.totalNodes);
+        repr.fa.setQ(this.totalNodes);
         for (int q = 0; q < this.totalNodes; ++q) {
-            repr.getO().add(isReprFinal(q) ? 1 : 0);
+            repr.fa.getO().add(isReprFinal(q) ? 1 : 0);
             this.stateTransitions.putIfAbsent(q, new Int2ObjectRBTreeMap<>());
-            repr.getD().add(this.stateTransitions.get(q));
+            repr.fa.getNfaD().add(this.stateTransitions.get(q));
         }
 
         repr.fa.determinizeAndMinimize(false, "", null);
         repr.canonize();
 
-        handleZeroState(repr.getFa());
+        handleZeroState(repr.fa);
         return repr;
     }
 
@@ -176,11 +176,11 @@ public class Ostrowski {
         adder = initAutomaton(3);
 
         performAdderBfs();
-        adder.setQ(this.totalNodes);
+        adder.fa.setQ(this.totalNodes);
         for (int q = 0; q < this.totalNodes; q++) {
-            adder.getO().add(isAdderFinal(q) ? 1 : 0);
+            adder.fa.getO().add(isAdderFinal(q) ? 1 : 0);
             this.stateTransitions.putIfAbsent(q, new Int2ObjectRBTreeMap<>());
-            adder.getD().add(this.stateTransitions.get(q));
+            adder.fa.getNfaD().add(this.stateTransitions.get(q));
         }
 
         adder.fa.determinizeAndMinimize(false, "", null);
@@ -190,7 +190,7 @@ public class Ostrowski {
         // because the Automaton class does not support an epsilon transition for NFAs.
         adder.canonize();
 
-        handleZeroState(adder.getFa());
+        handleZeroState(adder.fa);
         return adder;
     }
 
@@ -212,7 +212,7 @@ public class Ostrowski {
         }
 
         Automaton automaton = new Automaton();
-        automaton.setA(A);
+        automaton.richAlphabet.setA(A);
         automaton.setNS(ns);
         automaton.determineAlphabetSize();
         return automaton;

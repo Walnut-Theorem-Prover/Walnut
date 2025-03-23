@@ -91,7 +91,7 @@ public class AutomatonWriter {
         int Q = automaton.getFa().getQ();
         int[][] M = new int[Q][Q];
         for (int p = 0; p < Q; ++p) {
-            Int2ObjectRBTreeMap<IntList> transitions_p = automaton.getD().get(p);
+            Int2ObjectRBTreeMap<IntList> transitions_p = automaton.fa.getNfaD().get(p);
             for (int v : encoded_values) {
                 if (transitions_p.containsKey(v)) {
                     List<Integer> dest = transitions_p.get(v);
@@ -161,7 +161,7 @@ public class AutomatonWriter {
         } else {
             automaton.canonize();
             writeAlphabet(automaton, out);
-            for (int q = 0; q < automaton.getQ(); q++) {
+            for (int q = 0; q < automaton.fa.getQ(); q++) {
                 writeState(automaton, out, q);
             }
         }
@@ -187,7 +187,7 @@ public class AutomatonWriter {
     private static void writeState(Automaton automaton, PrintWriter out, int q) {
         out.write(
                 System.lineSeparator() + q + " " +
-                        automaton.getO().getInt(q) + System.lineSeparator());
+                        automaton.fa.getO().getInt(q) + System.lineSeparator());
         for (Int2ObjectMap.Entry<IntList> entry : automaton.getFa().getEntriesNfaD(q)) {
             List<Integer> l = automaton.richAlphabet.decode(entry.getIntKey());
             for (int j = 0; j < l.size(); j++)
@@ -229,10 +229,10 @@ public class AutomatonWriter {
                 out.println("digraph G {");
                 out.println("label = \"" + UtilityMethods.toTuple(automaton.getLabel()) + ": " + predicate + "\";");
                 out.println("rankdir = LR;");
-                int Q = automaton.getFa().getQ();
+                int Q = automaton.fa.getQ();
                 for (int q = 0; q < Q; q++) {
                     if (isDFAO)
-                        out.println("node [shape = circle, label=\"" + q + "/" + automaton.getO().getInt(q) + "\", fontsize=12]" + q + ";");
+                        out.println("node [shape = circle, label=\"" + q + "/" + automaton.fa.getO().getInt(q) + "\", fontsize=12]" + q + ";");
                     else if (automaton.getFa().isAccepting(q))
                         out.println("node [shape = doublecircle, label=\"" + q + "\", fontsize=12]" + q + ";");
                     else
@@ -240,13 +240,13 @@ public class AutomatonWriter {
                 }
 
                 out.println("node [shape = point ]; qi");
-                out.println("qi -> " + automaton.getQ0() + ";");
+                out.println("qi -> " + automaton.fa.getQ0() + ";");
 
                 TreeMap<Integer, TreeMap<Integer, List<String>>> transitions =
                     new TreeMap<>();
                 for (int q = 0; q < Q; q++) {
                     transitions.put(q, new TreeMap<>());
-                    for (Int2ObjectMap.Entry<IntList> entry : automaton.getFa().getEntriesNfaD(q)) {
+                    for (Int2ObjectMap.Entry<IntList> entry : automaton.fa.getEntriesNfaD(q)) {
                         for (int dest : entry.getValue()) {
                             transitions.get(q).putIfAbsent(dest, new ArrayList<>());
                             transitions.get(q).get(dest).add(

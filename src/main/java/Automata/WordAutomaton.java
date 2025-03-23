@@ -43,7 +43,7 @@ public class WordAutomaton {
       }
 
       long timeBefore = System.currentTimeMillis();
-      UtilityMethods.logMessage(print, prefix + "reversing: " + A.getQ() + " states", log);
+      UtilityMethods.logMessage(print, prefix + "reversing: " + A.fa.getQ() + " states", log);
 
       boolean addedDeadState = A.fa.addDistinguishedDeadState(print, prefix, log);
 
@@ -80,13 +80,13 @@ public class WordAutomaton {
 
           newD.add(new Int2ObjectRBTreeMap<>());
 
-          if (A.getD().get(A.fa.getQ0()).keySet().size() != A.getAlphabetSize()) {
+          if (A.fa.getNfaD().get(A.fa.getQ0()).keySet().size() != A.getAlphabetSize()) {
               throw new RuntimeException("Automaton should be deterministic!");
           }
-          for (int l : A.getD().get(A.fa.getQ0()).keySet()) {
+          for (int l : A.fa.getNfaD().get(A.fa.getQ0()).keySet()) {
               Map<Integer, Integer> toState = new HashMap<>();
 
-              for (int i = 0; i < A.getQ(); i++) {
+              for (int i = 0; i < A.fa.getQ(); i++) {
                   toState.put(i, currState.get(A.fa.getNfaD().get(i).get(l).getInt(0)));
               }
 
@@ -169,15 +169,15 @@ public class WordAutomaton {
   public static void applyWordArithOperator(Automaton B, int o, ArithmeticOperator.Ops op, boolean reverse, boolean print, String prefix, StringBuilder log) {
       String opStr = op.getSymbol();
       long timeBefore = System.currentTimeMillis();
-      UtilityMethods.logMessage(print, prefix + "applying operator (" + opStr + "):" + B.getQ() + " states", log);
-      for (int p = 0; p < B.getQ(); p++) {
-          IntList thisO = B.getO();
+      UtilityMethods.logMessage(print, prefix + "applying operator (" + opStr + "):" + B.fa.getQ() + " states", log);
+      for (int p = 0; p < B.fa.getQ(); p++) {
+          IntList thisO = B.fa.getO();
           int thisP = thisO.getInt(p);
           thisO.set(p,
               reverse ? ArithmeticOperator.arith(op, thisP, o) : ArithmeticOperator.arith(op, o, thisP));
       }
       minimizeSelfWithOutput(B, print, prefix + " ", log);
       long timeAfter = System.currentTimeMillis();
-      UtilityMethods.logMessage(print, prefix + "applied operator (" + opStr + "):" + B.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
+      UtilityMethods.logMessage(print, prefix + "applied operator (" + opStr + "):" + B.fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
   }
 }

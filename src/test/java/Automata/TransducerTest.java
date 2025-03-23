@@ -13,7 +13,7 @@ class TransducerTest {
         StringBuilder log = new StringBuilder();
 
         Automaton M =  new Automaton(Session.getReadFileForWordsLibrary("T.txt"));
-        Assertions.assertEquals(2, M.getQ());
+        Assertions.assertEquals(2, M.fa.getQ());
         Assertions.assertEquals(
                 "[{0=>[0], 1=>[1]}, {0=>[1], 1=>[0]}]",
                 M.getFa().getNfaD().toString());

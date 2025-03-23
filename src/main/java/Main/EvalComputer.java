@@ -78,7 +78,7 @@ public class EvalComputer {
                 Expression nextExpression = expressions.peek();
                 if (t.isOperator() && nextExpression instanceof AutomatonExpression) {
                     step = prefix + nextExpression + ":" +
-                        nextExpression.M.getQ() + " states - " + (timeAfter - timeBefore) + "ms";
+                        nextExpression.M.fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms";
                     log.append(step).append(System.lineSeparator());
                     logDetails.append(step).append(System.lineSeparator());
                     if (printStepsOrDetails) {
