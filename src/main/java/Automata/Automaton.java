@@ -389,46 +389,6 @@ public class Automaton {
         this.applyAllRepresentationsWithOutput(print, prefix, log);
     }
 
-    /**
-     * @param outputs A list of integers, indicating which uncombined automata and in what order to return.
-     * @return A list of automata, each corresponding to the list of outputs.
-     * For the sake of an example, suppose that outputs is [0,1,2], then we return the list of automaton without output
-     * which accepts if the output in our automaton is 0,1 or 2 respectively.
-     */
-    public List<Automaton> uncombine(List<Integer> outputs) {
-        List<Automaton> automata = new ArrayList<>(outputs.size());
-        for (Integer output : outputs) {
-            Automaton M = clone();
-            M.fa.setOutput(output);
-            automata.add(M);
-        }
-        return automata;
-    }
-
-    /**
-     * @return A minimized DFA with output recognizing the same language as the current DFA (possibly also with output).
-     * We minimize a DFA with output by first uncombining into automata without output, minimizing the uncombined automata, and
-     * then recombining. It follows that if the uncombined automata are minimal, then the combined automata is also minimal
-     */
-    public Automaton minimizeWithOutput(boolean print, String prefix, StringBuilder log) {
-        IntList outputs = new IntArrayList(getO());
-        UtilityMethods.removeDuplicates(outputs);
-        List<Automaton> subautomata = uncombine(outputs);
-        for (Automaton subautomaton : subautomata) {
-            subautomaton.fa.determinizeAndMinimize(print, prefix, log);
-        }
-        Automaton N = subautomata.remove(0);
-        List<String> label = new ArrayList<>(N.getLabel()); // We keep the old labels, since they are replaced in the combine
-        N = AutomatonLogicalOps.combine(N, new LinkedList<>(subautomata), outputs, print, prefix, log);
-        N.setLabel(label);
-        return N;
-    }
-
-    public void minimizeSelfWithOutput(boolean print, String prefix, StringBuilder log) {
-        Automaton N = minimizeWithOutput(print, prefix, log);
-        copy(N);
-    }
-
     private void normalizeNumberSystems(boolean print, String prefix, StringBuilder log) {
         // set all the number systems to be null.
         boolean switchNS = false;
@@ -542,7 +502,7 @@ public class Automaton {
         this.getFa().alphabetStates(this.richAlphabet, M);
 
         if (isDFAO) {
-            M.minimizeSelfWithOutput(print, prefix, log);
+            WordAutomaton.minimizeSelfWithOutput(M, print, prefix, log);
         } else {
             M.fa.determinizeAndMinimize(print, prefix, log);
         }
@@ -623,7 +583,7 @@ public class Automaton {
                 quantifiers.add(c);
             }
         }
-        AutomatonLogicalOps.quantify(M, quantifiers, print, prefix, log);
+        AutomatonQuantification.quantify(M, quantifiers, print, prefix, log);
         M.sortLabel();
         M.randomLabel();
         return M;
@@ -647,7 +607,7 @@ public class Automaton {
             first.fa.totalize(print, prefix + " ", log);
             next.fa.totalize(print, prefix + " ", log);
             first = ProductStrategies.crossProduct(first, next, "first", print, prefix + " ", log);
-            first = first.minimizeWithOutput(print, prefix + " ", log);
+            first = WordAutomaton.minimizeWithOutput(first, print, prefix + " ", log);
 
             long timeAfter = System.currentTimeMillis();
             UtilityMethods.logMessage(print, prefix + "computed =>:" + first.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
@@ -756,7 +716,7 @@ public class Automaton {
         labelSorted = false;
     }
 
-    private void copy(Automaton M) {
+    void copy(Automaton M) {
         fa.setTRUE_FALSE_AUTOMATON(M.fa.isTRUE_FALSE_AUTOMATON());
         fa.setTRUE_AUTOMATON(M.fa.isTRUE_AUTOMATON());
         fa = M.fa.clone();
@@ -764,27 +724,6 @@ public class Automaton {
         setNS(M.getNS());
         setLabel(M.getLabel());
         labelSorted = M.labelSorted;
-    }
-
-    /**
-     * The operator can be one of "+" "-" "/" "*".
-     * For example if operator = "+" then this method returns
-     * a DFAO that outputs o+this[x] (or this[x]+p) on input x.
-     * To be used only when this automaton and M are DFAOs (words).
-     */
-    public void applyWordArithOperator(int o, ArithmeticOperator.Ops op, boolean reverse, boolean print, String prefix, StringBuilder log) {
-        String opStr = op.getSymbol();
-        long timeBefore = System.currentTimeMillis();
-        UtilityMethods.logMessage(print, prefix + "applying operator (" + opStr + "):" + getQ() + " states", log);
-        for (int p = 0; p < getQ(); p++) {
-            IntList thisO = this.getO();
-            int thisP = thisO.getInt(p);
-            thisO.set(p,
-                reverse ? ArithmeticOperator.arith(op, thisP, o) : ArithmeticOperator.arith(op, o, thisP));
-        }
-        minimizeSelfWithOutput(print, prefix + " ", log);
-        long timeAfter = System.currentTimeMillis();
-        UtilityMethods.logMessage(print, prefix + "applied operator (" + opStr + "):" + getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
     }
 
 

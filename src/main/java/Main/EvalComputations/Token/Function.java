@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Stack;
 
 import Automata.AutomatonLogicalOps;
+import Automata.AutomatonQuantification;
 import Main.EvalComputations.Expressions.Expression;
 import Main.EvalComputations.Expressions.ArithmeticExpression;
 import Main.EvalComputations.Expressions.AutomatonExpression;
@@ -83,7 +84,7 @@ public class Function extends Token {
         }
         A.bind(identifiers);
         A = AutomatonLogicalOps.and(A, M, print, prefix + " ", log);
-        AutomatonLogicalOps.quantify(A, quantify, print, prefix + " ", log);
+        AutomatonQuantification.quantify(A, quantify, print, prefix + " ", log);
 
         S.push(new AutomatonExpression(stringValue, A));
         UtilityMethods.logAndPrint(print, prefix + "computed " + stringValue, log);

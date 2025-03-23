@@ -23,12 +23,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Stack;
 
-import Automata.AutomatonLogicalOps;
+import Automata.*;
 import Main.EvalComputations.Expressions.*;
 import Main.ExceptionHelper;
 import Main.EvalComputations.Expressions.Expression;
-import Automata.Automaton;
-import Automata.NumberSystem;
 import Main.UtilityMethods;
 
 
@@ -104,7 +102,7 @@ public class ArithmeticOperator extends Operator {
             return;
         }
         if (b instanceof WordExpression) {
-            b.wordAutomaton.applyWordArithOperator(0, Ops.MINUS, false, print, prefix, log);
+            WordAutomaton.applyWordArithOperator(b.wordAutomaton, 0, Ops.MINUS, false, print, prefix, log);
             S.push(b);
             return;
         }
@@ -131,12 +129,12 @@ public class ArithmeticOperator extends Operator {
             return;
         }
         if (a instanceof WordExpression && (b instanceof AlphabetLetterExpression || b instanceof NumberLiteralExpression)) {
-            a.wordAutomaton.applyWordArithOperator(b.constant, opp, true, print, prefix, log);
+            WordAutomaton.applyWordArithOperator(a.wordAutomaton, b.constant, opp, true, print, prefix, log);
             S.push(a);
             return;
         }
         if ((a instanceof AlphabetLetterExpression || a instanceof NumberLiteralExpression) && b instanceof WordExpression) {
-            b.wordAutomaton.applyWordArithOperator(a.constant, opp, false, print, prefix, log);
+            WordAutomaton.applyWordArithOperator(b.wordAutomaton, a.constant, opp, false, print, prefix, log);
             S.push(b);
             return;
         }
@@ -171,7 +169,7 @@ public class ArithmeticOperator extends Operator {
             M = new Automaton(true);
             for (int o : word.wordAutomaton.getO()) {
                 Automaton N = word.wordAutomaton.clone();
-                AutomatonLogicalOps.compareWordAutomaton(N.fa, o, RelationalOperator.Ops.EQUAL, print, prefix + " ", log);
+                WordAutomaton.compareWordAutomaton(N.fa, o, RelationalOperator.Ops.EQUAL, print, prefix + " ", log);
                 Automaton C;
                 if (o == 0 && opp.equals(Ops.MULT)) {
                     C = ns.get(0);
@@ -185,7 +183,7 @@ public class ArithmeticOperator extends Operator {
                 M = AutomatonLogicalOps.and(M, N, print, prefix + " ", log);
             }
             M = AutomatonLogicalOps.and(M, word.M, print, prefix + " ", log);
-            AutomatonLogicalOps.quantify(M, word.identifiersToQuantify, print, prefix + " ", log);
+            AutomatonQuantification.quantify(M, word.identifiersToQuantify, print, prefix + " ", log);
             M = andAndQuantifyArithmeticExpression(print, prefix, log, arithmetic, M);
         } else {
             if (a instanceof NumberLiteralExpression) {
@@ -215,7 +213,7 @@ public class ArithmeticOperator extends Operator {
                                                                 Expression a, Automaton M) {
         if (a instanceof ArithmeticExpression) {
             M = AutomatonLogicalOps.and(M, a.M, print, prefix + " ", log);
-            AutomatonLogicalOps.quantify(M, a.identifier, print, prefix + " ", log);
+            AutomatonQuantification.quantify(M, a.identifier, print, prefix + " ", log);
         }
         return M;
     }

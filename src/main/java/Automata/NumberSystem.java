@@ -643,7 +643,7 @@ public class NumberSystem {
             M = comparison(a, B, comparisonOperator);
         }
         M = AutomatonLogicalOps.and(M, N, false, null, null);
-        AutomatonLogicalOps.quantify(M, B, false, null, null);
+        AutomatonQuantification.quantify(M, B, false, null, null);
         return M;
     }
 
@@ -732,7 +732,7 @@ public class NumberSystem {
             M = arithmetic(a, B, c, arithmeticOperator);
         }
         M = AutomatonLogicalOps.and(M, N, false, null, null);
-        AutomatonLogicalOps.quantify(M, B, false, null, null);
+        AutomatonQuantification.quantify(M, B, false, null, null);
         return M;
     }
 
@@ -775,7 +775,7 @@ public class NumberSystem {
             M = arithmetic(A, b, c, arithmeticOperator);
         }
         M = AutomatonLogicalOps.and(M, N, false, null, null);
-        AutomatonLogicalOps.quantify(M, A, false, null, null);
+        AutomatonQuantification.quantify(M, A, false, null, null);
         return M;
     }
 
@@ -814,7 +814,7 @@ public class NumberSystem {
             M = arithmetic(a, b, C, arithmeticOperator);
         }
         M = AutomatonLogicalOps.and(M, N, false, null, null);
-        AutomatonLogicalOps.quantify(M, C, false, null, null);
+        AutomatonQuantification.quantify(M, C, false, null, null);
         return M;
     }
 
@@ -840,7 +840,7 @@ public class NumberSystem {
             // Eb, a + b = 0 & b = -n
             P = arithmetic(a, b, 0, ArithmeticOperator.Ops.PLUS);
             P = AutomatonLogicalOps.and(P, M, false, null, null);
-            AutomatonLogicalOps.quantify(P, b, false, null, null);
+            AutomatonQuantification.quantify(P, b, false, null, null);
         } else { // n > 0
             // a = floor(n/2)
             Automaton M = get(n / 2);
@@ -852,7 +852,7 @@ public class NumberSystem {
             P = arithmetic(a, b, c, ArithmeticOperator.Ops.PLUS);
             P = AutomatonLogicalOps.and(P, M, false, null, null);
             P = AutomatonLogicalOps.and(P, N, false, null, null);
-            AutomatonLogicalOps.quantify(P, Set.of(a, b), false, null, null);
+            AutomatonQuantification.quantify(P, Set.of(a, b), false, null, null);
         }
         constantsDynamicTable.put(n, P);
         return P;
@@ -880,7 +880,7 @@ public class NumberSystem {
             // Ec b + c = 0 & c = (-n)*a
             P = arithmetic(b, c, 0, ArithmeticOperator.Ops.PLUS);
             P = AutomatonLogicalOps.and(P, M, false, null, null);
-            AutomatonLogicalOps.quantify(P, c, false, null, null);
+            AutomatonQuantification.quantify(P, c, false, null, null);
             P.sortLabel();
         } else if (n == 2) {
             P = arithmetic(a, a, d, ArithmeticOperator.Ops.PLUS);
@@ -896,13 +896,13 @@ public class NumberSystem {
             if (n % 2 == 0) { // suppose n = 2k
                 D.bind(List.of(b, d));
                 P = AutomatonLogicalOps.and(M, D, false, null, null);
-                AutomatonLogicalOps.quantify(P, b, false, null, null);
+                AutomatonQuantification.quantify(P, b, false, null, null);
             } else { // n = 2k+1
                 D.bind(List.of(b, c));
                 P = arithmetic(c, a, d, ArithmeticOperator.Ops.PLUS);
                 P = AutomatonLogicalOps.and(P, M, false, null, null);
                 P = AutomatonLogicalOps.and(P, D, false, null, null);
-                AutomatonLogicalOps.quantify(P, Set.of(b, c), false, null, null);
+                AutomatonQuantification.quantify(P, Set.of(b, c), false, null, null);
             }
 
             P.sortLabel();
@@ -937,7 +937,7 @@ public class NumberSystem {
         Automaton P = AutomatonLogicalOps.and(P1, P2, false, null, null);
         Automaton R = AutomatonLogicalOps.and(M, N, false, null, null);
         R = AutomatonLogicalOps.and(R, P, false, null, null);
-        AutomatonLogicalOps.quantify(R, Set.of(q, r), false, null, null);
+        AutomatonQuantification.quantify(R, Set.of(q, r), false, null, null);
         R.sortLabel();
         divisionsDynamicTable.put(n, R);
         return R;

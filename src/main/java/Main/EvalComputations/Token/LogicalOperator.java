@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Stack;
 
 import Automata.AutomatonLogicalOps;
+import Automata.AutomatonQuantification;
 import Main.ExceptionHelper;
 import Main.EvalComputations.Expressions.Expression;
 import Automata.Automaton;
@@ -132,11 +133,11 @@ public class LogicalOperator extends Operator {
                     throw new RuntimeException("the last operand of " + op + " can only be of type automaton");
                 M = operand.M;
                 if (op.equals(Operator.EXISTS)) {
-                    AutomatonLogicalOps.quantify(M, identifiersToQuantify, print, prefix + " ", log);
+                    AutomatonQuantification.quantify(M, identifiersToQuantify, print, prefix + " ", log);
                 } else if (op.equals(Operator.FORALL)) {
                     // A == ~ E ~
                     AutomatonLogicalOps.not(M, print, prefix + " ", log);
-                    AutomatonLogicalOps.quantify(M, identifiersToQuantify, print, prefix + " ", log);
+                    AutomatonQuantification.quantify(M, identifiersToQuantify, print, prefix + " ", log);
                     AutomatonLogicalOps.not(M, print, prefix + " ", log);
                 } else {
                     // op == I

@@ -365,7 +365,7 @@ public class Transducer extends Automaton {
         N.setQ(states.size());
         N.setAlphabetSize(M.getAlphabetSize());
 
-        N.minimizeSelfWithOutput(print, prefix + " ", log);
+        WordAutomaton.minimizeSelfWithOutput(N, print, prefix + " ", log);
 
         long timeAfter = System.currentTimeMillis();
         UtilityMethods.logMessage(print, prefix + "transduced: " + N.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
@@ -425,7 +425,7 @@ public class Transducer extends Automaton {
         if (!M.getNS().get(0).isMsd()) {
             UtilityMethods.logMessage(print, prefix + "Automaton number system is lsd, reversing", log);
             toLsd = true;
-            AutomatonLogicalOps.reverseWithOutput(M, true, print, prefix+" ", log);
+            WordAutomaton.reverseWithOutput(M, true, print, prefix+" ", log);
         }
 
         // verify that the automaton is indeed nondeterministic, i.e. it has undefined transitions. If it is not, transduce normally.
@@ -457,7 +457,7 @@ public class Transducer extends Automaton {
         }
 
         if (toLsd) {
-            AutomatonLogicalOps.reverseWithOutput(N, true, print, prefix+" ", log);
+            WordAutomaton.reverseWithOutput(N, true, print, prefix+" ", log);
         }
 
         return N;

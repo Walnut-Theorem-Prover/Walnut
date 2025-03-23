@@ -17,11 +17,9 @@
  */
 package Automata;
 
-import Automata.FA.FA;
 import Automata.FA.ProductStrategies;
 import Main.EvalComputations.Token.LogicalOperator;
 import Main.EvalComputations.Token.Operator;
-import Main.EvalComputations.Token.RelationalOperator;
 import Main.Prover;
 import Main.UtilityMethods;
 import it.unimi.dsi.fastutil.ints.*;
@@ -160,7 +158,7 @@ public class AutomatonLogicalOps {
 
         A.fa.totalize(print, prefix + " ", log);
         for (int q = 0; q < A.getQ(); q++)
-            A.getO().set(q, A.getFa().isAccepting(q) ? 0 : 1);
+            A.getO().set(q, A.fa.isAccepting(q) ? 0 : 1);
 
         A.fa.determinizeAndMinimize(print, prefix + " ", log);
         A.applyAllRepresentations();
@@ -196,7 +194,7 @@ public class AutomatonLogicalOps {
 
         for (int q = 0; q < otherClone.getQ(); q++) {
             Int2ObjectRBTreeMap<IntList> newMap = new Int2ObjectRBTreeMap<>();
-            for (Int2ObjectMap.Entry<IntList> entry : otherClone.getFa().getEntriesNfaD(q)) {
+            for (Int2ObjectMap.Entry<IntList> entry : otherClone.fa.getEntriesNfaD(q)) {
                 newMap.put(A.richAlphabet.encode(otherClone.richAlphabet.decode(entry.getIntKey())), entry.getValue());
             }
             newOtherD.add(newMap);
@@ -381,7 +379,7 @@ public class AutomatonLogicalOps {
         }
 
         Automaton M = new Automaton();
-        M.getFa().initBasicFA(IntList.of(1,1));
+        M.fa.initBasicFA(IntList.of(1,1));
         M.setNS(A.getNS());
         M.setA(A.getA());
         M.setLabel(A.getLabel());
@@ -432,12 +430,12 @@ public class AutomatonLogicalOps {
     private static void reduceDimension(Automaton A, List<Integer> I) {
         List<Integer> map = A.richAlphabet.determineReducedDimensionMap(A.getAlphabetSize(), I);
 
-        int Q = A.getFa().getQ();
+        int Q = A.fa.getQ();
         List<Int2ObjectRBTreeMap<IntList>> newD = new ArrayList<>(Q);
         for (int q = 0; q < Q; q++) {
             Int2ObjectRBTreeMap<IntList> currentStatesTransition = new Int2ObjectRBTreeMap<>();
             newD.add(currentStatesTransition);
-            for (Int2ObjectMap.Entry<IntList> entry : A.getFa().getEntriesNfaD(q)) {
+            for (Int2ObjectMap.Entry<IntList> entry : A.fa.getEntriesNfaD(q)) {
                 int m = map.get(entry.getIntKey());
                 if (m != -1) {
                     currentStatesTransition.computeIfAbsent(m, key -> new IntArrayList()).addAll(entry.getValue());
@@ -466,119 +464,10 @@ public class AutomatonLogicalOps {
         long timeBefore = System.currentTimeMillis();
         UtilityMethods.logMessage(print, prefix + "applying operator (" + operator + "):" + A.getQ() + " states - " + B.getQ() + " states", log);
         Automaton N = ProductStrategies.crossProduct(A, B, operator, print, prefix + " ", log);
-        N.minimizeWithOutput(print, prefix + " ", log);
+        WordAutomaton.minimizeWithOutput(N, print, prefix + " ", log);
         long timeAfter = System.currentTimeMillis();
         UtilityMethods.logMessage(print, prefix + "applied operator (" + operator + "):" + A.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
         return N;
-    }
-
-    public static void quantify(Automaton A, String labelToQuantify, boolean print, String prefix, StringBuilder log) {
-        quantify(A, Set.of(labelToQuantify), print, prefix, log);
-    }
-    public static void quantify(Automaton A, List<String> labelsToQuantify, boolean print, String prefix, StringBuilder log) {
-        quantify(A, new HashSet<>(labelsToQuantify), print, prefix, log);
-    }
-
-        /**
-         * This method computes the existential quantification of this A.
-         * Takes a list of labels and performs the existential quantifier over
-         * the inputs with labels in listOfLabelsToQuantify. It simply eliminates inputs in listOfLabelsToQuantify.
-         * After the quantification is done, we address the issue of
-         * leadingZeros or trailingZeros (depending on the value of leadingZeros), if all of the inputs
-         * of the resulting A are of type arithmetic.
-         * This is why we mandate that an input of type arithmetic must have 0 in its alphabet, also that
-         * every number system must use 0 to denote its additive identity.
-         *
-         * @param labelsToQuantify must contain at least one element, and must be a subset of this.label.
-         */
-    public static void quantify(Automaton A, Set<String> labelsToQuantify, boolean print, String prefix, StringBuilder log) {
-        quantifyHelper(A, labelsToQuantify, print, prefix, log);
-        if (A.fa.isTRUE_FALSE_AUTOMATON()) return;
-
-        Boolean isMsd = NumberSystem.determineMsd(A.getNS());
-        if (isMsd == null) return;
-        if (isMsd)
-            fixLeadingZerosProblem(A, print, prefix, log);
-        else
-            fixTrailingZerosProblem(A, print, prefix, log);
-    }
-
-    /**
-     * This method is very similar to public void quantify(Set<String> listOfLabelsToQuantify,boolean leadingZeros)
-     * with the exception that, this method does not deal with leading/trailing zeros problem.
-     */
-    private static void quantifyHelper(
-        Automaton A, Set<String> labelsToQuantify, boolean print, String prefix, StringBuilder log) {
-        if (labelsToQuantify.isEmpty() || A.getLabel() == null) {
-            return;
-        }
-
-        for (String s : labelsToQuantify) {
-            if (!A.getLabel().contains(s)) {
-                throw new RuntimeException(
-                        "Variable " + s + " in the list of quantified variables is not a free variable.");
-            }
-        }
-        long timeBefore = System.currentTimeMillis();
-        UtilityMethods.logMessage(print, prefix + "quantifying:" + A.getQ() + " states", log);
-
-        //If this is the case, then the quantified automaton is either the true or false automaton.
-        //It is true if the language is not empty.
-        if (labelsToQuantify.size() == A.getA().size()) {
-            A.fa.setTRUE_AUTOMATON(!A.isEmpty());
-            A.fa.setTRUE_FALSE_AUTOMATON(true);
-            A.clear();
-            return;
-        }
-
-        List<Integer> listOfInputsToQuantify = new ArrayList<>(labelsToQuantify.size());
-        //extract the list of indices of inputs we would like to quantify
-        for (String l : labelsToQuantify)
-            listOfInputsToQuantify.add(A.getLabel().indexOf(l));
-        List<List<Integer>> allInputs = new ArrayList<>(A.getAlphabetSize());
-        for (int i = 0; i < A.getAlphabetSize(); i++)
-            allInputs.add(A.richAlphabet.decode(i));
-        //now we remove those indices in listOfInputsToQuantify from A,T,label, and allInputs
-        UtilityMethods.removeIndices(A.richAlphabet.getA(), listOfInputsToQuantify);
-        A.richAlphabet.setEncoder(null);
-        A.determineAlphabetSize();
-        UtilityMethods.removeIndices(A.getNS(), listOfInputsToQuantify);
-        UtilityMethods.removeIndices(A.getLabel(), listOfInputsToQuantify);
-        for (List<Integer> i : allInputs)
-            UtilityMethods.removeIndices(i, listOfInputsToQuantify);
-        //example: permutation[1] = 7 means that encoded old input 1 becomes encoded new input 7
-        List<Integer> permutation = new ArrayList<>(allInputs.size());
-        for (List<Integer> i : allInputs)
-            permutation.add(A.richAlphabet.encode(i));
-
-        int Q = A.getFa().getQ();
-        List<Int2ObjectRBTreeMap<IntList>> newD = new ArrayList<>(Q);
-        for (int q = 0; q < Q; q++) {
-            Int2ObjectRBTreeMap<IntList> newMemDTransitionFunction = new Int2ObjectRBTreeMap<>();
-            newD.add(newMemDTransitionFunction);
-            for (Int2ObjectMap.Entry<IntList> transition : A.getFa().getEntriesNfaD(q)) {
-                int mappedKey = permutation.get(transition.getIntKey());
-                IntList existingTransitions = newMemDTransitionFunction.get(mappedKey);
-                if (existingTransitions != null) {
-                    addAllWithoutRepetition(existingTransitions, transition.getValue());
-                } else {
-                    newMemDTransitionFunction.put(mappedKey, new IntArrayList(transition.getValue()));
-                }
-            }
-        }
-        A.setD(newD);
-        A.fa.determinizeAndMinimize(print, prefix + " ", log);
-        long timeAfter = System.currentTimeMillis();
-        UtilityMethods.logMessage(print, prefix + "quantified:" + A.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
-    }
-
-    /**
-     * add elements of R that do not exist in L to L.
-     * Also: keep order of previous elements of L and new elements (w.r.t. R).
-     */
-    private static <T> void addAllWithoutRepetition(List<T> L, List<T> R) {
-        if (R == null || R.isEmpty()) return;
-        R.stream().filter(x -> !L.contains(x)).forEach(L::add);
     }
 
     /**
@@ -605,91 +494,6 @@ public class AutomatonLogicalOps {
         UtilityMethods.logMessage(print, prefix + "reversed:" + A.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
     }
 
-    /**
-     * Reverse a DFAO. Use Theorem 4.3.3 from Allouche & Shallit.
-     */
-    public static void reverseWithOutput(Automaton A, boolean reverseMsd, boolean print, String prefix, StringBuilder log) {
-        if (A.fa.isTRUE_FALSE_AUTOMATON()) {
-            return;
-        }
-
-        long timeBefore = System.currentTimeMillis();
-        UtilityMethods.logMessage(print, prefix + "reversing: " + A.getQ() + " states", log);
-
-        boolean addedDeadState = A.fa.addDistinguishedDeadState(print, prefix, log);
-
-        int minOutput = 0;
-        if (addedDeadState) {
-            // get state with smallest output. all states with this output will be removed.
-            // after transducing, all states with this minimum output will be removed.
-            minOutput = A.fa.determineMinOutput();
-        }
-
-        // need to define states, an initial state, transitions, and outputs.
-        Map<Integer, Integer> newInitState = new HashMap<>();
-        for (int i = 0; i < A.getQ(); i++) {
-            newInitState.put(i, A.getO().getInt(i));
-        }
-
-        IntList newO = new IntArrayList();
-        List<Int2ObjectRBTreeMap<IntList>> newD = new ArrayList<>();
-
-        List<Map<Integer, Integer>> newStates = new ArrayList<>();
-        newStates.add(newInitState);
-
-        Map<Map<Integer, Integer>, Integer> newStatesHash = new HashMap<>();
-        newStatesHash.put(newInitState, newStates.size() - 1);
-
-        Queue<Map<Integer, Integer>> newStatesQueue = new LinkedList<>();
-        newStatesQueue.add(newInitState);
-
-        while (!newStatesQueue.isEmpty()) {
-            Map<Integer, Integer> currState = newStatesQueue.remove();
-
-            // set up the output of this state to be g(q0), where g = currState.
-            newO.add((int) currState.get(A.getQ0()));
-
-            newD.add(new Int2ObjectRBTreeMap<>());
-
-            if (A.getD().get(A.getQ0()).keySet().size() != A.getAlphabetSize()) {
-                throw new RuntimeException("Automaton should be deterministic!");
-            }
-            for (int l : A.getD().get(A.getQ0()).keySet()) {
-                Map<Integer, Integer> toState = new HashMap<>();
-
-                for (int i = 0; i < A.getQ(); i++) {
-                    toState.put(i, currState.get(A.getD().get(i).get(l).getInt(0)));
-                }
-
-                if (!newStatesHash.containsKey(toState)) {
-                    newStates.add(toState);
-                    newStatesQueue.add(toState);
-                    newStatesHash.put(toState, newStates.size() - 1);
-                }
-
-                // set up the transition.
-                IntList newList = new IntArrayList();
-                newList.add((int) newStatesHash.get(toState));
-                newD.get(newD.size() - 1).put(l, newList);
-            }
-        }
-
-        A.fa.setFields(newStates.size(), newO, newD);
-
-        if (reverseMsd) {
-            NumberSystem.flipNS(A.getNS());
-        }
-
-        A.minimizeSelfWithOutput(print, prefix + " ", log);
-
-        if (addedDeadState) {
-            removeStatesWithMinOutput(A, minOutput);
-        }
-
-        long timeAfter = System.currentTimeMillis();
-        UtilityMethods.logMessage(print, prefix + "reversed: " + A.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
-    }
-
     static void removeStatesWithMinOutput(Automaton N, int minOutput) {
         // remove all states that have an output of minOutput
         Set<Integer> statesToRemove = new HashSet<>();
@@ -699,7 +503,7 @@ public class AutomatonLogicalOps {
             }
         }
         for (int q = 0; q < N.getQ(); q++) {
-          N.getFa().getEntriesNfaD(q).removeIf(entry -> statesToRemove.contains(entry.getValue().getInt(0)));
+          N.fa.getEntriesNfaD(q).removeIf(entry -> statesToRemove.contains(entry.getValue().getInt(0)));
         }
         N.fa.setCanonized(false);
         N.canonize();
@@ -724,7 +528,7 @@ public class AutomatonLogicalOps {
                 throw new RuntimeException("New and old number systems are identical: " + ns.getName());
             } else {
                 // If only msd <-> lsd differs, just reverse the A
-                reverseWithOutput(A, true, print, prefix + " ", log);
+                WordAutomaton.reverseWithOutput(A, true, print, prefix + " ", log);
                 return;
             }
         }
@@ -737,7 +541,7 @@ public class AutomatonLogicalOps {
 
         // If originally LSD, we need to reverse to treat it as MSD for the conversions
         if (!ns.isMsd()) {
-            reverseWithOutput(A, true, print, prefix + " ", log);
+            WordAutomaton.reverseWithOutput(A, true, print, prefix + " ", log);
         }
 
         // We'll track if the A is reversed relative to original
@@ -746,28 +550,28 @@ public class AutomatonLogicalOps {
         // 3) Convert from k^i -> k if needed
         if (fromBase != commonRoot) {
             int exponent = (int) (Math.log(fromBase) / Math.log(commonRoot));
-            reverseWithOutput(A, true, print, prefix + " ", log);
+            WordAutomaton.reverseWithOutput(A, true, print, prefix + " ", log);
             currentlyReversed = true;
 
             convertLsdBaseToRoot(A, commonRoot, exponent, print, prefix + " ", log);
-            A.minimizeSelfWithOutput(print, prefix + " ", log);
+            WordAutomaton.minimizeSelfWithOutput(A, print, prefix + " ", log);
         }
 
         // 4) Convert from k -> k^j if needed
         if (toBase != commonRoot) {
             if (currentlyReversed) {
                 // Undo reversal from the previous step
-                reverseWithOutput(A, true, print, prefix + " ", log);
+                WordAutomaton.reverseWithOutput(A, true, print, prefix + " ", log);
                 currentlyReversed = false;
             }
             int exponent = (int) (Math.log(toBase) / Math.log(commonRoot));
             convertMsdBaseToExponent(A, exponent, print, prefix + " ", log);
-            A.minimizeSelfWithOutput(print, prefix + " ", log);
+            WordAutomaton.minimizeSelfWithOutput(A, print, prefix + " ", log);
         }
 
         // 5) If final desired base is LSD but we are still in MSD form, reverse again
         if (toMsd == currentlyReversed) {
-            reverseWithOutput(A, true, print, prefix + " ", log);
+            WordAutomaton.reverseWithOutput(A, true, print, prefix + " ", log);
         }
     }
 
@@ -820,12 +624,12 @@ public class AutomatonLogicalOps {
         UtilityMethods.logMessage(
                 print,
                 prefix + "Converting: lsd_" + base + " to lsd_" + (int) expected
-                        + ", " + A.getQ() + " states",
+                        + ", " + A.fa.getQ() + " states",
                 log
         );
 
-        IntList oldO = A.getO();
-        List<Int2ObjectRBTreeMap<IntList>> oldD = A.getD();
+        IntList oldO = A.fa.getO();
+        List<Int2ObjectRBTreeMap<IntList>> oldD = A.fa.getNfaD();
 
         // Prepare BFS structures
         List<IntObjectPair<IntList>> newStates = new ArrayList<>();
@@ -835,7 +639,7 @@ public class AutomatonLogicalOps {
         IntList newO = new IntArrayList();
 
         // Initialize BFS with the A's Q0
-        IntObjectPair<IntList> init = new IntObjectImmutablePair<>(A.getQ0(), IntList.of());
+        IntObjectPair<IntList> init = new IntObjectImmutablePair<>(A.fa.getQ0(), IntList.of());
         newStates.add(init);
         queue.add(init);
         stateMap.put(init, newStates.size() - 1);
@@ -899,7 +703,7 @@ public class AutomatonLogicalOps {
         UtilityMethods.logMessage(
                 print,
                 prefix + prefix + "Converted: lsd_" + base + " to lsd_" + (int) expected
-                        + ", " + A.getQ() + " states - " + (System.currentTimeMillis() - timeBefore) + "ms",
+                        + ", " + A.fa.getQ() + " states - " + (System.currentTimeMillis() - timeBefore) + "ms",
                 log);
     }
 
@@ -934,8 +738,8 @@ public class AutomatonLogicalOps {
         // In an A without output, every non-zero output value represents an accepting state
         // we change this to correspond to the value assigned to the first A by our command
         for (int q = 0; q < first.getQ(); q++) {
-            if (first.getFa().isAccepting(q)) {
-                first.getO().set(q, outputs.getInt(0));
+            if (first.fa.isAccepting(q)) {
+                first.fa.getO().set(q, outputs.getInt(0));
             }
         }
         first.combineIndex = 1;
@@ -983,30 +787,11 @@ public class AutomatonLogicalOps {
             Automaton A, Automaton B, String operator, boolean print, String prefix, StringBuilder log) {
         long timeBefore = System.currentTimeMillis();
         UtilityMethods.logMessage(print,
-            prefix + "comparing (" + operator + "):" + A.getFa().getQ() + " states - " + B.getFa().getQ() + " states", log);
+            prefix + "comparing (" + operator + "):" + A.fa.getQ() + " states - " + B.fa.getQ() + " states", log);
         Automaton M = ProductStrategies.crossProductAndMinimize(A, B, operator, print, prefix + " ", log);
         long timeAfter = System.currentTimeMillis();
         UtilityMethods.logMessage(print,
-            prefix + "compared (" + operator + "):" + M.getFa().getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
+            prefix + "compared (" + operator + "):" + M.fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
         return M;
-    }
-
-    /**
-     * The operator can be one of "<" ">" "=" "!=" "<=" ">=".
-     * For example if operator = "<" then this method changes the word A
-     * to a DFA that accepts x iff this[x] < o lexicographically.
-     * To be used only when this A is a DFAO (word).
-     */
-    public static void compareWordAutomaton(
-        FA fa, int o, RelationalOperator.Ops operator, boolean print, String prefix, StringBuilder log) {
-        String opStr = operator.getSymbol();
-        long timeBefore = System.currentTimeMillis();
-        UtilityMethods.logMessage(print, prefix + "comparing (" + opStr + ") against " + o + ":" + fa.getQ() + " states", log);
-        for (int p = 0; p < fa.getQ(); p++) {
-            fa.getO().set(p, RelationalOperator.compare(operator, fa.getO().getInt(p), o) ? 1 : 0);
-        }
-        fa.determinizeAndMinimize(print, prefix + " ", log);
-        long timeAfter = System.currentTimeMillis();
-        UtilityMethods.logMessage(print, prefix + "compared (" + opStr + ") against " + o + ":" + fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
     }
 }

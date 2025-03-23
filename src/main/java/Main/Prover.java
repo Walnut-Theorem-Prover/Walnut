@@ -863,7 +863,7 @@ public class Prover {
 
     IntList outputs = new IntArrayList(M.getO());
     UtilityMethods.removeDuplicates(outputs);
-    List<Automaton> subautomata = M.uncombine(outputs);
+    List<Automaton> subautomata = WordAutomaton.uncombine(M, outputs);
 
     subautomata.replaceAll(automaton -> automaton.processSplit(plusMinusInputs, isReverse, printFlag, prefix, log));
 
@@ -1037,7 +1037,7 @@ public class Prover {
     Automaton M = new Automaton(inLibrary);
 
     if (isDFAO) {
-      AutomatonLogicalOps.reverseWithOutput(M, true, printFlag, prefix, log);
+      WordAutomaton.reverseWithOutput(M, true, printFlag, prefix, log);
     } else {
       AutomatonLogicalOps.reverse(M, printFlag, prefix, log, true);
     }
@@ -1057,7 +1057,7 @@ public class Prover {
     Automaton M = new Automaton(
         Session.getReadFileForWordsLibrary(m.group(GROUP_MINIMIZE_OLD_NAME) + TXT_EXTENSION));
 
-    M.minimizeSelfWithOutput(printFlag, prefix, log);
+    WordAutomaton.minimizeSelfWithOutput(M, printFlag, prefix, log);
 
     M.writeAutomata(s, Session.getWriteAddressForWordsLibrary(), m.group(GROUP_MINIMIZE_NEW_NAME), true);
     return new TestCase(M);
