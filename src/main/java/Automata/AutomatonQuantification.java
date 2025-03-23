@@ -21,17 +21,17 @@ public class AutomatonQuantification {
   }
 
   /**
-       * This method computes the existential quantification of this A.
-       * Takes a list of labels and performs the existential quantifier over
-       * the inputs with labels in listOfLabelsToQuantify. It simply eliminates inputs in listOfLabelsToQuantify.
-       * After the quantification is done, we address the issue of
-       * leadingZeros or trailingZeros (depending on the value of leadingZeros), if all of the inputs
-       * of the resulting A are of type arithmetic.
-       * This is why we mandate that an input of type arithmetic must have 0 in its alphabet, also that
-       * every number system must use 0 to denote its additive identity.
-       *
-       * @param labelsToQuantify must contain at least one element, and must be a subset of this.label.
-       */
+   * This method computes the existential quantification of A.
+   * Takes a list of labels and performs the existential quantifier over
+   * the inputs with labels in listOfLabelsToQuantify. It simply eliminates inputs in listOfLabelsToQuantify.
+   * After the quantification is done, we address the issue of
+   * leadingZeros or trailingZeros (depending on the value of leadingZeros), if all of the inputs
+   * of the resulting A are of type arithmetic.
+   * This is why we mandate that an input of type arithmetic must have 0 in its alphabet, also that
+   * every number system must use 0 to denote its additive identity.
+   *
+   * @param labelsToQuantify must contain at least one element, and must be a subset of this.label.
+   */
   public static void quantify(Automaton A, Set<String> labelsToQuantify, boolean print, String prefix, StringBuilder log) {
       quantifyHelper(A, labelsToQuantify, print, prefix, log);
       if (A.fa.isTRUE_FALSE_AUTOMATON()) return;
@@ -65,7 +65,7 @@ public class AutomatonQuantification {
 
       //If this is the case, then the quantified automaton is either the true or false automaton.
       //It is true if the language is not empty.
-      if (labelsToQuantify.size() == A.getA().size()) {
+      if (labelsToQuantify.size() == A.richAlphabet.getA().size()) {
           A.fa.setTRUE_AUTOMATON(!A.isEmpty());
           A.fa.setTRUE_FALSE_AUTOMATON(true);
           A.clear();

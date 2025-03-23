@@ -100,7 +100,7 @@ public class FA implements Cloneable {
           Int2ObjectRBTreeMap<IntList> newMap = new Int2ObjectRBTreeMap<>();
           for (Int2ObjectMap.Entry<IntList> entry: getEntriesNfaD(q)) {
             List<Integer> decoded = oldAlphabet.decode(entry.getIntKey());
-            if (isInNewAlphabet(M.getA(), decoded)) {
+            if (isInNewAlphabet(M.richAlphabet.getA(), decoded)) {
               newMap.put(M.richAlphabet.encode(decoded), entry.getValue());
             }
           }

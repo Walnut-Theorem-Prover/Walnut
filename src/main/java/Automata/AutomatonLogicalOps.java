@@ -179,7 +179,7 @@ public class AutomatonLogicalOps {
 
         if (!skipSubsetCheck) {
             // check whether the alphabet of B is a subset of the alphabet of self. If not, throw an error.
-            if (!isSubsetA(B.getA(), A.getA())) {
+            if (!isSubsetA(B.richAlphabet.getA(), A.richAlphabet.getA())) {
                 throw new RuntimeException("Second A's alphabet must be a subset of the first A's alphabet for right quotient.");
             }
         }
@@ -240,7 +240,7 @@ public class AutomatonLogicalOps {
         UtilityMethods.logMessage(print, prefix + "left quotient: " + A.fa.getQ() + " state A with " + B.fa.getQ() + " state A", log);
 
         // check whether the alphabet of self is a subset of the alphabet of B. If not, throw an error.
-        if (!isSubsetA(A.getA(), B.getA())) {
+        if (!isSubsetA(A.richAlphabet.getA(), B.richAlphabet.getA())) {
             throw new RuntimeException("First A's alphabet must be a subset of the second A's alphabet for left quotient.");
         }
 
@@ -296,8 +296,8 @@ public class AutomatonLogicalOps {
     }
 
     private static int determineZero(Automaton A) {
-        List<Integer> ZERO = new ArrayList<>(A.getA().size());//all zero input
-        for (List<Integer> i : A.getA()) ZERO.add(i.indexOf(0));
+        List<Integer> ZERO = new ArrayList<>(A.richAlphabet.getA().size());//all zero input
+        for (List<Integer> i : A.richAlphabet.getA()) ZERO.add(i.indexOf(0));
         return A.richAlphabet.encode(ZERO);
     }
 
@@ -369,9 +369,9 @@ public class AutomatonLogicalOps {
      */
     private static Automaton removeLeadingZeroesHelper(
         Automaton A, int n, boolean print, String prefix, StringBuilder log) {
-        if (n >= A.getA().size() || n < 0) {
+        if (n >= A.richAlphabet.getA().size() || n < 0) {
             throw new RuntimeException("Cannot remove leading zeroes for the "
-                    + (n + 1) + "-th input when A only has " + A.getA().size() + " inputs.");
+                    + (n + 1) + "-th input when A only has " + A.richAlphabet.getA().size() + " inputs.");
         }
 
         if (A.getNS().get(n) == null) {
@@ -410,12 +410,12 @@ public class AutomatonLogicalOps {
      * @param i
      */
     static void removeSameInputs(Automaton A, int i) {
-        if (i >= A.getA().size()) return;
+        if (i >= A.richAlphabet.getA().size()) return;
         List<Integer> I = new ArrayList<>();
         I.add(i);
-        for (int j = i + 1; j < A.getA().size(); j++) {
+        for (int j = i + 1; j < A.richAlphabet.getA().size(); j++) {
             if (A.getLabel().get(i).equals(A.getLabel().get(j))) {
-                if (!UtilityMethods.areEqual(A.getA().get(i), A.getA().get(j))) {
+                if (!UtilityMethods.areEqual(A.richAlphabet.getA().get(i), A.richAlphabet.getA().get(j))) {
                     throw new RuntimeException("Inputs " + i + " and " + j + " have the same label but different alphabets.");
                 }
                 I.add(j);

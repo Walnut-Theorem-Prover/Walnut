@@ -98,7 +98,7 @@ public class Morphism {
         }
         Automaton promotion = new Automaton();
         List<Integer> alphabet = IntStream.rangeClosed(0, maxImageLength - 1).boxed().collect(Collectors.toList());
-        promotion.getA().add(alphabet);
+        promotion.richAlphabet.getA().add(alphabet);
         int maxEntry = 0;
         for(Map.Entry<Integer, List<Integer>> entry: mapping.entrySet()) {
             for (int y : entry.getValue()) {

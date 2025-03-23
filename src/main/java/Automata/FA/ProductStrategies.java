@@ -242,7 +242,7 @@ public class ProductStrategies {
         }
 
         List<String> aLabel = A.getLabel(), bLabel = B.getLabel();
-        List<List<Integer>> aA = A.getA(), bA = B.getA();
+        List<List<Integer>> aA = A.richAlphabet.getA(), bA = B.richAlphabet.getA();
 
         if (aLabel== null || bLabel == null ||
             aLabel.size() != aA.size() || bLabel.size() != bA.size()) {
@@ -283,13 +283,13 @@ public class ProductStrategies {
         List<String> bLabel, List<List<Integer>> bA, List<NumberSystem> bNS,
         Automaton AxB, int[] sameInputsInMAndThis) {
         for (int i = 0; i < aLabel.size(); i++) {
-            AxB.getA().add(aA.get(i));
+            AxB.richAlphabet.getA().add(aA.get(i));
             AxB.getLabel().add(aLabel.get(i));
             AxB.getNS().add(aNS.get(i));
         }
         for (int i = 0; i < bLabel.size(); i++) {
             if (sameInputsInMAndThis[i] == -1) {
-                AxB.getA().add(new ArrayList<>(bA.get(i)));
+                AxB.richAlphabet.getA().add(new ArrayList<>(bA.get(i)));
                 AxB.getLabel().add(bLabel.get(i));
                 AxB.getNS().add(bNS.get(i));
             } else {

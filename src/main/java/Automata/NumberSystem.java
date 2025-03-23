@@ -255,7 +255,7 @@ public class NumberSystem {
          * The addition automata must have 3 inputs.
          * All 3 inputs must be of type arithmetic.
          */
-        if (addition.getA() == null || addition.getA().size() != 3) {
+        if (addition.richAlphabet.getA() == null || addition.richAlphabet.getA().size() != 3) {
             throw new RuntimeException(
                     "The addition automaton must have exactly 3 inputs: base " + name);
         }
@@ -270,15 +270,15 @@ public class NumberSystem {
                     "The input alphabet of addition automaton must contain 1: base " + name);
         }
 
-        for (int i = 1; i < addition.getA().size(); i++) {
-            if (!UtilityMethods.areEqual(addition.getA().get(i), getAlphabet())) {
+        for (int i = 1; i < addition.richAlphabet.getA().size(); i++) {
+            if (!UtilityMethods.areEqual(addition.richAlphabet.getA().get(i), getAlphabet())) {
                 throw new RuntimeException(
                         "All 3 inputs of the addition automaton " +
                                 "must have the same alphabet: base " + name);
             }
         }
 
-        for (int i = 0; i < addition.getA().size(); i++) {
+        for (int i = 0; i < addition.richAlphabet.getA().size(); i++) {
             addition.getNS().set(i, this);
         }
     }
@@ -301,13 +301,13 @@ public class NumberSystem {
          * All 2 inputs must be of type arithmetic.
          * Inputs must have the same alphabet as the addition automaton.
          */
-        if (lessThan.getA() == null || lessThan.getA().size() != 2) {
+        if (lessThan.richAlphabet.getA() == null || lessThan.richAlphabet.getA().size() != 2) {
             throw new RuntimeException(
                 "The less_than automaton must have exactly 2 inputs: base " + name);
         }
 
-        for (int i = 0; i < lessThan.getA().size(); i++) {
-            if (!UtilityMethods.areEqual(lessThan.getA().get(i), getAlphabet())) {
+        for (int i = 0; i < lessThan.richAlphabet.getA().size(); i++) {
+            if (!UtilityMethods.areEqual(lessThan.richAlphabet.getA().get(i), getAlphabet())) {
                 throw new RuntimeException(
                     "Inputs of the less_than automaton must have the same alphabet " +
                         "as the alphabet of inputs of addition automaton: base " + name);
@@ -523,8 +523,8 @@ public class NumberSystem {
             baseChange.getNS().add(new NumberSystem("lsd_" + n));
             baseChange.getNS().add(new NumberSystem("lsd_neg_" + n));
         }
-        baseChange.getA().add(new ArrayList<>(alphabet));
-        baseChange.getA().add(alphabet);
+        baseChange.richAlphabet.getA().add(new ArrayList<>(alphabet));
+        baseChange.richAlphabet.getA().add(alphabet);
         baseChange.determineAlphabetSize();
         FA baseChangeFA = baseChange.getFa();
         int l = 0;
@@ -556,14 +556,14 @@ public class NumberSystem {
 
     private static Automaton initBasicAutomaton(IntList O) {
         Automaton a = new Automaton();
-        a.getFa().initBasicFA(O);
+        a.fa.initBasicFA(O);
         return a;
     }
     private Automaton initBasicAutomaton(IntList O, int inputSize, List<Integer> alphabet) {
         Automaton a = initBasicAutomaton(O);
         for(int i=0;i<inputSize;i++) {
             a.getNS().add(this);
-            a.getA().add(new ArrayList<>(alphabet));
+            a.richAlphabet.getA().add(new ArrayList<>(alphabet));
         }
         a.determineAlphabetSize();
         return a;

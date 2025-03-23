@@ -58,7 +58,7 @@ public class AutomatonWriter {
                 }
             }
             List<Integer> indices = free_variables.stream().map(variable -> automaton.getLabel().indexOf(variable)).collect(Collectors.toList());
-            List<List<Integer>> indexValueLists = indices.stream().map(index -> automaton.getA().get(index)).collect(Collectors.toList());
+            List<List<Integer>> indexValueLists = indices.stream().map(index -> automaton.richAlphabet.getA().get(index)).collect(Collectors.toList());
             List<List<Integer>> valueLists = cartesianProduct(indexValueLists);
             for (List<Integer> valueList : valueLists) {
                 writeMatrixForAVariableListValuePair(automaton, free_variables, valueList, indices, out);
@@ -168,8 +168,8 @@ public class AutomatonWriter {
     }
 
     private static void writeAlphabet(Automaton automaton, PrintWriter out) {
-        for (int i = 0; i < automaton.getA().size(); i++) {
-            List<Integer> l = automaton.getA().get(i);
+        for (int i = 0; i < automaton.richAlphabet.getA().size(); i++) {
+            List<Integer> l = automaton.richAlphabet.getA().get(i);
             if (automaton.getNS().get(i) == null) {
                 out.write("{");
                 out.write(UtilityMethods.genericListString(l, ", "));

@@ -641,7 +641,7 @@ public class Prover {
     M.richAlphabet.setA(alphabets);
     M.determineAlphabetSize();
 
-    String baseExp = determineBaseExp(m.group(R_REGEXP), M.getA().size(), M.richAlphabet);
+    String baseExp = determineBaseExp(m.group(R_REGEXP), M.richAlphabet.getA().size(), M.richAlphabet);
 
     Automaton R = new Automaton(baseExp, M.getAlphabetSize());
     R.richAlphabet.setA(M.richAlphabet.getA());
@@ -921,7 +921,7 @@ public class Prover {
         String t = m2.group(1);
         label.add(t);
       }
-      if (label.size() != M.getA().size()) {
+      if (label.size() != M.richAlphabet.getA().size()) {
         throw new RuntimeException("Number of inputs of word automata " + automatonName + " does not match number of inputs specified.");
       }
       M.setLabel(label);
@@ -957,8 +957,8 @@ public class Prover {
 
     StringBuilder incLengthReg = new StringBuilder();
     incLengthReg.append("reg ").append(testName).append("_len ");
-    for (int i = 0; i < M.getA().size(); i++) {
-      String alphaString = M.getA().get(i).toString();
+    for (int i = 0; i < M.richAlphabet.getA().size(); i++) {
+      String alphaString = M.richAlphabet.getA().get(i).toString();
       alphaString = alphaString.substring(1, alphaString.length() - 1);
       alphaString = "{" + alphaString + "} ";
       incLengthReg.append(alphaString);

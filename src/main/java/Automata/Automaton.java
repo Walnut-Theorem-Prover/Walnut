@@ -135,7 +135,7 @@ public class Automaton {
         //The alphabet is a set and does not allow repeated elements. However, the user might enter the command
         //reg myreg {1,1,0,0,0} "10*"; and therefore alphabet = [1,1,0,0,0]. So remove duplicates.
         UtilityMethods.removeDuplicates(alphabet);
-        getA().add(alphabet);
+        this.richAlphabet.getA().add(alphabet);
 
         this.fa.convertBrics(alphabet, regularExpression);
         getNS().add(numSys);
@@ -242,8 +242,8 @@ public class Automaton {
                         lineNumber + " of file " + address);
         }
 
-        if (input.size() != getA().size()) {
-            throw new RuntimeException("This automaton requires a " + getA().size() +
+        if (input.size() != this.richAlphabet.getA().size()) {
+            throw new RuntimeException("This automaton requires a " + richAlphabet.getA().size() +
                     "-tuple as input: line " + lineNumber + " of file " + address);
         }
     }
@@ -265,17 +265,17 @@ public class Automaton {
                 break;
             }
 
-            if (ParseMethods.parseAlphabetDeclaration(line, getA(), getNS())) {
-                for (int i = 0; i < getA().size(); i++) {
+            if (ParseMethods.parseAlphabetDeclaration(line, this.richAlphabet.getA(), getNS())) {
+                for (int i = 0; i < this.richAlphabet.getA().size(); i++) {
                     if (getNS().get(i) != null &&
-                        (!getA().get(i).contains(0) || !getA().get(i).contains(1))) {
+                        (!this.richAlphabet.getA().get(i).contains(0) || !this.richAlphabet.getA().get(i).contains(1))) {
                         throw new RuntimeException(
                             "The " + (i + 1) + "th input of type arithmetic " +
                                 "of the automaton declared in file " + address +
                                 " requires 0 and 1 in its input alphabet: line " +
                                 lineNumber);
                     }
-                    UtilityMethods.removeDuplicates(getA().get(i));
+                    UtilityMethods.removeDuplicates(this.richAlphabet.getA().get(i));
                 }
                 this.determineAlphabetSize();
                 break;
@@ -318,7 +318,7 @@ public class Automaton {
 
     void clonePartialFields(Automaton M) {
         M.richAlphabet = richAlphabet.clone();
-        for (int i = 0; i < getA().size(); i++) {
+        for (int i = 0; i < this.richAlphabet.getA().size(); i++) {
             M.getNS().add(getNS().get(i));
             if (this.isBound())
                 M.getLabel().add(getLabel().get(i));
@@ -345,7 +345,7 @@ public class Automaton {
             Automaton N = readAutomatonFromFile(automataName);
 
             // ensure that N has the same number system as first.
-            if (NumberSystem.isNSDiffering(N.getNS(), first.getNS(), N.getA(), first.getA())) {
+            if (NumberSystem.isNSDiffering(N.getNS(), first.getNS(), N.richAlphabet.getA(), first.richAlphabet.getA())) {
                 throw new RuntimeException("Automata to be unioned must have the same number system(s).");
             }
 
@@ -397,7 +397,7 @@ public class Automaton {
             NumberSystem ns = getNS().get(i);
             if (ns != null && ns.useAllRepresentations()) {
                 switchNS = true;
-                int max = Collections.max(getA().get(i));
+                int max = Collections.max(richAlphabet.getA().get(i));
                 numberSystems.add(new NumberSystem((ns.isMsd() ? "msd_" : "lsd_") + (max + 1)));
             } else {
                 numberSystems.add(ns);
@@ -405,7 +405,7 @@ public class Automaton {
         }
 
         if (switchNS) {
-            setAlphabet(false, numberSystems, getA(), print, prefix, log);
+            setAlphabet(false, numberSystems, richAlphabet.getA(), print, prefix, log);
             // always print this
             UtilityMethods.logMessage(true,
                 prefix + "WARN: The alphabet of the resulting automaton was changed. Use the alphabet command to change as desired.", log);
@@ -451,7 +451,7 @@ public class Automaton {
         UtilityMethods.logMessage(print, prefix + "concat: " + this.fa.getQ() + " state automaton with " + other.fa.getQ() + " state automaton", log);
 
         // ensure that N has the same number system as first.
-        if (NumberSystem.isNSDiffering(other.getNS(), this.getNS(), this.getA(), other.getA())) {
+        if (NumberSystem.isNSDiffering(other.getNS(), this.getNS(), this.richAlphabet.getA(), other.richAlphabet.getA())) {
             throw new RuntimeException("Automata to be concatenated must have the same number system(s).");
         }
 
@@ -475,7 +475,7 @@ public class Automaton {
 
     public void setAlphabet(boolean isDFAO, List<NumberSystem> numberSystems, List<List<Integer>> alphabet, boolean print, String prefix, StringBuilder log) {
 
-        if (alphabet.size() != getA().size()) {
+        if (alphabet.size() != richAlphabet.getA().size()) {
             throw new RuntimeException("The number of alphabets must match the number of alphabets in the input automaton.");
         }
         if (alphabet.size() != numberSystems.size()) {
@@ -540,15 +540,15 @@ public class Automaton {
         if (getAlphabetSize() == 0) {
             throw new RuntimeException("Cannot process split automaton with no inputs.");
         }
-        if (inputs.size() != getA().size()) {
+        if (inputs.size() != richAlphabet.getA().size()) {
             throw new RuntimeException("Split automaton has incorrect number of inputs.");
         }
 
         Automaton M = clone();
         Set<String> quantifiers = new HashSet<>();
         // Label M with [b0, b1, ..., b(A.size() - 1)]
-        List<String> names = new ArrayList<>(getA().size());
-        for (int i = 0; i < getA().size(); i++) {
+        List<String> names = new ArrayList<>(richAlphabet.getA().size());
+        for (int i = 0; i < richAlphabet.getA().size(); i++) {
             names.add("b" + i);
         }
         M.setLabel(names);
@@ -661,7 +661,7 @@ public class Automaton {
     public void applyAllRepresentations() {
         boolean flag = determineRandomLabel();
         Automaton K = this;
-        for (int i = 0; i < getA().size(); i++) {
+        for (int i = 0; i < richAlphabet.getA().size(); i++) {
             NumberSystem ns = getNS().get(i);
             if (ns != null) {
                 Automaton N = ns.getAllRepresentations();
@@ -680,7 +680,7 @@ public class Automaton {
         // this can be a word automaton
         boolean flag = determineRandomLabel();
         Automaton K = this;
-        for (int i = 0; i < getA().size(); i++) {
+        for (int i = 0; i < richAlphabet.getA().size(); i++) {
             NumberSystem ns = getNS().get(i);
             if (ns != null) {
                 Automaton N = ns.getAllRepresentations();
@@ -766,7 +766,7 @@ public class Automaton {
          * The same logic is behind permutedEncoder.
          */
         int[] labelPermutation = getLabelPermutation(getLabel(), sortedLabel);
-        List<List<Integer>> permutedA = permute(getA(), labelPermutation);
+        List<List<Integer>> permutedA = permute(richAlphabet.getA(), labelPermutation);
         List<Integer> permutedEncoder = RichAlphabet.determineEncoder(permutedA);
 
         //For example encoded_input_permutation[2] = 5 means that encoded input 2 becomes 5 after sorting.
@@ -816,7 +816,7 @@ public class Automaton {
     }
 
     public void bind(List<String> names) {
-        if (fa.isTRUE_FALSE_AUTOMATON() || getA().size() != names.size()) throw ExceptionHelper.invalidBind();
+        if (fa.isTRUE_FALSE_AUTOMATON() || richAlphabet.getA().size() != names.size()) throw ExceptionHelper.invalidBind();
         setLabel(new ArrayList<>(names));
         labelSorted = false;
         fa.setCanonized(false);
@@ -824,12 +824,12 @@ public class Automaton {
     }
 
     public boolean isBound() {
-      return getLabel() != null && getLabel().size() == getA().size();
+      return getLabel() != null && getLabel().size() == richAlphabet.getA().size();
     }
 
     public int getArity() {
         if (fa.isTRUE_FALSE_AUTOMATON()) return 0;
-        return getA().size();
+        return richAlphabet.getA().size();
     }
 
     /**
@@ -881,20 +881,6 @@ public class Automaton {
 
     public void setAlphabetSize(int alphabetSize) {
         this.fa.setAlphabetSize(alphabetSize);
-    }
-
-    /**
-     * Input Alphabet.
-     * For example when A = [[-1,1],[2,3]], the first and the second inputs are over alphabets
-     * {-1,1} and {2,3} respectively.
-     * Remember that the input to an automaton is a tuple (a pair in this example).
-     * For example a state might make a transition on input (1,3). Here the
-     * first input is 1 and the second input is 3.
-     * Also note that A is a list of sets, but for technical reasons, we just made it a list of lists. However,
-     * we have to make sure, at all times, that the inner lists of A don't contain repeated elements.
-     */
-    public List<List<Integer>> getA() {
-        return richAlphabet.getA();
     }
 
     public FA getFa() {
