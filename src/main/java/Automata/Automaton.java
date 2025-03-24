@@ -35,8 +35,6 @@ import java.util.*;
 
 import it.unimi.dsi.fastutil.ints.*;
 
-import static Automata.ParseMethods.PATTERN_COMMENT;
-import static Automata.ParseMethods.PATTERN_WHITESPACE;
 import static Main.Prover.GV_EXTENSION;
 import static Main.Prover.TXT_EXTENSION;
 
@@ -153,150 +151,7 @@ public class Automaton {
      */
     public Automaton(String address) {
         this();
-        File f = UtilityMethods.validateFile(address);
-
-        long lineNumber = 0;
-        setAlphabetSize(1);
-
-        Boolean[] trueFalseSingleton = new Boolean[1];
-        try (BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(f)))) {
-            lineNumber = firstParse(address, in, lineNumber, trueFalseSingleton);
-            if (trueFalseSingleton[0] != null) {
-                return;
-            }
-
-            int[] pair = new int[2];
-            List<Integer> input = new ArrayList<>();
-            IntList dest = new IntArrayList();
-            int currentState = -1;
-            int currentOutput;
-            Int2ObjectRBTreeMap<IntList> currentStateTransitions = new Int2ObjectRBTreeMap<>();
-            Map<Integer, Integer> output = new TreeMap<>();
-            Map<Integer, Int2ObjectRBTreeMap<IntList>> transitions = new TreeMap<>();
-
-            int Q = 0, q0=0;
-            Set<Integer> setOfDestinationStates = new HashSet<>();
-            boolean outputLongFile = false;
-
-            String line;
-            while ((line = in.readLine()) != null) {
-                lineNumber++;
-                outputLongFile = debugPrintLongFile(address, lineNumber, outputLongFile);
-
-                if (shouldSkipLine(line)) {
-                    continue;
-                }
-
-                if (ParseMethods.parseStateDeclaration(line, pair)) {
-                    Q++;
-                    if (currentState == -1) {
-                        q0 = pair[0];
-                    }
-
-                    currentState = pair[0];
-                    currentOutput = pair[1];
-                    output.put(currentState, currentOutput);
-                    currentStateTransitions = new Int2ObjectRBTreeMap<>();
-                    transitions.put(currentState, currentStateTransitions);
-                } else if (ParseMethods.parseTransition(line, input, dest)) {
-                    validateTransition(address, currentState, lineNumber, input);
-                    setOfDestinationStates.addAll(dest);
-                    List<List<Integer>> inputs = richAlphabet.expandWildcard(input);
-                    for (List<Integer> i : inputs) {
-                        currentStateTransitions.put(richAlphabet.encode(i), dest);
-                    }
-                    input = new ArrayList<>();
-                    dest = new IntArrayList();
-                } else {
-                    throw WalnutException.undefinedStatement(lineNumber, address);
-                }
-            }
-            if (outputLongFile) {
-                System.out.println("...finished");
-            }
-
-            validateDeclaredStates(setOfDestinationStates, output, address);
-
-            this.fa.setFieldsFromFile(Q, q0, output, transitions);
-        } catch (IOException e) {
-            UtilityMethods.printTruncatedStackTrace(e);
-            throw WalnutException.fileDoesNotExist(address);
-        }
-    }
-
-    static boolean debugPrintLongFile(String address, long lineNumber, boolean outputLongFile) {
-        if (lineNumber % 1000000 == 0) {
-            if (!outputLongFile) {
-                outputLongFile = true;
-                System.out.print("Parsing " + address + " ...");
-            }
-            System.out.print("line " + lineNumber + "...");
-        }
-        return outputLongFile;
-    }
-
-    protected void validateTransition(String address, int currentState, long lineNumber, List<Integer> input) {
-        if (currentState == -1) {
-            throw new WalnutException(
-                    "Must declare a state before declaring a list of transitions: line " +
-                        lineNumber + " of file " + address);
-        }
-
-        if (input.size() != this.richAlphabet.getA().size()) {
-            throw new WalnutException("This automaton requires a " + richAlphabet.getA().size() +
-                    "-tuple as input: line " + lineNumber + " of file " + address);
-        }
-    }
-
-    protected long firstParse(
-        String address, BufferedReader in, long lineNumber, Boolean[] trueFalseSingleton) throws IOException {
-        String line;
-        while ((line = in.readLine()) != null) {
-            lineNumber++;
-
-            if (shouldSkipLine(line)) {
-                continue;
-            }
-
-            if (trueFalseSingleton != null && ParseMethods.parseTrueFalse(line, trueFalseSingleton)) {
-                // It is a true/false automaton.
-                fa.setTRUE_FALSE_AUTOMATON(true);
-                fa.setTRUE_AUTOMATON(trueFalseSingleton[0]);
-                break;
-            }
-
-            if (ParseMethods.parseAlphabetDeclaration(line, this.richAlphabet.getA(), getNS())) {
-                for (int i = 0; i < this.richAlphabet.getA().size(); i++) {
-                    if (getNS().get(i) != null &&
-                        (!this.richAlphabet.getA().get(i).contains(0) || !this.richAlphabet.getA().get(i).contains(1))) {
-                        throw new WalnutException(
-                            "The " + (i + 1) + "th input of type arithmetic " +
-                                "of the automaton declared in file " + address +
-                                " requires 0 and 1 in its input alphabet: line " +
-                                lineNumber);
-                    }
-                    UtilityMethods.removeDuplicates(this.richAlphabet.getA().get(i));
-                }
-                this.determineAlphabetSize();
-                break;
-            } else {
-                throw WalnutException.undefinedStatement(lineNumber, address);
-            }
-        }
-        return lineNumber;
-    }
-
-    // Ignore blank and comment (#) lines.
-    protected static boolean shouldSkipLine(String line) {
-        return PATTERN_WHITESPACE.matcher(line).matches() || PATTERN_COMMENT.matcher(line).matches();
-    }
-
-    protected void validateDeclaredStates(Set<Integer> destinationStates, Map<Integer, ?> declaredStates, String address) {
-        for (Integer q : destinationStates) {
-            if (!declaredStates.containsKey(q)) {
-                throw new WalnutException("State " + q + " is used but never declared anywhere in file: " + address);
-            }
-        }
+        AutomatonReader.readAutomaton(this, address);
     }
 
     /**
@@ -367,9 +222,9 @@ public class Automaton {
         }
         return first;
     }
-
+    
     public static Automaton readAutomatonFromFile(String automataName) {
-      return new Automaton(Session.getReadFileForAutomataLibrary(automataName + ".txt"));
+        return new Automaton(Session.getReadFileForAutomataLibrary(automataName + ".txt"));
     }
 
     public Automaton combine(List<String> automataNames, IntList outputs, boolean print, String prefix, StringBuilder log) {

@@ -84,7 +84,7 @@ public class Transducer extends Automaton {
         setAlphabetSize(1);
 
         try (BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(f)))) {
-            lineNumber = firstParse(address, in, lineNumber, null);
+            lineNumber = AutomatonReader.firstParse(this, address, in, lineNumber, null);
 
             int[] singleton = new int[1];
             List<Integer> input = new ArrayList<>();
@@ -105,9 +105,9 @@ public class Transducer extends Automaton {
             String line;
             while ((line = in.readLine()) != null) {
                 lineNumber++;
-                outputLongFile = debugPrintLongFile(address, lineNumber, outputLongFile);
+                outputLongFile = AutomatonReader.debugPrintLongFile(address, lineNumber, outputLongFile);
 
-                if (shouldSkipLine(line)) {
+                if (AutomatonReader.shouldSkipLine(line)) {
                     continue;
                 }
 
@@ -125,7 +125,7 @@ public class Transducer extends Automaton {
                     currentStateTransitionOutputs = new TreeMap<>();
                     stateTransitionOutput.put(currentState, currentStateTransitionOutputs);
                 } else if (ParseMethods.parseTransducerTransition(line, input, dest, output)) {
-                    validateTransition(address, currentState, lineNumber, input);
+                    AutomatonReader.validateTransition(this, address, currentState, lineNumber, input);
                     if (output.size() != 1) {
                         throw new WalnutException("Transducers must have one output for each transition: line "
                             + lineNumber + " of file " + address);
@@ -144,7 +144,7 @@ public class Transducer extends Automaton {
                 }
             }
 
-            validateDeclaredStates(setOfDestinationStates, stateOutput, address);
+            AutomatonReader.validateDeclaredStates(setOfDestinationStates, stateOutput, address);
 
             this.fa.setFieldsFromFile(Q, q0, stateOutput, stateTransition);
             for (int q = 0; q < Q; q++) {
@@ -209,7 +209,7 @@ public class Transducer extends Automaton {
 
         // will add M.Q maps to initMaps.
         for (int i = 0; i < M.fa.getQ(); i++) {
-            Map<Integer, Integer> map = createMap2(M.getFa(), i);
+            Map<Integer, Integer> map = createMap(M.getFa(), i, identity);
             initMaps.add(map);
             initStrings.add(List.of(i));
         }
@@ -260,50 +260,6 @@ public class Transducer extends Automaton {
         N.fa.setQ0(0);
 
         // tuple of the form (a, iters) where iters is a list of p+q maps phi_{M.O(w)}, ..., phi_{h^{p+q-1}(M.O(W))}
-        class StateTuple {
-            final int state;
-            final List<Integer> iList;
-            final List<Map<Integer, Integer>> iterates;
-
-            StateTuple(int state, List<Integer> iList, List<Map<Integer, Integer>> iterates) {
-                this.state = state;
-                this.iList = iList;
-                this.iterates = iterates;
-            }
-
-            @Override
-            public boolean equals(Object o) {
-                // DO NOT compare the string.
-                if (this == o) {
-                    return true;
-                }
-                if (o == null || this.getClass() != o.getClass()) {
-                    return false;
-                }
-                StateTuple other = (StateTuple) o;
-                if (this.state != other.state) {
-                    return false;
-                }
-
-                if (this.iterates.size() != other.iterates.size()) {
-                    return false;
-                }
-                for (int i = 0; i < this.iterates.size(); i++) {
-                    if (!this.iterates.get(i).equals(other.iterates.get(i))) {
-                        return false;
-                    }
-                }
-                return true;
-            }
-
-            @Override
-            public int hashCode() {
-                // DO NOT use the string to hash. Only use the state and the iterates.
-                int result = this.state ^ (this.state >>> 32);
-                result = 31 * result + this.iterates.hashCode();
-                return result;
-            }
-        }
 
         List<StateTuple> states = new ArrayList<>();
         Map<StateTuple, Integer> statesHash = new HashMap<>();
@@ -344,9 +300,9 @@ public class Transducer extends Automaton {
 
                 // new state
                 StateTuple newState = new StateTuple(
-                        stateMorphed.get(di),
-                        newStateString,
-                        createIterates(M, newStateString, p + q)
+                    stateMorphed.get(di),
+                    newStateString,
+                    createIterates(M, newStateString, p + q)
                 );
 
                 // check if the state is already hashed.
@@ -511,15 +467,6 @@ public class Transducer extends Automaton {
         return mapSoFar;
     }
 
-    private Map<Integer, Integer> createMap2(FA M, int i) {
-        int encoded = richAlphabet.encode(List.of(M.getO().getInt(i)));
-        Map<Integer, Integer> map = new HashMap<>();
-        for (int j = 0; j < this.fa.getQ(); j++) {
-            map.put(j, this.fa.getNfaD().get(j).get(encoded).getInt(0));
-        }
-        return map;
-    }
-
     private Map<Integer, Integer> createMap(FA M, Integer i, Map<Integer, Integer> mapSoFar) {
         int encoded = richAlphabet.encode(List.of(M.getO().getInt(i)));
         Map<Integer, Integer> map = new HashMap<>();
@@ -527,5 +474,40 @@ public class Transducer extends Automaton {
             map.put(j, this.fa.getNfaD().get(mapSoFar.get(j)).get(encoded).getInt(0));
         }
         return map;
+    }
+
+    private record StateTuple(int state, List<Integer> iList, List<Map<Integer, Integer>> iterates) {
+        @Override
+        public boolean equals(Object o) {
+            // DO NOT compare the string.
+            if (this == o) {
+                return true;
+            }
+            if (o == null || this.getClass() != o.getClass()) {
+                return false;
+            }
+            StateTuple other = (StateTuple) o;
+            if (this.state != other.state) {
+                return false;
+            }
+
+            if (this.iterates.size() != other.iterates.size()) {
+                return false;
+            }
+            for (int i = 0; i < this.iterates.size(); i++) {
+                if (!this.iterates.get(i).equals(other.iterates.get(i))) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        @Override
+        public int hashCode() {
+            // DO NOT use the string to hash. Only use the state and the iterates.
+            int result = this.state ^ (this.state >>> 32);
+            result = 31 * result + this.iterates.hashCode();
+            return result;
+        }
     }
 }

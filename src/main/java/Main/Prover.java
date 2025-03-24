@@ -810,18 +810,16 @@ public class Prover {
 
   public static boolean infCommand(String s) {
     Matcher m = matchOrFail(PAT_FOR_inf_CMD, s, INF);
-
-    Automaton M = Automaton.readAutomatonFromFile(m.group(GROUP_INF_NAME));
+    String address = m.group(GROUP_INF_NAME);
+    return infFromAddress(address);
+  }
+  static boolean infFromAddress(String address) {
+    Automaton M = Automaton.readAutomatonFromFile(address);
     M.randomLabel();
     M = AutomatonLogicalOps.removeLeadingZeroes(M, M.getLabel(), false, null, null);
     String infReg = Infinite.infinite(M.fa, M.richAlphabet);
-    if (infReg.isEmpty()) {
-      System.out.println("Automaton " + m.group(GROUP_INF_NAME) + " accepts finitely many values.");
-      return false;
-    } else {
-      System.out.println(infReg);
-      return true;
-    }
+    System.out.println(!infReg.isEmpty() ? infReg : "Automaton " + address + " accepts finitely many values.");
+    return !infReg.isEmpty();
   }
 
   public TestCase processSplitCommand(
@@ -938,7 +936,7 @@ public class Prover {
   }
 
 
-  public static void testCommand(String s) {
+  public static boolean testCommand(String s) {
     Matcher m = matchOrFail(PAT_FOR_test_CMD, s, TEST);
 
     int needed = Integer.parseInt(m.group(GROUP_TEST_NUM));
@@ -953,8 +951,7 @@ public class Prover {
     M.randomLabel();
     M = AutomatonLogicalOps.removeLeadingZeroes(M, M.getLabel(), false, null, null);
 
-    String infSubcommand = "inf " + testName + ";";
-    boolean infinite = infCommand(infSubcommand);
+    boolean infinite = infFromAddress(testName);
 
     StringBuilder incLengthReg = new StringBuilder();
     incLengthReg.append("reg ").append(testName).append("_len ");
@@ -994,6 +991,7 @@ public class Prover {
     for (String input : accepted) {
       System.out.println(input);
     }
+    return accepted.size() >= needed;
   }
 
   public static TestCase ostCommand(String s) {

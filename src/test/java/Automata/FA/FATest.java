@@ -38,5 +38,7 @@ public class FATest {
     for(int i: myNFA.getStates()) {
       Assertions.assertEquals(myNFA.isAccepting(i), fa.getO().getInt(i) == 1);
     }
+
+    Assertions.assertFalse(fa.isDFAO()); // this certainly isn't a DFAO
   }
 }
