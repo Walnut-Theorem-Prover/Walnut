@@ -68,7 +68,7 @@ public class Ostrowski {
     // Transitions in the 4-input adder. transition[p][q] = {r, s}.
     // This means state p transitions to state q on input r*d + s, where d is the current digit in
     // the continued fraction expansion of alpha.
-    private int[][][] transition;
+    private final int[][][] adderTransitions;
 
     // Maps to keep track of states and transitions.
     private final Map<NodeState, Integer> nodeToIndex;
@@ -119,7 +119,7 @@ public class Ostrowski {
             dMax = Math.max(alpha.getInt(i), dMax);
         }
 
-        initTransitions();
+        this.adderTransitions = initAdderTransitions();
         this.nodeToIndex = new TreeMap<>();
         this.indexToNode = new TreeMap<>();
         this.totalNodes = 0;
@@ -228,10 +228,6 @@ public class Ostrowski {
         AutomatonWriter.write(a, automatonFileName);
     }
 
-    public String toString() {
-        return "name: " + this.name + ", alpha: " + this.alpha + ", period index: " + this.periodIndex;
-    }
-
     private void assertValues(IntList list) {
         if (list.isEmpty()) {
             throw new WalnutException("The period cannot be empty.");
@@ -249,73 +245,13 @@ public class Ostrowski {
         return alpha.getInt(index);
     }
 
-    /**
-     * The transition matrix defines the behavior of the "4-input adder" automaton, which is used
-     * in constructing the Ostrowski addition automaton. Each transition is parameterized by two
-     * integers (r, s).
-     * Conceptually:
-     * The automaton states (0 through 6) represent different "carry" or "configuration" conditions
-     * in the addition process under Ostrowski numeration.
-     * The transitions encode how to update the automaton's state given certain inputs and the
-     * Ostrowski system's arithmetic rules.
-     */
-    private void initTransitions() {
-        transition = new int[NUM_STATES][NUM_STATES][2];
-        for (int i = 0; i < NUM_STATES; i++) {
-            for (int j = 0; j < NUM_STATES; j++) {
-                transition[i][j][0] = transition[i][j][1] = NONE;
-            }
-        }
-
-        transition[0][0][0] = 0;
-        transition[0][0][1] = 0;
-        transition[0][1][0] = 0;
-        transition[0][1][1] = 1;
-
-        transition[1][2][0] = -1;
-        transition[1][2][1] = 0;
-        transition[1][3][0] = -1;
-        transition[1][3][1] = 1;
-        transition[1][4][0] = -1;
-        transition[1][4][1] = -1;
-
-        transition[2][0][0] = 0;
-        transition[2][0][1] = -1;
-        transition[2][1][0] = 0;
-        transition[2][1][1] = 0;
-
-        transition[3][2][0] = -1;
-        transition[3][2][1] = -1;
-        transition[3][3][0] = -1;
-        transition[3][3][1] = 0;
-        transition[3][4][0] = -1;
-        transition[3][4][1] = -2;
-
-        transition[4][5][0] = 1;
-        transition[4][5][1] = 0;
-        transition[4][6][0] = 1;
-        transition[4][6][1] = -1;
-
-        transition[5][2][0] = -1;
-        transition[5][2][1] = 1;
-        transition[5][3][0] = -1;
-        transition[5][3][1] = 2;
-        transition[5][4][0] = -1;
-        transition[5][4][1] = 0;
-
-        transition[6][0][0] = 0;
-        transition[6][0][1] = 1;
-        transition[6][1][0] = 0;
-        transition[6][1][1] = 2;
-    }
-
     private void performAdderBfs() {
         // In a node, the indices mean the following.
         // 0: The state in the 4-input automaton.
         // 1: The C.F. index at which the input started.
         // 2: The C.F. index that is currently active in the input.
 
-        Queue<Integer> queue = initialiszeBfs();
+        Queue<Integer> queue = initializeBfs();
         int alphaSize = this.alpha.size();
         for (int i = 1; i < alphaSize; i++) {
             addNodeWithNewTransitions(new NodeState(0, i, i), 0, queue, 0);
@@ -324,8 +260,6 @@ public class Ostrowski {
         while (!queue.isEmpty()) {
             int curNodeIdx = queue.remove();
             NodeState curNode = indexToNode.get(curNodeIdx);
-            int state = curNode.state();
-            int startIndex = curNode.startIndex();
             int seenIndex = curNode.seenIndex();
 
             if (seenIndex == 1 && alphaSize > 2 && this.periodIndex > 1) {
@@ -333,9 +267,12 @@ public class Ostrowski {
                 continue;
             }
 
+            int state = curNode.state();
+            int startIndex = curNode.startIndex();
+
             for (int st = 0; st < NUM_STATES; st++) {
-                int r = this.transition[state][st][0];
-                int s = this.transition[state][st][1];
+                int r = this.adderTransitions[state][st][0];
+                int s = this.adderTransitions[state][st][1];
 
                 if (r == NONE || s == NONE) {
                     continue;
@@ -345,10 +282,7 @@ public class Ostrowski {
                     addTransitionsAndNode(new NodeState(st, startIndex, seenIndex - 1),
                         curNodeIdx, alphaI(seenIndex - 1), r, s, queue);
                 }
-
                 if (seenIndex == this.periodIndex) {
-                    // There is another possibility.
-                    // Next index could also be alphaSize - 1.
                     addTransitionsAndNode(new NodeState(st, startIndex, alphaSize - 1),
                         curNodeIdx, alphaI(alphaSize - 1), r, s, queue);
                 }
@@ -362,7 +296,7 @@ public class Ostrowski {
         // 1: The C.F. index at which the input started.
         // 2: The C.F. index that is currently active in the input.
 
-        Queue<Integer> queue = initialiszeBfs();
+        Queue<Integer> queue = initializeBfs();
         int alphaSize = this.alpha.size();
         for (int i = 1; i < alphaSize; ++i) {
             int a = alphaI(i);
@@ -377,10 +311,7 @@ public class Ostrowski {
 
         while (!queue.isEmpty()) {
             int curNodeIdx = queue.remove();
-
             NodeState curNode = indexToNode.get(curNodeIdx);
-            int state = curNode.state();
-            int startIndex = curNode.startIndex();
             int seenIndex = curNode.seenIndex();
 
             if (seenIndex == 1 && alphaSize > 2 && this.periodIndex > 1) {
@@ -389,51 +320,43 @@ public class Ostrowski {
             }
 
             if (seenIndex > 1) {
-                // Can only take a "0" transition from a "1" state.
-                int a = state == 1 ? 1 : alphaI(seenIndex - 1);
-
-                this.stateTransitions.putIfAbsent(curNodeIdx, new Int2ObjectRBTreeMap<>());
-
-                // Will go to state 0 for all transitions < a.
-                pointToNode(a, new NodeState(0, startIndex, seenIndex - 1), curNodeIdx, queue);
-
-                // Go to state 1 from this state 0 for transition = a (only if seenIndex > 2).
-                if (state == 0 && seenIndex > 2) {
-                    pointSymbolToNode(
-                        new NodeState(1, startIndex, seenIndex - 1), curNodeIdx, queue, a);
-                }
+                handleTransition(seenIndex, seenIndex - 1, curNode.state(),
+                    curNodeIdx, curNode.startIndex(), seenIndex - 1, queue);
             }
-
             if (seenIndex == this.periodIndex) {
-                // There is another possibility.
-                // Next index could also be alphaSize - 1.
-                int a = state == 1 ? 1 : alphaI(alphaSize - 1);
-
-                // Create the map if does not exist.
-                this.stateTransitions.putIfAbsent(curNodeIdx, new Int2ObjectRBTreeMap<>());
-                NodeState node = new NodeState(0, startIndex, alphaSize - 1);
-                pointToNode(a, node, curNodeIdx, queue);
-
-                // Go to state 1 from this state 0 for transition = a.
-                if (state == 0) {
-                    pointSymbolToNode(
-                        new NodeState(1, startIndex, alphaSize - 1), curNodeIdx, queue, a);
-                }
+                handleTransition(seenIndex, alphaSize - 1, curNode.state(),
+                    curNodeIdx, curNode.startIndex(), alphaSize - 1, queue);
             }
         }
     }
 
-    private Queue<Integer> initialiszeBfs() {
-        // This is the start state.
-        NodeState startNode = new NodeState(0, 0, 0);
+    private Queue<Integer> initializeBfs() {
+        NodeState startNode = new NodeState(0, 0, 0); // This is the start state.
         this.nodeToIndex.put(startNode, 0);
         this.indexToNode.put(0, startNode);
         ++this.totalNodes;
-
         this.stateTransitions = new TreeMap<>();
-        // These are the "0" states.
-        this.stateTransitions.put(0, new Int2ObjectRBTreeMap<>());
+        this.stateTransitions.put(0, new Int2ObjectRBTreeMap<>()); // These are the "0" states.
         return new LinkedList<>();
+    }
+
+    private void handleTransition(int seenIndex, int targetSeenIndex, int state, int curNodeIdx,
+                                  int startIndex, int alphaIndex, Queue<Integer> queue) {
+        this.stateTransitions.putIfAbsent(curNodeIdx, new Int2ObjectRBTreeMap<>());
+
+        // Compute 'a' based on the state
+        int a = state == 1 ? 1 : alphaI(alphaIndex);
+
+        // Transition to state 0 for all values < a
+        NodeState node = new NodeState(0, startIndex, targetSeenIndex);
+        for (int inp = 0; inp < a; ++inp) {
+            pointSymbolToNode(node, curNodeIdx, queue, inp);
+        }
+
+        // Transition to state 1 if needed
+        if (state == 0 && (seenIndex > 2 || seenIndex == this.periodIndex)) {
+            pointSymbolToNode(new NodeState(1, startIndex, targetSeenIndex), curNodeIdx, queue, a);
+        }
     }
 
     private void addTransitionsAndNode(NodeState node, int curNodeIdx, int a, int r, int s, Queue<Integer> queue) {
@@ -453,12 +376,6 @@ public class Ostrowski {
     private void addNodeIndices(NodeState node) {
         nodeToIndex.put(node, this.totalNodes);
         indexToNode.put(this.totalNodes, node);
-    }
-
-    private void pointToNode(int a, NodeState node, int curNodeIdx, Queue<Integer> queue) {
-        for (int inp = 0; inp < a; ++inp) {
-            pointSymbolToNode(node, curNodeIdx, queue, inp);
-        }
     }
 
     private void pointSymbolToNode(NodeState node, int curNodeIdx, Queue<Integer> queue, int inp) {
@@ -501,5 +418,70 @@ public class Ostrowski {
                 }
             }
         }
+    }
+
+    /**
+     * The transition matrix defines the behavior of the "4-input adder" automaton, which is used
+     * in constructing the Ostrowski addition automaton. Each transition is parameterized by two
+     * integers (r, s).
+     * Conceptually:
+     * The automaton states (0 through 6) represent different "carry" or "configuration" conditions
+     * in the addition process under Ostrowski numeration.
+     * The transitions encode how to update the automaton's state given certain inputs and the
+     * Ostrowski system's arithmetic rules.
+     */
+    private static int[][][] initAdderTransitions() {
+        int[][][] adderTransitions = new int[NUM_STATES][NUM_STATES][2];
+        for (int i = 0; i < NUM_STATES; i++) {
+            for (int j = 0; j < NUM_STATES; j++) {
+                adderTransitions[i][j][0] = adderTransitions[i][j][1] = NONE;
+            }
+        }
+
+        adderTransitions[0][0][0] = 0;
+        adderTransitions[0][0][1] = 0;
+        adderTransitions[0][1][0] = 0;
+        adderTransitions[0][1][1] = 1;
+
+        adderTransitions[1][2][0] = -1;
+        adderTransitions[1][2][1] = 0;
+        adderTransitions[1][3][0] = -1;
+        adderTransitions[1][3][1] = 1;
+        adderTransitions[1][4][0] = -1;
+        adderTransitions[1][4][1] = -1;
+
+        adderTransitions[2][0][0] = 0;
+        adderTransitions[2][0][1] = -1;
+        adderTransitions[2][1][0] = 0;
+        adderTransitions[2][1][1] = 0;
+
+        adderTransitions[3][2][0] = -1;
+        adderTransitions[3][2][1] = -1;
+        adderTransitions[3][3][0] = -1;
+        adderTransitions[3][3][1] = 0;
+        adderTransitions[3][4][0] = -1;
+        adderTransitions[3][4][1] = -2;
+
+        adderTransitions[4][5][0] = 1;
+        adderTransitions[4][5][1] = 0;
+        adderTransitions[4][6][0] = 1;
+        adderTransitions[4][6][1] = -1;
+
+        adderTransitions[5][2][0] = -1;
+        adderTransitions[5][2][1] = 1;
+        adderTransitions[5][3][0] = -1;
+        adderTransitions[5][3][1] = 2;
+        adderTransitions[5][4][0] = -1;
+        adderTransitions[5][4][1] = 0;
+
+        adderTransitions[6][0][0] = 0;
+        adderTransitions[6][0][1] = 1;
+        adderTransitions[6][1][0] = 0;
+        adderTransitions[6][1][1] = 2;
+        return adderTransitions;
+    }
+
+    public String toString() {
+        return "name: " + this.name + ", alpha: " + this.alpha + ", period index: " + this.periodIndex;
     }
 }
