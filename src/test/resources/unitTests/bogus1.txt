@@ -1,0 +1,4 @@
+# No states declared
+msd_fib
+0 -> 0
+1 -> 1

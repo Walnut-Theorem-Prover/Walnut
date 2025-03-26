@@ -159,4 +159,84 @@ public class AutomatonReader {
             }
         }
     }
+
+    public static void readTransducer(Transducer transducer, String address) {
+        File f = UtilityMethods.validateFile(address);
+
+        long lineNumber = 0;
+        transducer.setAlphabetSize(1);
+
+        try (BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(f)))) {
+            lineNumber = firstParse(transducer, address, in, lineNumber, null);
+
+            int[] singleton = new int[1];
+            List<Integer> input = new ArrayList<>();
+            IntList dest = new IntArrayList();
+            List<Integer> output = new ArrayList<>();
+            int currentState = -1;
+            int currentStateOutput;
+            Int2ObjectRBTreeMap<IntList> currentStateTransitions = new Int2ObjectRBTreeMap<>();
+            Map<Integer, Integer> currentStateTransitionOutputs = new TreeMap<>();
+            Map<Integer, Integer> stateOutput = new TreeMap<>();
+            Map<Integer, Int2ObjectRBTreeMap<IntList>> stateTransition = new TreeMap<>();
+            Map<Integer, Map<Integer, Integer>> stateTransitionOutput = new TreeMap<>();
+
+            int Q = 0, q0=0;
+            Set<Integer> setOfDestinationStates = new HashSet<>();
+            boolean outputLongFile = false;
+
+            String line;
+            while ((line = in.readLine()) != null) {
+                lineNumber++;
+                outputLongFile = debugPrintLongFile(address, lineNumber, outputLongFile);
+
+                if (shouldSkipLine(line)) {
+                    continue;
+                }
+
+                if (ParseMethods.parseTransducerStateDeclaration(line, singleton)) {
+                    Q++;
+                    if (currentState == -1) {
+                        q0 = singleton[0];
+                    }
+
+                    currentState = singleton[0];
+                    currentStateOutput = 0; // state output does not matter for transducers.
+                    stateOutput.put(currentState, currentStateOutput);
+                    currentStateTransitions = new Int2ObjectRBTreeMap<>();
+                    stateTransition.put(currentState, currentStateTransitions);
+                    currentStateTransitionOutputs = new TreeMap<>();
+                    stateTransitionOutput.put(currentState, currentStateTransitionOutputs);
+                } else if (ParseMethods.parseTransducerTransition(line, input, dest, output)) {
+                    validateTransition(transducer, address, currentState, lineNumber, input);
+                    if (output.size() != 1) {
+                        throw new WalnutException("Transducers must have one output for each transition: line "
+                            + lineNumber + " of file " + address);
+                    }
+                    setOfDestinationStates.addAll(dest);
+                    List<List<Integer>> inputs = transducer.richAlphabet.expandWildcard(input);
+                    for (List<Integer> i : inputs) {
+                        currentStateTransitions.put(transducer.richAlphabet.encode(i), dest);
+                        currentStateTransitionOutputs.put(transducer.richAlphabet.encode(i), output.get(0));
+                    }
+                    input = new ArrayList<>();
+                    dest = new IntArrayList();
+                    output = new ArrayList<>();
+                } else {
+                    throw WalnutException.undefinedStatement(lineNumber, address);
+                }
+            }
+
+            validateDeclaredStates(setOfDestinationStates, stateOutput, address);
+
+            transducer.fa.setFieldsFromFile(Q, q0, stateOutput, stateTransition);
+            for (int q = 0; q < Q; q++) {
+                transducer.sigma.add(stateTransitionOutput.get(q));
+            }
+
+        } catch (IOException e) {
+            UtilityMethods.printTruncatedStackTrace(e);
+            throw WalnutException.fileDoesNotExist(address);
+        }
+    }
 }

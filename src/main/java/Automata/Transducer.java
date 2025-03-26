@@ -18,17 +18,13 @@
 
 package Automata;
 
-import java.io.*;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.TreeMap;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.LinkedList;
 import java.util.Queue;
-import java.util.Set;
 
 import Automata.FA.FA;
 import Main.WalnutException;
@@ -63,7 +59,7 @@ public class Transducer extends Automaton {
      * Just like in an Automaton's transition function d, we store the encoded values of inputs in sigma, so instead of
      * saying that "on (0, -1) we output 1", we really store "on 0, output 1".
      */
-    private final List<Map<Integer, Integer>> sigma;
+    final List<Map<Integer, Integer>> sigma;
 
     /**
      * Default constructor for Transducer.
@@ -78,83 +74,7 @@ public class Transducer extends Automaton {
      */
     public Transducer(String address) {
         this();
-        File f = UtilityMethods.validateFile(address);
-
-        long lineNumber = 0;
-        setAlphabetSize(1);
-
-        try (BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(f)))) {
-            lineNumber = AutomatonReader.firstParse(this, address, in, lineNumber, null);
-
-            int[] singleton = new int[1];
-            List<Integer> input = new ArrayList<>();
-            IntList dest = new IntArrayList();
-            List<Integer> output = new ArrayList<>();
-            int currentState = -1;
-            int currentStateOutput;
-            Int2ObjectRBTreeMap<IntList> currentStateTransitions = new Int2ObjectRBTreeMap<>();
-            Map<Integer, Integer> currentStateTransitionOutputs = new TreeMap<>();
-            Map<Integer, Integer> stateOutput = new TreeMap<>();
-            Map<Integer, Int2ObjectRBTreeMap<IntList>> stateTransition = new TreeMap<>();
-            Map<Integer, Map<Integer, Integer>> stateTransitionOutput = new TreeMap<>();
-
-            int Q = 0, q0=0;
-            Set<Integer> setOfDestinationStates = new HashSet<>();
-            boolean outputLongFile = false;
-
-            String line;
-            while ((line = in.readLine()) != null) {
-                lineNumber++;
-                outputLongFile = AutomatonReader.debugPrintLongFile(address, lineNumber, outputLongFile);
-
-                if (AutomatonReader.shouldSkipLine(line)) {
-                    continue;
-                }
-
-                if (ParseMethods.parseTransducerStateDeclaration(line, singleton)) {
-                    Q++;
-                    if (currentState == -1) {
-                        q0 = singleton[0];
-                    }
-
-                    currentState = singleton[0];
-                    currentStateOutput = 0; // state output does not matter for transducers.
-                    stateOutput.put(currentState, currentStateOutput);
-                    currentStateTransitions = new Int2ObjectRBTreeMap<>();
-                    stateTransition.put(currentState, currentStateTransitions);
-                    currentStateTransitionOutputs = new TreeMap<>();
-                    stateTransitionOutput.put(currentState, currentStateTransitionOutputs);
-                } else if (ParseMethods.parseTransducerTransition(line, input, dest, output)) {
-                    AutomatonReader.validateTransition(this, address, currentState, lineNumber, input);
-                    if (output.size() != 1) {
-                        throw new WalnutException("Transducers must have one output for each transition: line "
-                            + lineNumber + " of file " + address);
-                    }
-                    setOfDestinationStates.addAll(dest);
-                    List<List<Integer>> inputs = richAlphabet.expandWildcard(input);
-                    for (List<Integer> i : inputs) {
-                        currentStateTransitions.put(richAlphabet.encode(i), dest);
-                        currentStateTransitionOutputs.put(richAlphabet.encode(i), output.get(0));
-                    }
-                    input = new ArrayList<>();
-                    dest = new IntArrayList();
-                    output = new ArrayList<>();
-                } else {
-                    throw WalnutException.undefinedStatement(lineNumber, address);
-                }
-            }
-
-            AutomatonReader.validateDeclaredStates(setOfDestinationStates, stateOutput, address);
-
-            this.fa.setFieldsFromFile(Q, q0, stateOutput, stateTransition);
-            for (int q = 0; q < Q; q++) {
-                sigma.add(stateTransitionOutput.get(q));
-            }
-
-        } catch (IOException e) {
-            UtilityMethods.printTruncatedStackTrace(e);
-            throw WalnutException.fileDoesNotExist(address);
-        }
+        AutomatonReader.readTransducer(this, address);
     }
 
     /**
@@ -183,9 +103,7 @@ public class Transducer extends Automaton {
         long timeBefore = System.currentTimeMillis();
         UtilityMethods.logMessage(print, prefix + "transducing: " + M.fa.getQ() + " state automaton - " + fa.getQ() + " state transducer", log);
 
-        /**
-         * N will be the returned Automaton, just have to build it up.
-         */
+        // N will be the returned Automaton, just have to build it up.
         Automaton N = new Automaton();
         M.clonePartialFields(N);
 
@@ -328,7 +246,6 @@ public class Transducer extends Automaton {
         return N;
     }
 
-
     private static List<Integer> getDestinationForDFA(Automaton M, List<Integer> prevString) {
         List<Integer> iString = new ArrayList<>();
         for (Integer integer : prevString) {
@@ -359,7 +276,6 @@ public class Transducer extends Automaton {
      * @throws Exception
      */
     public Automaton transduceNonDeterministic(Automaton M, boolean print, String prefix, StringBuilder log) {
-
         // check that the input automaton only has one input!
         if (M.getNS().size() != 1) {
             throw new WalnutException("Automata with only one input can be transduced.");
@@ -418,8 +334,6 @@ public class Transducer extends Automaton {
         return N;
     }
 
-
-
     /**
      * Take a string w of states of automaton M, and return the list
      *      [phi_{M.O(w)}, phi_{M.O(h(w))}, ..., phi_{M.O(h^{size - 1}(w))}]
@@ -430,7 +344,6 @@ public class Transducer extends Automaton {
      * @return
      */
     private List<Map<Integer, Integer>> createIterates(Automaton M, List<Integer> string, int size) {
-
         List<Map<Integer, Integer>> iterates = new ArrayList<>();
         // start with the empty string.
         Map<Integer, Integer> identity = createIdentityMap(this.fa.getQ());
