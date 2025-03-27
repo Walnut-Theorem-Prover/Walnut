@@ -38,6 +38,9 @@ import it.unimi.dsi.fastutil.ints.IntList;
  * For example, for alpha = sqrt(3) - 1, pre-period = [] and period = [1, 2].
  * We only consider alpha < 1, therefore a 0 is always assumed in the pre-period and need not be
  * mentioned in the command.
+ * For mor details, see:
+ * Baranwal, Aseem. Decision algorithms for Ostrowski-automatic sequences.
+ *   MS thesis. University of Waterloo, 2020.
  */
 public class Ostrowski {
     // The number of states in the 4-input adder is 7.
