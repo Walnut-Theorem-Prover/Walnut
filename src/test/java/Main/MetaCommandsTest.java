@@ -14,18 +14,18 @@ public class MetaCommandsTest {
       new MetaCommands().parseMetaCommands("[strategy OTF 5 x]");
     });
 
-    Assertions.assertEquals("", mc.parseMetaCommands("[strategy OTF 5]"));
-    Assertions.assertEquals(DeterminizationStrategies.Strategy.OTF, mc.getStrategy(5));
+    Assertions.assertEquals("", mc.parseMetaCommands("[strategy OTF-CCLS 5]"));
+    Assertions.assertEquals(DeterminizationStrategies.Strategy.OTF_CCLS, mc.getStrategy(5));
 
     mc = new MetaCommands();
-    Assertions.assertEquals("blah", mc.parseMetaCommands("[strategy OTF 5][strategy OTF-BRZ 10]blah"));
-    Assertions.assertEquals(DeterminizationStrategies.Strategy.OTF, mc.getStrategy(5));
-    Assertions.assertEquals(DeterminizationStrategies.Strategy.OTF_BRZ, mc.getStrategy(10));
+    Assertions.assertEquals("blah", mc.parseMetaCommands("[strategy OTF-CCLS 5][strategy OTF-BRZ-CCLS 10]blah"));
+    Assertions.assertEquals(DeterminizationStrategies.Strategy.OTF_CCLS, mc.getStrategy(5));
+    Assertions.assertEquals(DeterminizationStrategies.Strategy.OTF_BRZ_CCLS, mc.getStrategy(10));
 
     mc = new MetaCommands();
-    Assertions.assertEquals("blah", mc.parseMetaCommands("[strategy OTF *]blah"));
-    Assertions.assertEquals(DeterminizationStrategies.Strategy.OTF, mc.getStrategy(0));
-    Assertions.assertEquals(DeterminizationStrategies.Strategy.OTF, mc.getStrategy(1));
+    Assertions.assertEquals("blah", mc.parseMetaCommands("[strategy OTF-CCLS *]blah"));
+    Assertions.assertEquals(DeterminizationStrategies.Strategy.OTF_CCLS, mc.getStrategy(0));
+    Assertions.assertEquals(DeterminizationStrategies.Strategy.OTF_CCLS, mc.getStrategy(1));
   }
 
   @Test

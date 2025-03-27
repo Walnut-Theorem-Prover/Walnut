@@ -18,7 +18,6 @@
 package Automata;
 
 import Automata.FA.FA;
-import MRC.Model.MyNFA;
 import Main.UtilityMethods;
 import Main.WalnutException;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
@@ -29,6 +28,7 @@ import java.io.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import net.automatalib.automaton.fsa.impl.CompactNFA;
 import net.automatalib.serialization.ba.BAWriter;
 
 public class AutomatonWriter {
@@ -295,10 +295,10 @@ public class AutomatonWriter {
             throw new WalnutException("Can't export DFAO to BA format");
         }
         System.out.println("Exporting to:" + address);
-        MyNFA<Integer> myNFA = a.FAtoMyNFA();
+        CompactNFA<Integer> compactNFA = a.FAtoCompactNFA();
         BAWriter<Integer> baWriter = new BAWriter<>();
         try (BufferedOutputStream os = new BufferedOutputStream(new FileOutputStream(address))) {
-            baWriter.writeModel(os, myNFA, myNFA.getInputAlphabet());
+            baWriter.writeModel(os, compactNFA, compactNFA.getInputAlphabet());
         } catch (IOException e) {
           UtilityMethods.printTruncatedStackTrace(e);
         }

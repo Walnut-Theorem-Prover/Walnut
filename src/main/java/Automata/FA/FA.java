@@ -19,8 +19,6 @@ package Automata.FA;
 
 import Automata.Automaton;
 import Automata.RichAlphabet;
-import MRC.Model.MyDFA;
-import MRC.Model.MyNFA;
 import Main.WalnutException;
 import Main.UtilityMethods;
 import dk.brics.automaton.RegExp;
@@ -28,6 +26,7 @@ import dk.brics.automaton.State;
 import dk.brics.automaton.Transition;
 import it.unimi.dsi.fastutil.ints.*;
 import net.automatalib.alphabet.impl.Alphabets;
+import net.automatalib.automaton.fsa.impl.CompactDFA;
 import net.automatalib.automaton.fsa.impl.CompactNFA;
 
 import java.util.*;
@@ -887,6 +886,24 @@ public class FA implements Cloneable {
     this.TRUE_AUTOMATON = TRUE_AUTOMATON;
   }
 
+  /**
+   Convert FA to CompactNFA representation, allowing additional initialState
+   */
+  public CompactNFA<Integer> FAtoCompactNFA(IntSet initialState) {
+    CompactNFA<Integer> nfa = this.FAtoCompactNFA();
+    // Replace initial states
+    for(int i: nfa.getInitialStates()) {
+      nfa.setInitial(i, false);
+    }
+    for(int i: initialState) {
+      nfa.setInitial(i, true);
+    }
+    return nfa;
+  }
+
+  /**
+   Convert FA to CompactNFA representation
+   */
   public CompactNFA<Integer> FAtoCompactNFA() {
       CompactNFA<Integer> nfa = new CompactNFA<>(Alphabets.integers(0, this.alphabetSize - 1), this.Q);
       for (int i = 0; i < this.Q; i++) {
@@ -903,46 +920,6 @@ public class FA implements Cloneable {
           }
       }
       return nfa;
-  }
-
-  /**
-  Convert FA to MyNFA representation, allowing additional initialState
-   */
-  public MyNFA<Integer> FAtoMyNFA(IntSet initialState) {
-    MyNFA<Integer> nfa = this.FAtoMyNFA();
-    // Replace initial states
-    for(int i: nfa.getInitialStates()) {
-      nfa.setInitial(i, false);
-    }
-    for(int i: initialState) {
-      nfa.setInitial(i, true);
-    }
-    return nfa;
-  }
-
-  /**
-  Convert FA to MyNFA representation
-  */
-  public MyNFA<Integer> FAtoMyNFA() {
-    MyNFA<Integer> nfa = new MyNFA<>(Alphabets.integers(0, this.alphabetSize - 1), this.Q);
-    for (int i = 0; i < this.Q; i++) {
-      nfa.addState(isAccepting(i));
-    }
-    nfa.setInitial(this.q0, true);
-    if (nfaD != null) {
-      for (int i = 0; i < this.Q; i++) {
-        for(Int2ObjectMap.Entry<IntList> entry : this.getEntriesNfaD(i)) {
-          nfa.addTransitions(i, entry.getIntKey(), entry.getValue());
-        }
-      }
-    } else {
-      for (int i = 0; i < this.Q; i++) {
-        for (Int2IntMap.Entry entry : dfaD.get(i).int2IntEntrySet()) {
-          nfa.addTransition(i, entry.getIntKey(), entry.getIntValue());
-        }
-      }
-    }
-    return nfa;
   }
 
   public static FA compactNFAToFA(CompactNFA<Integer> cNFA) {
@@ -972,7 +949,7 @@ public class FA implements Cloneable {
     return fa;
   }
 
-  public void setFromMyDFA(MyDFA<Integer> myDFA) {
+  public void setFromCompactDFA(CompactDFA<Integer> myDFA) {
     Q = myDFA.size();
     q0 = myDFA.getInitialState();
     O.clear();
@@ -994,14 +971,13 @@ public class FA implements Cloneable {
     }
   }
 
+  public List<Int2IntMap> getDfaD() {
+      return dfaD;
+  }
 
-    public List<Int2IntMap> getDfaD() {
-        return dfaD;
-    }
-
-    public void setDfaD(List<Int2IntMap> dfaD) {
-        this.dfaD = dfaD;
-    }
+  public void setDfaD(List<Int2IntMap> dfaD) {
+      this.dfaD = dfaD;
+  }
 
   /**
    * Reduce memory in DfaD by trimming all maps.

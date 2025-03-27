@@ -1,20 +1,20 @@
 package Automata.FA;
 
 import Automata.AutomatonWriter;
-import MRC.Index.AntichainForestIndex;
-import MRC.Index.OTFIndex;
-import MRC.Model.DeterminizeRecord;
-import MRC.Model.MyDFA;
-import MRC.Model.MyNFA;
-import MRC.Model.Threshold;
-import MRC.NFATrim;
-import MRC.Simulation.ParallelSimulation;
+import OTF.OTFDeterminization;
+import OTF.Registry.AntichainForestRegistry;
+import OTF.Registry.Registry;
+import OTF.Model.DeterminizeRecord;
+import OTF.Model.Threshold;
+import OTF.NFATrim;
+import OTF.Simulation.ParallelSimulation;
 import Main.*;
-import MRC.OnTheFlyDeterminization;
 import it.unimi.dsi.fastutil.ints.*;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import net.automatalib.alphabet.Alphabet;
+import net.automatalib.automaton.fsa.impl.CompactDFA;
+import net.automatalib.automaton.fsa.impl.CompactNFA;
 import net.automatalib.ts.AcceptorPowersetViewTS;
 
 import java.util.*;
@@ -30,12 +30,10 @@ public class DeterminizationStrategies {
   public enum Strategy {
     SC("SC", false, List.of("SC")),
     BRZ("Brzozowski", false, List.of("Brz")),
-    OTF("OTF", true, List.of("OTF")),
-    OTF_BRZ("OTF-Brzozowski", true, List.of("OTFBRZ", "BRZOTF")),
-    OTF_NOSIM("OTF-no-simulation", false,
-        List.of("OTFNOSIM")),
-    OTF_BRZ_NOSIM("OTF-Brzozowski-no-simulation", false,
-        List.of( "OTFBRZNOSIM", "BTZOTFNOSIM"));
+    OTF_CCLS("OTF-CCLS", true, List.of("OTFCCLS")),
+    OTF_BRZ_CCLS("OTF-Brzozowski-CCLS", true, List.of("OTFBRZCCLS", "BRZOTFCCLS")),
+    OTF_CCL("OTF-CCL", false, List.of("OTFCCL")),
+    OTF_BRZ_CCL("OTF-Brzozowski-CCL", false, List.of( "OTFBRZCCL", "BTZOTFCCL"));
     private final String name;
     private final boolean doSimulation;
     private final List<String> aliases;
@@ -67,8 +65,8 @@ public class DeterminizationStrategies {
     Strategy removeBrzozowski() {
       return switch(this) {
         case BRZ -> SC;
-        case OTF_BRZ -> OTF;
-        case OTF_BRZ_NOSIM -> OTF_NOSIM;
+        case OTF_BRZ_CCLS -> OTF_CCLS;
+        case OTF_BRZ_CCL -> OTF_CCL;
         default -> throw new WalnutException("Unexpected strategy:" + this.name);
       };
     }
@@ -111,14 +109,14 @@ public class DeterminizationStrategies {
             "Determinizing " + strategy.outputName(automataIdx) + ": " + fa.getQ() + " states", log);
       }
 
-      // Convert to MyNFA representation
+      // Convert to CompactNFA representation
       // then trim
       // then bisim
 
       switch (strategy) {
         case SC -> SC(fa, initialState, print, prefix, log);
-        case BRZ, OTF_BRZ, OTF_BRZ_NOSIM -> Brz(fa, initialState, strategy, print, prefix, log);
-        case OTF, OTF_NOSIM -> OTF(fa, initialState, strategy.doSimulation, print, prefix, log);
+        case BRZ, OTF_BRZ_CCL, OTF_BRZ_CCLS -> Brz(fa, initialState, strategy, print, prefix, log);
+        case OTF_CCL, OTF_CCLS -> OTF(fa, initialState, strategy.doSimulation, print, prefix, log);
       }
 
       long timeAfter = System.currentTimeMillis();
@@ -231,8 +229,8 @@ public class DeterminizationStrategies {
       FA fa, IntSet initialState, boolean doSimulation, boolean print, String prefix, StringBuilder log) {
     long timeBefore = System.currentTimeMillis();
 
-    MyNFA<Integer> myNFA = fa.FAtoMyNFA(initialState);
-    MyNFA<Integer> reduced = NFATrim.bisim(myNFA);
+    CompactNFA<Integer> compactNFA = fa.FAtoCompactNFA(initialState);
+    CompactNFA<Integer> reduced = NFATrim.bisim(compactNFA);
     if (reduced.size() < fa.getQ()) {
       UtilityMethods.logMessage(
           print, prefix + "Bisimulation reduced to " + reduced.size() + " states", log);
@@ -240,7 +238,7 @@ public class DeterminizationStrategies {
     ArrayList<BitSet> simRels = new ArrayList<>();
     if (doSimulation) {
       int prevSize = reduced.size();
-      reduced = ParallelSimulation.fullyComputeRels(reduced, simRels);
+      reduced = ParallelSimulation.fullyComputeRels(reduced, simRels, true);
       if (reduced.size() != prevSize) {
         UtilityMethods.logMessage(
             print, prefix + "Simulation altered to " + reduced.size() + " states", log);
@@ -257,17 +255,17 @@ public class DeterminizationStrategies {
       }
     }
     final Threshold threshold = Threshold.adaptiveSteps(4000);
-    OTFIndex index = new AntichainForestIndex<>(reduced, simRels.toArray(new BitSet[0]));
+    Registry registry = new AntichainForestRegistry<>(reduced, simRels.toArray(new BitSet[0]));
     Alphabet<Integer> inputs = reduced.getInputAlphabet();
     AcceptorPowersetViewTS<BitSet, Integer, Integer> nfa = reduced.powersetView();
     Deque<DeterminizeRecord<BitSet>> stack = new ArrayDeque<>();
 
     BitSet init = nfa.getInitialState();
     boolean initAcc = nfa.isAccepting(init);
-    MyDFA<Integer> out = new MyDFA<>(inputs);
+    CompactDFA<Integer> out = new CompactDFA<>(inputs);
     int initOut = out.addInitialState(initAcc);
 
-    index.put(init, initOut);
+    registry.put(init, initOut);
 
     stack.push(new DeterminizeRecord<>(init, initOut));
     BitSet finishedStates = new BitSet();
@@ -289,15 +287,15 @@ public class DeterminizationStrategies {
         }
       }
       DeterminizeRecord<BitSet> curr = stack.pop();
-      BitSet inState = curr.inputState;
-      int outState = curr.outputAddress;
+      BitSet inState = curr.inputState();
+      int outState = curr.outputAddress();
       boolean complete = true;
       for (int i = 0; i < numInputs; ++i) {
-        final BitSet prune = index.prune(nfa.getSuccessor(inState, i));
-        int outSucc = index.get(prune);
-        if (outSucc == OTFIndex.MISSING_ELEMENT) {
+        BitSet succ = nfa.getSuccessor(inState, i);
+        int outSucc = registry.get(succ);
+        if (outSucc == Registry.MISSING_ELEMENT) {
           complete = false;
-          final boolean succAcc = nfa.isAccepting(prune);
+          final boolean succAcc = nfa.isAccepting(succ);
           // add new state to DFA and to stack
           if (stateBuffer.isEmpty()) {
             outSucc = out.addState(succAcc);
@@ -305,8 +303,8 @@ public class DeterminizationStrategies {
             outSucc = stateBuffer.pop();
             out.setAccepting(outSucc, succAcc);
           }
-          index.put(prune, outSucc);
-          stack.push(new DeterminizeRecord<>(prune, outSucc));
+          registry.put(succ, outSucc);
+          stack.push(new DeterminizeRecord<>(succ, outSucc));
         }
         out.setTransition(outState, inputs.getSymbolIndex(i), outSucc);
         statesExplored++;
@@ -315,7 +313,7 @@ public class DeterminizationStrategies {
       finishedStates.set(outState);
 
       if (complete && threshold.test(out)) {
-        OnTheFlyDeterminization.minimizeReuse(inputs, out, finishedStates, stateBuffer, index);
+        OTFDeterminization.otfMinimization(inputs, out, finishedStates, stateBuffer, registry);
         int statesSoFar = out.size() - stateBuffer.size();
         threshold.update(statesSoFar);
         long timeAfter = System.currentTimeMillis();
@@ -323,6 +321,6 @@ public class DeterminizationStrategies {
             prefix + "  Progress: Periodic minimization: " + statesSoFar + " states - " + (timeAfter - timeBefore) + "ms", log);
       }
     }
-    fa.setFromMyDFA(out);
+    fa.setFromCompactDFA(out);
   }
 }

@@ -848,19 +848,19 @@ public class IntegrationTest {
 		L.add("fixleadzero test630 shift;");
 
 		L.add("[strategy SC 1]eval test631 \"9 >= a& a!=8 & 9 > a & 4 <= a & 6 != a\";");//a = 4,5,7
-		L.add("[strategy OTF 1]eval test632 \"9 >= a& a!=8 & 9 > a & 4 <= a & 6 != a\";");//a = 4,5,7
+		L.add("[strategy OTF_CCLS 1]eval test632 \"9 >= a& a!=8 & 9 > a & 4 <= a & 6 != a\";");//a = 4,5,7
 		L.add("[strategy BRZ 1]eval test633 \"9 >= a& a!=8 & 9 > a & 4 <= a & 6 != a\";");//a = 4,5,7
-		L.add("[strategy OTF_BRZ 1]eval test634 \"9 >= a& a!=8 & 9 > a & 4 <= a & 6 != a\";");//a = 4,5,7
-		L.add("[strategy OTF_BRZ_NOSIM 1]eval test635 \"9 >= a& a!=8 & 9 > a & 4 <= a & 6 != a\";");//a = 4,5,7
-		L.add("[strategy OTF_NOSIM 1]eval test636 \"9 >= a& a!=8 & 9 > a & 4 <= a & 6 != a\";");//a = 4,5,7
+		L.add("[strategy OTF_BRZ_CCLS 1]eval test634 \"9 >= a& a!=8 & 9 > a & 4 <= a & 6 != a\";");//a = 4,5,7
+		L.add("[strategy OTF_BRZ_CCL 1]eval test635 \"9 >= a& a!=8 & 9 > a & 4 <= a & 6 != a\";");//a = 4,5,7
+		L.add("[strategy OTF_CCL 1]eval test636 \"9 >= a& a!=8 & 9 > a & 4 <= a & 6 != a\";");//a = 4,5,7
 
 		// thm5, from https://cs.uwaterloo.ca/~shallit/Papers/thm5.txt
 		// Very fast for BRZ and OTF
 		L.add("[strategy BRZ 10]eval test637 \"E x,y,z (n=x+y+z)&(QQ[x]=@1)&(QQ[y]=@1)&(QQ[z]=@1)\"::");
-		L.add("[strategy OTF 10]eval test638 \"E x,y,z (n=x+y+z)&(QQ[x]=@1)&(QQ[y]=@1)&(QQ[z]=@1)\"::");
-		L.add("[strategy OTF_NOSIM 10]eval test639 \"E x,y,z (n=x+y+z)&(QQ[x]=@1)&(QQ[y]=@1)&(QQ[z]=@1)\"::");
-		L.add("[strategy OTF_BRZ_NOSIM 10]eval test640 \"E x,y,z (n=x+y+z)&(QQ[x]=@1)&(QQ[y]=@1)&(QQ[z]=@1)\"::");
-			L.add("[strategy OTF_BRZ 10]eval test641 \"E x,y,z (n=x+y+z)&(QQ[x]=@1)&(QQ[y]=@1)&(QQ[z]=@1)\"::");
+		L.add("[strategy OTF_CCLS 10]eval test638 \"E x,y,z (n=x+y+z)&(QQ[x]=@1)&(QQ[y]=@1)&(QQ[z]=@1)\"::");
+		L.add("[strategy OTF_CCL 10]eval test639 \"E x,y,z (n=x+y+z)&(QQ[x]=@1)&(QQ[y]=@1)&(QQ[z]=@1)\"::");
+		L.add("[strategy OTF_BRZ_CCL 10]eval test640 \"E x,y,z (n=x+y+z)&(QQ[x]=@1)&(QQ[y]=@1)&(QQ[z]=@1)\"::");
+		L.add("[strategy OTF_BRZ_CCLS 10]eval test641 \"E x,y,z (n=x+y+z)&(QQ[x]=@1)&(QQ[y]=@1)&(QQ[z]=@1)\"::");
 
 		// Additional tests for division with negative numbers and DFAOs with negative outputs
 		L.add("eval test642 \"?msd_neg_2 _3 / _2 = 1\";");
