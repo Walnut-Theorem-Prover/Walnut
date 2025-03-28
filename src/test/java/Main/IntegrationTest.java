@@ -29,8 +29,9 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
 
-import static Main.Prover.GV_EXTENSION;
-import static Main.Prover.TXT_EXTENSION;
+import static Main.Prover.*;
+import static Main.TestCase.DETAILS_FILE;
+import static Main.TestCase.ERROR_FILE;
 
 public class IntegrationTest {
 	List<TestCase> testCases;//list of test cases
@@ -901,10 +902,18 @@ public class IntegrationTest {
 				assertEqualMessages(expectedGraphView, actual.getGraphView().trim());
 			}
 			assertEqualMessages(expected.getDetails(), actual.getDetails());
-			Assertions.assertTrue(actual.getResult() == null || expected.getResult() != null);
-			Assertions.assertTrue(actual.getResult() != null || expected.getResult() == null);
-			// We don't use assertEquals here, since equals has been overridden in the Automaton class
-			Assertions.assertTrue(actual.getResult().equals(expected.getResult()), "Actual result: " + actual.getResult() + " does not equal expected result: " + expected.getResult());
+			Assertions.assertEquals(expected.getAutomatonPairs().size(), actual.getAutomatonPairs().size(),
+					"Expected and actual automaton pair lists differ");
+			for(int j=0;j<expected.getAutomatonPairs().size();j++) {
+				Automaton expectedA = expected.getAutomatonPairs().get(j).automaton();
+				Automaton actualA = actual.getAutomatonPairs().get(j).automaton();
+				Assertions.assertTrue(actualA == null || expectedA != null);
+				Assertions.assertTrue(actualA != null || expectedA == null);
+				// We don't use assertEquals here, since equals has been overridden in the Automaton class
+				Assertions.assertTrue(actualA.equals(expectedA),
+						"Actual result: " + actualA + " does not equal expected result: " + expectedA);
+			}
+
 		}
 		catch(Exception e){
 			Assertions.assertEquals(expected.getError(), e.getMessage());
@@ -966,16 +975,28 @@ public class IntegrationTest {
 	private static List<TestCase> loadTestCases(List<String> L, String directoryAddress) throws IOException {
 		List<TestCase> testCases = new ArrayList<>();
 		for(int i = 0 ; i < L.size();i++) {
+			List<TestCase.AutomatonFilenamePair> automatonFilenamePairs = new ArrayList<>();
 			Automaton M = null;
-			String automatonFilePath = directoryAddress + "automaton" + i + TXT_EXTENSION;
+			String automatonFilePath = directoryAddress + TestCase.DEFAULT_TESTFILE + i + TXT_EXTENSION;
 			if (new File(automatonFilePath).isFile()) {
 				M = new Automaton(automatonFilePath);
 			}
-			String error = UtilityMethods.readFromFile(directoryAddress + "error" + i + TXT_EXTENSION);
-			String details = UtilityMethods.readFromFile(directoryAddress+"details"+ i + TXT_EXTENSION);
+			automatonFilenamePairs.add(new TestCase.AutomatonFilenamePair(M, TestCase.DEFAULT_TESTFILE));
+
+			// hack for repr files.
+			// TODO: make this more generic to auto-detect other files with a given number in their name.
+			automatonFilePath = directoryAddress + "automaton_repr" + i + TXT_EXTENSION;
+			if (new File(automatonFilePath).isFile()) {
+				Automaton M2 = new Automaton(automatonFilePath);
+				automatonFilenamePairs.add(new TestCase.AutomatonFilenamePair(M2, "automaton_repr"));
+			}
+
+			String error = UtilityMethods.readFromFile(directoryAddress + ERROR_FILE + i + TXT_EXTENSION);
+			String details = UtilityMethods.readFromFile(directoryAddress+ DETAILS_FILE + i + TXT_EXTENSION);
 			testCases.add(new TestCase(
-					M,error,directoryAddress + "mpl" + i + ".mpl",
-					directoryAddress + "gv" + i + GV_EXTENSION,details));
+					M,error,directoryAddress + MPL_STRING + i + MPL_EXTENSION,
+					directoryAddress + GV_STRING + i + GV_EXTENSION,details,
+					automatonFilenamePairs));
 		}
 		return testCases;
 	}
@@ -989,7 +1010,8 @@ public class IntegrationTest {
       try {
         test_case = new Prover().dispatchForIntegrationTest(command, "integ:" + command);
       } catch (Exception e) {
-        test_case = new TestCase(null, e.getMessage(), "", "", "");
+        test_case = new TestCase(null, e.getMessage(), "", "", "",
+						List.of(new TestCase.AutomatonFilenamePair(null, TestCase.DEFAULT_TESTFILE)));
       }
       testCases.add(test_case);
     }
@@ -999,17 +1021,21 @@ public class IntegrationTest {
 		new File(directory).mkdirs();
 		for(int i = 0 ; i < testCases.size();i++){
 			TestCase t = testCases.get(i);
-			if(t.getResult() != null){
-				AutomatonWriter.writeToTxtFormat(t.getResult(), directory+"automaton" + i + TXT_EXTENSION);
+			for (TestCase.AutomatonFilenamePair automatonFilenamePair : t.getAutomatonPairs()) {
+				if(automatonFilenamePair.automaton() != null){
+					AutomatonWriter.writeToTxtFormat(
+							automatonFilenamePair.automaton(), directory+ TestCase.DEFAULT_TESTFILE + i + TXT_EXTENSION);
+				}
 			}
+
 			if(t.getError() != null && !t.getError().isEmpty()){
-				writeToFile(directory, "error", i, TXT_EXTENSION, t.getError());
+				writeToFile(directory, ERROR_FILE, i, TXT_EXTENSION, t.getError());
 			}
 			if(t.getMpl() != null && !t.getMpl().isEmpty()){
-				writeToFile(directory, "mpl", i, ".mpl", t.getMpl());
+				writeToFile(directory, MPL_STRING, i, MPL_EXTENSION, t.getMpl());
 			}
 			if(t.getDetails() != null && !t.getDetails().isEmpty()){
-				writeToFile(directory, "details", i, TXT_EXTENSION, t.getDetails());
+				writeToFile(directory, DETAILS_FILE, i, TXT_EXTENSION, t.getDetails());
 			}
 		}
 	}

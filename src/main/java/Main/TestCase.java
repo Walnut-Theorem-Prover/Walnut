@@ -21,6 +21,7 @@ package Main;
 import Automata.Automaton;
 
 import java.io.IOException;
+import java.util.List;
 
 public class TestCase {
     private final String error;
@@ -28,20 +29,32 @@ public class TestCase {
     private final String mplAddress;
     private final String gvAddress;
     private final Automaton result;
+    private final List<AutomatonFilenamePair> automatonPairs;
 
-    public TestCase(Automaton result, String error, String mplAddress, String gvAddress, String details) {
+    public static final String DEFAULT_TESTFILE = "automaton";
+    public static final String ERROR_FILE = "error";
+    public static final String DETAILS_FILE = "details";
+
+    public TestCase(
+        Automaton result, String error, String mplAddress, String gvAddress,
+        String details, List<AutomatonFilenamePair> automatonPairs) {
         this.result = result;
         this.error = error;
         this.mplAddress = mplAddress;
         this.gvAddress = gvAddress;
         this.details = details;
+        this.automatonPairs = automatonPairs;
     }
     public TestCase(Automaton result) {
-        this(result, "", "", "", "");
+        this(result, "", "", "", "",
+            List.of(new AutomatonFilenamePair(result, DEFAULT_TESTFILE)));
+    }
+    public TestCase(Automaton result, List<AutomatonFilenamePair> automatonPairs) {
+        this(result, "", "", "", "", automatonPairs);
     }
 
-    public Automaton getResult() {
-        return result;
+    public List<AutomatonFilenamePair> getAutomatonPairs() {
+        return automatonPairs;
     }
 
     public String getMpl() throws IOException {
@@ -65,4 +78,7 @@ public class TestCase {
     public String getError() {
         return error;
     }
+
+    public record AutomatonFilenamePair(Automaton automaton, String filename) { }
+
 }

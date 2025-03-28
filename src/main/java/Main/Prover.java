@@ -32,6 +32,8 @@ import Main.EvalComputations.Token.ArithmeticOperator;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 
+import static Main.TestCase.DEFAULT_TESTFILE;
+
 /**
  * This class contains the main method. It is responsible to get a command from user
  * and parse and dispatch the command appropriately.
@@ -71,6 +73,10 @@ public class Prover {
   public static final String GV_EXTENSION = DOT + GV_STRING;
   public static final String BA_STRING = "ba";
   public static final String BA_EXTENSION = DOT + BA_STRING;
+  public static final String MPL_STRING = "mpl";
+  public static final String MPL_EXTENSION = DOT + MPL_STRING;
+
+
   /**
    * group for filename in RE_FOR_load_CMD
    */
@@ -590,7 +596,8 @@ public class Prover {
       System.out.println("____\n" + (M.fa.isTRUE_AUTOMATON() ? "TRUE" : "FALSE"));
     }
 
-    return new TestCase(M, "", mplAddress, gvAddress, printDetails ? c.logDetails.toString() : "");
+    return new TestCase(M, "", mplAddress, gvAddress, printDetails ? c.logDetails.toString() : "",
+        List.of(new TestCase.AutomatonFilenamePair(M, DEFAULT_TESTFILE)));
   }
 
   private static List<String> determineFreeVariables(Matcher m) {
@@ -798,7 +805,10 @@ public class Prover {
     combineString.append(":");
 
     TestCase retrieval = combineCommand(combineString.toString());
-    Automaton I = retrieval.getResult().clone();
+    if (retrieval.getAutomatonPairs().size() != 1) {
+      throw new WalnutException("Unexpected combine output");
+    }
+    Automaton I = retrieval.getAutomatonPairs().get(0).automaton().clone();
 
     I.writeAutomata(s, Session.getWriteAddressForWordsLibrary(), m.group(GROUP_IMAGE_NEW_NAME), true);
     return new TestCase(I);
@@ -965,7 +975,10 @@ public class Prover {
       searchLength++;
       dotReg.append(".");
       TestCase retrieval = regCommand(incLengthReg + "\"" + dotReg + "\";");
-      Automaton R = retrieval.getResult().clone();
+      if (retrieval.getAutomatonPairs().size() != 1) {
+        throw new WalnutException("Unexpected retrieval output");
+      }
+      Automaton R = retrieval.getAutomatonPairs().get(0).automaton().clone();
 
       // and-ing automata uses the cross product routine, which requires labeled automata
       R.setLabel(M.getLabel());
@@ -995,10 +1008,14 @@ public class Prover {
 
     String name = m.group(GROUP_OST_NAME);
     Ostrowski ostr = new Ostrowski(name, m.group(GROUP_OST_PREPERIOD), m.group(GROUP_OST_PERIOD));
-    Ostrowski.writeAutomaton(name, "msd_" + name + TXT_EXTENSION, ostr.createRepresentationAutomaton());
+    Automaton repr = ostr.createRepresentationAutomaton();
+    Ostrowski.writeAutomaton(name, "msd_" + name + TXT_EXTENSION, repr);
     Automaton adder = ostr.createAdderAutomaton();
     Ostrowski.writeAutomaton(name, "msd_" + name + "_addition.txt", adder);
-    return new TestCase(adder);
+
+    return new TestCase(adder,
+        List.of(new TestCase.AutomatonFilenamePair(adder, DEFAULT_TESTFILE),
+            new TestCase.AutomatonFilenamePair(repr, "automaton_repr")));
   }
 
   public TestCase transduceCommand(String s) {
