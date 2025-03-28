@@ -13,7 +13,6 @@ All notable changes to Walnut will be documented here. Format is based on [Keep 
 - Ability to specify session and home directories from command line.
 - Walnut .txt files and scripts allow comments.
 - Dead states are removed (trim) before determinization.
-- (INCOMPLETE) Bisimulation reduction before determinization.
 - Leveraging the [AutomataLib](https://github.com/LearnLib/automatalib) library.
 - Allow reading and writing NFAs to the [BA](https://languageinclusion.org/doku.php?id=tools) format, including intermediates.
 - (INCOMPLETE, UNPUBLISHED) Leveraging the OTF library.
