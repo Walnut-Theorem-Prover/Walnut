@@ -40,7 +40,7 @@ public class OstrowskiTest {
         Automaton repr = ost.createRepresentationAutomaton();
         StringWriter stringWriter = new StringWriter();
         PrintWriter printWriter = new PrintWriter(stringWriter);
-        AutomatonWriter.writeToStream(repr, printWriter);
+        AutomatonWriter.writeTxtFormatToStream(repr, printWriter);
         String reprString = stringWriter.toString();
         reprString = reprString.replace(" ","").replace("\n","");
         Assertions.assertEquals("{0,1}010->01->1110->0", reprString);
@@ -48,7 +48,7 @@ public class OstrowskiTest {
         Automaton adder = ost.createAdderAutomaton();
         stringWriter = new StringWriter();
         printWriter = new PrintWriter(stringWriter);
-        AutomatonWriter.writeToStream(adder, printWriter);
+        AutomatonWriter.writeTxtFormatToStream(adder, printWriter);
         String adderString = stringWriter.toString();
         adderString = adderString.replace(" ","").replace("\n","");
         Assertions.assertEquals(

@@ -1000,7 +1000,7 @@ public class IntegrationTest {
 		for(int i = 0 ; i < testCases.size();i++){
 			TestCase t = testCases.get(i);
 			if(t.getResult() != null){
-				AutomatonWriter.write(t.getResult(), directory+"automaton" + i + TXT_EXTENSION);
+				AutomatonWriter.writeToTxtFormat(t.getResult(), directory+"automaton" + i + TXT_EXTENSION);
 			}
 			if(t.getError() != null && !t.getError().isEmpty()){
 				writeToFile(directory, "error", i, TXT_EXTENSION, t.getError());

@@ -228,7 +228,7 @@ public class Ostrowski {
         if (f.exists()) {
             throw new WalnutException("Error: number system " + name + " already exists.");
         }
-        AutomatonWriter.write(a, automatonFileName);
+        AutomatonWriter.writeToTxtFormat(a, automatonFileName);
     }
 
     private void assertValues(IntList list) {

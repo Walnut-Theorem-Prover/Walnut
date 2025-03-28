@@ -64,7 +64,7 @@ public class Automaton {
     public void writeAutomata(String predicate, String outLibrary, String name, boolean isDFAO) {
         AutomatonWriter.draw(this, Session.getAddressForResult() + name + GV_EXTENSION, predicate, isDFAO);
         String firstAddress = Session.getAddressForResult() + name + TXT_EXTENSION;
-        AutomatonWriter.write(this, firstAddress);
+        AutomatonWriter.writeToTxtFormat(this, firstAddress);
         // Copy to second location, rather than rewriting.
         try {
             Files.copy(Paths.get(firstAddress), Paths.get(outLibrary + name + TXT_EXTENSION),

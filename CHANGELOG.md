@@ -13,13 +13,14 @@ All notable changes to Walnut will be documented here. Format is based on [Keep 
 - Ability to specify session and home directories from command line.
 - Walnut .txt files and scripts allow comments.
 - Dead states are removed (trim) before determinization.
-- Leveraging the [AutomataLib](https://github.com/LearnLib/automatalib) library.
+- Leverage the [AutomataLib](https://github.com/LearnLib/automatalib) library.
+- (UNPUBLISHED) Leverage the OTF library.
 - Allow reading and writing NFAs to the [BA](https://languageinclusion.org/doku.php?id=tools) format, including intermediates.
-- (INCOMPLETE, UNPUBLISHED) Leveraging the OTF library.
-- (INCOMPLETE, UNPUBLISHED) Additional determinization strategy choices:
+- (UNPUBLISHED) Determinization strategy choices:
   * [Brzozowski's algorithm](https://en.wikipedia.org/wiki/DFA_minimization#Brzozowski's_algorithm)
-  * OTF
-  * Brzozowski-OTF
+  * OTF-CCL and OTF-CCLS
+  * Brzozowski-OTF-CCL and Brzozowski-OTF-CCLS
+- Metacommands: "strategy" (see above) and "export", which allows exporting intermediate automata to BA format.
 
 ### Fixed
 
@@ -33,6 +34,7 @@ All notable changes to Walnut will be documented here. Format is based on [Keep 
 
 - Near-total rewrite.
 - "eval" and "def" commands are now the same. Before, "eval" didn't write files to "Automata Library", which was confusing.
+- "draw" command (which wrote automata to .gv files) is replaced with the more generic "export" command (which can currently write to .ba, .gv, or .txt files).
 - Help documentation organized into topics.
 
 ### Removed

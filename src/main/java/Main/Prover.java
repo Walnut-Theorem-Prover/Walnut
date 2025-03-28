@@ -37,7 +37,7 @@ import it.unimi.dsi.fastutil.ints.IntList;
  * and parse and dispatch the command appropriately.
  */
 public class Prover {
-  static final String RE_FOR_THE_LIST_OF_CMDS = "(eval|def|macro|reg|load|ost|exit|quit|cls|clear|combine|morphism|promote|image|inf|split|rsplit|join|test|transduce|reverse|minimize|convert|fixleadzero|fixtrailzero|alphabet|union|intersect|star|concat|rightquo|leftquo|draw|export|help)";
+  static final String RE_FOR_THE_LIST_OF_CMDS = "(eval|def|macro|reg|load|ost|exit|quit|cls|clear|combine|morphism|promote|image|inf|split|rsplit|join|test|transduce|reverse|minimize|convert|fixleadzero|fixtrailzero|alphabet|union|intersect|star|concat|rightquo|leftquo|export|help)";
   static final String RE_START = "^";
   static final String RE_WORD_OF_CMD_NO_SPC = "([a-zA-Z]\\w*)";
 
@@ -56,7 +56,6 @@ public class Prover {
   public static final String REG = "reg";
   public static final String LOAD = "load";
   public static final String ALPHABET = "alphabet";
-  public static final String DRAW = "draw";
   public static final String HELP = "help";
   public static final String CLEAR = "clear";
   public static final String CLS = "cls";
@@ -65,9 +64,13 @@ public class Prover {
   public static final String EXIT = "exit";
   public static final String QUIT = "quit";
   public static final String LEFT_BRACKET = "[";
-  public static final String TXT_EXTENSION = ".txt";
-  public static final String GV_EXTENSION = ".gv";
-  public static final String BA_EXTENSION = ".ba";
+  public static final String DOT = ".";
+  public static final String TXT_STRING = "txt";
+  public static final String TXT_EXTENSION = DOT + TXT_STRING;
+  public static final String GV_STRING = "gv";
+  public static final String GV_EXTENSION = DOT + GV_STRING;
+  public static final String BA_STRING = "ba";
+  public static final String BA_EXTENSION = DOT + BA_STRING;
   /**
    * group for filename in RE_FOR_load_CMD
    */
@@ -237,10 +240,6 @@ public class Prover {
   static final Pattern PAT_FOR_leftquo_CMD = Pattern.compile(RE_FOR_leftquo_CMD);
   static final int GROUP_leftquo_NEW_NAME = 1, GROUP_leftquo_OLD_NAME1 = 2, GROUP_leftquo_OLD_NAME2 = 3;
 
-  static final String RE_FOR_draw_CMD = RE_START + DRAW + DOLLAR + RE_WORD_OF_CMD_NO_SPC;
-  static final Pattern PAT_FOR_draw_CMD = Pattern.compile(RE_FOR_draw_CMD);
-  static final int GROUP_draw_DOLLAR_SIGN = 1, GROUP_draw_NAME = 2;
-
   // Meta-commands: [...] at the beginning of the command
   static final Pattern PAT_META_CMD = Pattern.compile("^\\[([^]]*)](.*)$");
   static final int GROUP_META_CMD = 1, GROUP_FINAL_CMD = 2;
@@ -248,9 +247,9 @@ public class Prover {
   static final String STRATEGY = "strategy";
   static final String EXPORT = "export";
 
-  static final String RE_FOR_export_CMD = RE_START + "export\\s+(\\$|\\s*)" + RE_WORD_OF_CMD_NO_SPC;
+  static final String RE_FOR_export_CMD = RE_START + "export\\s+(\\$|\\s*)" + RE_WORD_OF_CMD_NO_SPC + "\\s+" + RE_WORD_OF_CMD_NO_SPC;
   static final Pattern PAT_FOR_export_CMD = Pattern.compile(RE_FOR_export_CMD);
-  static final int GROUP_export_DOLLAR_SIGN = 1, GROUP_export_NAME = 2;
+  static final int GROUP_export_DOLLAR_SIGN = 1, GROUP_export_NAME = 2, GROUP_export_TYPE = 3;
 
   public static String prefix = ""; // Declare here instead of passing around everywhere
   public static StringBuilder log = new StringBuilder(); // Declare here instead of passing around everywhere
@@ -464,9 +463,6 @@ public class Prover {
       }
       case DEF, EVAL -> {
         return evalDefCommands(s);
-      }
-      case DRAW -> {
-        return drawCommand(s);
       }
       case EXIT, QUIT -> {
         return null;
@@ -1220,7 +1216,7 @@ public class Prover {
 
   public TestCase starCommand(String s) {
     Matcher m = matchOrFail(PAT_FOR_star_CMD, s, STAR);
-    
+
     Automaton M = new Automaton(
         Session.getReadFileForAutomataLibrary(m.group(GROUP_STAR_OLD_NAME) + TXT_EXTENSION));
 
@@ -1256,7 +1252,7 @@ public class Prover {
 
   public TestCase rightquoCommand(String s) {
     Matcher m = matchOrFail(PAT_FOR_rightquo_CMD, s, RIGHTQUO);
-    
+
     Automaton M1 = Automaton.readAutomatonFromFile(m.group(GROUP_rightquo_OLD_NAME1));
     Automaton M2 = Automaton.readAutomatonFromFile(m.group(GROUP_rightquo_OLD_NAME2));
 
@@ -1268,7 +1264,7 @@ public class Prover {
 
   public TestCase leftquoCommand(String s) {
     Matcher m = matchOrFail(PAT_FOR_leftquo_CMD, s, LEFTQUO);
-    
+
     Automaton M1 = Automaton.readAutomatonFromFile(m.group(GROUP_leftquo_OLD_NAME1));
     Automaton M2 = Automaton.readAutomatonFromFile(m.group(GROUP_leftquo_OLD_NAME2));
 
@@ -1278,35 +1274,40 @@ public class Prover {
     return new TestCase(C);
   }
 
-  public static TestCase drawCommand(String s) {
-    Matcher m = matchOrFail(PAT_FOR_draw_CMD, s, DRAW);
-
-    String inFileName = m.group(GROUP_draw_NAME) + TXT_EXTENSION;
-    String inLibrary = Session.getReadFileForWordsLibrary(inFileName);
-    if (m.group(GROUP_draw_DOLLAR_SIGN).equals("$")) {
-      inLibrary = Session.getReadFileForAutomataLibrary(inFileName);
-    }
-    Automaton M = new Automaton(inLibrary);
-    AutomatonWriter.draw(M, Session.getAddressForResult() + m.group(GROUP_draw_NAME) + GV_EXTENSION, s, false);
-
-    return new TestCase(M);
-  }
-
   public static TestCase exportCommand(String s) {
     Matcher m = matchOrFail(PAT_FOR_export_CMD, s, EXPORT);
 
-    String inFileName = m.group(GROUP_export_NAME) + TXT_EXTENSION;
+    String filename = m.group(GROUP_export_NAME);
+    String inFileName = filename + TXT_EXTENSION;
+    String exportType = m.group(GROUP_export_TYPE);
     boolean isDFAO = !m.group(GROUP_export_DOLLAR_SIGN).equals("$");
-    if (isDFAO) {
-      throw new WalnutException("Can't export DFAO to BA format");
-    }
-    String inLibrary = Session.getReadFileForAutomataLibrary(inFileName);
-    Automaton M = new Automaton(inLibrary);
-    AutomatonWriter.exportToBA(M.fa, Session.getAddressForResult() + m.group(GROUP_export_NAME) + BA_EXTENSION, false);
+    String inLibrary = isDFAO ?
+        Session.getReadFileForWordsLibrary(inFileName) : Session.getReadFileForAutomataLibrary(inFileName);
 
+    Automaton M = new Automaton(inLibrary);
+    exportAutomata(s, filename, exportType, M, isDFAO);
     return new TestCase(M);
   }
 
+  /**
+   * Export automata to any supported format.
+   */
+  private static void exportAutomata(String s, String filename, String exportType, Automaton M, boolean isDFAO) {
+    String exportTypeLower = exportType.toLowerCase();
+    String resultFile = Session.getAddressForResult() + filename;
+
+    // currently only a few types are supported
+    switch (exportTypeLower) {
+      case BA_STRING -> AutomatonWriter.exportToBA(M.fa, resultFile + BA_EXTENSION, isDFAO);
+      case GV_STRING -> {
+        System.out.println("Writing to " + resultFile + GV_EXTENSION);
+        AutomatonWriter.draw(M, resultFile + GV_EXTENSION, s, isDFAO);
+      }
+      case TXT_STRING ->
+          throw new WalnutException("Exporting to " + TXT_EXTENSION + " is redundant; this is the input format");
+      default -> throw new WalnutException("Unexpected export type: " + exportType);
+    }
+  }
 
   private static Matcher matchOrFail(Pattern pattern, String input, String commandName) {
     Matcher m = pattern.matcher(input);
@@ -1332,5 +1333,4 @@ public class Prover {
 
     return L;
   }
-
 }

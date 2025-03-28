@@ -148,15 +148,15 @@ public class AutomatonWriter {
      * Writes automaton to a file given by the address.
      * This automaton can be NFA, NFAO, DFA, or DFAO. However, it cannot have epsilon transition.
      */
-    public static void write(Automaton automaton, String address) {
+    public static void writeToTxtFormat(Automaton automaton, String address) {
         try (PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter((address))))) {
-            writeToStream(automaton, out);
+            writeTxtFormatToStream(automaton, out);
         } catch (IOException e) {
             UtilityMethods.printTruncatedStackTrace(e);
         }
     }
 
-    public static void writeToStream(Automaton automaton, PrintWriter out) {
+    public static void writeTxtFormatToStream(Automaton automaton, PrintWriter out) {
         if (automaton.fa.isTRUE_FALSE_AUTOMATON()) {
             out.write(automaton.fa.isTRUE_AUTOMATON() ? "true" : "false");
         } else {
