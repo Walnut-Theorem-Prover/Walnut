@@ -286,6 +286,13 @@ public class Prover {
     String homeDir = null;
 
     for (String arg : args) {
+      if (arg.startsWith("--help")) {
+        System.out.println("Usage: walnut [--session-dir=<SESSION_DIR>] [--home-dir=<HOME_DIR>] <filename>");
+        System.out.println("If Session directory is specified, use instead of generated Session directory.");
+        System.out.println("If Home directory is specified, use instead of current directory.");
+        System.out.println("If filename is specified, read commands from file. Similar to `load` command.");
+        System.exit(0);
+      }
       if (arg.startsWith("--session-dir=")) {
         sessionDir = arg.substring("--session-dir=".length());
         if (!sessionDir.endsWith("/")) {

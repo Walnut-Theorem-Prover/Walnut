@@ -875,6 +875,10 @@ public class IntegrationTest {
 		L.add("eval test650 \"?msd_neg_2 TEST2[a] / 3 = 0\";");
 		L.add("eval test651 \"?msd_neg_2 TEST2[a] / 3 = _1\";");
 		L.add("eval test652 \"?msd_neg_2 TEST2[a] / 3 = _2\";");
+
+		L.add("invalidcommand;"); // 653
+		L.add("export $diffbyone BA;"); // 654
+		L.add("export $diffbyone GV;"); // 655
 	}
 
 	@TestFactory
@@ -894,6 +898,10 @@ public class IntegrationTest {
 		try{
 			Prover.mainProver = new Prover();
 			TestCase actual = Prover.mainProver.dispatchForIntegrationTest(command, String.valueOf(i));
+			if (actual == null) {
+				Assertions.assertNull(expected, "actual was null, but not expected");
+				return;
+			}
 			assertEqualMessages(expected.getMpl().trim(), actual.getMpl().trim());
 			String expectedGraphView = expected.getGraphView().trim();
 			if (!expectedGraphView.isEmpty()) {
@@ -907,16 +915,18 @@ public class IntegrationTest {
 			for(int j=0;j<expected.getAutomatonPairs().size();j++) {
 				Automaton expectedA = expected.getAutomatonPairs().get(j).automaton();
 				Automaton actualA = actual.getAutomatonPairs().get(j).automaton();
-				Assertions.assertTrue(actualA == null || expectedA != null);
-				Assertions.assertTrue(actualA != null || expectedA == null);
+				if (expectedA == null) {
+					Assertions.assertNull(actualA, "expected automaton was null, but not actual");
+				} else if (actualA == null) {
+					Assertions.fail("actual automaton was null, but not expected");
+				}
 				// We don't use assertEquals here, since equals has been overridden in the Automaton class
 				Assertions.assertTrue(actualA.equals(expectedA),
 						"Actual result: " + actualA + " does not equal expected result: " + expectedA);
 			}
-
 		}
 		catch(Exception e){
-			Assertions.assertEquals(expected.getError(), e.getMessage());
+			Assertions.assertEquals(expected.getError(), e.getMessage(), "Error message does not match");
 		}
 	}
 
