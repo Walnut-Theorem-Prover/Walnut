@@ -15,7 +15,7 @@ All notable changes to Walnut will be documented here. Format is based on [Keep 
 - Dead states are removed (trim) before determinization.
 - Leverage the [AutomataLib](https://github.com/LearnLib/automatalib) library.
 - (UNPUBLISHED) Leverage the OTF library.
-- Allow reading and writing NFAs to the [BA](https://languageinclusion.org/doku.php?id=tools) format, including intermediates.
+- Allow writing NFAs to the [BA](https://languageinclusion.org/doku.php?id=tools) format, including intermediates.
 - (UNPUBLISHED) Determinization strategy choices:
   * [Brzozowski's algorithm](https://en.wikipedia.org/wiki/DFA_minimization#Brzozowski's_algorithm)
   * OTF-CCL and OTF-CCLS

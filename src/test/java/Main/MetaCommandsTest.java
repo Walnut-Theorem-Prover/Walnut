@@ -8,22 +8,22 @@ public class MetaCommandsTest {
   @Test
   void testParseStrategy() {
     MetaCommands mc = new MetaCommands();
-    Assertions.assertEquals("", mc.parseMetaCommands(""));
+    Assertions.assertEquals("", mc.parseMetaCommands("", true));
 
     Assertions.assertThrows(RuntimeException.class, () -> {
-      new MetaCommands().parseMetaCommands("[strategy OTF 5 x]");
+      new MetaCommands().parseMetaCommands("[strategy OTF 5 x]", true);
     });
 
-    Assertions.assertEquals("", mc.parseMetaCommands("[strategy OTF-CCLS 5]"));
+    Assertions.assertEquals("", mc.parseMetaCommands("[strategy OTF-CCLS 5]", true));
     Assertions.assertEquals(DeterminizationStrategies.Strategy.OTF_CCLS, mc.getStrategy(5));
 
     mc = new MetaCommands();
-    Assertions.assertEquals("blah", mc.parseMetaCommands("[strategy OTF-CCLS 5][strategy OTF-BRZ-CCLS 10]blah"));
+    Assertions.assertEquals("blah", mc.parseMetaCommands("[strategy OTF-CCLS 5][strategy OTF-BRZ-CCLS 10]blah", true));
     Assertions.assertEquals(DeterminizationStrategies.Strategy.OTF_CCLS, mc.getStrategy(5));
     Assertions.assertEquals(DeterminizationStrategies.Strategy.OTF_BRZ_CCLS, mc.getStrategy(10));
 
     mc = new MetaCommands();
-    Assertions.assertEquals("blah", mc.parseMetaCommands("[strategy OTF-CCLS *]blah"));
+    Assertions.assertEquals("blah", mc.parseMetaCommands("[strategy OTF-CCLS *]blah", true));
     Assertions.assertEquals(DeterminizationStrategies.Strategy.OTF_CCLS, mc.getStrategy(0));
     Assertions.assertEquals(DeterminizationStrategies.Strategy.OTF_CCLS, mc.getStrategy(1));
   }
@@ -31,28 +31,29 @@ public class MetaCommandsTest {
   @Test
   void testParseExport() {
     MetaCommands mc = new MetaCommands();
-    Assertions.assertEquals("", mc.parseMetaCommands("[export 5]"));
+    Assertions.assertEquals("", mc.parseMetaCommands("[export 5]", true));
     Assertions.assertNull(mc.getExportBAName(0));
-    Assertions.assertEquals(MetaCommands.DEFAULT_EXPORT_NAME, mc.getExportBAName(5));
 
     mc = new MetaCommands();
-    Assertions.assertEquals("blah", mc.parseMetaCommands("[export *]blah"));
-    Assertions.assertEquals(MetaCommands.DEFAULT_EXPORT_NAME, mc.getExportBAName(0));
-    Assertions.assertEquals(MetaCommands.DEFAULT_EXPORT_NAME, mc.getExportBAName(1));
+    Assertions.assertEquals("blah", mc.parseMetaCommands("[export *]blah", true));
 
     Assertions.assertThrows(RuntimeException.class, () -> {
-      new MetaCommands().parseMetaCommands("[export 5 x]");
+      new MetaCommands().parseMetaCommands("[export 5 x]", true);
     });
   }
 
   @Test
   void testParseBogusCommand() {
     Assertions.assertThrows(RuntimeException.class, () -> {
-      new MetaCommands().parseMetaCommands("[strategy 5 OTF");
+      new MetaCommands().parseMetaCommands("[strategy 5 OTF", true);
     });
 
     Assertions.assertThrows(RuntimeException.class, () -> {
-      new MetaCommands().parseMetaCommands("[bogusCommand 5 x]");
+      new MetaCommands().parseMetaCommands("[bogusCommand 5 x]", true);
+    });
+
+    Assertions.assertThrows(RuntimeException.class, () -> {
+      new MetaCommands().parseMetaCommands("[strategy OTF 5]", false);
     });
   }
 }

@@ -266,6 +266,8 @@ public class Prover {
   public boolean printSteps;
   public boolean printDetails;
   public boolean printFlag; // helper variable, could be eliminated
+
+  public static String currentEvalName; // current evaluation name, used for export metacommand
   /**
    * if the command line argument is not empty, we treat args[0] as a filename.
    * if this is the case, we read from the file and load its commands before we submit control to user.
@@ -409,8 +411,6 @@ public class Prover {
     log = new StringBuilder(); // reset log
     printSteps = printDetails = printFlag = false; // reset flags
 
-    s = metaCommands.parseMetaCommands(s);
-
     if (!s.endsWith(";") && !s.endsWith(":")) {
       throw WalnutException.invalidCommand();
     }
@@ -425,6 +425,8 @@ public class Prover {
     printFlag = printSteps || printDetails;
     s = s.substring(0, s.length() - endingToRemove); // remove ;|:|::
     s = s.strip(); // remove end whitespace, Unicode-aware
+
+    s = metaCommands.parseMetaCommands(s, printDetails);
 
     return s;
   }
@@ -576,6 +578,7 @@ public class Prover {
 
     String predicate = m.group(ED_PREDICATE);
     String evalName = m.group(ED_NAME);
+    this.currentEvalName = evalName; // used for export metacommand
 
     EvalComputer c = new EvalComputer(predicate, printSteps, printDetails);
     Automaton M = c.result.M;

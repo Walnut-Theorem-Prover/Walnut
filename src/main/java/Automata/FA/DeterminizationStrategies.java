@@ -77,15 +77,13 @@ public class DeterminizationStrategies {
      * Determinization strategies:
      *   Subset Construction
      *   Brzozowski double-reversal
-     *   OTF-CCL-no-sim, OTF-CCL'
-     *   Brzozowski + (OTF-CCL-no-sim, OTF-CCL')
+     *   OTF-CCL, OTF-CCLS
+     *   Brzozowski + (OTF-CCL, OTF-CCLS)
      */
     public static void determinize(
             FA fa, IntSet initialState, boolean print, String prefix, StringBuilder log) {
 
       long timeBefore = System.currentTimeMillis();
-
-
 
       Strategy strategy = Strategy.SC;
       if (print) {
@@ -96,22 +94,15 @@ public class DeterminizationStrategies {
         int automataIdx = mc.incrementAutomataIndex();
         strategy = mc.getStrategy(automataIdx);
 
+        // Write exported file if specified
         String exportName = mc.getExportBAName(automataIdx);
         if (exportName != null) {
-          if (fa.isDFAO()) {
-            System.out.println("Can't export DFAO " + automataIdx + " to BA format; ignoring export request");
-          } else {
-            AutomatonWriter.exportToBA(fa, Session.getAddressForResult() + exportName + "_" + automataIdx + "_pre.ba", false);
-          }
+          AutomatonWriter.exportToBA(fa, Session.getAddressForResult() + exportName + "_" + automataIdx + "_pre.ba", false);
         }
 
         UtilityMethods.logMessage(print, prefix +
             "Determinizing " + strategy.outputName(automataIdx) + ": " + fa.getQ() + " states", log);
       }
-
-      // Convert to CompactNFA representation
-      // then trim
-      // then bisim
 
       switch (strategy) {
         case SC -> SC(fa, initialState, print, prefix, log);

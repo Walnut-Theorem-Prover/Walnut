@@ -1,0 +1,19 @@
+The "export" metacommand exports intermediate automata to the BA (.ba) format.
+
+Intermediate word automata aren't supported, since BA format can't handle DFAOs.
+
+The export syntax for the metacommand is as follows:
+[export 0]   ##  export the 0th intermediate automaton
+[export *]   ##  export all automaton (wildcard)
+
+Example usage:
+
+[export *]eval shortExample "T[a] < b"::
+
+This exports the intermediate automata generated during the eval command.
+These are generated as: shortExample_pre_0.ba, ..., shortExample_pre_n.ba.
+
+The "_pre" refers to these being generated before determinization happens.
+
+The exported results are saved in the session Result/ subdirectory.
+

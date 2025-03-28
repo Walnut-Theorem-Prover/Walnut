@@ -3,6 +3,8 @@ package Main;
 import Automata.FA.DeterminizationStrategies;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
+import it.unimi.dsi.fastutil.ints.IntSet;
 
 import java.util.regex.Matcher;
 
@@ -14,9 +16,9 @@ public class MetaCommands {
   private final Int2ObjectMap<DeterminizationStrategies.Strategy> strategyMap = new Int2ObjectOpenHashMap<>();
   DeterminizationStrategies.Strategy alwaysOnStrategy = null;
 
-  // for now we only support exporting BA. Could be generalized to MPL, TXT, etc.
-  private final Int2ObjectMap<String> exportBAMap = new Int2ObjectOpenHashMap<>();
-  private String alwaysOnExport = null;
+  // for now, we only support exporting BA. Could be generalized to MPL, TXT, etc.
+  private final IntSet exportBASet = new IntOpenHashSet();
+  private boolean alwaysOnExport = false;
 
   public int incrementAutomataIndex() {
     return automataIndex++;
@@ -36,24 +38,24 @@ public class MetaCommands {
     return strategyMap.getOrDefault(index, DeterminizationStrategies.Strategy.SC);
   }
 
-  public void addExportBA(String index, String name) {
+  public void addExportBA(String index) {
     if (WILDCARD.equals(index)) {
-      alwaysOnExport = name;
+      alwaysOnExport = true;
     } else {
-      exportBAMap.put(Integer.parseInt(index), name);
+      exportBASet.add(Integer.parseInt(index));
     }
   }
   public String getExportBAName(int index) {
-    if (alwaysOnExport != null) {
-      return alwaysOnExport;
+    if (alwaysOnExport || exportBASet.contains(index)) {
+      return Prover.currentEvalName == null ? DEFAULT_EXPORT_NAME : Prover.currentEvalName;
     }
-    return exportBAMap.get(index);
+    return null;
   }
 
   /**
    * Parse meta-commands and then return the remainder of the string.
    */
-  String parseMetaCommands(String s) {
+  String parseMetaCommands(String s, boolean printDetails) {
     // repeatedly match meta commands at the start of the string
     while (s.startsWith(Prover.LEFT_BRACKET)) {
       Matcher metaCmdMatcher = Prover.PAT_META_CMD.matcher(s);
@@ -62,22 +64,28 @@ public class MetaCommands {
       }
       // Get the current meta command block and process it
       String metaCommandString = metaCmdMatcher.group(Prover.GROUP_META_CMD).strip();
+      if (!metaCommandString.isEmpty() && !printDetails) {
+        throw new WalnutException("Metacommands are currently only supported for commands ending in ::");
+      }
       for (String metaCommand : metaCommandString.split(",")) {
         metaCommand = metaCommand.strip();
         if (metaCommand.startsWith(Prover.STRATEGY)) {
+          // example: strategy OTF 15
           String[] strategyAndIndex = metaCommand.split("\\s+");
           if (strategyAndIndex.length != 3) {
             throw WalnutException.invalidCommandUse(metaCommand);
           }
-          addStrategy(strategyAndIndex[2], DeterminizationStrategies.Strategy.fromString(strategyAndIndex[1])
+          String strategyName = strategyAndIndex[1];
+          String strategyIndex = strategyAndIndex[2];
+          addStrategy(strategyIndex, DeterminizationStrategies.Strategy.fromString(strategyName)
           );
         } else if (metaCommand.startsWith(Prover.EXPORT)) {
+          // example: export 15, or export *
           String[] parts = metaCommand.split("\\s+");
           if (parts.length != 2) {
             throw WalnutException.invalidCommandUse(metaCommand);
           }
-          // TODO: determine automata name to pass in here
-          addExportBA(parts[1], DEFAULT_EXPORT_NAME);
+          addExportBA(parts[1]);
         } else {
           throw WalnutException.invalidCommand(metaCommand);
         }
