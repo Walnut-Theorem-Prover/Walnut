@@ -39,7 +39,7 @@ import static Main.TestCase.DEFAULT_TESTFILE;
  * and parse and dispatch the command appropriately.
  */
 public class Prover {
-  static final String RE_FOR_THE_LIST_OF_CMDS = "(eval|def|macro|reg|load|ost|exit|quit|cls|clear|combine|morphism|promote|image|inf|split|rsplit|join|test|transduce|reverse|minimize|convert|fixleadzero|fixtrailzero|alphabet|union|intersect|star|concat|rightquo|leftquo|export|help)";
+  static final String RE_FOR_THE_LIST_OF_CMDS = "(eval|def|macro|reg|load|ost|exit|quit|cls|clear|combine|morphism|promote|image|inf|split|rsplit|join|test|transduce|reverse|minimize|convert|fixleadzero|fixtrailzero|alphabet|union|intersect|star|concat|rightquo|leftquo|describe|export|help)";
   static final String RE_START = "^";
   static final String RE_WORD_OF_CMD_NO_SPC = "([a-zA-Z]\\w*)";
 
@@ -253,9 +253,14 @@ public class Prover {
   static final String STRATEGY = "strategy";
   static final String EXPORT = "export";
 
-  static final String RE_FOR_export_CMD = RE_START + "export\\s+(\\$|\\s*)" + RE_WORD_OF_CMD_NO_SPC + "\\s+" + RE_WORD_OF_CMD_NO_SPC;
+  static final String RE_FOR_export_CMD = RE_START + EXPORT + DOLLAR + RE_WORD_OF_CMD_NO_SPC + RE_WORD_OF_CMD;
   static final Pattern PAT_FOR_export_CMD = Pattern.compile(RE_FOR_export_CMD);
   static final int GROUP_export_DOLLAR_SIGN = 1, GROUP_export_NAME = 2, GROUP_export_TYPE = 3;
+
+  public static final String DESCRIBE = "describe";
+  static final String RE_FOR_describe_CMD = RE_START + DESCRIBE + DOLLAR + RE_WORD_OF_CMD_NO_SPC;
+  static final Pattern PAT_FOR_describe_CMD = Pattern.compile(RE_FOR_describe_CMD);
+  static final int GROUP_describe_DOLLAR_SIGN = 1, GROUP_describe_NAME = 2;
 
   public static String prefix = ""; // Declare here instead of passing around everywhere
   public static StringBuilder log = new StringBuilder(); // Declare here instead of passing around everywhere
@@ -280,7 +285,7 @@ public class Prover {
     run(filename);
   }
 
-  private static String parseArgs(String[] args) {
+  static String parseArgs(String[] args) {
     String filename = null;
     String sessionDir = null;
     String homeDir = null;
@@ -478,6 +483,9 @@ public class Prover {
       }
       case DEF, EVAL -> {
         return evalDefCommands(s);
+      }
+      case DESCRIBE -> {
+        return describeCommand(s);
       }
       case EXIT, QUIT -> {
         return null;
@@ -763,6 +771,27 @@ public class Prover {
 
     C.writeAutomata(s, Session.getWriteAddressForWordsLibrary(), m.group(GROUP_COMBINE_NAME), true);
     return new TestCase(C);
+  }
+
+  public TestCase describeCommand(String s) {
+    Matcher m = matchOrFail(PAT_FOR_describe_CMD, s, DESCRIBE);
+
+    String inFileName = m.group(GROUP_describe_NAME) + TXT_EXTENSION;
+
+    boolean isDFAO = !m.group(GROUP_describe_DOLLAR_SIGN).equals("$");
+    String inLibrary = isDFAO ? Session.getReadFileForWordsLibrary(inFileName) :
+        Session.getReadFileForAutomataLibrary(inFileName);
+
+    Automaton M = new Automaton(inLibrary);
+
+    UtilityMethods.logMessage(true, "File location: " + inLibrary, log);
+    UtilityMethods.logMessage(true, "State count:" + M.fa.getQ(), log);
+    UtilityMethods.logMessage(true, "Transition count:" + M.fa.determineTransitionCount(), log);
+    UtilityMethods.logMessage(true, "Alphabet size:" + M.fa.getAlphabetSize(), log);
+    UtilityMethods.logMessage(true, "Number systems:" + M.getNS(), log);
+
+    return new TestCase(M, "", null, null, Prover.log.toString(),
+        List.of(new TestCase.AutomatonFilenamePair(M, DEFAULT_TESTFILE)));
   }
 
 

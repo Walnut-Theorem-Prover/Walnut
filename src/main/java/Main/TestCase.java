@@ -64,7 +64,7 @@ public class TestCase {
         return UtilityMethods.readFromFile(mplAddress);
     }
 
-    public String getGraphView() throws IOException {
+    public String getGraphViz() throws IOException {
         if (gvAddress == null || gvAddress.isEmpty()) {
             return "";
         }

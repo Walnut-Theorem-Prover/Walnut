@@ -1,0 +1,5 @@
+File location: src/test/resources/integrationTests/Session/Word Automata Library/GG.txt
+State count:7
+Transition count:14
+Alphabet size:2
+Number systems:[msd_2]

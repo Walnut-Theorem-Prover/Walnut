@@ -2,11 +2,16 @@ package Main;
 
 import Main.EvalComputations.Expressions.Expression;
 
+import java.io.Serial;
+
 /**
  * Exceptions are centralized for easier maintenance.
  * @author jn1z
  */
 public class WalnutException extends RuntimeException {
+    @Serial
+    private static final long serialVersionUID = 12345L; // just to make compiler happy
+
     public WalnutException(String s) {
         super(s);
     }

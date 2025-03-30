@@ -850,7 +850,7 @@ public class FA implements Cloneable {
             print, prefix + "Minimizing: " + Q + " states.", log);
 
     this.convertNFAtoDFA();
-    ValmariDFA v = new ValmariDFA(this.dfaD, Q);
+    ValmariDFA v = new ValmariDFA(this, Q);
     this.setDfaD(null); // save memory
     v.minValmari(O);
     v.replaceFields(this); // TODO: we're using NFA representation, even though we know this is a DFA
@@ -1036,5 +1036,21 @@ public class FA implements Cloneable {
       }
       this.addOutput(flag);
     }
+  }
+
+  public long determineTransitionCount() {
+    long numTransitionsLong = 0;
+    if (nfaD == null) {
+      for(int q = 0; q < dfaD.size();q++){
+        numTransitionsLong += dfaD.get(q).keySet().size();
+      }
+    } else {
+      for (int q = 0; q < nfaD.size();q++) {
+        for (Int2ObjectMap.Entry<IntList> entry : this.getEntriesNfaD(q)) {
+          numTransitionsLong += entry.getValue().size();
+        }
+      }
+    }
+    return numTransitionsLong;
   }
 }

@@ -1,5 +1,9 @@
-The "test" command outputs the first n values accepted by an automaton in lexicographic order, where n is a number supplied by the user. The syntax for the "test" command is as follows:
+The "test" command outputs the first n values accepted by an automaton in lexicographic order, where n is a number supplied by the user.
+The syntax for the "test" command is as follows:
 	
 	test <name> <number>
 	
 If fewer than n values are accepted, all accepted values are printed in lexicographic order.
+
+Note that inputs that begin with 0 (or [0,0] with over 2 arguments, etc.) are not listed.
+This is because the default representation for numbers in automata ignores most-significant 0s.

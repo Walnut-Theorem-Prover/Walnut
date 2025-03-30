@@ -67,9 +67,9 @@ public class Session {
   }
 
   public static void setPathsAndNamesIntegrationTests() {
-    mainWalnutDir = getAddressForIntegrationTestResults() + GLOBAL_NAME + "/";
-    sessionWalnutDir = getAddressForIntegrationTestResults() + SESSION_NAME + "/";
-    createSubdirectories();
+    String[] args = new String[]{"--home-dir=" + getAddressForIntegrationTestResults() + GLOBAL_NAME,
+    "--session-dir=" + getAddressForIntegrationTestResults() + SESSION_NAME};
+    Prover.parseArgs(args);
     // clear out directory if it has anything in it
     try {
       Files.list(Paths.get(getAddressForResult()))

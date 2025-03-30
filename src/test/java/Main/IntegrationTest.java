@@ -879,6 +879,8 @@ public class IntegrationTest {
 		L.add("invalidcommand;"); // 653
 		L.add("export $diffbyone BA;"); // 654
 		L.add("export $diffbyone GV;"); // 655
+		L.add("describe GG;"); // 656
+		L.add("minimize test657 GG;");
 	}
 
 	@TestFactory
@@ -903,11 +905,11 @@ public class IntegrationTest {
 				return;
 			}
 			assertEqualMessages(expected.getMpl().trim(), actual.getMpl().trim());
-			String expectedGraphView = expected.getGraphView().trim();
-			if (!expectedGraphView.isEmpty()) {
-				// Rather than creating 100s of graphview files for testing and dealing with DFAOs etc.,
+			String expectedGraphViz = expected.getGraphViz().trim();
+			if (!expectedGraphViz.isEmpty()) {
+				// Rather than creating 100s of graphviz files for testing and dealing with DFAOs etc.,
 				// we only test if added one to our resources
-				assertEqualMessages(expectedGraphView, actual.getGraphView().trim());
+				assertEqualMessages(expectedGraphViz, actual.getGraphViz().trim());
 			}
 			assertEqualMessages(expected.getDetails(), actual.getDetails());
 			Assertions.assertEquals(expected.getAutomatonPairs().size(), actual.getAutomatonPairs().size(),

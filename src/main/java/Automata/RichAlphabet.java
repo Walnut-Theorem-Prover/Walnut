@@ -1,6 +1,7 @@
 package Automata;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 public class RichAlphabet {
@@ -25,6 +26,21 @@ public class RichAlphabet {
 
   public RichAlphabet() {
     this.A = new ArrayList<>();
+  }
+
+  /**
+   * Is r1.getA() a subset of r2.getA() ?
+   */
+  static boolean isSubsetA(RichAlphabet r1, RichAlphabet r2) {
+      if (r1.getA().size() != r2.getA().size()) {
+          return false;
+      }
+      for (int i = 0; i < r1.getA().size(); i++) {
+          if (!new HashSet<>(r2.getA().get(i)).containsAll(r1.getA().get(i))) {
+              return false;
+          }
+      }
+      return true;
   }
 
   public boolean isInNewAlphabet(List<Integer> decoded) {
@@ -151,11 +167,7 @@ public class RichAlphabet {
       if (!I.contains(i) || I.indexOf(i) == 0)
         newA.add(new ArrayList<>(A.get(i)));
 
-    List<Integer> newEncoder = new ArrayList<>(newA.size());
-    newEncoder.add(1);
-    for (int i = 0; i < newA.size() - 1; i++) {
-      newEncoder.add(newEncoder.get(i) * newA.get(i).size());
-    }
+    List<Integer> newEncoder = determineEncoder(newA);
 
     List<Integer> map = new ArrayList<>(alphabetSize);
     for (int n = 0; n < alphabetSize; n++) {

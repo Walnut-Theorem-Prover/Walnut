@@ -43,12 +43,9 @@ public class ValmariDFA {
     // heads of transitions
     private int[] H;
 
-    public ValmariDFA(List<Int2IntMap> dfaD, int numStates) {
+    public ValmariDFA(FA fa, int numStates) {
         // Pre-size the arrays.
-        long numTransitionsLong = 0;
-        for(int q = 0; q != dfaD.size();++q){
-            numTransitionsLong += dfaD.get(q).keySet().size();
-        }
+        long numTransitionsLong = fa.determineTransitionCount();
         if (numTransitionsLong > Integer.MAX_VALUE) {
             throw WalnutException.arrayOverflow("the number of transitions", numTransitionsLong);
         }
@@ -59,8 +56,8 @@ public class ValmariDFA {
         H = new int[numTransitions];
 
         int arrIndex = 0;
-        for(int q = 0; q != dfaD.size();++q){
-            for(Int2IntMap.Entry entry: dfaD.get(q).int2IntEntrySet()) {
+        for(int q = 0; q != fa.getDfaD().size();++q){
+            for(Int2IntMap.Entry entry: fa.getDfaD().get(q).int2IntEntrySet()) {
                 H[arrIndex] = entry.getIntValue();
                 T[arrIndex] = q;
                 L[arrIndex] = entry.getIntKey();

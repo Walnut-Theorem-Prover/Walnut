@@ -21,18 +21,18 @@ All notable changes to Walnut will be documented here. Format is based on [Keep 
   * OTF-CCL and OTF-CCLS
   * Brzozowski-OTF-CCL and Brzozowski-OTF-CCLS
 - Metacommands: "strategy" (see above) and "export", which allows exporting intermediate automata to BA format.
+- Command "describe" describes an automaton.
 
 ### Fixed
 
 - Major performance improvements, particularly in product automata construction, Walnut file I/O, and the `test` command.
-- Fixed OOM error when writing large Graphview files (reported by Pierre Ganty).
+- Fixed OOM error when writing large Graphviz files (reported by Pierre Ganty).
 - Removed unnecessary determinizations when handling leading/trailing zeros.
-- Increased testing and code coverage.
+- Drastically increased code re-use, testing, and code coverage.
 - Fixed unexpected behavior for integer rounding when doing division with negative numbers (fixed by Jonathan Yang)
         
 ### Changed
 
-- Near-total rewrite.
 - "eval" and "def" commands are now the same. Before, "eval" didn't write files to "Automata Library", which was confusing.
 - "draw" command (which wrote automata to .gv files) is replaced with the more generic "export" command (which can currently write to .ba, .gv, or .txt files).
 - Help documentation organized into topics.

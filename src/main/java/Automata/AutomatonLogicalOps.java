@@ -179,7 +179,7 @@ public class AutomatonLogicalOps {
 
         if (!skipSubsetCheck) {
             // check whether the alphabet of B is a subset of the alphabet of self. If not, throw an error.
-            if (!isSubsetA(B.richAlphabet.getA(), A.richAlphabet.getA())) {
+            if (!RichAlphabet.isSubsetA(B.richAlphabet, A.richAlphabet)) {
                 throw new WalnutException("Second A's alphabet must be a subset of the first A's alphabet for right quotient.");
             }
         }
@@ -240,7 +240,7 @@ public class AutomatonLogicalOps {
         UtilityMethods.logMessage(print, prefix + "left quotient: " + A.fa.getQ() + " state A with " + B.fa.getQ() + " state A", log);
 
         // check whether the alphabet of self is a subset of the alphabet of B. If not, throw an error.
-        if (!isSubsetA(A.richAlphabet.getA(), B.richAlphabet.getA())) {
+        if (!RichAlphabet.isSubsetA(A.richAlphabet, B.richAlphabet)) {
             throw new WalnutException("First A's alphabet must be a subset of the second A's alphabet for left quotient.");
         }
 
@@ -263,19 +263,6 @@ public class AutomatonLogicalOps {
         M1.canonize();
         return M1;
     }
-
-    private static boolean isSubsetA(List<List<Integer>> aA, List<List<Integer>> otherA) {
-        if (aA.size() != otherA.size()) {
-            return false;
-        }
-        for (int i = 0; i < aA.size(); i++) {
-            if (!new HashSet<>(otherA.get(i)).containsAll(aA.get(i))) {
-                return false;
-            }
-        }
-        return true;
-    }
-
 
     /**
      * Make A accept 0*x, iff it used to accept x.

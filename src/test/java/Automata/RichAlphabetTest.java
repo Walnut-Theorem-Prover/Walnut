@@ -24,4 +24,33 @@ public class RichAlphabetTest {
     r.setA(A);
     Assertions.assertEquals(B, r.expandWildcard(L));
   }
+
+  @Test
+  void testIsSubsetA() {
+    List<List<Integer>> A = new ArrayList<>();
+    A.add(List.of(1,2));
+    RichAlphabet r1 = new RichAlphabet();
+    r1.setA(A);
+
+    Assertions.assertTrue(RichAlphabet.isSubsetA(r1, r1));
+
+    List<List<Integer>> B = new ArrayList<>();
+    B.add(List.of(1,2));
+    B.add(List.of(2,3));
+    RichAlphabet r2 = new RichAlphabet();
+    r2.setA(B);
+
+    Assertions.assertFalse(RichAlphabet.isSubsetA(r1, r2));
+    Assertions.assertFalse(RichAlphabet.isSubsetA(r2, r1));
+
+    List<List<Integer>> C = new ArrayList<>();
+    C.add(List.of(1,2,3));
+    RichAlphabet r3 = new RichAlphabet();
+    r3.setA(C);
+
+    Assertions.assertFalse(RichAlphabet.isSubsetA(r3, r1));
+    Assertions.assertTrue(RichAlphabet.isSubsetA(r1, r3));
+
+
+  }
 }
