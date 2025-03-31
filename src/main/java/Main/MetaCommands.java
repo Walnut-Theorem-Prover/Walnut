@@ -38,7 +38,14 @@ public class MetaCommands {
     return strategyMap.getOrDefault(index, DeterminizationStrategies.Strategy.SC);
   }
 
-  public void addExportBA(String index) {
+  /**
+   * Add "export 15 BA" for example. Currently only BA is supported.
+   */
+  public void addExport(String index, String format) {
+    String formatLower = format.toLowerCase();
+    if (!formatLower.equals("ba")) {
+      throw WalnutException.unexpectedFormat(format);
+    }
     if (WILDCARD.equals(index)) {
       alwaysOnExport = true;
     } else {
@@ -70,22 +77,22 @@ public class MetaCommands {
       for (String metaCommand : metaCommandString.split(",")) {
         metaCommand = metaCommand.strip();
         if (metaCommand.startsWith(Prover.STRATEGY)) {
-          // example: strategy OTF 15
+          // example: strategy 15 CCL
           String[] strategyAndIndex = metaCommand.split("\\s+");
           if (strategyAndIndex.length != 3) {
             throw WalnutException.invalidCommandUse(metaCommand);
           }
-          String strategyName = strategyAndIndex[1];
-          String strategyIndex = strategyAndIndex[2];
+          String strategyIndex = strategyAndIndex[1];
+          String strategyName = strategyAndIndex[2];
           addStrategy(strategyIndex, DeterminizationStrategies.Strategy.fromString(strategyName)
           );
         } else if (metaCommand.startsWith(Prover.EXPORT)) {
-          // example: export 15, or export *
+          // example: export 15 BA, or export * BA
           String[] parts = metaCommand.split("\\s+");
-          if (parts.length != 2) {
+          if (parts.length != 3) {
             throw WalnutException.invalidCommandUse(metaCommand);
           }
-          addExportBA(parts[1]);
+          addExport(parts[1], parts[2]);
         } else {
           throw WalnutException.invalidCommand(metaCommand);
         }

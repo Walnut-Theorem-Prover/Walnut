@@ -30,10 +30,10 @@ public class DeterminizationStrategies {
   public enum Strategy {
     SC("SC", false, List.of("SC")),
     BRZ("Brzozowski", false, List.of("Brz")),
-    OTF_CCLS("OTF-CCLS", true, List.of("OTFCCLS")),
-    OTF_BRZ_CCLS("OTF-Brzozowski-CCLS", true, List.of("OTFBRZCCLS", "BRZOTFCCLS")),
-    OTF_CCL("OTF-CCL", false, List.of("OTFCCL")),
-    OTF_BRZ_CCL("OTF-Brzozowski-CCL", false, List.of( "OTFBRZCCL", "BTZOTFCCL"));
+    CCLS("CCLS", true, List.of("CCLS")),
+    BRZ_CCLS("Brzozowski-CCLS", true, List.of("BRZCCLS", "BRZCCLS")),
+    CCL("CCL", false, List.of("CCL")),
+    BRZ_CCL("Brzozowski-CCL", false, List.of( "BRZCCL", "BTZCCL"));
     private final String name;
     private final boolean doSimulation;
     private final List<String> aliases;
@@ -65,8 +65,8 @@ public class DeterminizationStrategies {
     Strategy removeBrzozowski() {
       return switch(this) {
         case BRZ -> SC;
-        case OTF_BRZ_CCLS -> OTF_CCLS;
-        case OTF_BRZ_CCL -> OTF_CCL;
+        case BRZ_CCLS -> CCLS;
+        case BRZ_CCL -> CCL;
         default -> throw new WalnutException("Unexpected strategy:" + this.name);
       };
     }
@@ -106,8 +106,8 @@ public class DeterminizationStrategies {
 
       switch (strategy) {
         case SC -> SC(fa, initialState, print, prefix, log);
-        case BRZ, OTF_BRZ_CCL, OTF_BRZ_CCLS -> Brz(fa, initialState, strategy, print, prefix, log);
-        case OTF_CCL, OTF_CCLS -> OTF(fa, initialState, strategy.doSimulation, print, prefix, log);
+        case BRZ, BRZ_CCL, BRZ_CCLS -> Brz(fa, initialState, strategy, print, prefix, log);
+        case CCL, CCLS -> OTF(fa, initialState, strategy.doSimulation, print, prefix, log);
       }
 
       long timeAfter = System.currentTimeMillis();

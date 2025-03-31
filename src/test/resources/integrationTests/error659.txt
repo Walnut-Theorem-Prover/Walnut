@@ -1,0 +1,1 @@
+Metacommands are currently only supported for commands ending in ::

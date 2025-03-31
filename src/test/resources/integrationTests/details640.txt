@@ -127,8 +127,8 @@ n=((x+y)+z):3 states - 0ms
       (((n=((x+y)+z)&QQ[x]=@1)&QQ[y]=@1)&QQ[z]=@1):1790 states - 8ms
        computing quantifier E
         quantifying:1790 states
-          Determinizing [#10, strategy: OTF-Brzozowski-CCL]: 1790 states
-          Reverse -- Determinizing with strategy:OTF-CCL.
+          Determinizing [#10, strategy: Brzozowski-CCL]: 1790 states
+          Reverse -- Determinizing with strategy:CCL.
           Bisimulation reduced to 369 states
           Reverse: 496 states - 
           Minimizing: 496 states.

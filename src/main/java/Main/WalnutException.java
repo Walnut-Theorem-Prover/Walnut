@@ -102,6 +102,10 @@ public class WalnutException extends RuntimeException {
         return new WalnutException("Undefined token: char at " + position);
     }
 
+    public static WalnutException unexpectedFormat(String format) {
+        return new WalnutException("Unexpected format:" + format);
+    }
+
     public static WalnutException unexpectedOperator(String op) {
         return new WalnutException("Unexpected operator:" + op);
     }

@@ -1361,7 +1361,7 @@ public class Prover {
       }
       case TXT_STRING ->
           throw new WalnutException("Exporting to " + TXT_EXTENSION + " is redundant; this is the input format");
-      default -> throw new WalnutException("Unexpected export type: " + exportType);
+      default -> throw WalnutException.unexpectedFormat(exportType);
     }
   }
 
