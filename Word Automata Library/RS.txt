@@ -1,3 +1,4 @@
+# Rudin-Shapiro word
 msd_2
 0 0
 0 -> 0

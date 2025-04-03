@@ -1,3 +1,4 @@
+# Tribonacci word
 msd_trib
 
 0 0
