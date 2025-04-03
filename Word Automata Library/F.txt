@@ -1,3 +1,4 @@
+# Fibonacci word
 msd_fib
 
 0 0

@@ -785,6 +785,8 @@ public class Prover {
     Automaton M = new Automaton(inLibrary);
 
     UtilityMethods.logMessage(true, "File location: " + inLibrary, log);
+    String comments = AutomatonReader.readComments(inLibrary);
+    UtilityMethods.logMessage(true, "Comments: " + comments, log);
     UtilityMethods.logMessage(true, "State count:" + M.fa.getQ(), log);
     UtilityMethods.logMessage(true, "Transition count:" + M.fa.determineTransitionCount(), log);
     UtilityMethods.logMessage(true, "Alphabet size:" + M.fa.getAlphabetSize(), log);

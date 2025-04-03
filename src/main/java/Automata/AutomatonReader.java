@@ -13,99 +13,99 @@ import static Automata.ParseMethods.PATTERN_COMMENT;
 import static Automata.ParseMethods.PATTERN_WHITESPACE;
 
 public class AutomatonReader {
-  static void readAutomaton(Automaton A, String address) {
-      File f = UtilityMethods.validateFile(address);
+    static void readAutomaton(Automaton A, String address) {
+        File f = UtilityMethods.validateFile(address);
 
-      long lineNumber = 0;
-      A.setAlphabetSize(1);
+        long lineNumber = 0;
+        A.setAlphabetSize(1);
 
-      Boolean[] trueFalseSingleton = new Boolean[1];
-      try (BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(f)))) {
-          lineNumber = firstParse(A, address, in, lineNumber, trueFalseSingleton);
-          if (trueFalseSingleton[0] != null) {
-              return;
-          }
+        Boolean[] trueFalseSingleton = new Boolean[1];
+        try (BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(f)))) {
+            lineNumber = firstParse(A, address, in, lineNumber, trueFalseSingleton);
+            if (trueFalseSingleton[0] != null) {
+                return;
+            }
 
-          int[] pair = new int[2];
-          List<Integer> input = new ArrayList<>();
-          IntList dest = new IntArrayList();
-          int currentState = -1;
-          int currentOutput;
-          Int2ObjectRBTreeMap<IntList> currentStateTransitions = new Int2ObjectRBTreeMap<>();
-          Map<Integer, Integer> output = new TreeMap<>();
-          Map<Integer, Int2ObjectRBTreeMap<IntList>> transitions = new TreeMap<>();
+            int[] pair = new int[2];
+            List<Integer> input = new ArrayList<>();
+            IntList dest = new IntArrayList();
+            int currentState = -1;
+            int currentOutput;
+            Int2ObjectRBTreeMap<IntList> currentStateTransitions = new Int2ObjectRBTreeMap<>();
+            Map<Integer, Integer> output = new TreeMap<>();
+            Map<Integer, Int2ObjectRBTreeMap<IntList>> transitions = new TreeMap<>();
 
-          int Q = 0, q0=0;
-          Set<Integer> setOfDestinationStates = new HashSet<>();
-          boolean outputLongFile = false;
+            int Q = 0, q0 = 0;
+            Set<Integer> setOfDestinationStates = new HashSet<>();
+            boolean outputLongFile = false;
 
-          String line;
-          while ((line = in.readLine()) != null) {
-              lineNumber++;
-              outputLongFile = debugPrintLongFile(address, lineNumber, outputLongFile);
+            String line;
+            while ((line = in.readLine()) != null) {
+                lineNumber++;
+                outputLongFile = debugPrintLongFile(address, lineNumber, outputLongFile);
 
-              if (shouldSkipLine(line)) {
-                  continue;
-              }
+                if (shouldSkipLine(line)) {
+                    continue;
+                }
 
-              if (ParseMethods.parseStateDeclaration(line, pair)) {
-                  Q++;
-                  if (currentState == -1) {
-                      q0 = pair[0];
-                  }
+                if (ParseMethods.parseStateDeclaration(line, pair)) {
+                    Q++;
+                    if (currentState == -1) {
+                        q0 = pair[0];
+                    }
 
-                  currentState = pair[0];
-                  currentOutput = pair[1];
-                  output.put(currentState, currentOutput);
-                  currentStateTransitions = new Int2ObjectRBTreeMap<>();
-                  transitions.put(currentState, currentStateTransitions);
-              } else if (ParseMethods.parseTransition(line, input, dest)) {
-                  validateTransition(A, address, currentState, lineNumber, input);
-                  setOfDestinationStates.addAll(dest);
-                  List<List<Integer>> inputs = A.richAlphabet.expandWildcard(input);
-                  for (List<Integer> i : inputs) {
-                      currentStateTransitions.put(A.richAlphabet.encode(i), dest);
-                  }
-                  input = new ArrayList<>();
-                  dest = new IntArrayList();
-              } else {
-                  throw WalnutException.undefinedStatement(lineNumber, address);
-              }
-          }
-          if (outputLongFile) {
-              System.out.println("...finished");
-          }
+                    currentState = pair[0];
+                    currentOutput = pair[1];
+                    output.put(currentState, currentOutput);
+                    currentStateTransitions = new Int2ObjectRBTreeMap<>();
+                    transitions.put(currentState, currentStateTransitions);
+                } else if (ParseMethods.parseTransition(line, input, dest)) {
+                    validateTransition(A, address, currentState, lineNumber, input);
+                    setOfDestinationStates.addAll(dest);
+                    List<List<Integer>> inputs = A.richAlphabet.expandWildcard(input);
+                    for (List<Integer> i : inputs) {
+                        currentStateTransitions.put(A.richAlphabet.encode(i), dest);
+                    }
+                    input = new ArrayList<>();
+                    dest = new IntArrayList();
+                } else {
+                    throw WalnutException.undefinedStatement(lineNumber, address);
+                }
+            }
+            if (outputLongFile) {
+                System.out.println("...finished");
+            }
 
-          validateDeclaredStates(setOfDestinationStates, output, address);
+            validateDeclaredStates(setOfDestinationStates, output, address);
 
-          A.fa.setFieldsFromFile(Q, q0, output, transitions);
-      } catch (IOException e) {
-          UtilityMethods.printTruncatedStackTrace(e);
-          throw WalnutException.fileDoesNotExist(address);
-      }
-  }
+            A.fa.setFieldsFromFile(Q, q0, output, transitions);
+        } catch (IOException e) {
+            UtilityMethods.printTruncatedStackTrace(e);
+            throw WalnutException.fileDoesNotExist(address);
+        }
+    }
 
-  static boolean debugPrintLongFile(String address, long lineNumber, boolean outputLongFile) {
-      if (lineNumber % 1000000 == 0) {
-          if (!outputLongFile) {
-              outputLongFile = true;
-              System.out.print("Parsing " + address + " ...");
-          }
-          System.out.print("line " + lineNumber + "...");
-      }
-      return outputLongFile;
-  }
+    static boolean debugPrintLongFile(String address, long lineNumber, boolean outputLongFile) {
+        if (lineNumber % 1000000 == 0) {
+            if (!outputLongFile) {
+                outputLongFile = true;
+                System.out.print("Parsing " + address + " ...");
+            }
+            System.out.print("line " + lineNumber + "...");
+        }
+        return outputLongFile;
+    }
 
     static void validateTransition(Automaton automaton, String address, int currentState, long lineNumber, List<Integer> input) {
         if (currentState == -1) {
             throw new WalnutException(
-                    "Must declare a state before declaring a list of transitions: line " +
-                        lineNumber + " of file " + address);
+                "Must declare a state before declaring a list of transitions: line " +
+                    lineNumber + " of file " + address);
         }
 
         if (input.size() != automaton.richAlphabet.getA().size()) {
             throw new WalnutException("This automaton requires a " + automaton.richAlphabet.getA().size() +
-                    "-tuple as input: line " + lineNumber + " of file " + address);
+                "-tuple as input: line " + lineNumber + " of file " + address);
         }
     }
 
@@ -181,7 +181,7 @@ public class AutomatonReader {
             Map<Integer, Int2ObjectRBTreeMap<IntList>> stateTransition = new TreeMap<>();
             Map<Integer, Map<Integer, Integer>> stateTransitionOutput = new TreeMap<>();
 
-            int Q = 0, q0=0;
+            int Q = 0, q0 = 0;
             Set<Integer> setOfDestinationStates = new HashSet<>();
             boolean outputLongFile = false;
 
@@ -238,5 +238,25 @@ public class AutomatonReader {
             UtilityMethods.printTruncatedStackTrace(e);
             throw WalnutException.fileDoesNotExist(address);
         }
+    }
+
+    /**
+     * Usually we skip comments. Here we skip everything else and return them.
+     */
+    public static String readComments(String address) {
+        StringBuilder sb = new StringBuilder();
+        File f = UtilityMethods.validateFile(address);
+        String line;
+        try (BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(f)))) {
+            while ((line = in.readLine()) != null) {
+                if (PATTERN_COMMENT.matcher(line).matches()) {
+                    sb.append(line).append(System.lineSeparator());
+                }
+            }
+        } catch (IOException e) {
+            UtilityMethods.printTruncatedStackTrace(e);
+            throw WalnutException.fileDoesNotExist(address);
+        }
+        return sb.toString().strip();
     }
 }

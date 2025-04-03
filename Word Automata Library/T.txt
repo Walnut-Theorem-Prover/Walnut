@@ -1,3 +1,4 @@
+# Thue-Morse word
 msd_2
 
 0 0

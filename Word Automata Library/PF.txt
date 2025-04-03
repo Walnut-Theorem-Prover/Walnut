@@ -1,3 +1,4 @@
+# Paperfolding words
 {-1,1} lsd_2
 
 0 0
