@@ -1,3 +1,4 @@
+# Paperfolding word, LSD representation
 lsd_2
 0 0
 0 -> 1

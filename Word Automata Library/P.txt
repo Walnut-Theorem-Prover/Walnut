@@ -1,3 +1,4 @@
+# Paperfolding word, MSD representation
 msd_2
 
 0 0

@@ -224,7 +224,7 @@ public class Automaton {
     }
     
     public static Automaton readAutomatonFromFile(String automataName) {
-        return new Automaton(Session.getReadFileForAutomataLibrary(automataName + ".txt"));
+        return new Automaton(Session.getReadFileForAutomataLibrary(automataName + TXT_EXTENSION));
     }
 
     public Automaton combine(List<String> automataNames, IntList outputs, boolean print, String prefix, StringBuilder log) {

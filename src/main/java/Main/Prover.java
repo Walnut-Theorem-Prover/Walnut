@@ -50,8 +50,7 @@ public class Prover {
    */
   static final String RE_FOR_CMD = RE_START + "(\\w+)(\\s+.*)?";
   static final Pattern PAT_FOR_CMD = Pattern.compile(RE_FOR_CMD);
-  
-  static final String RE_FOR_load_CMD = RE_START + "load\\s+(\\w+\\.txt)";
+
   public static final String FIXTRAILZERO = "fixtrailzero";
   public static final String CONVERT = "convert";
   public static final String REVERSE_SPLIT = "reverse split";
@@ -81,6 +80,7 @@ public class Prover {
    * group for filename in RE_FOR_load_CMD
    */
   static int L_FILENAME = 1;
+  static final String RE_FOR_load_CMD = RE_START + LOAD + "\\s+(\\w+\\.txt)";
   static final Pattern PAT_FOR_load_CMD = Pattern.compile(RE_FOR_load_CMD);
 
   static final String RE_FOR_eval_def_CMDS = RE_START + "(eval|def)" + RE_WORD_OF_CMD + "((" + RE_WORD_OF_CMD + ")*)\\s+\"(.*)\"";
@@ -604,7 +604,7 @@ public class Prover {
     M.writeAutomata(predicate, Session.getWriteAddressForAutomataLibrary(), evalName, false);
 
     if (!freeVariables.isEmpty()) {
-      mplAddress = resultName + ".mpl";
+      mplAddress = resultName + MPL_EXTENSION;
       AutomatonWriter.writeMatrices(M, mplAddress, freeVariables);
     }
 
@@ -1052,7 +1052,7 @@ public class Prover {
     Automaton repr = ostr.createRepresentationAutomaton();
     Ostrowski.writeAutomaton(name, "msd_" + name + TXT_EXTENSION, repr);
     Automaton adder = ostr.createAdderAutomaton();
-    Ostrowski.writeAutomaton(name, "msd_" + name + "_addition.txt", adder);
+    Ostrowski.writeAutomaton(name, "msd_" + name + "_addition" + TXT_EXTENSION, adder);
 
     return new TestCase(adder,
         List.of(new TestCase.AutomatonFilenamePair(adder, DEFAULT_TESTFILE),
