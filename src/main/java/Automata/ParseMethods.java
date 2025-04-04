@@ -18,14 +18,12 @@
 
 package Automata;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import Main.Predicate;
+import Main.Prover;
 import Main.UtilityMethods;
 import Main.WalnutException;
 
@@ -78,6 +76,7 @@ public class ParseMethods {
         return false;
     }
 
+    // TODO - look at redundancy with Prover.determineAlphabetsAndNS
     public static boolean parseAlphabetDeclaration(
             String s,
             List<List<Integer>> A,
@@ -93,30 +92,11 @@ public class ParseMethods {
             }
 
             if (m.group(ALPHABET_NUMBER_SYSTEM) != null) {
-                String ns = "msd_2";
-                if (m.group(3) != null) {
-                    ns = m.group(3);
-                }
-
-                if (m.group(6) != null) {
-                    ns = "msd_" + m.group(6);
-                }
-
-                if (m.group(9) != null) {
-                    ns = m.group(9) + "_2";
-                }
-
-                if (m.group(10) != null) {
-                    ns = "msd_" + m.group(10);
-                }
-
-                HashMap<String, NumberSystem> H = Predicate.getNumberSystemHash();
-                if (!H.containsKey(ns)) {
-                        H.put(ns, new NumberSystem(ns));
-                }
-
-                A.add(H.get(ns).getAlphabet());
-                bases.add(H.get(ns));
+                String base = Prover.determineBase(m);
+                Map<String, NumberSystem> H = Predicate.getNumberSystemHash();
+                if (!H.containsKey(base)) { H.put(base, new NumberSystem(base)); }
+                A.add(H.get(base).getAlphabet());
+                bases.add(H.get(base));
             }
 
             index = m.end();

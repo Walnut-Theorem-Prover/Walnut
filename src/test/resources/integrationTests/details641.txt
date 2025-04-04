@@ -130,6 +130,7 @@ n=((x+y)+z):3 states - 0ms
           Determinizing [#10, strategy: Brzozowski-CCLS]: 1790 states
           Reverse -- Determinizing with strategy:CCLS.
           Bisimulation reduced to 369 states
+          Calculating simulation relations; this can be resource-intensive
           Simulation altered to 337 states
           Found 1019 simulation relations
           Reverse: 480 states - 

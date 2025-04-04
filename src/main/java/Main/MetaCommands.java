@@ -20,6 +20,10 @@ public class MetaCommands {
   private final IntSet exportBASet = new IntOpenHashSet();
   private boolean alwaysOnExport = false;
 
+  public MetaCommands() {
+    Prover.usingOTF = false;
+  }
+  
   public int incrementAutomataIndex() {
     return automataIndex++;
   }
@@ -31,6 +35,7 @@ public class MetaCommands {
       strategyMap.put(Integer.parseInt(index), strategy);
     }
   }
+
   public DeterminizationStrategies.Strategy getStrategy(int index) {
     if (alwaysOnStrategy != null) {
       return alwaysOnStrategy;
@@ -52,6 +57,7 @@ public class MetaCommands {
       exportBASet.add(Integer.parseInt(index));
     }
   }
+
   public String getExportBAName(int index) {
     if (alwaysOnExport || exportBASet.contains(index)) {
       return Prover.currentEvalName == null ? DEFAULT_EXPORT_NAME : Prover.currentEvalName;
@@ -60,46 +66,45 @@ public class MetaCommands {
   }
 
   /**
-   * Parse meta-commands and then return the remainder of the string.
+   * Parse meta-commands if they exist.
+   * @param command - full command, e.g., [strategy 1 CCLS][export 3 BA][strategy 2 BRZ]"command"
+   * @param printDetails - whether we're printing details, i.e., original command ended with ::
+   * @return stripped string, e.g., "command"
    */
-  String parseMetaCommands(String s, boolean printDetails) {
+  String parseMetaCommands(String command, boolean printDetails) {
     // repeatedly match meta commands at the start of the string
-    while (s.startsWith(Prover.LEFT_BRACKET)) {
-      Matcher metaCmdMatcher = Prover.PAT_META_CMD.matcher(s);
-      if (!metaCmdMatcher.find()) {
-        throw WalnutException.invalidCommand(s);
-      }
+    while (command.startsWith(Prover.LEFT_BRACKET)) {
+      Matcher metaCmdMatcher = ProverHelper.matchOrFail(Prover.PAT_META_CMD, command, command);
       // Get the current meta command block and process it
       String metaCommandString = metaCmdMatcher.group(Prover.GROUP_META_CMD).strip();
       if (!metaCommandString.isEmpty() && !printDetails) {
         throw new WalnutException("Metacommands are currently only supported for commands ending in ::");
       }
-      for (String metaCommand : metaCommandString.split(",")) {
-        metaCommand = metaCommand.strip();
-        if (metaCommand.startsWith(Prover.STRATEGY)) {
-          // example: strategy 15 CCL
-          String[] strategyAndIndex = metaCommand.split("\\s+");
-          if (strategyAndIndex.length != 3) {
-            throw WalnutException.invalidCommandUse(metaCommand);
-          }
-          String strategyIndex = strategyAndIndex[1];
-          String strategyName = strategyAndIndex[2];
-          addStrategy(strategyIndex, DeterminizationStrategies.Strategy.fromString(strategyName)
-          );
-        } else if (metaCommand.startsWith(Prover.EXPORT)) {
-          // example: export 15 BA, or export * BA
-          String[] parts = metaCommand.split("\\s+");
-          if (parts.length != 3) {
-            throw WalnutException.invalidCommandUse(metaCommand);
-          }
-          addExport(parts[1], parts[2]);
-        } else {
-          throw WalnutException.invalidCommand(metaCommand);
-        }
+
+      command = metaCmdMatcher.group(Prover.GROUP_FINAL_CMD).strip(); // update to be the remainder
+
+      String[] parts = metaCommandString.split("\\s+");
+      if (parts.length != 3) {
+        throw WalnutException.invalidCommandUse(metaCommandString);
       }
-      // Remove the processed meta command block from s and trim any whitespace
-      s = metaCmdMatcher.group(Prover.GROUP_FINAL_CMD).strip();
+
+      switch (parts[0]) {
+        case Prover.STRATEGY:
+          // example: strategy 15 CCL
+          DeterminizationStrategies.Strategy strategy = DeterminizationStrategies.Strategy.fromString(parts[2]);
+          if (strategy.isOTFStrategy()) {
+            Prover.usingOTF = true;
+          }
+          addStrategy(parts[1], strategy);
+          break;
+        case Prover.EXPORT:
+          // example: export 15 BA, or export * BA
+          addExport(parts[1], parts[2]);
+          break;
+        default:
+          throw WalnutException.invalidCommand(command);
+      }
     }
-    return s;
+    return command;
   }
 }

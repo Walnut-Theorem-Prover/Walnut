@@ -1,2 +1,25 @@
-To Be Documented.
+The "strategy" metacommand allows different strategies for determinization of intermediate automata, rather than the default SC (Subset Construction).
 
+The strategy syntax for the metacommand is as follows:
+[strategy 0 BRZ]   ##  Use the BRZ strategy for intermediate automaton 0
+[strategy * CCLS]  ##  Use the CCLS strategy for all intermediate automata
+
+Example usage:
+
+[strategy 10 CCLS]def thm5 "E x,y,z (n=x+y+z)&(QQ[x]=@1)&(QQ[y]=@1)&(QQ[z]=@1)"::
+
+This uses the CCLS strategy for intermediate automaton 10.
+In this case, CCLS is roughly 35x faster than SC and uses much less memory.
+
+Supported strategies:
+
+BRZ - [Brzozowski's algorithm](https://en.wikipedia.org/wiki/DFA_minimization#Brzozowski's_algorithm)
+CCL - Convexity Closure Lattice
+CCLS - Convexity Closure Lattice with Simulation
+BRZ-CCL - Brzozowski + CCL
+BRZ-CCLS - Brzozowski + CCLS
+SC - Subset Construction (default)
+
+CCL(S) and BRZ-CCL(S) are new algorithms written by John Nicol and Markus Frohme. Please cite the upcoming paper if you use those algorithms.
+
+For a given automaton, it's not clear which algorithm is best; you may need to try them all. One rule of thumb: if the NFA size is very large (over 50,000 say),you will need a lot of memory and time to compute simulation in CCLS and BRZ-CCLS, and they may crash.

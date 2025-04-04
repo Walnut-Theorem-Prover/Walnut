@@ -129,6 +129,7 @@ n=((x+y)+z):3 states - 0ms
         quantifying:1790 states
           Determinizing [#10, strategy: CCLS]: 1790 states
           Bisimulation reduced to 369 states
+          Calculating simulation relations; this can be resource-intensive
           Simulation altered to 339 states
           Found 2919 simulation relations
           Determinized: 14609 states - 293ms

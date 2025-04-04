@@ -26,9 +26,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import Automata.*;
-import Automata.FA.Infinite;
 import Automata.Numeration.Ostrowski;
-import Main.EvalComputations.Token.ArithmeticOperator;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 
@@ -273,6 +271,7 @@ public class Prover {
   public boolean printFlag; // helper variable, could be eliminated
 
   public static String currentEvalName; // current evaluation name, used for export metacommand
+  public static boolean usingOTF = false; // whether the current command is using OTF algorithms
   /**
    * if the command line argument is not empty, we treat args[0] as a filename.
    * if this is the case, we read from the file and load its commands before we submit control to user.
@@ -414,6 +413,12 @@ public class Prover {
       }
     }
     processCommand(s, commandName);
+    if (Prover.usingOTF) {
+      UtilityMethods.logAndPrint(true,
+          "\nIf the CCL(S) or BRZ-CCL(S) algorithms are used in a result," +
+              "please cite the OTF paper by John Nicol and Markus Frohme.", log);
+
+    }
     return true;
   }
 
@@ -469,7 +474,7 @@ public class Prover {
         return alphabetCommand(s);
       }
       case CLEAR, CLS -> {
-        clearScreen();
+        ProverHelper.clearScreen();
         return null;
       }
       case COMBINE -> {
@@ -571,7 +576,7 @@ public class Prover {
    * Note that the file can contain load y.p; whenever y != x and y exist.
    */
   public boolean loadCommand(String s) {
-    Matcher m = matchOrFail(PAT_FOR_load_CMD, s, LOAD);
+    Matcher m = ProverHelper.matchOrFail(PAT_FOR_load_CMD, s, LOAD);
 
     File f = UtilityMethods.validateFile(Session.getReadAddressForCommandFiles(m.group(L_FILENAME)));
 
@@ -586,14 +591,14 @@ public class Prover {
   }
 
   public TestCase evalDefCommands(String s) throws IOException {
-    Matcher m = matchOrFail(PAT_FOR_eval_def_CMDS, s, "eval/def");
+    Matcher m = ProverHelper.matchOrFail(PAT_FOR_eval_def_CMDS, s, "eval/def");
     String mplAddress = null;
 
-    List<String> freeVariables = determineFreeVariables(m);
+    List<String> freeVariables = determineFreeVariables(m.group(ED_FREE_VARIABLES));
 
     String predicate = m.group(ED_PREDICATE);
     String evalName = m.group(ED_NAME);
-    this.currentEvalName = evalName; // used for export metacommand
+    currentEvalName = evalName; // used for export metacommand
 
     EvalComputer c = new EvalComputer(predicate, printSteps, printDetails);
     Automaton M = c.result.M;
@@ -618,9 +623,8 @@ public class Prover {
         List.of(new TestCase.AutomatonFilenamePair(M, DEFAULT_TESTFILE)));
   }
 
-  private static List<String> determineFreeVariables(Matcher m) {
+  static List<String> determineFreeVariables(String freeVarString) {
     List<String> free_variables = new ArrayList<>();
-    String freeVarString = m.group(ED_FREE_VARIABLES);
     if (freeVarString != null) {
       Matcher m1 = PAT_FOR_A_FREE_VARIABLE_IN_eval_def_CMDS.matcher(freeVarString);
       while (m1.find()) {
@@ -631,9 +635,8 @@ public class Prover {
     return free_variables;
   }
 
-
   public static TestCase macroCommand(String s) {
-    Matcher m = matchOrFail(PAT_FOR_macro_CMD, s, MACRO);
+    Matcher m = ProverHelper.matchOrFail(PAT_FOR_macro_CMD, s, MACRO);
     File f = new File(Session.getWriteAddressForMacroLibrary() + m.group(M_NAME) + TXT_EXTENSION);
     try (BufferedWriter out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(f)))) {
       out.write(m.group(M_DEFINITION));
@@ -644,13 +647,12 @@ public class Prover {
   }
 
   public static TestCase regCommand(String s) {
-    Matcher m = matchOrFail(PAT_FOR_reg_CMD, s, REG);
+    Matcher m = ProverHelper.matchOrFail(PAT_FOR_reg_CMD, s, REG);
 
     List<List<Integer>> alphabets = new ArrayList<>();
     List<NumberSystem> NS = new ArrayList<>();
     if (m.group(R_LIST_OF_ALPHABETS) == null) {
-      String base = "msd_2";
-      NumberSystem ns = getNumberSystem(base, NS, m);
+      NumberSystem ns = ProverHelper.getNumberSystem("msd_2", NS, m.start(Prover.R_NUMBER_SYSTEM));
       alphabets.add(ns.getAlphabet());
     }
     determineAlphabetsAndNS(m, NS, alphabets);
@@ -663,7 +665,7 @@ public class Prover {
     M.richAlphabet.setA(alphabets);
     M.determineAlphabetSize();
 
-    String baseExp = determineBaseExp(m.group(R_REGEXP), M.richAlphabet.getA().size(), M.richAlphabet);
+    String baseExp = ProverHelper.determineBaseExp(m.group(R_REGEXP), M.richAlphabet.getA().size(), M.richAlphabet);
 
     Automaton R = new Automaton(baseExp, M.getAlphabetSize());
     R.richAlphabet.setA(M.richAlphabet.getA());
@@ -674,72 +676,8 @@ public class Prover {
     return new TestCase(R);
   }
 
-  private static String determineBaseExp(String baseexp, int inputLength, RichAlphabet r) {
-    Matcher m2 = PAT_FOR_AN_ALPHABET_VECTOR.matcher(baseexp);
-    // if we haven't had to replace any input vectors with unicode, we use the legacy method of constructing the automaton
-    while (m2.find()) {
-      String alphabetVector = m2.group();
-
-      // needed to replace this string with the unicode mapping
-      String alphabetVectorCopy = alphabetVector;
-      if (alphabetVector.charAt(0) == '[') {
-        alphabetVector = alphabetVector.substring(1, alphabetVector.length() - 1); // truncate brackets [ ]
-      }
-
-      List<Integer> L = new ArrayList<>();
-      Matcher m3 = PAT_FOR_A_SINGLE_ELEMENT_OF_A_SET.matcher(alphabetVector);
-      while (m3.find()) {
-        L.add(UtilityMethods.parseInt(m3.group()));
-      }
-      if (L.size() != inputLength) {
-        throw new WalnutException("Mismatch between vector length in regex and specified number of inputs to automaton");
-      }
-      int vectorEncoding = r.encode(L);
-      // dk.brics regex has several reserved characters - we cannot use these or the method that generates the automaton will
-      // not be able to parse the string properly. All of these reserved characters have UTF-16 values between 0 and 127, so offsetting
-      // our encoding by 128 will be enough to ensure that we have no conflicts
-      vectorEncoding += 128;
-      char replacement = (char) vectorEncoding;
-      String replacementStr = Character.toString(replacement);
-
-      /*
-       * If alphabetVectorCopy is "2" and baseexp is "(22|[-2][-2])",
-       * and you just run
-       * baseexp.replace(alphabetVectorCopy, replacementStr)
-       * normally, then this will turn baseexp to "(|[-][-])"
-       * instead of "(|[-2][-2])".
-       * Instead, we replace all occurrences of "[-2]" with "%PLACEHOLDER%",
-       * then run baseexp.replace(alphabetVectorCopy, replacementStr),
-       * and then replace "%PLACEHOLDER%" with "[-2]".
-       */
-      baseexp = baseexp
-          .replace("[-" + alphabetVectorCopy + "]", "§")
-          .replace(alphabetVectorCopy, replacementStr)
-          .replace("§", "[-" + alphabetVectorCopy + "]");
-    }
-
-    // We should always do this with replacement, since we may have regexes such as "...", which accepts any three characters
-    // in a row, on an alphabet containing bracketed characters. We don't make any replacements here, but they are implicitly made
-    // when we intersect with our alphabet(s).
-
-    // remove all whitespace from regular expression.
-    return baseexp.replaceAll("\\s", "");
-  }
-
-  private static NumberSystem getNumberSystem(String base, List<NumberSystem> numSys, Matcher m) {
-    try {
-      if (!Predicate.numberSystemHash.containsKey(base))
-        Predicate.numberSystemHash.put(base, new NumberSystem(base));
-      NumberSystem ns = Predicate.numberSystemHash.get(base);
-      numSys.add(Predicate.numberSystemHash.get(base));
-      return ns;
-    } catch (RuntimeException e) {
-      throw new WalnutException("number system " + base + " does not exist: char at " + m.start(R_NUMBER_SYSTEM) + System.lineSeparator() + "\t:" + e.getMessage());
-    }
-  }
-
   public TestCase combineCommand(String s) {
-    Matcher m = matchOrFail(PAT_FOR_combine_CMD, s, COMBINE);
+    Matcher m = ProverHelper.matchOrFail(PAT_FOR_combine_CMD, s, COMBINE);
     
     List<String> automataNames = new ArrayList<>();
     IntList outputs = new IntArrayList();
@@ -774,46 +712,21 @@ public class Prover {
   }
 
   public TestCase describeCommand(String s) {
-    Matcher m = matchOrFail(PAT_FOR_describe_CMD, s, DESCRIBE);
-
+    Matcher m = ProverHelper.matchOrFail(PAT_FOR_describe_CMD, s, DESCRIBE);
     String inFileName = m.group(GROUP_describe_NAME) + TXT_EXTENSION;
-
     boolean isDFAO = !m.group(GROUP_describe_DOLLAR_SIGN).equals("$");
-    String inLibrary = isDFAO ? Session.getReadFileForWordsLibrary(inFileName) :
-        Session.getReadFileForAutomataLibrary(inFileName);
-
-    Automaton M = new Automaton(inLibrary);
-
-    UtilityMethods.logMessage(true, "File location: " + inLibrary, log);
-    String comments = AutomatonReader.readComments(inLibrary);
-    UtilityMethods.logMessage(true, "Comments: " + comments, log);
-    UtilityMethods.logMessage(true, "State count:" + M.fa.getQ(), log);
-    UtilityMethods.logMessage(true, "Transition count:" + M.fa.determineTransitionCount(), log);
-    UtilityMethods.logMessage(true, "Alphabet size:" + M.fa.getAlphabetSize(), log);
-    UtilityMethods.logMessage(true, "Number systems:" + M.getNS(), log);
-
-    return new TestCase(M, "", null, null, Prover.log.toString(),
-        List.of(new TestCase.AutomatonFilenamePair(M, DEFAULT_TESTFILE)));
+    return ProverHelper.describe(isDFAO, inFileName);
   }
 
-
   public static void morphismCommand(String s) throws IOException {
-    Matcher m = matchOrFail(PAT_FOR_morphism_CMD, s, MORPHISM);
-
+    Matcher m = ProverHelper.matchOrFail(PAT_FOR_morphism_CMD, s, MORPHISM);
     String name = m.group(GROUP_MORPHISM_NAME);
-
-    Morphism M = new Morphism();
-    M.parseMap(m.group(GROUP_MORPHISM_DEFINITION));
-    System.out.print("Defined with domain ");
-    System.out.print(M.mapping.keySet());
-    System.out.print(" and range ");
-    System.out.print(M.range);
-    M.write(Session.getAddressForResult() + name + TXT_EXTENSION);
-    M.write(Session.getWriteAddressForMorphismLibrary() + name + TXT_EXTENSION);
+    String morphismDefinition = m.group(GROUP_MORPHISM_DEFINITION);
+    ProverHelper.morphismCommand(morphismDefinition, name);
   }
 
   public static TestCase promoteCommand(String s) throws IOException {
-    Matcher m = matchOrFail(PAT_FOR_promote_CMD, s, PROMOTE);
+    Matcher m = ProverHelper.matchOrFail(PAT_FOR_promote_CMD, s, PROMOTE);
 
     Morphism h = new Morphism(Session.getReadFileForMorphismLibrary(m.group(GROUP_PROMOTE_MORPHISM) + TXT_EXTENSION));
     Automaton P = h.toWordAutomaton();
@@ -823,7 +736,7 @@ public class Prover {
   }
 
   public TestCase imageCommand(String s) throws IOException {
-    Matcher m = matchOrFail(PAT_FOR_image_CMD, s, IMAGE);
+    Matcher m = ProverHelper.matchOrFail(PAT_FOR_image_CMD, s, IMAGE);
 
     Morphism h = new Morphism(Session.getReadFileForMorphismLibrary(m.group(GROUP_IMAGE_MORPHISM) + TXT_EXTENSION));
     if (!h.isUniform()) {
@@ -856,88 +769,27 @@ public class Prover {
   }
 
   public static boolean infCommand(String s) {
-    Matcher m = matchOrFail(PAT_FOR_inf_CMD, s, INF);
+    Matcher m = ProverHelper.matchOrFail(PAT_FOR_inf_CMD, s, INF);
     String address = m.group(GROUP_INF_NAME);
-    return infFromAddress(address);
-  }
-  static boolean infFromAddress(String address) {
-    Automaton M = Automaton.readAutomatonFromFile(address);
-    M.randomLabel();
-    M = AutomatonLogicalOps.removeLeadingZeroes(M, M.getLabel(), false, null, null);
-    String infReg = Infinite.infinite(M.fa, M.richAlphabet);
-    System.out.println(!infReg.isEmpty() ? infReg : "Automaton " + address + " accepts finitely many values.");
-    return !infReg.isEmpty();
-  }
-
-  public TestCase processSplitCommand(
-      String s, boolean isReverse,
-      String automatonName, String name, Matcher inputPattern) {
-
-    String addressForWordAutomaton =
-        Session.getReadFileForWordsLibrary(automatonName + TXT_EXTENSION);
-
-    Automaton M;
-    boolean isDFAO;
-    if ((new File(addressForWordAutomaton)).isFile()) {
-      M = new Automaton(addressForWordAutomaton);
-      isDFAO = true;
-    } else {
-      String addressForAutomaton =
-          Session.getReadFileForAutomataLibrary(automatonName + TXT_EXTENSION);
-      if ((new File(addressForAutomaton)).isFile()) {
-        M = new Automaton(addressForAutomaton);
-        isDFAO = false;
-      } else {
-        throw new WalnutException("Automaton " + automatonName + " does not exist.");
-      }
-    }
-
-    List<ArithmeticOperator.Ops> plusMinusInputs = new ArrayList<>();
-    boolean hasInput = false;
-    while (inputPattern.find()) {
-      String t = inputPattern.group(1);
-      ArithmeticOperator.Ops tOp = t.isEmpty() ? null : ArithmeticOperator.Ops.fromSymbol(t);
-      if (tOp != null && tOp != ArithmeticOperator.Ops.PLUS && tOp != ArithmeticOperator.Ops.MINUS) {
-        throw WalnutException.invalidCommand(t);
-      }
-      hasInput = hasInput || (tOp != null);
-      plusMinusInputs.add(tOp);
-    }
-    if (!hasInput || plusMinusInputs.isEmpty()) {
-      throw new WalnutException("Cannot split without inputs.");
-    }
-
-    IntList outputs = new IntArrayList(M.fa.getO());
-    UtilityMethods.removeDuplicates(outputs);
-    List<Automaton> subautomata = WordAutomaton.uncombine(M, outputs);
-
-    subautomata.replaceAll(automaton -> automaton.processSplit(plusMinusInputs, isReverse, printFlag, prefix, log));
-
-    Automaton N = subautomata.remove(0);
-    N = AutomatonLogicalOps.combine(N, new LinkedList<>(subautomata), outputs, printFlag, prefix, log);
-
-    N.writeAutomata(s,
-        isDFAO ? Session.getWriteAddressForWordsLibrary() : Session.getWriteAddressForAutomataLibrary(),
-        name, isDFAO);
-    return new TestCase(N);
+    return ProverHelper.infFromAddress(address);
   }
 
   public TestCase splitCommand(String s) {
-    Matcher m = matchOrFail(PAT_FOR_split_CMD, s, SPLIT);
-    return processSplitCommand(s, false,
+    Matcher m = ProverHelper.matchOrFail(PAT_FOR_split_CMD, s, SPLIT);
+    return ProverHelper.processSplitCommand(s, false,
         m.group(GROUP_SPLIT_AUTOMATA), m.group(GROUP_SPLIT_NAME),
-        PAT_FOR_INPUT_IN_split_CMD.matcher(m.group(GROUP_SPLIT_INPUT)));
+        PAT_FOR_INPUT_IN_split_CMD.matcher(m.group(GROUP_SPLIT_INPUT)), printFlag);
   }
 
   public TestCase rsplitCommand(String s) {
-    Matcher m = matchOrFail(PAT_FOR_rsplit_CMD, s, REVERSE_SPLIT);
-    return processSplitCommand(s, true,
+    Matcher m = ProverHelper.matchOrFail(PAT_FOR_rsplit_CMD, s, REVERSE_SPLIT);
+    return ProverHelper.processSplitCommand(s, true,
         m.group(GROUP_RSPLIT_AUTOMATA), m.group(GROUP_RSPLIT_NAME),
-        PAT_FOR_INPUT_IN_split_CMD.matcher(m.group(GROUP_RSPLIT_INPUT)));
+        PAT_FOR_INPUT_IN_split_CMD.matcher(m.group(GROUP_RSPLIT_INPUT)), printFlag);
   }
 
   public TestCase joinCommand(String s) {
-    Matcher m = matchOrFail(PAT_FOR_join_CMD, s, JOIN);
+    Matcher m = ProverHelper.matchOrFail(PAT_FOR_join_CMD, s, JOIN);
     
     Matcher m1 = PAT_FOR_AN_AUTOMATON_IN_join_CMD.matcher(m.group(GROUP_JOIN_AUTOMATA));
     List<Automaton> subautomata = new ArrayList<>();
@@ -976,15 +828,13 @@ public class Prover {
     Automaton N = subautomata.remove(0);
     N = N.join(new LinkedList<>(subautomata), printFlag, prefix, log);
 
-    N.writeAutomata(s,
-        isDFAO ? Session.getWriteAddressForWordsLibrary() : Session.getWriteAddressForAutomataLibrary(),
-        m.group(GROUP_JOIN_NAME), isDFAO);
+    N.writeAutomata(s, ProverHelper.determineOutLibrary(isDFAO), m.group(GROUP_JOIN_NAME), isDFAO);
     return new TestCase(N);
   }
 
 
   public static boolean testCommand(String s) {
-    Matcher m = matchOrFail(PAT_FOR_test_CMD, s, TEST);
+    Matcher m = ProverHelper.matchOrFail(PAT_FOR_test_CMD, s, TEST);
 
     int needed = Integer.parseInt(m.group(GROUP_TEST_NUM));
 
@@ -998,8 +848,9 @@ public class Prover {
     M.randomLabel();
     M = AutomatonLogicalOps.removeLeadingZeroes(M, M.getLabel(), false, null, null);
 
-    boolean infinite = infFromAddress(testName);
+    boolean infinite = ProverHelper.infFromAddress(testName);
 
+    // TODO - Call reg command directly, rather than through fake command
     StringBuilder incLengthReg = new StringBuilder();
     incLengthReg.append("reg ").append(testName).append("_len ");
     for (int i = 0; i < M.richAlphabet.getA().size(); i++) {
@@ -1045,7 +896,7 @@ public class Prover {
   }
 
   public static TestCase ostCommand(String s) {
-    Matcher m = matchOrFail(PAT_FOR_ost_CMD, s, OST);
+    Matcher m = ProverHelper.matchOrFail(PAT_FOR_ost_CMD, s, OST);
 
     String name = m.group(GROUP_OST_NAME);
     Ostrowski ostr = new Ostrowski(name, m.group(GROUP_OST_PREPERIOD), m.group(GROUP_OST_PERIOD));
@@ -1060,52 +911,28 @@ public class Prover {
   }
 
   public TestCase transduceCommand(String s) {
-    Matcher m = matchOrFail(PAT_FOR_transduce_CMD, s, TRANSDUCE);
+    Matcher m = ProverHelper.matchOrFail(PAT_FOR_transduce_CMD, s, TRANSDUCE);
     
     Transducer T = new Transducer(Session.getTransducerFile(m.group(GROUP_TRANSDUCE_TRANSDUCER) + TXT_EXTENSION));
     String inFileName = m.group(GROUP_TRANSDUCE_OLD_NAME) + TXT_EXTENSION;
-    String inLibrary = Session.getReadFileForWordsLibrary(inFileName);
-    if (m.group(GROUP_TRANSDUCE_DOLLAR_SIGN).equals("$")) {
-      inLibrary = Session.getReadFileForAutomataLibrary(inFileName);
-    }
-    Automaton M = new Automaton(inLibrary);
+    boolean isDFAO = !(m.group(GROUP_TRANSDUCE_DOLLAR_SIGN).equals("$"));
+    Automaton M = new Automaton(ProverHelper.determineInLibrary(isDFAO, inFileName));
 
     Automaton C = T.transduceNonDeterministic(M, printFlag, prefix, log);
     C.writeAutomata(s, Session.getWriteAddressForWordsLibrary(), m.group(GROUP_TRANSDUCE_NEW_NAME), true);
     return new TestCase(C);
   }
 
-
   public TestCase reverseCommand(String s) {
-    Matcher m = matchOrFail(PAT_FOR_reverse_CMD, s, REVERSE);
-    
-    boolean isDFAO = true;
-
+    Matcher m = ProverHelper.matchOrFail(PAT_FOR_reverse_CMD, s, REVERSE);
+    boolean isDFAO = !m.group(GROUP_REVERSE_DOLLAR_SIGN).equals("$");
     String inFileName = m.group(GROUP_REVERSE_OLD_NAME) + TXT_EXTENSION;
-    String inLibrary = Session.getReadFileForWordsLibrary(inFileName);
-    if (m.group(GROUP_REVERSE_DOLLAR_SIGN).equals("$")) {
-      inLibrary = Session.getReadFileForAutomataLibrary(inFileName);
-      isDFAO = false;
-    }
-    Automaton M = new Automaton(inLibrary);
-
-    if (isDFAO) {
-      WordAutomaton.reverseWithOutput(M, true, printFlag, prefix, log);
-    } else {
-      AutomatonLogicalOps.reverse(M, printFlag, prefix, log, true);
-    }
-
-    String outLibrary = Session.getWriteAddressForWordsLibrary();
-    if (m.group(GROUP_REVERSE_DOLLAR_SIGN).equals("$")) {
-      outLibrary = Session.getWriteAddressForAutomataLibrary();
-    }
-
-    M.writeAutomata(s, outLibrary, m.group(GROUP_REVERSE_NEW_NAME), true);
-    return new TestCase(M);
+    String newName = m.group(GROUP_REVERSE_NEW_NAME);
+    return ProverHelper.reverseCommand(s, inFileName, isDFAO, newName, printFlag);
   }
 
   public TestCase minimizeCommand(String s) {
-    Matcher m = matchOrFail(PAT_FOR_minimize_CMD, s, MINIMIZE);
+    Matcher m = ProverHelper.matchOrFail(PAT_FOR_minimize_CMD, s, MINIMIZE);
     
     Automaton M = new Automaton(
         Session.getReadFileForWordsLibrary(m.group(GROUP_MINIMIZE_OLD_NAME) + TXT_EXTENSION));
@@ -1117,7 +944,7 @@ public class Prover {
   }
 
   public TestCase convertCommand(String s) {
-    Matcher m = matchOrFail(PAT_FOR_convert_CMD, s, CONVERT);
+    Matcher m = ProverHelper.matchOrFail(PAT_FOR_convert_CMD, s, CONVERT);
 
     String newDollarSign = m.group(GROUP_CONVERT_NEW_DOLLAR_SIGN);
     String oldDollarSign = m.group(GROUP_CONVERT_OLD_DOLLAR_SIGN);
@@ -1147,43 +974,34 @@ public class Prover {
   }
 
   public TestCase fixLeadZeroCommand(String s) {
-    Matcher m = matchOrFail(PAT_FOR_fixleadzero_CMD, s, FIXLEADZERO);
-    
+    Matcher m = ProverHelper.matchOrFail(PAT_FOR_fixleadzero_CMD, s, FIXLEADZERO);
     Automaton M = Automaton.readAutomatonFromFile(m.group(GROUP_FIXLEADZERO_OLD_NAME));
-
     AutomatonLogicalOps.fixLeadingZerosProblem(M, printFlag, prefix, log);
-
     M.writeAutomata(s, Session.getWriteAddressForAutomataLibrary(), m.group(GROUP_FIXLEADZERO_NEW_NAME), false);
     return new TestCase(M);
   }
 
 
   public TestCase fixTrailZeroCommand(String s) {
-    Matcher m = matchOrFail(PAT_FOR_fixtrailzero_CMD, s, FIXTRAILZERO);
-    
+    Matcher m = ProverHelper.matchOrFail(PAT_FOR_fixtrailzero_CMD, s, FIXTRAILZERO);
     Automaton M = Automaton.readAutomatonFromFile(m.group(GROUP_FIXTRAILZERO_OLD_NAME));
-
     AutomatonLogicalOps.fixTrailingZerosProblem(M, printFlag, prefix, log);
-
     M.writeAutomata(s, Session.getWriteAddressForAutomataLibrary(), m.group(GROUP_FIXTRAILZERO_NEW_NAME), false);
     return new TestCase(M);
   }
 
   public TestCase alphabetCommand(String s) {
-    Matcher m = matchOrFail(PAT_FOR_alphabet_CMD, s, ALPHABET);
+    Matcher m = ProverHelper.matchOrFail(PAT_FOR_alphabet_CMD, s, ALPHABET);
 
     if (m.group(GROUP_alphabet_LIST_OF_ALPHABETS) == null) {
       throw new WalnutException("List of alphabets for alphabet command must not be empty.");
     }
     
-    boolean isDFAO = true;
+    boolean isDFAO = !m.group(GROUP_alphabet_DOLLAR_SIGN).equals("$");
 
     String inFileName = m.group(GROUP_alphabet_OLD_NAME) + TXT_EXTENSION;
-    String inLibrary = Session.getReadFileForWordsLibrary(inFileName);
-    if (m.group(GROUP_alphabet_DOLLAR_SIGN).equals("$")) {
-      inLibrary = Session.getReadFileForAutomataLibrary(inFileName);
-      isDFAO = false;
-    }
+    String inLibrary = isDFAO ?
+        Session.getReadFileForWordsLibrary(inFileName) : Session.getReadFileForAutomataLibrary(inFileName);
 
     List<NumberSystem> NS = new ArrayList<>();
     List<List<Integer>> alphabets = new ArrayList<>();
@@ -1194,12 +1012,7 @@ public class Prover {
     // here, call the function to set the number system.
     M.setAlphabet(isDFAO, NS, alphabets, printFlag, prefix, log);
 
-    String outLibrary = Session.getWriteAddressForWordsLibrary();
-    if (m.group(GROUP_alphabet_DOLLAR_SIGN).equals("$")) {
-      outLibrary = Session.getWriteAddressForAutomataLibrary();
-    }
-
-    M.writeAutomata(s, outLibrary, m.group(GROUP_alphabet_NEW_NAME), false);
+    M.writeAutomata(s, ProverHelper.determineOutLibrary(isDFAO), m.group(GROUP_alphabet_NEW_NAME), false);
     return new TestCase(M);
   }
 
@@ -1208,15 +1021,11 @@ public class Prover {
     int counter = 1;
     while (m1.find()) {
       if ((m1.group(R_NUMBER_SYSTEM) != null)) {
-        String base = "msd_2";
-        if (m1.group(3) != null) base = m1.group(3);
-        if (m1.group(6) != null) base = m1.group(7) + "_" + m1.group(8);
-        if (m1.group(9) != null) base = m1.group(9) + "_2";
-        if (m1.group(10) != null) base = "msd_" + m1.group(10);
-        NumberSystem ns = getNumberSystem(base, NS, m);
+        String base = determineBase(m1);
+        NumberSystem ns = ProverHelper.getNumberSystem(base, NS, m.start(Prover.R_NUMBER_SYSTEM));
         alphabets.add(ns.getAlphabet());
       } else if (m1.group(R_SET) != null) {
-        alphabets.add(determineAlphabet(m1.group(R_SET)));
+        alphabets.add(ProverHelper.determineAlphabet(m1.group(R_SET)));
         NS.add(null);
       } else {
         throw new WalnutException("Alphabet at position " + counter + " not recognized in alphabet command");
@@ -1225,8 +1034,17 @@ public class Prover {
     }
   }
 
+  public static String determineBase(Matcher m1) {
+    String base = "msd_2";
+    if (m1.group(3) != null) base = m1.group(3);
+    if (m1.group(6) != null) base = m1.group(7) + "_" + m1.group(8);
+    if (m1.group(9) != null) base = m1.group(9) + "_2";
+    if (m1.group(10) != null) base = "msd_" + m1.group(10);
+    return base;
+  }
+
   public TestCase unionCommand(String s) {
-    Matcher m = matchOrFail(PAT_FOR_union_CMD, s, UNION);
+    Matcher m = ProverHelper.matchOrFail(PAT_FOR_union_CMD, s, UNION);
     
     List<String> automataNames = new ArrayList<>();
 
@@ -1249,7 +1067,7 @@ public class Prover {
   }
 
   public TestCase intersectCommand(String s) {
-    Matcher m = matchOrFail(PAT_FOR_intersect_CMD, s, INTERSECT);
+    Matcher m = ProverHelper.matchOrFail(PAT_FOR_intersect_CMD, s, INTERSECT);
     
     List<String> automataNames = new ArrayList<>();
 
@@ -1273,7 +1091,7 @@ public class Prover {
 
 
   public TestCase starCommand(String s) {
-    Matcher m = matchOrFail(PAT_FOR_star_CMD, s, STAR);
+    Matcher m = ProverHelper.matchOrFail(PAT_FOR_star_CMD, s, STAR);
 
     Automaton M = new Automaton(
         Session.getReadFileForAutomataLibrary(m.group(GROUP_STAR_OLD_NAME) + TXT_EXTENSION));
@@ -1285,7 +1103,7 @@ public class Prover {
   }
 
   public TestCase concatCommand(String s) {
-    Matcher m = matchOrFail(PAT_FOR_concat_CMD, s, CONCAT);
+    Matcher m = ProverHelper.matchOrFail(PAT_FOR_concat_CMD, s, CONCAT);
     
     List<String> automataNames = new ArrayList<>();
 
@@ -1307,88 +1125,32 @@ public class Prover {
     return new TestCase(C);
   }
 
-
   public TestCase rightquoCommand(String s) {
-    Matcher m = matchOrFail(PAT_FOR_rightquo_CMD, s, RIGHTQUO);
-
+    Matcher m = ProverHelper.matchOrFail(PAT_FOR_rightquo_CMD, s, RIGHTQUO);
     Automaton M1 = Automaton.readAutomatonFromFile(m.group(GROUP_rightquo_OLD_NAME1));
     Automaton M2 = Automaton.readAutomatonFromFile(m.group(GROUP_rightquo_OLD_NAME2));
-
     Automaton C = AutomatonLogicalOps.rightQuotient(M1, M2, false, printFlag, prefix, log);
-
     C.writeAutomata(s, Session.getWriteAddressForAutomataLibrary(), m.group(GROUP_rightquo_NEW_NAME), false);
     return new TestCase(C);
   }
 
   public TestCase leftquoCommand(String s) {
-    Matcher m = matchOrFail(PAT_FOR_leftquo_CMD, s, LEFTQUO);
-
+    Matcher m = ProverHelper.matchOrFail(PAT_FOR_leftquo_CMD, s, LEFTQUO);
     Automaton M1 = Automaton.readAutomatonFromFile(m.group(GROUP_leftquo_OLD_NAME1));
     Automaton M2 = Automaton.readAutomatonFromFile(m.group(GROUP_leftquo_OLD_NAME2));
-
     Automaton C = AutomatonLogicalOps.leftQuotient(M1, M2, printFlag, prefix, log);
-
     C.writeAutomata(s, Session.getWriteAddressForAutomataLibrary(), m.group(GROUP_leftquo_NEW_NAME), false);
     return new TestCase(C);
   }
 
   public static TestCase exportCommand(String s) {
-    Matcher m = matchOrFail(PAT_FOR_export_CMD, s, EXPORT);
-
+    Matcher m = ProverHelper.matchOrFail(PAT_FOR_export_CMD, s, EXPORT);
     String filename = m.group(GROUP_export_NAME);
     String inFileName = filename + TXT_EXTENSION;
     String exportType = m.group(GROUP_export_TYPE);
     boolean isDFAO = !m.group(GROUP_export_DOLLAR_SIGN).equals("$");
-    String inLibrary = isDFAO ?
-        Session.getReadFileForWordsLibrary(inFileName) : Session.getReadFileForAutomataLibrary(inFileName);
-
-    Automaton M = new Automaton(inLibrary);
-    exportAutomata(s, filename, exportType, M, isDFAO);
+    Automaton M = new Automaton(ProverHelper.determineInLibrary(isDFAO, inFileName));
+    ProverHelper.exportAutomata(s, filename, exportType, M, isDFAO);
     return new TestCase(M);
-  }
-
-  /**
-   * Export automata to any supported format.
-   */
-  private static void exportAutomata(String s, String filename, String exportType, Automaton M, boolean isDFAO) {
-    String exportTypeLower = exportType.toLowerCase();
-    String resultFile = Session.getAddressForResult() + filename;
-
-    // currently only a few types are supported
-    switch (exportTypeLower) {
-      case BA_STRING -> AutomatonWriter.exportToBA(M.fa, resultFile + BA_EXTENSION, isDFAO);
-      case GV_STRING -> {
-        System.out.println("Writing to " + resultFile + GV_EXTENSION);
-        AutomatonWriter.draw(M, resultFile + GV_EXTENSION, s, isDFAO);
-      }
-      case TXT_STRING ->
-          throw new WalnutException("Exporting to " + TXT_EXTENSION + " is redundant; this is the input format");
-      default -> throw WalnutException.unexpectedFormat(exportType);
-    }
-  }
-
-  private static Matcher matchOrFail(Pattern pattern, String input, String commandName) {
-    Matcher m = pattern.matcher(input);
-    if (!m.find()) {
-      throw WalnutException.invalidCommandUse(commandName);
-    }
-    return m;
-  }
-
-  public static void clearScreen() {
-    System.out.print("\033[H\033[2J");
-    System.out.flush();
-  }
-
-  private static List<Integer> determineAlphabet(String s) {
-    List<Integer> L = new ArrayList<>();
-    s = s.substring(1, s.length() - 1); //truncation { and } from beginning and end
-    Matcher m = PAT_FOR_A_SINGLE_ELEMENT_OF_A_SET.matcher(s);
-    while (m.find()) {
-      L.add(UtilityMethods.parseInt(m.group()));
-    }
-    UtilityMethods.removeDuplicates(L);
-
-    return L;
   }
 }

@@ -58,6 +58,10 @@ public class DeterminizationStrategies {
       throw new IllegalArgumentException("No strategy found for: " + name);
     }
 
+    public boolean isOTFStrategy() {
+      return !this.equals(SC) && !this.equals(BRZ);
+    }
+
     String outputName(int currentIdx) {
       return "[#" + currentIdx + ", strategy: " + this.name + "]";
     }
@@ -228,6 +232,8 @@ public class DeterminizationStrategies {
     }
     ArrayList<BitSet> simRels = new ArrayList<>();
     if (doSimulation) {
+      UtilityMethods.logMessage(
+          print, prefix + "Calculating simulation relations; this can be resource-intensive", log);
       int prevSize = reduced.size();
       reduced = ParallelSimulation.fullyComputeRels(reduced, simRels, true);
       if (reduced.size() != prevSize) {
