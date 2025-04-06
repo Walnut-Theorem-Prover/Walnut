@@ -465,11 +465,11 @@ public class FA implements Cloneable {
       for (int q = 0; q < Q; q++) {
           if (isAccepting(q)) {
               newInitialStates.add(q);
-              this.setOutput(q, false);
+              this.setOutputIfEqual(q, false);
           }
       }
       for(int initState: oldInitialStates) {
-        this.setOutput(initState, true); // initial states become final.
+        this.setOutputIfEqual(initState, true); // initial states become final.
       }
       return newInitialStates;
   }
@@ -564,7 +564,7 @@ public class FA implements Cloneable {
   public void addOutput(boolean output) {
     O.add(output ? 1 : 0);
   }
-  public void setOutput(int idx, boolean output) {
+  public void setOutputIfEqual(int idx, boolean output) {
     O.set(idx, output ? 1 : 0);
   }
 
@@ -573,7 +573,7 @@ public class FA implements Cloneable {
    */
   public void flipOutput() {
     for (int q = 0; q < Q; q++)
-      setOutput(q, !isAccepting(q));
+      setOutputIfEqual(q, !isAccepting(q));
   }
 
   public int getAlphabetSize() {
@@ -616,9 +616,9 @@ public class FA implements Cloneable {
     return fa;
   }
 
-  public void setOutput(int output) {
+  public void setOutputIfEqual(int output) {
     for (int j = 0; j < O.size(); j++) {
-      this.setOutput(j, O.getInt(j) == output);
+      this.setOutputIfEqual(j, O.getInt(j) == output);
     }
   }
 
@@ -736,7 +736,7 @@ public class FA implements Cloneable {
     boolean altered = false;
     for (int q : result) {
       altered = altered || (O.getInt(q) != 1);
-      this.setOutput(q, true);
+      this.setOutputIfEqual(q, true);
     }
     return altered;
   }
@@ -819,26 +819,6 @@ public class FA implements Cloneable {
           }
       }
       return finalStates;
-  }
-
-  public void determinizeAndMinimize(boolean print, String prefix, StringBuilder log) {
-    // Working with NFA. Let's trim.
-    int oldQ = this.Q;
-    Trimmer.trimAutomaton(this);
-    if (oldQ != this.Q) {
-      UtilityMethods.logMessage(print, prefix + "Trimmed to: " + getQ() + " states.", log);
-    }
-    IntSet qqq = new IntOpenHashSet();
-    qqq.add(q0);
-    determinizeAndMinimize(qqq, print, prefix, log);
-  }
-
-  /**
-   * Determinize and minimize. Technically, the logging is backwards.
-   */
-  public void determinizeAndMinimize(IntSet qqq, boolean print, String prefix, StringBuilder log) {
-    DeterminizationStrategies.determinize(this, qqq, print, prefix + " ", log);
-    justMinimize(print, prefix + " ", log);
   }
 
   /**

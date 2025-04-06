@@ -36,7 +36,7 @@ public class ProverHelper {
   /**
    * Export automata to any supported format.
    */
-  static void exportAutomata(String s, String filename, String exportType, Automaton M, boolean isDFAO) {
+  public static void exportAutomata(String s, String filename, String exportType, Automaton M, boolean isDFAO) {
     String exportTypeLower = exportType.toLowerCase();
     String resultFile = Session.getAddressForResult() + filename;
 

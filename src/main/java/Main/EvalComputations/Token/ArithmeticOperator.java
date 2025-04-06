@@ -169,7 +169,7 @@ public class ArithmeticOperator extends Operator {
             M = new Automaton(true);
             for (int o : word.wordAutomaton.fa.getO()) {
                 Automaton N = word.wordAutomaton.clone();
-                WordAutomaton.compareWordAutomaton(N.fa, o, RelationalOperator.Ops.EQUAL, print, prefix + " ", log);
+                WordAutomaton.compareWordAutomaton(N, o, RelationalOperator.Ops.EQUAL, print, prefix + " ", log);
                 Automaton C;
                 if (o == 0 && opp.equals(Ops.MULT)) {
                     C = ns.get(0);

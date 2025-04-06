@@ -18,8 +18,10 @@
 
 package Automata;
 
+import Automata.FA.DeterminizationStrategies;
 import Automata.FA.FA;
 import Automata.FA.ProductStrategies;
+import Automata.FA.Trimmer;
 import Main.EvalComputations.Token.ArithmeticOperator;
 import Main.EvalComputations.Token.LogicalOperator;
 import Main.WalnutException;
@@ -276,7 +278,7 @@ public class Automaton {
         N.normalizeNumberSystems(print, prefix, log);
         N.fa.setCanonized(false);
         N.canonize();
-        N.fa.determinizeAndMinimize(print, prefix, log);
+        N.determinizeAndMinimize(print, prefix, log);
         N.applyAllRepresentations();
 
         long timeAfter = System.currentTimeMillis();
@@ -318,7 +320,7 @@ public class Automaton {
 
         N.normalizeNumberSystems(print, prefix, log);
 
-        N.fa.determinizeAndMinimize(print, prefix, log);
+        N.determinizeAndMinimize(print, prefix, log);
         N.applyAllRepresentations();
 
         long timeAfter = System.currentTimeMillis();
@@ -359,7 +361,7 @@ public class Automaton {
         if (isDFAO) {
             WordAutomaton.minimizeSelfWithOutput(M, print, prefix, log);
         } else {
-            M.fa.determinizeAndMinimize(print, prefix, log);
+            M.determinizeAndMinimize(print, prefix, log);
         }
 
         M.canonizeAndApplyAllRepresentationsWithOutput(print, prefix + " ", log);
@@ -638,6 +640,26 @@ public class Automaton {
         setNS(permute(getNS(), labelPermutation));
 
         this.fa.permuteNfaD(encodedInputPermutation);
+    }
+
+    public void determinizeAndMinimize(boolean print, String prefix, StringBuilder log) {
+        // Working with NFA. Let's trim.
+        int oldQ = this.fa.getQ();
+        Trimmer.trimAutomaton(this.fa);
+        if (oldQ != this.fa.getQ()) {
+            UtilityMethods.logMessage(print, prefix + "Trimmed to: " + this.fa.getQ() + " states.", log);
+        }
+        IntSet qqq = new IntOpenHashSet();
+        qqq.add(this.fa.getQ0());
+        this.determinizeAndMinimize(qqq, print, prefix, log);
+    }
+
+    /**
+     * Determinize and minimize. Technically, the logging is backwards.
+     */
+    public void determinizeAndMinimize(IntSet qqq, boolean print, String prefix, StringBuilder log) {
+        DeterminizationStrategies.determinize(this, qqq, print, prefix + " ", log);
+        this.fa.justMinimize(print, prefix + " ", log);
     }
 
     /**

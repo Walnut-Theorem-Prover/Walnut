@@ -20,7 +20,7 @@ All notable changes to Walnut will be documented here. Format is based on [Keep 
   * [Brzozowski's algorithm](https://en.wikipedia.org/wiki/DFA_minimization#Brzozowski's_algorithm)
   * OTF-CCL and OTF-CCLS
   * Brzozowski-OTF-CCL and Brzozowski-OTF-CCLS
-- Metacommands: "strategy" (see above) and "export", which allows exporting intermediate automata to BA format.
+- Metacommands: "strategy" (see above) and "export", which allows exporting intermediate automata.
 - Command "describe" describes an automaton.
 
 ### Fixed

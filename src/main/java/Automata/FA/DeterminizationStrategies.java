@@ -1,6 +1,6 @@
 package Automata.FA;
 
-import Automata.AutomatonWriter;
+import Automata.Automaton;
 import OTF.OTFDeterminization;
 import OTF.Registry.AntichainForestRegistry;
 import OTF.Registry.Registry;
@@ -76,7 +76,6 @@ public class DeterminizationStrategies {
     }
   }
 
-
     /**
      * Determinization strategies:
      *   Subset Construction
@@ -85,8 +84,9 @@ public class DeterminizationStrategies {
      *   Brzozowski + (OTF-CCL, OTF-CCLS)
      */
     public static void determinize(
-            FA fa, IntSet initialState, boolean print, String prefix, StringBuilder log) {
+        Automaton A, IntSet initialState, boolean print, String prefix, StringBuilder log) {
 
+      FA fa = A.getFa();
       long timeBefore = System.currentTimeMillis();
 
       Strategy strategy = Strategy.SC;
@@ -99,13 +99,20 @@ public class DeterminizationStrategies {
         strategy = mc.getStrategy(automataIdx);
 
         // Write exported file if specified
-        String exportName = mc.getExportBAName(automataIdx);
+        String exportName = mc.getExportName(automataIdx);
         if (exportName != null) {
-          AutomatonWriter.exportToBA(fa, Session.getAddressForResult() + exportName + "_" + automataIdx + "_pre.ba", false);
+          String exportFormat = mc.getExportFormat(automataIdx);
+          ProverHelper.exportAutomata(Prover.currentEvalName, exportName, exportFormat, A, fa.isDFAO());
         }
 
         UtilityMethods.logMessage(print, prefix +
             "Determinizing " + strategy.outputName(automataIdx) + ": " + fa.getQ() + " states", log);
+      }
+
+      if (strategy != Strategy.SC) {
+        if (fa.isDFAO()) {
+          throw new WalnutException("DFAOs are not supported for non-SC strategies.");
+        }
       }
 
       switch (strategy) {

@@ -1,10 +1,8 @@
-The "export" metacommand exports intermediate automata to a specified format: currently only BA is supported.
-
-Intermediate word automata aren't supported, since BA format can't handle DFAOs.
+The "export" metacommand exports intermediate automata to a specified format: BA, GV, and TXT are supported.
 
 The export syntax for the metacommand is as follows:
-[export 0 BA]   ##  export the 0th intermediate automaton
-[export * BA]      ##  export all automaton (wildcard)
+[export 0 BA]   ##  export the 0th intermediate automaton to BA format
+[export * TXT]  ##  export all automaton (wildcard) to TXT format
 
 Example usage:
 

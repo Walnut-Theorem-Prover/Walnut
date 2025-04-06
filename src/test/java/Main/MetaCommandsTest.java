@@ -32,17 +32,18 @@ public class MetaCommandsTest {
   void testParseExport() {
     MetaCommands mc = new MetaCommands();
     Assertions.assertEquals("", mc.parseMetaCommands("[export 5 BA]", true));
-    Assertions.assertNull(mc.getExportBAName(0));
+    Assertions.assertNull(mc.getExportName(0));
 
     Assertions.assertThrows(WalnutException.class, () -> {
       new MetaCommands().parseMetaCommands("[export 5]", true);
     });
     Assertions.assertThrows(WalnutException.class, () -> {
-      new MetaCommands().parseMetaCommands("[export 5 TXT]", true);
+      new MetaCommands().parseMetaCommands("[export 5 BLAH]", true);
     });
 
     mc = new MetaCommands();
-    Assertions.assertEquals("blah", mc.parseMetaCommands("[export * BA]blah", true));
+    Assertions.assertEquals("blah", mc.parseMetaCommands("[export * TXT]blah", true));
+    Assertions.assertEquals("txt", mc.getExportFormat(0));
 
     Assertions.assertThrows(RuntimeException.class, () -> {
       new MetaCommands().parseMetaCommands("[export 5 x]", true);

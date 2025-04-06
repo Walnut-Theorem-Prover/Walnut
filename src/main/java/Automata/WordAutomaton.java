@@ -1,6 +1,5 @@
 package Automata;
 
-import Automata.FA.FA;
 import Main.EvalComputations.Token.ArithmeticOperator;
 import Main.EvalComputations.Token.RelationalOperator;
 import Main.UtilityMethods;
@@ -23,16 +22,17 @@ public class WordAutomaton {
    * To be used only when this A is a DFAO (word).
    */
   public static void compareWordAutomaton(
-      FA fa, int o, RelationalOperator.Ops operator, boolean print, String prefix, StringBuilder log) {
+      Automaton A, int o, RelationalOperator.Ops operator, boolean print, String prefix, StringBuilder log) {
       String opStr = operator.getSymbol();
       long timeBefore = System.currentTimeMillis();
-      UtilityMethods.logMessage(print, prefix + "comparing (" + opStr + ") against " + o + ":" + fa.getQ() + " states", log);
-      for (int p = 0; p < fa.getQ(); p++) {
-          fa.setOutput(p, RelationalOperator.compare(operator, fa.getO().getInt(p), o));
+      UtilityMethods.logMessage(print, prefix + "comparing (" + opStr + ") against " + o + ":" + A.fa.getQ() + " states", log);
+      for (int p = 0; p < A.fa.getQ(); p++) {
+          A.fa.setOutputIfEqual(p, RelationalOperator.compare(operator, A.fa.getO().getInt(p), o));
       }
-      fa.determinizeAndMinimize(print, prefix + " ", log);
+      // As of now, A is *not* a word automaton
+      A.determinizeAndMinimize(print, prefix + " ", log);
       long timeAfter = System.currentTimeMillis();
-      UtilityMethods.logMessage(print, prefix + "compared (" + opStr + ") against " + o + ":" + fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
+      UtilityMethods.logMessage(print, prefix + "compared (" + opStr + ") against " + o + ":" + A.fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
   }
 
   /**
@@ -131,7 +131,8 @@ public class WordAutomaton {
       List<Automaton> automata = new ArrayList<>(outputs.size());
       for (Integer output : outputs) {
           Automaton M = B.clone();
-          M.fa.setOutput(output);
+          M.fa.setOutputIfEqual(output);
+          // M is *not* a word automaton
           automata.add(M);
       }
       return automata;
@@ -147,7 +148,8 @@ public class WordAutomaton {
       UtilityMethods.removeDuplicates(outputs);
       List<Automaton> subautomata = uncombine(B, outputs);
       for (Automaton subautomaton : subautomata) {
-          subautomaton.fa.determinizeAndMinimize(print, prefix, log);
+          // These are *not* word automata
+          subautomaton.determinizeAndMinimize(print, prefix, log);
       }
       Automaton N = subautomata.remove(0);
       List<String> label = new ArrayList<>(N.getLabel()); // We keep the old labels, since they are replaced in the combine

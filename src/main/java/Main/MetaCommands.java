@@ -1,10 +1,7 @@
 package Main;
 
 import Automata.FA.DeterminizationStrategies;
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
-import it.unimi.dsi.fastutil.ints.IntSet;
+import it.unimi.dsi.fastutil.ints.*;
 
 import java.util.regex.Matcher;
 
@@ -16,8 +13,8 @@ public class MetaCommands {
   private final Int2ObjectMap<DeterminizationStrategies.Strategy> strategyMap = new Int2ObjectOpenHashMap<>();
   DeterminizationStrategies.Strategy alwaysOnStrategy = null;
 
-  // for now, we only support exporting BA. Could be generalized to MPL, TXT, etc.
-  private final IntSet exportBASet = new IntOpenHashSet();
+  // txt, ba, or gv
+  private final Int2ObjectMap<String> exportMap = new Int2ObjectOpenHashMap<>();
   private boolean alwaysOnExport = false;
 
   public MetaCommands() {
@@ -28,39 +25,50 @@ public class MetaCommands {
     return automataIndex++;
   }
 
-  public void addStrategy(String index, DeterminizationStrategies.Strategy strategy) {
-    if (WILDCARD.equals(index)) {
+  /**
+   * Add strategy for given automata index.
+   * Note that it's impossible to validate the automata index when invoked.
+   */
+  public void addStrategy(String automataIdx, DeterminizationStrategies.Strategy strategy) {
+    if (WILDCARD.equals(automataIdx)) {
       alwaysOnStrategy = strategy;
     } else {
-      strategyMap.put(Integer.parseInt(index), strategy);
+      strategyMap.put(Integer.parseInt(automataIdx), strategy);
     }
   }
 
-  public DeterminizationStrategies.Strategy getStrategy(int index) {
+  public DeterminizationStrategies.Strategy getStrategy(int automataIdx) {
     if (alwaysOnStrategy != null) {
       return alwaysOnStrategy;
     }
-    return strategyMap.getOrDefault(index, DeterminizationStrategies.Strategy.SC);
+    return strategyMap.getOrDefault(automataIdx, DeterminizationStrategies.Strategy.SC);
   }
 
   /**
    * Add "export 15 BA" for example. Currently only BA is supported.
    */
-  public void addExport(String index, String format) {
+  public void addExport(String automataIdx, String format) {
     String formatLower = format.toLowerCase();
-    if (!formatLower.equals("ba")) {
+    if (!formatLower.equals("ba") && !formatLower.equals("txt") && !formatLower.equals("gv")) {
       throw WalnutException.unexpectedFormat(format);
     }
-    if (WILDCARD.equals(index)) {
+    if (WILDCARD.equals(automataIdx)) {
       alwaysOnExport = true;
+      exportMap.put(0, formatLower);
     } else {
-      exportBASet.add(Integer.parseInt(index));
+      exportMap.put(Integer.parseInt(automataIdx), formatLower);
     }
   }
 
-  public String getExportBAName(int index) {
-    if (alwaysOnExport || exportBASet.contains(index)) {
+  public String getExportName(int index) {
+    if (alwaysOnExport || exportMap.containsKey(index)) {
       return Prover.currentEvalName == null ? DEFAULT_EXPORT_NAME : Prover.currentEvalName;
+    }
+    return null;
+  }
+  public String getExportFormat(int index) {
+    if (alwaysOnExport || exportMap.containsKey(index)) {
+      return exportMap.get(alwaysOnExport ? 0 : index);
     }
     return null;
   }
@@ -98,7 +106,7 @@ public class MetaCommands {
           addStrategy(parts[1], strategy);
           break;
         case Prover.EXPORT:
-          // example: export 15 BA, or export * BA
+          // example: export 15 BA, or export * TXT
           addExport(parts[1], parts[2]);
           break;
         default:

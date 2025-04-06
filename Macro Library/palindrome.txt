@@ -1,1 +1,2 @@
+# Palindrome macro
 ?%0 Ak (k<n) => %1[i+k] = %1[i+n-1-k]

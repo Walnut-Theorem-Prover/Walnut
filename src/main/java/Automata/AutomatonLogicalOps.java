@@ -160,7 +160,7 @@ public class AutomatonLogicalOps {
         A.fa.totalize(print, prefix + " ", log);
         A.fa.flipOutput();
 
-        A.fa.determinizeAndMinimize(print, prefix + " ", log);
+        A.determinizeAndMinimize(print, prefix + " ", log);
         A.applyAllRepresentations();
 
         long timeAfter = System.currentTimeMillis();
@@ -221,10 +221,10 @@ public class AutomatonLogicalOps {
 
             Automaton I = and(T, otherClone, print, prefix, log);
 
-            M.fa.setOutput(i, !I.isEmpty());
+            M.fa.setOutputIfEqual(i, !I.isEmpty());
         }
 
-        M.fa.determinizeAndMinimize(print, prefix, log);
+        M.determinizeAndMinimize(print, prefix, log);
         M.applyAllRepresentations();
         M.fa.setCanonized(false);
         M.canonize();
@@ -276,7 +276,7 @@ public class AutomatonLogicalOps {
 
         // Subset Construction with different initial state
         IntSet initial_state = A.fa.zeroReachableStates(zero);
-        A.fa.determinizeAndMinimize(initial_state, print, prefix, log);
+        A.determinizeAndMinimize(initial_state, print, prefix, log);
 
         long timeAfter = System.currentTimeMillis();
         UtilityMethods.logMessage(print, prefix + "fixed leading zeros:" + A.fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
@@ -471,7 +471,7 @@ public class AutomatonLogicalOps {
         UtilityMethods.logMessage(print, prefix + "Reversing:" + A.fa.getQ() + " states", log);
 
         IntSet setOfFinalStates = A.fa.reverseToNFAInternal(IntSet.of(A.fa.getQ0()));
-        A.fa.determinizeAndMinimize(setOfFinalStates, print, prefix + " ", log);
+        A.determinizeAndMinimize(setOfFinalStates, print, prefix + " ", log);
 
         if (reverseMsd) {
             NumberSystem.flipNS(A.getNS());

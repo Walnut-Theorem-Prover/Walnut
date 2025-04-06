@@ -112,7 +112,7 @@ public class RelationalOperator extends Operator {
             Automaton M = new Automaton(true);
             for (int o : word.wordAutomaton.fa.getO()) {
                 Automaton N = word.wordAutomaton.clone();
-                WordAutomaton.compareWordAutomaton(N.fa, o, Ops.EQUAL, print, prefix + " ", log);
+                WordAutomaton.compareWordAutomaton(N, o, Ops.EQUAL, print, prefix + " ", log);
                 Automaton C;
                 if (reverse) {
                     C = ns.comparison(arithmetic.identifier, o, opp);
@@ -148,13 +148,13 @@ public class RelationalOperator extends Operator {
             AutomatonQuantification.quantify(M, ((WordExpression)b).identifiersToQuantify, print, prefix + " ", log);
             S.push(new AutomatonExpression(a + op + b, M));
         } else if (a instanceof WordExpression && (b instanceof NumberLiteralExpression|| b instanceof AlphabetLetterExpression)) {
-            WordAutomaton.compareWordAutomaton(a.wordAutomaton.fa, b.constant, opp, print, prefix + " ", log);
+            WordAutomaton.compareWordAutomaton(a.wordAutomaton, b.constant, opp, print, prefix + " ", log);
             Automaton M = a.wordAutomaton;
             M = AutomatonLogicalOps.and(M, a.M, print, prefix + " ", log);
             AutomatonQuantification.quantify(M, ((WordExpression)a).identifiersToQuantify, print, prefix + " ", log);
             S.push(new AutomatonExpression(a + op + b, M));
         } else if ((a instanceof NumberLiteralExpression || a instanceof AlphabetLetterExpression) && b instanceof WordExpression) {
-            WordAutomaton.compareWordAutomaton(b.wordAutomaton.fa, a.constant, reverseOperator(opp), print, prefix + " ", log);
+            WordAutomaton.compareWordAutomaton(b.wordAutomaton, a.constant, reverseOperator(opp), print, prefix + " ", log);
             Automaton M = b.wordAutomaton;
             M = AutomatonLogicalOps.and(M, b.M, print, prefix + " ", log);
             AutomatonQuantification.quantify(M, ((WordExpression)b).identifiersToQuantify, print, prefix + " ", log);
