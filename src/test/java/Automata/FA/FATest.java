@@ -1,5 +1,6 @@
 package Automata.FA;
 
+import Main.WalnutException;
 import net.automatalib.alphabet.impl.Alphabets;
 import net.automatalib.automaton.fsa.impl.CompactNFA;
 import org.junit.jupiter.api.Assertions;
@@ -31,5 +32,19 @@ public class FATest {
     //Assertions.assertEquals(compactNFA, compactNFA2); // equals isn't defined properly for these
     FA fa2 = FA.compactNFAToFA(compactNFA2);
     Assertions.assertTrue(fa.equals(fa2));
+  }
+
+  @Test
+  void testDetermineMinOutput() {
+    FA fa = new FA();
+    Assertions.assertThrows(WalnutException.class, fa::determineMinOutput);
+
+    fa.addOutput(false);
+    fa.addOutput(false);
+    Assertions.assertEquals(0, fa.determineMinOutput());
+
+    fa = new FA();
+    fa.addOutput(true);
+    Assertions.assertEquals(1, fa.determineMinOutput());
   }
 }

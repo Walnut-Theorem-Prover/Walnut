@@ -29,6 +29,7 @@ All notable changes to Walnut will be documented here. Format is based on [Keep 
 - Fixed OOM error when writing large Graphviz files (reported by Pierre Ganty).
 - Removed unnecessary determinizations when handling leading/trailing zeros.
 - Drastically increased code re-use, testing, and code coverage.
+- Fixed unexpected behavior for Word Automata with all outputs > 0
 - Fixed unexpected behavior for integer rounding when doing division with negative numbers (fixed by Jonathan Yang)
         
 ### Changed

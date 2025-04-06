@@ -510,6 +510,11 @@ public class FA implements Cloneable {
     addMissingTransitionsForState(nfaD.get(sinkState), sinkState);
   }
 
+  /**
+   * Totalize states.
+   * @param sinkState
+   * @return whether previously total
+   */
   private boolean totalizeStates(int sinkState) {
     boolean totalized = true;
     for (int q = 0; q < Q; q++) {
@@ -780,11 +785,15 @@ public class FA implements Cloneable {
     return result;
   }
 
+  /**
+   * Determine minimum output in FA.
+   * @return minimum output
+   */
   public int determineMinOutput() {
     if (O.isEmpty()) {
       throw WalnutException.alphabetIsEmpty();
     }
-    int minOutput = 0;
+    int minOutput = Integer.MAX_VALUE;
     for (int i = 0; i < O.size(); i++) {
       if (O.getInt(i) < minOutput) {
         minOutput = O.getInt(i);
