@@ -91,7 +91,10 @@ public class FA implements Cloneable {
     return false;
   }
 
-  public void alphabetStates(RichAlphabet oldAlphabet, Automaton M) {
+  /**
+   * Rebuild transitions based on new alphabet
+   */
+  public void rebuildTransitions(RichAlphabet oldAlphabet, Automaton M) {
       List<Int2ObjectRBTreeMap<IntList>> newD = new ArrayList<>(M.fa.getQ());
       for (int q = 0; q < M.fa.getQ(); q++) {
           Int2ObjectRBTreeMap<IntList> newMap = new Int2ObjectRBTreeMap<>();
@@ -572,6 +575,11 @@ public class FA implements Cloneable {
   public void setOutputIfEqual(int idx, boolean output) {
     O.set(idx, output ? 1 : 0);
   }
+  public void setOutputIfEqual(int output) {
+    for (int j = 0; j < O.size(); j++) {
+      this.setOutputIfEqual(j, O.getInt(j) == output);
+    }
+  }
 
   /**
    * Flip output.
@@ -619,12 +627,6 @@ public class FA implements Cloneable {
       }
     }
     return fa;
-  }
-
-  public void setOutputIfEqual(int output) {
-    for (int j = 0; j < O.size(); j++) {
-      this.setOutputIfEqual(j, O.getInt(j) == output);
-    }
   }
 
   /**

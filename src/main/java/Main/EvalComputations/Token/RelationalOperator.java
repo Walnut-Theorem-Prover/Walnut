@@ -141,7 +141,7 @@ public class RelationalOperator extends Operator {
             M = andQuantifyIfArithmetic(print, prefix, log, a, M);
             S.push(new AutomatonExpression(a + op + b, M));
         } else if (a instanceof WordExpression && b instanceof WordExpression) {
-            Automaton M = AutomatonLogicalOps.compare(a.wordAutomaton, b.wordAutomaton, op, print, prefix + " ", log);
+            Automaton M = WordAutomaton.compareWordAutomata(a.wordAutomaton, b.wordAutomaton, op, print, prefix + " ", log);
             M = AutomatonLogicalOps.and(M, a.M, print, prefix + " ", log);
             M = AutomatonLogicalOps.and(M, b.M, print, prefix + " ", log);
             AutomatonQuantification.quantify(M, ((WordExpression)a).identifiersToQuantify, print, prefix + " ", log);

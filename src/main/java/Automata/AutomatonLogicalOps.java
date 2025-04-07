@@ -126,9 +126,6 @@ public class AutomatonLogicalOps {
     }
 
     /**
-     * @param A
-     * @param B
-     * @param friendlyOp
      * @return A iff B
      */
     public static Automaton iff(Automaton A, Automaton B, boolean print, String prefix, StringBuilder log, String friendlyOp) {
@@ -168,12 +165,11 @@ public class AutomatonLogicalOps {
     }
 
     /**
-     * If this A's language is L_1 and the language of "B" is L_2, this A accepts the language
+     * If this automaton's language is L_1 and the language of "B" is L_2, the result accepts the language
      * L_1 / L_2 = { x : exists y in L_2 such that xy in L_1 }
-     * @return
      */
-    public static Automaton rightQuotient(Automaton A, Automaton B, boolean skipSubsetCheck, boolean print, String prefix, StringBuilder log) {
-
+    public static Automaton rightQuotient(Automaton A, Automaton B, boolean skipSubsetCheck,
+                                          boolean print, String prefix, StringBuilder log) {
         long timeBefore = System.currentTimeMillis();
         UtilityMethods.logMessage(print, prefix + "right quotient: " + A.fa.getQ() + " state A with " + B.fa.getQ() + " state A", log);
 
@@ -289,7 +285,7 @@ public class AutomatonLogicalOps {
     }
 
     /**
-     * Make Automaton accept x0*, iff it used to accept x.
+     * Make automaton accept x0*, iff it used to accept x.
      */
     public static void fixTrailingZerosProblem(Automaton A, boolean print, String prefix, StringBuilder log) {
         if (A.fa.setStatesReachableToFinalStatesByZeros(determineZero(A))) {
@@ -308,12 +304,8 @@ public class AutomatonLogicalOps {
     /**
      * Used for the "I" quantifier. If some input is in msd, then we remove leading zeroes,
      * if some input is in lsd, then we remove trailing zeroes, otherwise, we do nothing.
-     * To do this, for each input, we construct an A which accepts if the leading/trailing input is non-zero,
-     * union all these automata together, and intersect with our original A.
-     *
-     * @param A
-     * @param listOfLabels
-     * @return
+     * To do this, for each input, we construct an automaton which accepts if the leading/trailing input is non-zero,
+     * union all these automata together, and intersect with our original automaton.
      */
     public static Automaton removeLeadingZeroes(Automaton A, List<String> listOfLabels, boolean print, String prefix, StringBuilder log) {
         for (String s : listOfLabels) {
@@ -345,14 +337,10 @@ public class AutomatonLogicalOps {
     }
 
     /**
-     * Returns the A with the same alphabet as the current A, which requires the nth input to
-     * start with a non-zero symbol (if msd), end with a non-zero symbol (if lsd), otherwise, return the true
-     * A. The returned A is meant to be intersected with the current A to remove
-     * leading/trailing * zeroes from the nth input.
-     *
-     * @param A
-     * @param n
-     * @return
+     * Returns the automaton with the same alphabet as the current A, which requires the nth input to start with a
+     * non-zero symbol (if msd), end with a non-zero symbol (if lsd), otherwise, return the true automaton.
+     * The returned automaton is meant to be intersected with the current A to remove leading/trailing * zeroes
+     * from the nth input.
      */
     private static Automaton removeLeadingZeroesHelper(
         Automaton A, int n, boolean print, String prefix, StringBuilder log) {
@@ -389,12 +377,9 @@ public class AutomatonLogicalOps {
 
 
     /**
-     * Checks if any input has the same label as input i. It then removes copies of input i appropriately. So for example an
-     * expression like f(a,a) becomes
-     * an A with one input. After we are done with input i, we call removeSameInputs(i+1)
-     *
-     * @param A
-     * @param i
+     * Checks if any input has the same label as input i. It then removes copies of input i appropriately.
+     * So for example an expression like f(a,a) becomes an automaton with one input.
+     * After we are done with input i, we call removeSameInputs(i+1)
      */
     static void removeSameInputs(Automaton A, int i) {
         if (i >= A.richAlphabet.getA().size()) return;
@@ -437,27 +422,6 @@ public class AutomatonLogicalOps {
     }
 
     /**
-     * The operator can be one of "+" "-" "*" "/".
-     * For example if operator = "+" then this method returns
-     * a DFAO that outputs this[x] + B[x] on input x.
-     * To be used only when this A and M are DFAOs (words).
-     *
-     * @param A
-     * @param B
-     * @param operator
-     * @return
-     */
-    public static Automaton applyOperator(Automaton A, Automaton B, String operator, boolean print, String prefix, StringBuilder log) {
-        long timeBefore = System.currentTimeMillis();
-        UtilityMethods.logMessage(print, prefix + "applying operator (" + operator + "):" + A.fa.getQ() + " states - " + B.fa.getQ() + " states", log);
-        Automaton N = ProductStrategies.crossProduct(A, B, operator, print, prefix + " ", log);
-        WordAutomaton.minimizeWithOutput(N, print, prefix + " ", log);
-        long timeAfter = System.currentTimeMillis();
-        UtilityMethods.logMessage(print, prefix + "applied operator (" + operator + "):" + A.fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
-        return N;
-    }
-
-    /**
      * This automaton should not be a word Automaton (i.e., with output). However, it can be NFA.
      * Enabling the reverseMsd flag will flip the number system of the A from msd to lsd, and vice versa.
      * Reversing the Msd will also call this function as reversals are done in the NumberSystem class upon
@@ -497,7 +461,9 @@ public class AutomatonLogicalOps {
     }
 
     /**
-     * Convert the number system of a word A from [msd/lsd]_k^i to [msd/lsd]_k^j.
+     * Convert the number system of an automaton from [msd/lsd]_k^i to [msd/lsd]_k^j.
+     * TODO: this assumes that A is a word automaton when it may not be.
+     * It probably doesn't matter, but it would be good to separate the two.
      */
     public static void convertNS(Automaton A, boolean toMsd, int toBase,
                                  boolean print, String prefix, StringBuilder log) {
@@ -514,7 +480,7 @@ public class AutomatonLogicalOps {
             if (ns.isMsd() == toMsd) {
                 throw new WalnutException("New and old number systems are identical: " + ns.getName());
             } else {
-                // If only msd <-> lsd differs, just reverse the A
+                // If only msd <-> lsd differs, just reverse A
                 WordAutomaton.reverseWithOutput(A, true, print, prefix + " ", log);
                 return;
             }
@@ -531,7 +497,7 @@ public class AutomatonLogicalOps {
             WordAutomaton.reverseWithOutput(A, true, print, prefix + " ", log);
         }
 
-        // We'll track if the A is reversed relative to original
+        // We'll track if A is reversed relative to original
         boolean currentlyReversed = false;
 
         // 3) Convert from k^i -> k if needed
@@ -563,7 +529,7 @@ public class AutomatonLogicalOps {
     }
 
     /**
-     * Assuming this A is in number system msd_k with one input,
+     * Assuming this automaton is in number system msd_k with one input,
      * convert it to number system msd_{k^exponent} with one input.
      */
     private static void convertMsdBaseToExponent(Automaton A, int exponent,
@@ -595,7 +561,7 @@ public class AutomatonLogicalOps {
     }
 
     /**
-     * Assuming this A is in number system lsd_{k^j} with one input,
+     * Assuming this automaton is in number system lsd_{k^j} with one input,
      * convert it to number system lsd_k with one input.
      */
     private static void convertLsdBaseToRoot(Automaton A, int root, int exponent,
@@ -695,7 +661,7 @@ public class AutomatonLogicalOps {
     }
 
     /**
-     * Updates the A's alphabet to [0..newBase-1] and sets alphabetSize accordingly.
+     * Updates the automaton's alphabet to [0..newBase-1] and sets alphabetSize accordingly.
      */
     private static void setAutomatonAlphabet(Automaton A, int newBase) {
         List<Integer> ints = new ArrayList<>(newBase);
@@ -757,28 +723,5 @@ public class AutomatonLogicalOps {
         first.canonizeAndApplyAllRepresentationsWithOutput(print, prefix + " ", log);
 
         return first;
-    }
-
-    /**
-     * The operator can be one of "<" ">" "=" "!=" "<=" ">=".
-     * For example if operator = "<" then this method returns
-     * a DFA that accepts x iff this[x] < W[x] lexicographically.
-     * To be used only when this A and M are DFAOs (words).
-     *
-     * @param A
-     * @param B
-     * @param operator
-     * @return
-     */
-    public static Automaton compare(
-            Automaton A, Automaton B, String operator, boolean print, String prefix, StringBuilder log) {
-        long timeBefore = System.currentTimeMillis();
-        UtilityMethods.logMessage(print,
-            prefix + "comparing (" + operator + "):" + A.fa.getQ() + " states - " + B.fa.getQ() + " states", log);
-        Automaton M = ProductStrategies.crossProductAndMinimize(A, B, operator, print, prefix + " ", log);
-        long timeAfter = System.currentTimeMillis();
-        UtilityMethods.logMessage(print,
-            prefix + "compared (" + operator + "):" + M.fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
-        return M;
     }
 }

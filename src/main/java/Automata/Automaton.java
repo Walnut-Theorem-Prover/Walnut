@@ -356,7 +356,7 @@ public class Automaton {
         M.determineAlphabetSize();
         M.richAlphabet.setupEncoder();
 
-        this.getFa().alphabetStates(this.richAlphabet, M);
+        this.getFa().rebuildTransitions(this.richAlphabet, M);
 
         if (isDFAO) {
             WordAutomaton.minimizeSelfWithOutput(M, print, prefix, log);

@@ -947,29 +947,22 @@ public class Prover {
     Matcher m = ProverHelper.matchOrFail(PAT_FOR_convert_CMD, s, CONVERT);
 
     String newDollarSign = m.group(GROUP_CONVERT_NEW_DOLLAR_SIGN);
+    boolean newIsDFAO = !newDollarSign.equals("$");
     String oldDollarSign = m.group(GROUP_CONVERT_OLD_DOLLAR_SIGN);
-    if (newDollarSign.equals("$")
-        && !oldDollarSign.equals("$")) {
+    boolean oldIsDFAO = !oldDollarSign.equals("$");
+    if (oldIsDFAO && !newIsDFAO) {
       throw new WalnutException("Cannot convert a Word Automaton into a function");
     }
     
     String inFileName = m.group(GROUP_CONVERT_OLD_NAME) + TXT_EXTENSION;
-    String inLibrary = Session.getReadFileForWordsLibrary(inFileName);
-    if (oldDollarSign.equals("$")) {
-      inLibrary = Session.getReadFileForAutomataLibrary(inFileName);
-    }
+    String inLibrary = ProverHelper.determineInLibrary(oldIsDFAO, inFileName);
     Automaton M = new Automaton(inLibrary);
 
     AutomatonLogicalOps.convertNS(M, m.group(GROUP_CONVERT_MSD_OR_LSD).equals(NumberSystem.MSD),
         Integer.parseInt(m.group(GROUP_CONVERT_BASE)), printFlag,
         prefix, log);
 
-    String outLibrary = Session.getWriteAddressForWordsLibrary();
-    if (newDollarSign.equals("$")) {
-      outLibrary = Session.getWriteAddressForAutomataLibrary();
-    }
-
-    M.writeAutomata(s, outLibrary, m.group(GROUP_CONVERT_NEW_NAME), true);
+    M.writeAutomata(s, ProverHelper.determineOutLibrary(newIsDFAO), m.group(GROUP_CONVERT_NEW_NAME), true);
     return new TestCase(M);
   }
 
@@ -1000,14 +993,12 @@ public class Prover {
     boolean isDFAO = !m.group(GROUP_alphabet_DOLLAR_SIGN).equals("$");
 
     String inFileName = m.group(GROUP_alphabet_OLD_NAME) + TXT_EXTENSION;
-    String inLibrary = isDFAO ?
-        Session.getReadFileForWordsLibrary(inFileName) : Session.getReadFileForAutomataLibrary(inFileName);
 
     List<NumberSystem> NS = new ArrayList<>();
     List<List<Integer>> alphabets = new ArrayList<>();
     determineAlphabetsAndNS(m, NS, alphabets);
 
-    Automaton M = new Automaton(inLibrary);
+    Automaton M = new Automaton(ProverHelper.determineInLibrary(isDFAO, inFileName));
 
     // here, call the function to set the number system.
     M.setAlphabet(isDFAO, NS, alphabets, printFlag, prefix, log);

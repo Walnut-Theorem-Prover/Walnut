@@ -122,7 +122,7 @@ public class ArithmeticOperator extends Operator {
             throw WalnutException.invalidOperator(op, a);
 
         if (a instanceof WordExpression && b instanceof WordExpression) {
-            a.wordAutomaton = AutomatonLogicalOps.applyOperator(a.wordAutomaton, b.wordAutomaton, op, print, prefix, log);
+            a.wordAutomaton = WordAutomaton.applyWordOperator(a.wordAutomaton, b.wordAutomaton, op, print, prefix, log);
             a.M = AutomatonLogicalOps.and(a.M, b.M, print, prefix + " ", log);
             ((WordExpression)a).identifiersToQuantify.addAll(((WordExpression)b).identifiersToQuantify);
             S.push(a);
