@@ -102,7 +102,8 @@ public class DeterminizationStrategies {
         String exportName = mc.getExportName(automataIdx);
         if (exportName != null) {
           String exportFormat = mc.getExportFormat(automataIdx);
-          ProverHelper.exportAutomata(Prover.currentEvalName, exportName, exportFormat, A, fa.isDFAO());
+          ProverHelper.exportAutomata(Prover.currentEvalName, exportName + "_" + automataIdx + "_pre",
+              exportFormat, A, fa.isDFAO());
         }
 
         UtilityMethods.logMessage(print, prefix +
@@ -281,13 +282,14 @@ public class DeterminizationStrategies {
 
     while (!stack.isEmpty()) {
       if (print) {
-        if (statesExplored % 1e5 == 0) {
+        if (statesExplored == 1e2 || statesExplored == 1e3 || statesExplored % 1e4 == 0) {
           int statesSoFar = out.size() - stateBuffer.size();
           int queueSize = stack.size();
           long timeAfter = System.currentTimeMillis();
           UtilityMethods.logMessage(true,
-              prefix + "  Progress: " + statesExplored + " states explored - " + statesSoFar + " current states - "
-                  + queueSize + " states in queue - " + (timeAfter - timeBefore) + "ms", log);
+              prefix + "  Progress: Explored " + statesExplored + " states - "
+                  + queueSize + " states left in queue - " + statesSoFar + " states added - "
+                  + (timeAfter - timeBefore) + "ms", log);
         }
       }
       DeterminizeRecord<BitSet> curr = stack.pop();
@@ -311,18 +313,19 @@ public class DeterminizationStrategies {
           stack.push(new DeterminizeRecord<>(succ, outSucc));
         }
         out.setTransition(outState, inputs.getSymbolIndex(i), outSucc);
-        statesExplored++;
       }
+      statesExplored++;
 
       finishedStates.set(outState);
 
       if (complete && threshold.test(out)) {
+        int oldStatesSoFar = out.size() - stateBuffer.size();
         OTFDeterminization.otfMinimization(inputs, out, finishedStates, stateBuffer, registry);
         int statesSoFar = out.size() - stateBuffer.size();
         threshold.update(statesSoFar);
         long timeAfter = System.currentTimeMillis();
         UtilityMethods.logMessage(print,
-            prefix + "  Progress: Periodic minimization: " + statesSoFar + " states - " + (timeAfter - timeBefore) + "ms", log);
+            prefix + "  Progress: Periodic minimization: " + oldStatesSoFar + " -> " + statesSoFar + " states added - " + (timeAfter - timeBefore) + "ms", log);
       }
     }
     fa.setFromCompactDFA(out);

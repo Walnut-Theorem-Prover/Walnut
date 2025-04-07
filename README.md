@@ -1,4 +1,4 @@
-# Walnut version ??? (TBD)
+# Walnut version 7.0-alpha
 Walnut is an automated theorem prover for automatic words.
 
 For a list of changes since previous versions, see [the CHANGELOG](CHANGELOG.md).
@@ -8,10 +8,6 @@ For a list of changes since previous versions, see [the CHANGELOG](CHANGELOG.md)
 <br>
 
 To run Walnut, first run `build.sh` to build Walnut, then run the `walnut.sh` file.
-
-Documentation: TODO
-
-Use the `help;` command to view documentation for all available commands.
 
 To run Walnut tests, run `build.sh` with the `-t` flag.
 
