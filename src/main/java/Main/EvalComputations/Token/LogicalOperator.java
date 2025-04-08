@@ -149,11 +149,11 @@ public class LogicalOperator extends Operator {
                     if (!existsEarlyTermination) {
                         AutomatonQuantification.quantify(M, identifiersToQuantify, print, prefix + " ", log);
                     } else {
-                        String fileName =
-                            Session.getAddressForResult() + Prover.currentEvalName + "_special_case_E" + TXT_EXTENSION;
+                        String fileName = Prover.currentEvalName + "_special_case_E";
                         UtilityMethods.logAndPrint(print,
-                            prefix + "special-case for final E, writing to " + fileName, log);
-                        AutomatonWriter.writeToTxtFormat(M, fileName);
+                            prefix + "special-case for final E, writing predicates: " + fileName, log);
+                        M.writeAutomata(Prover.currentEvalName,
+                            Session.getWriteAddressForAutomataLibrary(), fileName, M.fa.isDFAO());
                     }
                 } else if (op.equals(Operator.FORALL)) {
                     // A == ~ E ~
