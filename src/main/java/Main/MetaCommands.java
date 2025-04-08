@@ -10,15 +10,18 @@ public class MetaCommands {
   static final String DEFAULT_EXPORT_NAME = "export";
   private int automataIndex = 0; // Indicates the index of the automata in a particular run
 
+  // strategy metacommand
   private final Int2ObjectMap<DeterminizationStrategies.Strategy> strategyMap = new Int2ObjectOpenHashMap<>();
   DeterminizationStrategies.Strategy alwaysOnStrategy = null;
 
+  // export metacommand
   // txt, ba, or gv
   private final Int2ObjectMap<String> exportMap = new Int2ObjectOpenHashMap<>();
   private boolean alwaysOnExport = false;
 
   public MetaCommands() {
     Prover.usingOTF = false;
+    Prover.earlyExistTermination = false;
   }
   
   public int incrementAutomataIndex() {
@@ -92,7 +95,7 @@ public class MetaCommands {
       command = metaCmdMatcher.group(Prover.GROUP_FINAL_CMD).strip(); // update to be the remainder
 
       String[] parts = metaCommandString.split("\\s+");
-      if (parts.length != 3) {
+      if (parts.length != 3 && (parts.length != 1 || !parts[0].equals(Prover.EARLY_EXIST_TERMINATION))) {
         throw WalnutException.invalidCommandUse(metaCommandString);
       }
 
@@ -108,6 +111,9 @@ public class MetaCommands {
         case Prover.EXPORT:
           // example: export 15 BA, or export * TXT
           addExport(parts[1], parts[2]);
+          break;
+        case Prover.EARLY_EXIST_TERMINATION:
+          Prover.earlyExistTermination = true;
           break;
         default:
           throw WalnutException.invalidCommand(command);

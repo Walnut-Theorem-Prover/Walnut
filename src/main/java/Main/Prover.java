@@ -250,6 +250,7 @@ public class Prover {
 
   static final String STRATEGY = "strategy";
   static final String EXPORT = "export";
+  static final String EARLY_EXIST_TERMINATION = "earlyExistTermination";
 
   static final String RE_FOR_export_CMD = RE_START + EXPORT + DOLLAR + RE_WORD_OF_CMD_NO_SPC + RE_WORD_OF_CMD;
   static final Pattern PAT_FOR_export_CMD = Pattern.compile(RE_FOR_export_CMD);
@@ -272,6 +273,7 @@ public class Prover {
 
   public static String currentEvalName; // current evaluation name, used for export metacommand
   public static boolean usingOTF = false; // whether the current command is using OTF algorithms
+  public static boolean earlyExistTermination = false; // earlyExistTermination metacommand
   /**
    * if the command line argument is not empty, we treat args[0] as a filename.
    * if this is the case, we read from the file and load its commands before we submit control to user.

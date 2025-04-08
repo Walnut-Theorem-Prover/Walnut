@@ -27,8 +27,9 @@ import java.util.Stack;
 
 import Main.EvalComputations.Expressions.AutomatonExpression;
 import Main.EvalComputations.Expressions.Expression;
+import Main.EvalComputations.Token.LogicalOperator;
+import Main.EvalComputations.Token.Operator;
 import Main.EvalComputations.Token.Token;
-
 
 /**
  * This is used in eval/def commands to compute the predicate.
@@ -70,10 +71,25 @@ public class EvalComputer {
         long timeBeginning = System.currentTimeMillis();
         String step;
 
-        for (Token t : postOrder) {
+        // TODO: make this strongly-typed.
+        boolean earlyTermination =
+            Prover.earlyExistTermination && postOrder.getLast().toString().equals(Operator.EXISTS);
+
+        for(int i=0;i<postOrder.size();i++) {
+            Token t  = postOrder.get(i);
             try {
                 long timeBefore = System.currentTimeMillis();
-                t.act(expressions, printDetails, prefix, logDetails);
+                if (!earlyTermination || i < postOrder.size()-1) {
+                    t.act(expressions, printDetails, prefix, logDetails);
+                } else {
+                    // Special-case: the last operand is "E" and we have an earlyExistTermination metacommand
+                    // return early without determinizing
+                    if (!(t instanceof LogicalOperator)) {
+                        throw WalnutException.unexpectedOperator(t.toString());
+                    }
+                    ((LogicalOperator)t).actExistsSpecialCase(expressions, printDetails, prefix, logDetails);
+                    break;
+                }
                 long timeAfter = System.currentTimeMillis();
                 Expression nextExpression = expressions.peek();
                 if (t.isOperator() && nextExpression instanceof AutomatonExpression) {
@@ -84,7 +100,6 @@ public class EvalComputer {
                     if (printStepsOrDetails) {
                         System.out.println(step);
                     }
-
                     prefix += " ";
                 }
             } catch (RuntimeException e) {

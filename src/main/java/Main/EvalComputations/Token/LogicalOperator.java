@@ -24,13 +24,15 @@ import java.util.Stack;
 
 import Automata.AutomatonLogicalOps;
 import Automata.AutomatonQuantification;
+import Automata.AutomatonWriter;
 import Automata.FA.Infinite;
-import Main.WalnutException;
+import Main.*;
 import Main.EvalComputations.Expressions.Expression;
 import Automata.Automaton;
 import Main.EvalComputations.Expressions.AutomatonExpression;
 import Main.EvalComputations.Expressions.VariableExpression;
-import Main.UtilityMethods;
+
+import static Main.Prover.TXT_EXTENSION;
 
 public class LogicalOperator extends Operator {
     public static final String AND = "&";
@@ -66,7 +68,7 @@ public class LogicalOperator extends Operator {
             return;
         }
         if (op.equals(Operator.EXISTS) || op.equals(Operator.FORALL) || op.equals(Operator.INFINITE)) {
-            actQuantifier(S, print, prefix, log);
+            actQuantifier(S, false, print, prefix, log);
             return;
         }
 
@@ -96,6 +98,15 @@ public class LogicalOperator extends Operator {
         throw WalnutException.invalidDualOperators(op, a, b);
     }
 
+    /**
+     * Special-case: if last operation is "E", and enabled with a metacommand,
+     * we write the NFA without determinizing.
+     */
+    public void actExistsSpecialCase(Stack<Expression> S, boolean print, String prefix, StringBuilder log) {
+        super.validateArity(S);
+        actQuantifier(S, true, print, prefix, log);
+    }
+
     private void actNegationOrReverse(Stack<Expression> S, boolean print, String prefix, StringBuilder log) {
         Expression a = S.pop();
         if (a instanceof AutomatonExpression) {
@@ -111,7 +122,8 @@ public class LogicalOperator extends Operator {
         throw WalnutException.invalidOperator(op, a);
     }
 
-    private void actQuantifier(Stack<Expression> S, boolean print, String prefix, StringBuilder log) {
+    private void actQuantifier(Stack<Expression> S, boolean existsEarlyTermination,
+                               boolean print, String prefix, StringBuilder log) {
         StringBuilder stringValue = new StringBuilder("(" + op + " ");
         Stack<Expression> temp = reverseStack(S);
         Automaton M = null;
@@ -134,7 +146,15 @@ public class LogicalOperator extends Operator {
                     throw new WalnutException("the last operand of " + op + " can only be of type automaton");
                 M = operand.M;
                 if (op.equals(Operator.EXISTS)) {
-                    AutomatonQuantification.quantify(M, identifiersToQuantify, print, prefix + " ", log);
+                    if (!existsEarlyTermination) {
+                        AutomatonQuantification.quantify(M, identifiersToQuantify, print, prefix + " ", log);
+                    } else {
+                        String fileName =
+                            Session.getAddressForResult() + Prover.currentEvalName + "_special_case_E" + TXT_EXTENSION;
+                        UtilityMethods.logAndPrint(print,
+                            prefix + "special-case for final E, writing to " + fileName, log);
+                        AutomatonWriter.writeToTxtFormat(M, fileName);
+                    }
                 } else if (op.equals(Operator.FORALL)) {
                     // A == ~ E ~
                     AutomatonLogicalOps.not(M, print, prefix + " ", log);
