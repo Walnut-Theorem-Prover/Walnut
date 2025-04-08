@@ -34,9 +34,6 @@ import net.automatalib.serialization.ba.BAWriter;
 public class AutomatonWriter {
     /**
      * Writes down matrices for this automaton to a .mpl file given by the address.
-     *
-     * @param automaton
-     * @param address
      */
     public static void writeMatrices(Automaton automaton, String address, List<String> free_variables) {
         if (automaton.fa.isTRUE_FALSE_AUTOMATON()) {

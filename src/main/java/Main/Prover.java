@@ -592,9 +592,6 @@ public class Prover {
 
   public TestCase evalDefCommands(String s) throws IOException {
     Matcher m = ProverHelper.matchOrFail(PAT_FOR_eval_def_CMDS, s, "eval/def");
-    String mplAddress = null;
-
-    List<String> freeVariables = determineFreeVariables(m.group(ED_FREE_VARIABLES));
 
     String predicate = m.group(ED_PREDICATE);
     String evalName = m.group(ED_NAME);
@@ -608,10 +605,7 @@ public class Prover {
 
     M.writeAutomata(predicate, Session.getWriteAddressForAutomataLibrary(), evalName, false);
 
-    if (!freeVariables.isEmpty()) {
-      mplAddress = resultName + MPL_EXTENSION;
-      AutomatonWriter.writeMatrices(M, mplAddress, freeVariables);
-    }
+    String mplAddress = writeMatricesIfFreeVariables(m.group(ED_FREE_VARIABLES), resultName, M);
 
     c.writeLogs(resultName, printDetails);
 
@@ -621,6 +615,16 @@ public class Prover {
 
     return new TestCase(M, "", mplAddress, gvAddress, printDetails ? c.logDetails.toString() : "",
         List.of(new TestCase.AutomatonFilenamePair(M, DEFAULT_TESTFILE)));
+  }
+
+  private static String writeMatricesIfFreeVariables(String freeVariablesStr, String resultName, Automaton M) {
+    String mplAddress = null;
+    List<String> freeVariables = determineFreeVariables(freeVariablesStr);
+    if (!freeVariables.isEmpty()) {
+      mplAddress = resultName + MPL_EXTENSION;
+      AutomatonWriter.writeMatrices(M, mplAddress, freeVariables);
+    }
+    return mplAddress;
   }
 
   static List<String> determineFreeVariables(String freeVarString) {
