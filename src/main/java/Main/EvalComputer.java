@@ -73,7 +73,7 @@ public class EvalComputer {
 
         // TODO: make this strongly-typed.
         boolean earlyTermination =
-            Prover.earlyExistTermination && postOrder.getLast().toString().equals(Operator.EXISTS);
+           Prover.earlyExistTermination && postOrder.get(postOrder.size()-1).toString().equals(Operator.EXISTS);
 
         for(int i=0;i<postOrder.size();i++) {
             Token t  = postOrder.get(i);
