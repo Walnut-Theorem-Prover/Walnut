@@ -35,7 +35,7 @@ public class AutomatonWriter {
     /**
      * Writes down matrices for this automaton to a .mpl file given by the address.
      */
-    public static void writeMatrices(Automaton automaton, String address, List<String> free_variables) {
+    public static void writeMatrices(Automaton automaton, String address, List<String> freeVariables) {
         if (automaton.fa.isTRUE_FALSE_AUTOMATON()) {
             throw new WalnutException("incidence matrices cannot be calculated, because the automaton does not have a free variable.");
         }
@@ -50,22 +50,22 @@ public class AutomatonWriter {
             out.println("# the predicate in the query.");
             out.println("# For every pair of states p and q, the entry M_i_x[p][q] denotes the number of");
             out.println("# transitions with i=x from p to q.");
-            for (String variable : free_variables) {
+            for (String variable : freeVariables) {
                 if (!automaton.getLabel().contains(variable)) {
                     throw new WalnutException("incidence matrices for the variable " + variable + " cannot be calculated, because " + variable + " is not a free variable.");
                 }
             }
-            List<Integer> indices = free_variables.stream().map(variable -> automaton.getLabel().indexOf(variable)).collect(Collectors.toList());
+            List<Integer> indices = freeVariables.stream().map(variable -> automaton.getLabel().indexOf(variable)).collect(Collectors.toList());
             List<List<Integer>> indexValueLists = indices.stream().map(index -> automaton.richAlphabet.getA().get(index)).collect(Collectors.toList());
             List<List<Integer>> valueLists = cartesianProduct(indexValueLists);
             for (List<Integer> valueList : valueLists) {
-                writeMatrixForAVariableListValuePair(automaton, free_variables, valueList, indices, out);
+                writeMatrixForAVariableListValuePair(automaton, freeVariables, valueList, indices, out);
             }
             writeFinalStatesVector(automaton.getFa(), out);
             out.println();
             out.print("for i from 1 to Size(v)[2] do v := v.M_");
-            out.print(String.join("_", free_variables) + "_");
-            out.print(String.join("_", Collections.nCopies(free_variables.size(), "0")));
+            out.print(String.join("_", freeVariables) + "_");
+            out.print(String.join("_", Collections.nCopies(freeVariables.size(), "0")));
             out.println("; od; #fix up v by multiplying");
         } catch (IOException e) {
             UtilityMethods.printTruncatedStackTrace(e);
@@ -78,30 +78,30 @@ public class AutomatonWriter {
         out.print("M_" + String.join("_", variables) + "_");
         out.print(valueList.stream().map(String::valueOf).collect(Collectors.joining("_")));
         out.print(" := Matrix([");
-        Set<Integer> encoded_values = new HashSet<>();
+        Set<Integer> encodedValues = new HashSet<>();
         for (int x = 0; x != automaton.getAlphabetSize(); ++x) {
             List<Integer> decoding = automaton.richAlphabet.decode(x);
             List<Integer> compareList = indices.stream().map(decoding::get).toList();
             if (compareList.equals(valueList)) {
-                encoded_values.add(x);
+                encodedValues.add(x);
             }
         }
         int Q = automaton.getFa().getQ();
-        int[][] M = new int[Q][Q];
+        int[] Mp = new int[Q];
         for (int p = 0; p < Q; ++p) {
-            Int2ObjectRBTreeMap<IntList> transitions_p = automaton.fa.getNfaD().get(p);
-            for (int v : encoded_values) {
-                if (transitions_p.containsKey(v)) {
-                    List<Integer> dest = transitions_p.get(v);
-                    for (int q : dest) {
-                        M[p][q]++;
+            Arrays.fill(Mp, 0); // re-use array
+            Int2ObjectRBTreeMap<IntList> transitionsP = automaton.fa.getNfaD().get(p);
+            for (int v : encodedValues) {
+                if (transitionsP.containsKey(v)) {
+                    for (int q : transitionsP.get(v)) {
+                        Mp[q]++;
                     }
                 }
             }
 
             out.print("[");
             for (int q = 0; q < Q; ++q) {
-                out.print(M[p][q]);
+                out.print(Mp[q]);
                 if (q < (Q - 1)) {
                     out.print(",");
                 }
@@ -240,14 +240,14 @@ public class AutomatonWriter {
                 out.println("node [shape = point ]; qi");
                 out.println("qi -> " + automaton.fa.getQ0() + ";");
 
-                TreeMap<Integer, TreeMap<Integer, List<String>>> transitions =
-                    new TreeMap<>();
+                TreeMap<Integer, TreeMap<Integer, List<String>>> transitions = new TreeMap<>();
                 for (int q = 0; q < Q; q++) {
-                    transitions.put(q, new TreeMap<>());
+                    TreeMap<Integer, List<String>> treeMap = new TreeMap<>();
+                    transitions.put(q, treeMap);
                     for (Int2ObjectMap.Entry<IntList> entry : automaton.fa.getEntriesNfaD(q)) {
                         for (int dest : entry.getValue()) {
-                            transitions.get(q).putIfAbsent(dest, new ArrayList<>());
-                            transitions.get(q).get(dest).add(
+                            treeMap.putIfAbsent(dest, new ArrayList<>());
+                            treeMap.get(dest).add(
                                 UtilityMethods.toTransitionLabel(automaton.richAlphabet.decode(entry.getIntKey())));
                         }
                     }
@@ -255,8 +255,8 @@ public class AutomatonWriter {
 
                 for (int q = 0; q < Q; q++) {
                     for (Map.Entry<Integer, List<String>> entry : transitions.get(q).entrySet()) {
-                        String transition_label = String.join(", ", entry.getValue());
-                        out.println( q + " -> " + entry.getKey() + "[ label = \"" + transition_label + "\"];");
+                        String transitionLabel = String.join(", ", entry.getValue());
+                        out.println( q + " -> " + entry.getKey() + "[ label = \"" + transitionLabel + "\"];");
                     }
                 }
 
