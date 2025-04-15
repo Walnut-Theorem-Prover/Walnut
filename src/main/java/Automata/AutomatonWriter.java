@@ -90,10 +90,11 @@ public class AutomatonWriter {
         int[] Mp = new int[Q];
         for (int p = 0; p < Q; ++p) {
             Arrays.fill(Mp, 0); // re-use array
-            Int2ObjectRBTreeMap<IntList> transitionsP = automaton.fa.getNfaD().get(p);
-            for (int v : encodedValues) {
-                if (transitionsP.containsKey(v)) {
-                    for (int q : transitionsP.get(v)) {
+            Set<Int2ObjectMap.Entry<IntList>> entrySet = automaton.fa.getEntriesNfaD(p);
+            for (Int2ObjectMap.Entry<IntList> entry : entrySet) {
+                if (encodedValues.contains(entry.getIntKey())) {
+                    IntList targets = entry.getValue();
+                    for (int q : targets) {
                         Mp[q]++;
                     }
                 }
