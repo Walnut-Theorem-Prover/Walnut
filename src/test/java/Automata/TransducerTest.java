@@ -16,12 +16,12 @@ class TransducerTest {
         Assertions.assertEquals(2, M.fa.getQ());
         Assertions.assertEquals(
                 "[{0=>[0], 1=>[1]}, {0=>[1], 1=>[0]}]",
-                M.getFa().getNfaD().toString());
+                M.getFa().t.getNfaD().toString());
 
         Transducer T = new Transducer(Session.getTransducerFile("RUNSUM2.txt"));
         Automaton C = T.transduceNonDeterministic(M, true, "", log);
         Assertions.assertEquals(
                 "[{0=>[0], 1=>[1]}, {0=>[2], 1=>[3]}, {0=>[4], 1=>[5]}, {0=>[6], 1=>[7]}, {0=>[4], 1=>[5]}, {0=>[6], 1=>[7]}, {0=>[0], 1=>[1]}, {0=>[2], 1=>[3]}]",
-                C.getFa().getNfaD().toString());
+                C.getFa().t.getNfaD().toString());
     }
 }

@@ -145,14 +145,14 @@ public class WordAutomaton {
 
           newD.add(new Int2ObjectRBTreeMap<>());
 
-          if (wordA.fa.getNfaD().get(wordA.fa.getQ0()).keySet().size() != wordA.getAlphabetSize()) {
+          if (wordA.fa.t.getNfaState(wordA.fa.getQ0()).keySet().size() != wordA.getAlphabetSize()) {
               throw new WalnutException("Automaton should be deterministic!");
           }
-          for (int l : wordA.fa.getNfaD().get(wordA.fa.getQ0()).keySet()) {
+          for (int l : wordA.fa.t.getNfaState(wordA.fa.getQ0()).keySet()) {
               Map<Integer, Integer> toState = new HashMap<>();
 
               for (int i = 0; i < wordA.fa.getQ(); i++) {
-                  toState.put(i, currState.get(wordA.fa.getNfaD().get(i).get(l).getInt(0)));
+                  toState.put(i, currState.get(wordA.fa.t.getNfaState(i).get(l).getInt(0)));
               }
 
               if (!newStatesHash.containsKey(toState)) {

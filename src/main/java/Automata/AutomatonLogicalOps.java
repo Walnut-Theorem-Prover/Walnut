@@ -190,12 +190,12 @@ public class AutomatonLogicalOps {
 
         for (int q = 0; q < otherClone.fa.getQ(); q++) {
             Int2ObjectRBTreeMap<IntList> newMap = new Int2ObjectRBTreeMap<>();
-            for (Int2ObjectMap.Entry<IntList> entry : otherClone.fa.getEntriesNfaD(q)) {
+            for (Int2ObjectMap.Entry<IntList> entry : otherClone.fa.t.getEntriesNfaD(q)) {
                 newMap.put(A.richAlphabet.encode(otherClone.richAlphabet.decode(entry.getIntKey())), entry.getValue());
             }
             newOtherD.add(newMap);
         }
-        otherClone.fa.setNfaD(newOtherD);
+        otherClone.fa.t.setNfaD(newOtherD);
         otherClone.richAlphabet.setEncoder(A.richAlphabet.getEncoder());
         otherClone.richAlphabet.setA(A.richAlphabet.getA());
         otherClone.setAlphabetSize(A.getAlphabetSize());
@@ -407,14 +407,14 @@ public class AutomatonLogicalOps {
         for (int q = 0; q < Q; q++) {
             Int2ObjectRBTreeMap<IntList> currentStatesTransition = new Int2ObjectRBTreeMap<>();
             newD.add(currentStatesTransition);
-            for (Int2ObjectMap.Entry<IntList> entry : A.fa.getEntriesNfaD(q)) {
+            for (Int2ObjectMap.Entry<IntList> entry : A.fa.t.getEntriesNfaD(q)) {
                 int m = map.get(entry.getIntKey());
                 if (m != -1) {
                     currentStatesTransition.computeIfAbsent(m, key -> new IntArrayList()).addAll(entry.getValue());
                 }
             }
         }
-        A.fa.setNfaD(newD);
+        A.fa.t.setNfaD(newD);
         I.remove(0);
         UtilityMethods.removeIndices(A.getNS(), I);
         A.determineAlphabetSize();
@@ -454,7 +454,7 @@ public class AutomatonLogicalOps {
             }
         }
         for (int q = 0; q < N.fa.getQ(); q++) {
-          N.fa.getEntriesNfaD(q).removeIf(entry -> statesToRemove.contains(entry.getValue().getInt(0)));
+          N.fa.t.getEntriesNfaD(q).removeIf(entry -> statesToRemove.contains(entry.getValue().getInt(0)));
         }
         N.fa.setCanonized(false);
         N.canonize();
@@ -582,7 +582,7 @@ public class AutomatonLogicalOps {
         );
 
         IntList oldO = A.fa.getO();
-        List<Int2ObjectRBTreeMap<IntList>> oldD = A.fa.getNfaD();
+        List<Int2ObjectRBTreeMap<IntList>> oldD = A.fa.t.getNfaD();
 
         // Prepare BFS structures
         List<IntObjectPair<IntList>> newStates = new ArrayList<>();

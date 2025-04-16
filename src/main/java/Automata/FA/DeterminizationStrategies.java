@@ -176,7 +176,7 @@ public class DeterminizationStrategies {
 
     // precompute for efficiency
     int alphabetSize = fa.getAlphabetSize();
-    List<Int2ObjectRBTreeMap<IntList>> nfaD = fa.getNfaD();
+    List<Int2ObjectRBTreeMap<IntList>> nfaD = fa.t.getNfaD();
 
     List<Int2IntMap> dfaD = new ArrayList<>(nfaD.size());
 
@@ -224,8 +224,8 @@ public class DeterminizationStrategies {
     fa.setQ0(0);
     IntList oldO = new IntArrayList(fa.getO());
     fa.calculateNewStateOutput(oldO, metastateList);
-    fa.setNfaD(null);
-    fa.setDfaD(dfaD);
+    fa.t.setNfaD(null);
+    fa.t.setDfaD(dfaD);
   }
 
   private static void OTF(

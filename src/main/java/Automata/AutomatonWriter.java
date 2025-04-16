@@ -90,7 +90,7 @@ public class AutomatonWriter {
         int[] Mp = new int[Q];
         for (int p = 0; p < Q; ++p) {
             Arrays.fill(Mp, 0); // re-use array
-            Set<Int2ObjectMap.Entry<IntList>> entrySet = automaton.fa.getEntriesNfaD(p);
+            Set<Int2ObjectMap.Entry<IntList>> entrySet = automaton.fa.t.getEntriesNfaD(p);
             for (Int2ObjectMap.Entry<IntList> entry : entrySet) {
                 if (encodedValues.contains(entry.getIntKey())) {
                     IntList targets = entry.getValue();
@@ -187,7 +187,7 @@ public class AutomatonWriter {
         out.write(
                 System.lineSeparator() + q + " " +
                         automaton.fa.getO().getInt(q) + System.lineSeparator());
-        for (Int2ObjectMap.Entry<IntList> entry : automaton.getFa().getEntriesNfaD(q)) {
+        for (Int2ObjectMap.Entry<IntList> entry : automaton.getFa().t.getEntriesNfaD(q)) {
             List<Integer> l = automaton.richAlphabet.decode(entry.getIntKey());
             for (int j = 0; j < l.size(); j++)
                 out.write(l.get(j) + " ");
@@ -245,7 +245,7 @@ public class AutomatonWriter {
                 for (int q = 0; q < Q; q++) {
                     TreeMap<Integer, List<String>> treeMap = new TreeMap<>();
                     transitions.put(q, treeMap);
-                    for (Int2ObjectMap.Entry<IntList> entry : automaton.fa.getEntriesNfaD(q)) {
+                    for (Int2ObjectMap.Entry<IntList> entry : automaton.fa.t.getEntriesNfaD(q)) {
                         for (int dest : entry.getValue()) {
                             treeMap.putIfAbsent(dest, new ArrayList<>());
                             treeMap.get(dest).add(

@@ -495,7 +495,7 @@ public class Automaton {
             }
         }
         boolean singleArity = richAlphabet.getA().size() == 1;
-        for (Int2ObjectMap.Entry<IntList> entry : getFa().getEntriesNfaD(state)) {
+        for (Int2ObjectMap.Entry<IntList> entry : getFa().t.getEntriesNfaD(state)) {
             List<Integer> decodeAx = richAlphabet.decode(entry.getIntKey());
             String input = decodeAx.toString();
             // we remove brackets if we have a single arity input that is between 0 and 9 (and hence unambiguous)
