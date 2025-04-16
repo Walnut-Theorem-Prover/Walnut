@@ -365,9 +365,9 @@ public class AutomatonLogicalOps {
         for (int i = 0; i < A.getAlphabetSize(); i++) {
             List<Integer> list = A.richAlphabet.decode(i);
             if (list.get(n) != 0) {
-                M.fa.setTransition(0, new IntArrayList(dest), i);
+                M.fa.t.setNfaDTransition(0, i, new IntArrayList(dest));
             }
-            M.fa.setTransition(1, new IntArrayList(dest), i);
+            M.fa.t.setNfaDTransition(1, i, new IntArrayList(dest));
         }
         if (!A.getNS().get(n).isMsd()) {
             reverse(M, print, prefix, log, false);

@@ -30,7 +30,6 @@ import Automata.FA.FA;
 import Main.WalnutException;
 import Main.UtilityMethods;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectRBTreeMap;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 
@@ -285,7 +284,7 @@ public class Transducer extends Automaton {
         IntList O = M.fa.getO();
         for (int i = 0; i < O.size(); i++) {
             int encoded = richAlphabet.encode(List.of(O.getInt(i)));
-            if (!fa.t.getNfaState(0).containsKey(encoded)) {
+            if (fa.t.getNfaStateDests(0, encoded) == null) {
                 throw new WalnutException("Output alphabet of automaton must be compatible with the transducer input alphabet");
             }
         }
@@ -318,7 +317,7 @@ public class Transducer extends Automaton {
             for (int q = 0; q < Tnew.fa.getQ(); q++) {
                 IntList newList = new IntArrayList();
                 newList.add(q);
-                Tnew.fa.setTransition(q, newList, minOutput);
+                Tnew.fa.t.setNfaDTransition(q, minOutput, newList);
                 Tnew.sigma.get(q).put(minOutput, minOutput);
             }
 
@@ -384,7 +383,7 @@ public class Transducer extends Automaton {
         int encoded = richAlphabet.encode(List.of(M.getO().getInt(i)));
         Map<Integer, Integer> map = new HashMap<>();
         for (int j = 0; j < this.fa.getQ(); j++) {
-            map.put(j, this.fa.t.getNfaState(mapSoFar.get(j)).get(encoded).getInt(0));
+            map.put(j, this.fa.t.getNfaStateDests(mapSoFar.get(j), encoded).getInt(0));
         }
         return map;
     }

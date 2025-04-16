@@ -123,10 +123,11 @@ public class FA implements Cloneable {
       boolean totalized = true;
       for(int q = 0; q < Q; q++){
           for(int x = 0; x < alphabetSize; x++){
-              if(!t.getNfaState(q).containsKey(x)) {
+            IntList iList = t.getNfaStateDests(q, x);
+              if (iList == null) {
                   totalized = false;
               }
-              else if (t.getNfaState(q).get(x).size() > 1) {
+              else if (iList.size() > 1) {
                   throw new WalnutException("Automaton must have at most one transition per input per state.");
               }
           }
@@ -165,10 +166,8 @@ public class FA implements Cloneable {
           List<Integer> extendedRow = new ArrayList<>();
           for (int k = 0; k < prevMorphism.get(j).size(); k++) {
             // For each digit di in state j:
-            for (int di : t.getNfaState(j).keySet()) {
-              int nextState = t.getNfaState(prevMorphism.get(j).get(k))
-                  .get(di)
-                  .getInt(0);
+            for (int di : t.getNfaStateKeySet(j)) {
+              int nextState = t.getNfaStateDests(prevMorphism.get(j).get(k), di).getInt(0);
               extendedRow.add(nextState);
             }
           }
@@ -205,7 +204,7 @@ public class FA implements Cloneable {
           for(int i: entry.getValue()) {
             newTransitionMap.add(originalQ + i);
           }
-          N.setTransition(originalQ + q, newTransitionMap, entry.getIntKey());
+          N.t.setNfaDTransition(originalQ + q, entry.getIntKey(), newTransitionMap);
         }
       }
 
@@ -284,7 +283,7 @@ public class FA implements Cloneable {
         }
 
         if (!newDestination.isEmpty()) {
-          this.setTransition(q, newDestination, entry.getIntKey());
+          this.t.setNfaDTransition(q, entry.getIntKey(), newDestination);
         } else {
           t.getNfaState(q).remove(entry.getIntKey());
         }
@@ -593,7 +592,7 @@ public class FA implements Cloneable {
     for (int q = 0; q < fa.Q; q++) {
       fa.t.addMapToNfaD();
       for (Int2ObjectMap.Entry<IntList> entry : this.t.getEntriesNfaD(q)) {
-        fa.setTransition(q, new IntArrayList(entry.getValue()), entry.getIntKey());
+        fa.t.setNfaDTransition(q, entry.getIntKey(), new IntArrayList(entry.getValue()));
       }
     }
     return fa;
@@ -668,7 +667,7 @@ public class FA implements Cloneable {
     while (!queue.isEmpty()) {
       int q = queue.poll();
       if (result.add(q)) { // Add q to result; skip if already processed
-        IntList transitions = t.getNfaState(q).get(zero);
+        IntList transitions = t.getNfaStateDests(q, zero);
         if (transitions != null) {
           for (int p : transitions) {
             if (!result.contains(p)) {
@@ -695,7 +694,7 @@ public class FA implements Cloneable {
     List<List<Integer>> adjacencyList = new ArrayList<>(Q);
     for (int q = 0; q < Q; q++) adjacencyList.add(new ArrayList<>());
     for (int q = 0; q < Q; q++) {
-      List<Integer> destination = t.getNfaState(q).get(zero);
+      List<Integer> destination = t.getNfaStateDests(q, zero);
       if (destination != null) {
         for (int p : destination) {
           adjacencyList.get(p).add(q);
@@ -730,11 +729,11 @@ public class FA implements Cloneable {
   }
 
   /**
-   * Check if automaton is deterministic (amd total): each state must have exactly alphabetSize transitions
+   * Check if automaton is deterministic (and total): each state must have exactly alphabetSize transitions
    */
   public boolean isDeterministic() {
     for (int q = 0; q < Q; q++) {
-      if (t.getNfaState(q).keySet().size() != alphabetSize) {
+      if (t.getNfaStateKeySet(q).size() != alphabetSize) {
         return false;
       }
     }
@@ -750,7 +749,7 @@ public class FA implements Cloneable {
     for (int q = 0; q < Q; q++) {
       List<Integer> row = new ArrayList<>(alphabetSize);
       for (int di = 0; di < alphabetSize; di++) {
-        row.add(t.getNfaState(q).get(di).getInt(0));
+        row.add(t.getNfaStateDests(q, di).getInt(0));
       }
       result.add(row);
     }
@@ -786,10 +785,7 @@ public class FA implements Cloneable {
   public void addNewTransition(int src, int dest, int inp) {
       IntList destStates = new IntArrayList();
       destStates.add(dest);
-      setTransition(src, destStates, inp);
-  }
-  public void setTransition(int src, IntList destStates, int inp) {
-    t.getNfaState(src).put(inp, destStates);
+      t.setNfaDTransition(src, inp, destStates);
   }
 
   public IntSet getFinalStates() {
@@ -872,13 +868,9 @@ public class FA implements Cloneable {
       }
       nfa.setInitial(this.q0, true);
       for (int i = 0; i < this.Q; i++) {
-          Int2ObjectRBTreeMap<IntList> iMap = t.getNfaState(i);
-          for (int in = 0; in < this.alphabetSize; in++) {
-              IntList iList = iMap.get(in);
-              if (iList != null) {
-                  nfa.addTransitions(i, in, iList);
-              }
-          }
+        for (Int2ObjectMap.Entry<IntList> entry : t.getEntriesNfaD(i)) {
+          nfa.addTransitions(i, entry.getIntKey(), entry.getValue());
+        }
       }
       return nfa;
   }

@@ -36,6 +36,12 @@ public class Transitions {
   public Int2ObjectRBTreeMap<IntList> getNfaState(int q){
     return nfaD.get(q);
   }
+  public IntSortedSet getNfaStateKeySet(int q){
+    return nfaD.get(q).keySet();
+  }
+  public IntList getNfaStateDests(int q, int in){
+    return nfaD.get(q).get(in);
+  }
 
   public Set<Int2ObjectMap.Entry<IntList>> getEntriesNfaD(int state) {
     return nfaD.get(state).int2ObjectEntrySet();
@@ -52,7 +58,9 @@ public class Transitions {
     nfaD.add(entry);
     return entry;
   }
-
+  public void setNfaDTransition(int src, int inp, IntList destStates) {
+    nfaD.get(src).put(inp, destStates);
+  }
   public void clearNfaD() {
     this.nfaD.clear();
   }
@@ -105,4 +113,5 @@ public class Transitions {
     }
     return numTransitionsLong;
   }
+
 }

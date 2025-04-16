@@ -74,7 +74,7 @@ public class TrimmerTest {
         Trimmer.trimAutomaton(a);
         Assertions.assertEquals(3, a.getQ());
         Assertions.assertEquals(0, a.getQ0());
-        Assertions.assertEquals(IntList.of(1,2),a.t.getNfaState(0).get(0));
+        Assertions.assertEquals(IntList.of(1,2),a.t.getNfaStateDests(0, 0));
     }
 
     @Test
@@ -105,7 +105,7 @@ public class TrimmerTest {
         Trimmer.trimAutomaton(a);
         Assertions.assertEquals(3, a.getQ());
         Assertions.assertEquals(0, a.getQ0());
-        Assertions.assertEquals(IntList.of(1,2),a.t.getNfaState(0).get(0)); // renumbered
+        Assertions.assertEquals(IntList.of(1,2),a.t.getNfaStateDests(0, 0)); // renumbered
     }
 
     @Test
@@ -126,7 +126,7 @@ public class TrimmerTest {
 
         Trimmer.trimAutomaton(a);
         Assertions.assertEquals(1, a.getQ());
-        Assertions.assertTrue(a.t.getNfaState(0).get(0).isEmpty());
+        Assertions.assertTrue(a.t.getNfaStateDests(0, 0).isEmpty());
     }
 
     @Test
