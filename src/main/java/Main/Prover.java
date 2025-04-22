@@ -454,7 +454,6 @@ public class Prover {
     s = s.strip(); // remove start and end whitespace, Unicode-aware
     s = parseSetup(s);
 
-    System.out.println("Running integration test: " + msg);
     if (s.isEmpty() || s.startsWith("#")) {
       return null;
     }

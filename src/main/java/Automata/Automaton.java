@@ -137,7 +137,7 @@ public class Automaton {
         UtilityMethods.removeDuplicates(alphabet);
         this.richAlphabet.getA().add(alphabet);
 
-        this.fa.convertBrics(alphabet, regularExpression);
+        this.fa.convertFromBrics(alphabet, regularExpression);
         getNS().add(numSys);
     }
 

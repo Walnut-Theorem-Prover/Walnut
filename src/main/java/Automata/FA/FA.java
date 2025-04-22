@@ -1,4 +1,4 @@
-/*   Copyright 2025 John Nicol
+/*	 Copyright 2016 Hamoon Mousavi, 2025 John Nicol
  *
  *   This file is part of Walnut.
  *
@@ -292,7 +292,7 @@ public class FA implements Cloneable {
     this.canonized = true;
   }
 
-  public void convertBrics(List<Integer> alphabet, String regularExpression) {
+  public void convertFromBrics(List<Integer> alphabet, String regularExpression) {
     long timeBefore = System.currentTimeMillis();
     // For example if alphabet = {2,4,1} then intersectingRegExp = [241]*
     StringBuilder intersectingRegExp = new StringBuilder("[");
@@ -318,8 +318,7 @@ public class FA implements Cloneable {
     });
 
     long timeAfter = System.currentTimeMillis();
-    String msg = "computed ~:" + Q + " states - " + (timeAfter - timeBefore) + "ms";
-    System.out.println(msg);
+    System.out.println("Converted from brics:" + getQ() + " states - " + (timeAfter - timeBefore) + "ms");
   }
 
   public void setFromBricsAutomaton(int alphabetSize, String regularExpression) {
@@ -396,7 +395,11 @@ public class FA implements Cloneable {
   public void totalize(boolean print, String prefix, StringBuilder log) {
     long timeBefore = System.currentTimeMillis();
     UtilityMethods.logMessage(print, prefix + "totalizing:" + Q + " states", log);
-    totalize();
+    //we first check if the automaton is totalized
+    int sinkState = Q; // potential new dead state
+    if (!totalizeStates(sinkState)) {
+      addSinkState(0, sinkState);
+    }
     long timeAfter = System.currentTimeMillis();
     UtilityMethods.logMessage(print, prefix + "totalized:" + Q + " states - " + (timeAfter - timeBefore) + "ms", log);
   }
@@ -410,8 +413,14 @@ public class FA implements Cloneable {
   public boolean addDistinguishedDeadState(boolean print, String prefix, StringBuilder log) {
     long timeBefore = System.currentTimeMillis();
     UtilityMethods.logMessage(print, prefix + "Adding distinguished dead state: " + getQ() + " states", log);
-    boolean totalized = this.totalizeIfNecessary();
-    int min = totalized ? 0 : this.obtainMinimumOutput();
+    boolean totalized = this.totalizeStates(this.Q);
+    int min;
+    if (totalized) {
+      min = 0;
+    } else {
+      min = determineMinOutput();
+      addSinkState(min - 1, Q);
+    }
 
     long timeAfter = System.currentTimeMillis();
     if (print) {
@@ -469,24 +478,6 @@ public class FA implements Cloneable {
       transitions.get(state).put(symbol, destList);
     }
     destList.add(destination);
-  }
-
-  private void totalize() {
-    //we first check if the automaton is totalized
-    int sinkState = Q; // potential new dead state
-    if (!totalizeStates(sinkState)) {
-      addSinkState(0, sinkState);
-    }
-  }
-
-  boolean totalizeIfNecessary() {
-    return totalizeStates(Q);
-  }
-
-  int obtainMinimumOutput() {
-    int min = determineMinOutput();
-    addSinkState(min - 1, Q);
-    return min;
   }
 
   private void addSinkState(int i, int sinkState) {
