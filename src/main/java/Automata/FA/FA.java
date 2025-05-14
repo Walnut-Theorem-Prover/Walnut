@@ -976,11 +976,13 @@ public class FA implements Cloneable {
   }
 
   /**
-   * Calculate new state output from previous O and metastates.
+   * Calculate new state output from metastates.
    */
-  void calculateNewStateOutput(IntList oldO, List<IntSet> metastates) {
+  void calculateNewStateOutput(List<IntSet> metastates) {
+    IntList oldO = new IntArrayList(O);
     this.initO(metastates.size());
     for (IntSet metastate : metastates) {
+      // determine if metastate accepts
       boolean flag = false;
       for (int q : metastate) {
         if (oldO.getInt(q) != 0) {

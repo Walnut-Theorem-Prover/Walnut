@@ -222,8 +222,7 @@ public class DeterminizationStrategies {
     }
     fa.setQ(stateCount);
     fa.setQ0(0);
-    IntList oldO = new IntArrayList(fa.getO());
-    fa.calculateNewStateOutput(oldO, metastateList);
+    fa.calculateNewStateOutput(metastateList);
     fa.t.setNfaD(null);
     fa.t.setDfaD(dfaD);
   }
