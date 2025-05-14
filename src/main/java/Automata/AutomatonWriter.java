@@ -21,7 +21,6 @@ import Automata.FA.FA;
 import Main.UtilityMethods;
 import Main.WalnutException;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectRBTreeMap;
 import it.unimi.dsi.fastutil.ints.IntList;
 
 import java.io.*;
@@ -189,8 +188,9 @@ public class AutomatonWriter {
                         automaton.fa.getO().getInt(q) + System.lineSeparator());
         for (Int2ObjectMap.Entry<IntList> entry : automaton.getFa().t.getEntriesNfaD(q)) {
             List<Integer> l = automaton.richAlphabet.decode(entry.getIntKey());
-            for (int j = 0; j < l.size(); j++)
-                out.write(l.get(j) + " ");
+            for (Integer integer : l) {
+                out.write(integer + " ");
+            }
             out.write("->");
             for (int dest : entry.getValue())
                 out.write(" " + dest);
@@ -204,9 +204,6 @@ public class AutomatonWriter {
      * Unlike prior versions of Walnut, this automaton can be a non deterministic automaton and also a DFAO.
      * In case of a DFAO the drawing contains state outputs with a slash (eg. "0/2" represents an output
      * of 2 from state 0)
-     *
-     * @param automaton
-     * @param address
      */
     public static void draw(Automaton automaton, String address, String predicate, boolean isDFAO) {
         try (PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter((address))))) {

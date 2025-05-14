@@ -40,7 +40,6 @@ public class IntegrationTest {
 	private void initialize(){
 		Session.setPathsAndNamesIntegrationTests();
 		Session.cleanPathsAndNamesIntegrationTest();
-		PrintWriter out = null;
 		try {
 			Prover p = new Prover();
 			p.dispatch("reg endsIn2Zeros lsd_2 \"(0|1)*00\";");
@@ -70,15 +69,9 @@ public class IntegrationTest {
 				Prover.mainProver = new Prover();
 				Prover.mainProver.dispatchForIntegrationTest(integTests.get(i), "dispatch:" + i);
 			}
-		} catch (FileNotFoundException | UnsupportedEncodingException e) {
+		} catch (Exception e) {
 			UtilityMethods.printTruncatedStackTrace(e);
-		} catch(Exception e){
-			UtilityMethods.printTruncatedStackTrace(e);
-		} finally {
-	        if(out != null){
-	            out.close();
-	        }
-        }
+		}
 	}
 	public IntegrationTest(){
 		initialize();
@@ -924,10 +917,11 @@ public class IntegrationTest {
 					Assertions.assertNull(actualA, "expected automaton was null, but not actual");
 				} else if (actualA == null) {
 					Assertions.fail("actual automaton was null, but not expected");
+				} else {
+					// We don't use assertEquals here, since equals has been overridden in the Automaton class
+					Assertions.assertTrue(actualA.equals(expectedA),
+							"Actual result: " + actualA + " does not equal expected result: " + expectedA);
 				}
-				// We don't use assertEquals here, since equals has been overridden in the Automaton class
-				Assertions.assertTrue(actualA.equals(expectedA),
-						"Actual result: " + actualA + " does not equal expected result: " + expectedA);
 			}
 		}
 		catch(Exception e){
@@ -956,14 +950,6 @@ public class IntegrationTest {
 		}
 	}
 
-
-	private static boolean conformMPL(String expected_mpl,String actual_mpl){
-		if(expected_mpl == null && actual_mpl == null)return true;
-		if(expected_mpl == null) return false;
-		if(expected_mpl.isEmpty() && actual_mpl.isEmpty()) return true;
-    return expected_mpl.equals(actual_mpl);
-  }
-
 	private static int findFirstDifferingIndex(String str1, String str2) {
 		int startDiff = 0;
 		int endDiff1 = str1.length() - 1;
@@ -988,7 +974,7 @@ public class IntegrationTest {
 	}
 
 	private static List<TestCase> loadTestCases(List<String> L, String directoryAddress) throws IOException {
-		List<TestCase> testCases = new ArrayList<>();
+		List<TestCase> testCases = new ArrayList<>(L.size());
 		for(int i = 0 ; i < L.size();i++) {
 			List<TestCase.AutomatonFilenamePair> automatonFilenamePairs = new ArrayList<>();
 			Automaton M = null;

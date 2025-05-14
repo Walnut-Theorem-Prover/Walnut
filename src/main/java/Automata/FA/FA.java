@@ -62,6 +62,7 @@ public class FA implements Cloneable {
     O = new IntArrayList();
     t = new Transitions();
   }
+
   public boolean isAccepting(int state) {
     return O.getInt(state) != 0;
   }
@@ -136,11 +137,10 @@ public class FA implements Cloneable {
   }
 
   /**
-   * Build transitions (newD) from the final morphism matrix.
-   * (Used in convertMsdBaseToExponent)
+   * Build transitions from the final morphism matrix. Used in convertMsdBaseToExponent.
    */
   private List<Int2ObjectRBTreeMap<IntList>> buildTransitionsFromMorphism(List<List<Integer>> morphism) {
-      List<Int2ObjectRBTreeMap<IntList>> newD = new ArrayList<>();
+      List<Int2ObjectRBTreeMap<IntList>> newD = new ArrayList<>(Q);
       for (int q = 0; q < Q; q++) {
           Int2ObjectRBTreeMap<IntList> transitionMap = new Int2ObjectRBTreeMap<>();
           List<Integer> row = morphism.get(q);
@@ -229,27 +229,13 @@ public class FA implements Cloneable {
     }
   }
 
+  /**
+   * Sorts states based on their breadth-first order.
+   *  The method also removes states that are not reachable from the initial state.
+   */
   public void canonizeInternal() {
     if (this.canonized || this.isTRUE_FALSE_AUTOMATON()) return;
-    Queue<Integer> state_queue = new LinkedList<>();
-    state_queue.add(q0);
-
-    //map holds the permutation we need to apply to Q. In other words if map = {(0,3),(1,10),...} then
-    // we send Q[0] to Q[3] and Q[1] to Q[10]
-    Int2IntMap permutationMap = new Int2IntOpenHashMap();
-    permutationMap.put(q0, 0);
-    int i = 1;
-    while (!state_queue.isEmpty()) {
-      int q = state_queue.poll();
-      for (Int2ObjectMap.Entry<IntList> entry : this.t.getEntriesNfaD(q)) {
-        for (int p : entry.getValue()) {
-          if (!permutationMap.containsKey(p)) {
-            permutationMap.put(p, i++);
-            state_queue.add(p);
-          }
-        }
-      }
-    }
+    Int2IntMap permutationMap = determinePermutationMap();
 
     q0 = permutationMap.get(q0);
     int newQ = permutationMap.size();
@@ -290,6 +276,29 @@ public class FA implements Cloneable {
       }
     }
     this.canonized = true;
+  }
+
+  //permutationMap holds the permutation we need to apply to Q. In other words if it = {(0,3),(1,10),...} then
+  // we send Q[0] to Q[3] and Q[1] to Q[10]
+  // Note this has a side effect of trimming the new states
+  private Int2IntMap determinePermutationMap() {
+    Queue<Integer> stateQueue = new LinkedList<>();
+    stateQueue.add(q0);
+    Int2IntMap permutationMap = new Int2IntOpenHashMap();
+    permutationMap.put(q0, 0);
+    int i = 1;
+    while (!stateQueue.isEmpty()) {
+      int q = stateQueue.poll();
+      for (Int2ObjectMap.Entry<IntList> entry : this.t.getEntriesNfaD(q)) {
+        for (int p : entry.getValue()) {
+          if (!permutationMap.containsKey(p)) {
+            permutationMap.put(p, i++);
+            stateQueue.add(p);
+          }
+        }
+      }
+    }
+    return permutationMap;
   }
 
   public void convertFromBrics(List<Integer> alphabet, String regularExpression) {
@@ -514,6 +523,25 @@ public class FA implements Cloneable {
       }
     }
     return added;
+  }
+
+  public void handleZeroState() {
+    boolean zeroStateNeeded =
+        this.t.getNfaD().stream().anyMatch(
+            tm -> tm.int2ObjectEntrySet().stream().anyMatch(
+                es -> es.getValue().getInt(0) == 0));
+    if (!zeroStateNeeded) {
+      // remove 0th state
+      this.t.getNfaD().remove(0);
+      getO().removeInt(0);
+      Q--;
+      this.t.getNfaD().forEach(tm -> {
+        tm.forEach((k, v) -> {
+          int dest = v.getInt(0) - 1;
+          v.set(0, dest);
+        });
+      });
+    }
   }
 
   public int getQ0() {
@@ -762,6 +790,19 @@ public class FA implements Cloneable {
       }
     }
     return minOutput;
+  }
+
+  // remove all states that have an output of minOutput
+  public void removeStatesWithMinOutput(int minOutput) {
+    Set<Integer> statesToRemove = new HashSet<>();
+    for (int q = 0; q < Q; q++) {
+      if (O.getInt(q) == minOutput) {
+        statesToRemove.add(q);
+      }
+    }
+    for (int q = 0; q < Q; q++) {
+      this.t.getEntriesNfaD(q).removeIf(entry -> statesToRemove.contains(entry.getValue().getInt(0)));
+    }
   }
 
   public void setFields(int newStates, IntList newO, List<Int2ObjectRBTreeMap<IntList>> newD) {

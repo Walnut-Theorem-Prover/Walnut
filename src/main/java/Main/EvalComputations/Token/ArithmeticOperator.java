@@ -172,7 +172,7 @@ public class ArithmeticOperator extends Operator {
                 WordAutomaton.compareWordAutomaton(N, o, RelationalOperator.Ops.EQUAL, print, prefix + " ", log);
                 Automaton C;
                 if (o == 0 && opp.equals(Ops.MULT)) {
-                    C = ns.get(0);
+                    C = ns.getConstant(0);
                     C.bind(List.of(c));
                 } else if (reverse) {
                     C = ns.arithmetic(arithmetic.identifier, o, c, opp);

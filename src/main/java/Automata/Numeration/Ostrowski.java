@@ -23,7 +23,6 @@ import java.io.File;
 import java.util.function.Predicate;
 
 import Automata.*;
-import Automata.FA.FA;
 import Main.Session;
 import Main.WalnutException;
 import it.unimi.dsi.fastutil.ints.Int2ObjectRBTreeMap;
@@ -199,26 +198,7 @@ public class Ostrowski {
         // because the Automaton class does not support an epsilon transition for NFAs.
         automaton.canonize();
 
-        handleZeroState(automaton.fa);
-    }
-
-    private static void handleZeroState(FA fa) {
-        boolean zeroStateNeeded =
-            fa.t.getNfaD().stream().anyMatch(
-                tm -> tm.int2ObjectEntrySet().stream().anyMatch(
-                    es -> es.getValue().getInt(0) == 0));
-
-        if (!zeroStateNeeded) {
-            fa.t.getNfaD().remove(0);
-            fa.getO().removeInt(0);
-            fa.setQ(fa.getQ() - 1);
-            fa.t.getNfaD().forEach(tm -> {
-                tm.forEach((k, v) -> {
-                    int dest = v.getInt(0) - 1;
-                    v.set(0, dest);
-                });
-            });
-        }
+        automaton.fa.handleZeroState();
     }
 
     public static void writeAutomaton(String name, String fullName, Automaton a) {

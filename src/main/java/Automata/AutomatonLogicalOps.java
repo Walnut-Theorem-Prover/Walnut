@@ -446,16 +446,7 @@ public class AutomatonLogicalOps {
     }
 
     static void removeStatesWithMinOutput(Automaton N, int minOutput) {
-        // remove all states that have an output of minOutput
-        Set<Integer> statesToRemove = new HashSet<>();
-        for (int q = 0; q < N.fa.getQ(); q++) {
-            if (N.fa.getO().getInt(q) == minOutput) {
-                statesToRemove.add(q);
-            }
-        }
-        for (int q = 0; q < N.fa.getQ(); q++) {
-          N.fa.t.getEntriesNfaD(q).removeIf(entry -> statesToRemove.contains(entry.getValue().getInt(0)));
-        }
+        N.fa.removeStatesWithMinOutput(minOutput);
         N.fa.setCanonized(false);
         N.canonize();
     }

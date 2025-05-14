@@ -144,14 +144,10 @@ public class Transducer extends Automaton {
             for (int i = 0; i < M.fa.getQ(); i++) {
                 // will be h^m(i)
                 List<Integer> iString = getDestinationForDFA(M, prevStrings.get(i));
-
                 newStrings.add(iString);
 
                 // start off with the identity.
-                Map<Integer, Integer> mapSoFar = createMapSoFar(M.getFa(), identity, iString);
-
-                newMaps.add(mapSoFar);
-
+                newMaps.add(createMapSoFar(M.getFa(), identity, iString));
             }
 
             iterateStrings.add(newStrings);
@@ -166,7 +162,6 @@ public class Transducer extends Automaton {
             if (mFound != -1) {
                 break;
             }
-
         }
 
         int p = mFound - nFound;

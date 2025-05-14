@@ -34,7 +34,7 @@ public class NumberLiteralExpression extends Expression {
   }
   public Automaton act(boolean print, String prefix, StringBuilder log, Token t,
                        List<String> identifiers, List<String> quantify, Automaton M) {
-    Automaton constant = this.base.get(this.constant);
+    Automaton constant = this.base.getConstant(this.constant);
     String id = t.getUniqueString();
     constant.bind(List.of(id));
     identifiers.add(id);
