@@ -30,6 +30,8 @@ import Automata.Numeration.Ostrowski;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 
+import static Automata.NumberSystem.MSD_2;
+import static Automata.NumberSystem.MSD_UNDERSCORE;
 import static Main.TestCase.DEFAULT_TESTFILE;
 
 /**
@@ -657,7 +659,7 @@ public class Prover {
     List<List<Integer>> alphabets = new ArrayList<>();
     List<NumberSystem> NS = new ArrayList<>();
     if (m.group(R_LIST_OF_ALPHABETS) == null) {
-      NumberSystem ns = ProverHelper.getNumberSystem("msd_2", NS, m.start(Prover.R_NUMBER_SYSTEM));
+      NumberSystem ns = ProverHelper.getNumberSystem(MSD_2, NS, m.start(Prover.R_NUMBER_SYSTEM));
       alphabets.add(ns.getAlphabet());
     }
     determineAlphabetsAndNS(m, NS, alphabets);
@@ -1031,11 +1033,11 @@ public class Prover {
   }
 
   public static String determineBase(Matcher m1) {
-    String base = "msd_2";
+    String base = MSD_2;
     if (m1.group(3) != null) base = m1.group(3);
     if (m1.group(6) != null) base = m1.group(7) + "_" + m1.group(8);
     if (m1.group(9) != null) base = m1.group(9) + "_2";
-    if (m1.group(10) != null) base = "msd_" + m1.group(10);
+    if (m1.group(10) != null) base = MSD_UNDERSCORE + m1.group(10);
     return base;
   }
 

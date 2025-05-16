@@ -45,6 +45,8 @@ import Main.EvalComputations.Token.Token;
 import Main.EvalComputations.Token.Variable;
 import Main.EvalComputations.Token.Word;
 
+import static Automata.NumberSystem.MSD_2;
+import static Automata.NumberSystem.MSD_UNDERSCORE;
 import static Automata.ParseMethods.PATTERN_WHITESPACE;
 import static Main.Prover.TXT_EXTENSION;
 
@@ -119,7 +121,7 @@ public class Predicate {
     private static final Pattern PATTERN_LEFT_BRACKET = Pattern.compile(ANCHOR + WHITESPACE + LEFT_BRACKET);
 
     public Predicate(String predicate) {
-        this("msd_2", predicate, 0);
+        this(MSD_2, predicate, 0);
     }
 
     private void initializeMatchers() {
@@ -234,7 +236,7 @@ public class Predicate {
                 t.put(postOrder);
                 index = MATCHER_FOR_ALPHABET_LETTER.end();
             } else if (MATCHER_FOR_NUMBER_SYSTEM.find(index)) {
-                String tmp = deriveNumberSystem();
+                String tmp = deriveNumberSystem(MATCHER_FOR_NUMBER_SYSTEM);
                 numberSystems.push(tmp);
                 currentNumberSystem = tmp;
                 index = MATCHER_FOR_NUMBER_SYSTEM.end();
@@ -297,16 +299,12 @@ public class Predicate {
         return MATCHER_FOR_LIST_OF_QUANTIFIED_VARIABLES.end();
     }
 
-    private String deriveNumberSystem() {
-        if (MATCHER_FOR_NUMBER_SYSTEM.group(R_NS_AND_BASE) != null)
-            return MATCHER_FOR_NUMBER_SYSTEM.group(R_NS_AND_BASE);
-        if (MATCHER_FOR_NUMBER_SYSTEM.group(R_BASE_ONLY) != null)
-            return "msd_" + MATCHER_FOR_NUMBER_SYSTEM.group(R_BASE_ONLY);
-        if (MATCHER_FOR_NUMBER_SYSTEM.group(R_NS_ONLY) != null)
-            return MATCHER_FOR_NUMBER_SYSTEM.group(R_NS_ONLY) + "_2";
-        if (MATCHER_FOR_NUMBER_SYSTEM.group(R_BASE_ONLY_2) != null)
-            return "msd_" + MATCHER_FOR_NUMBER_SYSTEM.group(R_BASE_ONLY_2);
-        return "msd_2";
+    private static String deriveNumberSystem(Matcher m1) {
+        if (m1.group(R_NS_AND_BASE) != null) return m1.group(R_NS_AND_BASE);
+        if (m1.group(R_BASE_ONLY) != null) return MSD_UNDERSCORE + m1.group(R_BASE_ONLY);
+        if (m1.group(R_NS_ONLY) != null) return m1.group(R_NS_ONLY) + "_2";
+        if (m1.group(R_BASE_ONLY_2) != null) return MSD_UNDERSCORE + m1.group(R_BASE_ONLY_2);
+        return MSD_2;
     }
 
     private int putWord(String defaultNumberSystem, boolean withDelimiter) {
@@ -361,15 +359,10 @@ public class Predicate {
         return i + 1;
     }
 
-    private static class ParsedArgument {
-        final String text;
-        final int startPos; // The position in the original string where this argument began
-
-        ParsedArgument(String text, int startPos) {
-            this.text = text;
-            this.startPos = startPos;
-        }
-    }
+    /**
+     * @param startPos The position in the original string where this argument began
+     */
+    private record ParsedArgument(String text, int startPos) { }
 
     /**
      * Parses comma-separated arguments enclosed in parentheses starting at {@code startIndex}.

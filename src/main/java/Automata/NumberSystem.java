@@ -38,7 +38,7 @@ import it.unimi.dsi.fastutil.ints.IntList;
  * - a rule for comparison, and by comparison we mean equality and less than testing.<br>
  * - a flag that determines whether numbers are represented in most significant digit order or least significant digit.<br>
  * For example msd_3 is a number system. It is the number system in which <br>
- * - numbers are represented in base 3 in most significant digit first. Hence the alphabet is {0,1,2}.<br>
+ * - numbers are represented in base 3 in most significant digit first. Hence, the alphabet is {0,1,2}.<br>
  * - the rule for addition, is a simple two states automaton, that gets 3-tuples (a,b,c) in base three and
  * accepts iff c=a+b.<br>
  * - the rule for comparison is a simple two state automaton, that gets 2-tuples (a,b) in base three and accepts
@@ -57,7 +57,7 @@ import it.unimi.dsi.fastutil.ints.IntList;
  * on integers to create an automaton for less than testing. So for example if the alphabet is {-2,0,7} then in lexicographic order, we have -270 < 0-270-2.<br>
  * Rule for equality is always the rule for word equalities, i.e., two numbers are equal if the words representing
  * them are equal.<br>
- * Rules for base n already exist in the system for every n>1. However the user can override them. <br><br>
+ * Rules for base n already exist in the system for every n>1. However, the user can override them. <br><br>
  * <p>
  * <p>
  * VERY IMPORTANT: ALL PRIVATE METHODS WHICH RETURN AUTOMATON MUST BE USED WITH CAUTION. THEIR RETURNED AUTOMATON
@@ -66,7 +66,10 @@ import it.unimi.dsi.fastutil.ints.IntList;
  */
 public class NumberSystem {
     public static final String MSD = "msd";
+    public static final String MSD_UNDERSCORE = MSD + "_";
+    public static final String MSD_2 = MSD_UNDERSCORE + "2";
     public static final String LSD = "lsd";
+
     /**
      * Examples: msd_2, lsd_3, lsd_fib, ...
      */
