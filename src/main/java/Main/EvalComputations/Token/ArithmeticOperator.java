@@ -71,8 +71,8 @@ public class ArithmeticOperator extends Operator {
         this.op = op;
         this.opp = Ops.fromSymbol(op);
         setPriority();
-        setArity(opp.equals(Ops.UNARY_NEGATIVE) ? 1 : 2);
-        setPositionInPredicate(position);
+        arity = opp.equals(Ops.UNARY_NEGATIVE) ? 1 : 2;
+        this.positionInPredicate = position;
         this.ns = ns;
     }
 

@@ -71,8 +71,8 @@ public class RelationalOperator extends Operator {
         this.op = type;
         this.opp = Ops.fromSymbol(type);
         setPriority();
-        setArity(2);
-        setPositionInPredicate(position);
+        this.arity = 2;
+        this.positionInPredicate = position;
         this.ns = ns;
     }
 

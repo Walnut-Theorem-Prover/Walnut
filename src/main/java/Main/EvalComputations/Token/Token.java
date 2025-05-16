@@ -25,8 +25,8 @@ import Main.EvalComputations.Expressions.Expression;
 import Main.WalnutException;
 
 public abstract class Token {
-    private int arity;
-    private int positionInPredicate;
+    protected int arity;
+    protected int positionInPredicate;
     private static long uniqueCounter = 0L;
     private static final String WALNUT_UNIQUE_STRING = "WALNUT_8AthA0PZZI_"; // just a unique string
 
@@ -49,33 +49,21 @@ public abstract class Token {
     }
 
     public int getPositionInPredicate() {
-        return positionInPredicate;
-    }
-
-    public int getArity() {
-        return arity;
-    }
-
-    public void setArity(int arity) {
-        this.arity = arity;
-    }
-
-    public void setPositionInPredicate(int positionInPredicate) {
-        this.positionInPredicate = positionInPredicate;
+        return this.positionInPredicate;
     }
 
     protected void validateArity(Stack<Expression> S, String name1, String name2) {
-        if (S.size() < getArity()) throw new WalnutException(name1 + this + " requires " + getArity() + name2);
+        if (S.size() < arity) throw new WalnutException(name1 + this + " requires " + arity + name2);
     }
 
     public void validateArity(String name, int otherArity) {
-        if (otherArity != getArity()) throw new WalnutException(
-                "function " + name + " requires " + otherArity + " arguments: char at " + getPositionInPredicate());
+        if (otherArity != arity) throw new WalnutException(
+                "function " + name + " requires " + otherArity + " arguments: char at " + positionInPredicate);
     }
 
     public Stack<Expression> reverseStack(Stack<Expression> S) {
         Stack<Expression> temp = new Stack<>();
-        for (int i = 0; i < getArity(); i++) {
+        for (int i = 0; i < arity; i++) {
             temp.push(S.pop());
         }
         return temp;

@@ -45,10 +45,8 @@ public class LogicalOperator extends Operator {
     public LogicalOperator(int position, String op) {
         this.op = op;
         setPriority();
-
-        if (this.isNegation(op) || op.equals(Operator.REVERSE)) setArity(1);
-        else setArity(2);
-        setPositionInPredicate(position);
+        arity = (this.isNegation(op) || op.equals(Operator.REVERSE)) ? 1 : 2;
+        this.positionInPredicate = position;
     }
 
     public LogicalOperator(int position, String op, int quantifiedVariableCount) {
@@ -56,8 +54,8 @@ public class LogicalOperator extends Operator {
         this.op = op;
 
         setPriority();
-        setArity(quantifiedVariableCount + 1);
-        setPositionInPredicate(position);
+        arity = quantifiedVariableCount + 1;
+        this.positionInPredicate = position;
     }
 
     public void act(Stack<Expression> S, boolean print, String prefix, StringBuilder log) {
@@ -129,9 +127,9 @@ public class LogicalOperator extends Operator {
         Automaton M = null;
         UtilityMethods.logAndPrint(print, prefix + "computing quantifier " + op, log);
         List<String> identifiersToQuantify = new ArrayList<>();
-        for (int i = 0; i < getArity(); i++) {
+        for (int i = 0; i < arity; i++) {
             Expression operand = temp.pop();
-            if (i < getArity() - 1) {
+            if (i < arity - 1) {
                 if (i == 0)
                     stringValue.append(operand).append(" ");
                 else
@@ -140,7 +138,7 @@ public class LogicalOperator extends Operator {
                     throw new WalnutException("operator " + op + " requires a list of " + quantifiedVariableCount + " variables");
 
                 identifiersToQuantify.add(operand.identifier);
-            } else if (i == getArity() - 1) {
+            } else if (i == arity - 1) {
                 stringValue.append(operand);
                 if (!(operand instanceof AutomatonExpression))
                     throw new WalnutException("the last operand of " + op + " can only be of type automaton");

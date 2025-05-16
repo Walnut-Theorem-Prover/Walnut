@@ -42,8 +42,8 @@ public class Function extends Token {
 
     public Function(String number_system, int position, String name, Automaton A, int argCount) {
         this.name = name;
-        setArity(argCount);
-        setPositionInPredicate(position);
+        this.arity = argCount;
+        this.positionInPredicate = position;
         this.A = A;
         this.ns = new NumberSystem(number_system);
         super.validateArity(name, A.getArity());
@@ -61,12 +61,12 @@ public class Function extends Token {
         Automaton M = new Automaton(true);
         List<String> identifiers = new ArrayList<>();
         List<String> quantify = new ArrayList<>();
-        List<Expression> expressions = new ArrayList<>(getArity());
-        for (int i = 0; i < getArity(); i++) {
+        List<Expression> expressions = new ArrayList<>(arity);
+        for (int i = 0; i < arity; i++) {
             expressions.add(temp.pop());
         }
         stringValue += UtilityMethods.genericListString(expressions, ",") + "))";
-        for (int i = 0; i < getArity(); i++) {
+        for (int i = 0; i < arity; i++) {
             Expression expression = expressions.get(i);
             if (expression instanceof VariableExpression ve) {
                 M = ve.act(print, prefix, log, this, this.ns, identifiers, M, quantify);

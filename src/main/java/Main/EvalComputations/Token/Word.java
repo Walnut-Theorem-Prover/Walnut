@@ -33,9 +33,9 @@ public class Word extends Token {
 
     public Word(int position, String name, Automaton wordAutomaton, int indexCount) {
         this.name = name;
-        setPositionInPredicate(position);
+        this.positionInPredicate = position;
         this.wordAutomaton = wordAutomaton;
-        setArity(indexCount);
+        this.arity = indexCount;
         super.validateArity(name, wordAutomaton.getArity());
     }
 
@@ -51,7 +51,7 @@ public class Word extends Token {
         List<String> identifiers = new ArrayList<>();
         List<String> quantify = new ArrayList<>();
         Automaton M = new Automaton(true);
-        for (int i = 0; i < getArity(); i++) {
+        for (int i = 0; i < arity; i++) {
             Expression expression = temp.pop();
             stringValue.append("[").append(expression).append("]");
             if (expression instanceof VariableExpression ve) {

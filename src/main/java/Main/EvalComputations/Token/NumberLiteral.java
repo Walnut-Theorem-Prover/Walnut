@@ -30,7 +30,7 @@ public class NumberLiteral extends Token {
     private final NumberSystem base;
 
     public NumberLiteral(int position, int value, NumberSystem base) {
-        setPositionInPredicate(position);
+        this.positionInPredicate = position;
         this.value = value;
         this.base = base;
     }

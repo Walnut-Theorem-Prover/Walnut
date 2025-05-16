@@ -28,7 +28,7 @@ public class AlphabetLetter extends Token {
     private final int value;
 
     public AlphabetLetter(int position, int value) {
-        setPositionInPredicate(position);
+        this.positionInPredicate = position;
         this.value = value;
     }
 

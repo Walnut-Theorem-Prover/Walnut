@@ -26,7 +26,7 @@ import java.util.Stack;
 
 public class RightParenthesis extends Operator {
     public RightParenthesis(int position) {
-        setPositionInPredicate(position);
+        this.positionInPredicate = position;
     }
 
     public void put(List<Token> postOrder, Stack<Operator> S) {
@@ -38,6 +38,6 @@ public class RightParenthesis extends Operator {
                 return;
             }
         }
-        throw WalnutException.unbalancedParen(getPositionInPredicate());
+        throw WalnutException.unbalancedParen(positionInPredicate);
     }
 }

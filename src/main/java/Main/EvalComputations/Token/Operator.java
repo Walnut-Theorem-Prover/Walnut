@@ -139,6 +139,6 @@ public abstract class Operator extends Token {
     }
 
     protected void validateArity(Stack<Expression> S) {
-        if (S.size() < getArity()) throw new WalnutException("operator " + op + " requires " + getArity() + " operands");
+        if (S.size() < arity) throw new WalnutException("operator " + op + " requires " + arity + " operands");
     }
 }

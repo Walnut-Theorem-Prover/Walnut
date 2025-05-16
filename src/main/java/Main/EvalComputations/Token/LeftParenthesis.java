@@ -24,7 +24,7 @@ public class LeftParenthesis extends Operator {
 
     public LeftParenthesis(int position) {
         this.op = LEFT_PAREN;
-        setPositionInPredicate(position);
+        this.positionInPredicate = position;
         setPriority();
         leftParenthesis = true;
     }
