@@ -31,6 +31,7 @@ public class Word extends Token {
     private final Automaton wordAutomaton;
     private final String name;
 
+    @SuppressWarnings("this-escape")
     public Word(int position, String name, Automaton wordAutomaton, int indexCount) {
         this.name = name;
         this.positionInPredicate = position;

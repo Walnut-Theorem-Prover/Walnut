@@ -67,6 +67,7 @@ public class ArithmeticOperator extends Operator {
         }
     }
 
+    @SuppressWarnings("this-escape")
     public ArithmeticOperator(int position, String op, NumberSystem ns) {
         this.op = op;
         this.opp = Ops.fromSymbol(op);

@@ -205,6 +205,7 @@ public class NumberSystem {
         return allRepresentations;
     }
 
+    @SuppressWarnings("this-escape")
     public NumberSystem(String name) {
         this.name = name;
         String msdOrLsd = determineMsdOrLsd(name);
@@ -251,7 +252,7 @@ public class NumberSystem {
         return null;
     }
 
-
+    @SuppressWarnings("this-escape")
     private void setAdditionAutomaton(
         String name, String base) {
         addition = loadAutomatonOrNull(name, "_addition.txt", base);
@@ -556,6 +557,7 @@ public class NumberSystem {
         a.fa.initBasicFA(O);
         return a;
     }
+
     private Automaton initBasicAutomaton(IntList O, int inputSize, List<Integer> alphabet) {
         Automaton a = initBasicAutomaton(O);
         for(int i=0;i<inputSize;i++) {

@@ -22,6 +22,7 @@ public class LeftParenthesis extends Operator {
 
     public static final String LEFT_PAREN = "(";
 
+    @SuppressWarnings("this-escape")
     public LeftParenthesis(int position) {
         this.op = LEFT_PAREN;
         this.positionInPredicate = position;

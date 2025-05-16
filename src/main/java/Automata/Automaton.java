@@ -95,6 +95,7 @@ public class Automaton {
     /*
      * Default constructor. It just initializes the field members.
      */
+    @SuppressWarnings("this-escape")
     public Automaton() {
         fa = new FA();
         richAlphabet = new RichAlphabet();
@@ -125,6 +126,7 @@ public class Automaton {
      * An important thing to note here is that the automaton being constructed
      * with this constructor, has only one input, and it is of type AlphabetLetter.
      */
+    @SuppressWarnings("this-escape")
     public Automaton(
             String regularExpression,
             List<Integer> alphabet,
@@ -151,6 +153,7 @@ public class Automaton {
     /**
      * Takes an address and constructs the automaton represented by the file referred to by the address
      */
+    @SuppressWarnings("this-escape")
     public Automaton(String address) {
         this();
         AutomatonReader.readAutomaton(this, address);

@@ -42,6 +42,7 @@ public class LogicalOperator extends Operator {
     public static final String IFF = "<=>";
     private int quantifiedVariableCount;
 
+    @SuppressWarnings("this-escape")
     public LogicalOperator(int position, String op) {
         this.op = op;
         setPriority();
@@ -49,10 +50,10 @@ public class LogicalOperator extends Operator {
         this.positionInPredicate = position;
     }
 
+    @SuppressWarnings("this-escape")
     public LogicalOperator(int position, String op, int quantifiedVariableCount) {
         this.quantifiedVariableCount = quantifiedVariableCount;
         this.op = op;
-
         setPriority();
         arity = quantifiedVariableCount + 1;
         this.positionInPredicate = position;

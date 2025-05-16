@@ -39,7 +39,7 @@ public class Function extends Token {
     private final String name;
     private final NumberSystem ns;
 
-
+    @SuppressWarnings("this-escape")
     public Function(String number_system, int position, String name, Automaton A, int argCount) {
         this.name = name;
         this.arity = argCount;

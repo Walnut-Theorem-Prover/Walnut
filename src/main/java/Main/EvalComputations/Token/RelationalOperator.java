@@ -66,7 +66,7 @@ public class RelationalOperator extends Operator {
         }
     }
 
-
+    @SuppressWarnings("this-escape")
     public RelationalOperator(int position, String type, NumberSystem ns) {
         this.op = type;
         this.opp = Ops.fromSymbol(type);

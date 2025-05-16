@@ -71,6 +71,7 @@ public class Transducer extends Automaton {
     /**
      * Takes an address and constructs the transducer represented by the file referred to by the address.
      */
+    @SuppressWarnings("this-escape")
     public Transducer(String address) {
         this();
         AutomatonReader.readTransducer(this, address);

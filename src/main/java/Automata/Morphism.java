@@ -56,9 +56,11 @@ public class Morphism {
     public Set<Integer> range;
 
     public Morphism() {}
+
     /**
      * Create morphism from file.
      */
+    @SuppressWarnings("this-escape")
     public Morphism(String address) throws IOException {
         File f = UtilityMethods.validateFile(address);
         String mapString = Files.readString(Paths.get(f.toURI()));
