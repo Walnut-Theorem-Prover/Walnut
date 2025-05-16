@@ -38,12 +38,21 @@ public class Session {
   private static String mainWalnutDir = "";
   private static String sessionWalnutDir;
 
-  static final String WALNUT_VERSION = "7.0.alpha";
+  static final String WALNUT_VERSION = "7.0.beta";
   static final String PROMPT = "\n[Walnut]$ ";
   private static final String FRIENDLY_DATE_TIME_PATTERN = "yyyy_MM_dd_HH_mm"; // TODO; what about localization?
 
   private static final String GLOBAL_NAME = "Global";
   private static final String SESSION_NAME = "Session";
+
+  private static final String AUTOMATA_LIB = "Automata Library/";
+  private static final String WORD_AUTOMATA_LIB = "Word " + AUTOMATA_LIB;
+  private static final String CUSTOM_BASES = "Custom Bases/";
+  private static final String MACRO_LIBRARY = "Macro Library/";
+  private static final String MORPHISM_LIBRARY = "Morphism Library/";
+  private static final String TRANSDUCER_LIBRARY = "Transducer Library/";
+  private static final String COMMAND_FILES = "Command Files/";
+  private static final String RESULT = "Result/";
 
   public static void setPathsAndNames(String sessionDir, String homeDir) {
     if (homeDir == null) {
@@ -123,7 +132,7 @@ public class Session {
 
   // read from, don't need session-specific code
   public static String getReadAddressForCommandFiles(String filename) {
-    return mainWalnutDir + "Command Files/" + filename;
+    return mainWalnutDir + COMMAND_FILES + filename;
   }
   public static String getAddressForHelpCommands() {
     return mainWalnutDir + "Help Documentation/Commands/";
@@ -139,23 +148,23 @@ public class Session {
 
   // read from, session-specific
   public static String getReadAddressForCustomBases(String filename) {
-    return globalOrSessionFile("Custom Bases/" + filename);
+    return globalOrSessionFile(CUSTOM_BASES + filename);
   }
   public static String getReadFileForMacroLibrary(String filename) {
-    return globalOrSessionFile("Macro Library/" + filename);
+    return globalOrSessionFile(MACRO_LIBRARY + filename);
   }
   public static String getReadFileForMorphismLibrary(String fileName) {
-    return globalOrSessionFile("Morphism Library/" + fileName);
+    return globalOrSessionFile(MORPHISM_LIBRARY + fileName);
   }
 
   public static String getReadFileForAutomataLibrary(String fileName) {
-    return globalOrSessionFile("Automata Library/" + fileName);
+    return globalOrSessionFile(AUTOMATA_LIB + fileName);
   }
   public static String getTransducerFile(String fileName) {
-    return globalOrSessionFile("Transducer Library/" + fileName);
+    return globalOrSessionFile(TRANSDUCER_LIBRARY + fileName);
   }
   public static String getReadFileForWordsLibrary(String fileName) {
-    return globalOrSessionFile("Word Automata Library/" + fileName);
+    return globalOrSessionFile(WORD_AUTOMATA_LIB + fileName);
   }
 
   private static String globalOrSessionFile(String testAddress) {
@@ -180,24 +189,23 @@ public class Session {
     return sessionFile;
   }
 
-
   // write to, session-specific
   public static String getWriteAddressForCustomBases() {
-    return sessionWalnutDir + "Custom Bases/";
+    return sessionWalnutDir + CUSTOM_BASES;
   }
   public static String getWriteAddressForMacroLibrary() {
-    return sessionWalnutDir + "Macro Library/";
+    return sessionWalnutDir + MACRO_LIBRARY;
   }
   public static String getWriteAddressForMorphismLibrary() {
-    return sessionWalnutDir + "Morphism Library/";
+    return sessionWalnutDir + MORPHISM_LIBRARY;
   }
   public static String getWriteAddressForAutomataLibrary() {
-    return sessionWalnutDir + "Automata Library/";
+    return sessionWalnutDir + AUTOMATA_LIB;
   }
   public static String getAddressForResult() {
-    return sessionWalnutDir + "Result/";
+    return sessionWalnutDir + RESULT;
   }
   public static String getWriteAddressForWordsLibrary() {
-    return sessionWalnutDir + "Word Automata Library/";
+    return sessionWalnutDir + WORD_AUTOMATA_LIB;
   }
 }
