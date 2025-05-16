@@ -19,7 +19,8 @@ BRZ-CCL - Brzozowski + CCL
 BRZ-CCLS - Brzozowski + CCLS
 SC - Subset Construction (default)
 
-CCL(S) and BRZ-CCL(S) are new algorithms written by John Nicol and Markus Frohme. Please cite the upcoming paper if you use those algorithms.
+CCL(S) and BRZ-CCL(S) are new algorithms written by John Nicol and Markus Frohme.
+Please cite the OTF paper if you use those algorithms: the latest citation information is available at https://github.com/jn1z/OTF/blob/main/README.md
 
 For a given automaton, it's not clear which algorithm is best; you may need to try them all.
 Rules of thumb: usually CCLS outperforms CCL, and BRZ-CCLS outperforms BRZ-CCL. However, if the NFA size is very large (over 50,000 say), you will need a lot of memory and time to compute simulation in CCLS and BRZ-CCLS, and they may crash.

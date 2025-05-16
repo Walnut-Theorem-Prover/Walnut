@@ -420,7 +420,8 @@ public class Prover {
     if (Prover.usingOTF) {
       UtilityMethods.logAndPrint(true,
           "\nIf the CCL(S) or BRZ-CCL(S) algorithms are used in a result," +
-              "please cite the OTF paper by John Nicol and Markus Frohme.", log);
+              "please cite the OTF paper by John Nicol and Markus Frohme." +
+              "the latest citation information is available at https://github.com/jn1z/OTF/blob/main/README.md", log);
 
     }
     return true;
