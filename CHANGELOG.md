@@ -2,7 +2,7 @@
 
 All notable changes to Walnut will be documented here. Format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-## [Unreleased] - Author: John Nicol
+## [Walnut 7.0] (currently beta) - Author: John Nicol
 
 - Source: [https://github.com/Walnut-Theorem-Prover/Walnut]
 
@@ -11,15 +11,15 @@ All notable changes to Walnut will be documented here. Format is based on [Keep 
 - Versioning output to Walnut.
 - Session functionality. Each run of Walnut writes to a new session, making it easier to organize and not overwrite previous results.
 - Ability to specify session and home directories from command line.
-- Walnut .txt files and scripts allow comments.
+- Walnut .txt files and scripts now allow comments.
 - Dead states are removed (trim) before determinization.
 - Leverage the [AutomataLib](https://github.com/LearnLib/automatalib) library.
-- (UNPUBLISHED) Leverage the OTF library.
-- Allow writing NFAs to the [BA](https://languageinclusion.org/doku.php?id=tools) format, including intermediates.
-- (UNPUBLISHED) Determinization strategy choices:
+- Leverage the [OTF](https://github.com/jn1z/OTF) library.
+- Allow writing NFAs to the [BA](https://languageinclusion.org/doku.php?id=tools) format, including intermediate automata.
+- Determinization strategy choices:
   * [Brzozowski's algorithm](https://en.wikipedia.org/wiki/DFA_minimization#Brzozowski's_algorithm)
-  * OTF-CCL and OTF-CCLS
-  * Brzozowski-OTF-CCL and Brzozowski-OTF-CCLS
+  * [OTF-CCL](https://github.com/jn1z/OTF) and [OTF-CCLS](https://github.com/jn1z/OTF)
+  * [Brzozowski-OTF-CCL](https://github.com/jn1z/OTF) and [Brzozowski-OTF-CCLS](https://github.com/jn1z/OTF)
 - Metacommands: "strategy" (see above) and "export", which allows exporting intermediate automata.
 - Command "describe" describes an automaton.
 
@@ -29,8 +29,8 @@ All notable changes to Walnut will be documented here. Format is based on [Keep 
 - Fixed OOM error when writing large Graphviz files (reported by Pierre Ganty).
 - Removed unnecessary determinizations when handling leading/trailing zeros.
 - Drastically increased code re-use, testing, and code coverage.
-- Fixed unexpected behavior for Word Automata with all outputs > 0
-- Fixed unexpected behavior for integer rounding when doing division with negative numbers (fixed by Jonathan Yang)
+- Fixed unexpected behavior for Word Automata when all outputs > 0.
+- Fixed unexpected behavior for integer rounding when doing division with negative numbers (fixed by Jonathan Yang).
         
 ### Changed
 
