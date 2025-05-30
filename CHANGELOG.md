@@ -59,11 +59,11 @@ All notable changes to Walnut will be documented here. Format is based on [Keep 
 ### Fixed
 
 - Bug fixes
-- Major performance improvements, particularly in Subset Construction (~7x memory reduction, ~2x speedup) and multiplication
+- Major performance improvements, particularly in Subset Construction (~7x memory reduction, ~2x speedup) and multiplication (John Nicol)
 
 ### Changed
 
-- Walnut now builds with [Gradle](https://gradle.org/)
+- Walnut now builds with [Gradle](https://gradle.org/) (John Nicol)
 
 ## [Walnut 5] - 2023-11-26 - Author: Anatoly Zavyalov
 
