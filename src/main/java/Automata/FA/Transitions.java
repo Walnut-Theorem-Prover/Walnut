@@ -38,6 +38,9 @@ public class Transitions {
    * Recall that (0,-1) represents 0 in mixed-radix base (1,2) and alphabet A. We have this mixed-radix base (1,2) stored as encoder in
    * our program, so for more information on how we compute it read the information on List<Integer> encoder field.
    */
+  /**
+   * TODO: finish splitting DFA and NFA transitions.
+   */
   private List<Int2ObjectRBTreeMap<IntList>> nfaD; // transitions when this is an NFA -- null if this is a known DFA
 
   private List<Int2IntMap> dfaD; // memory-efficient transitions when this is a known DFA -- usually null

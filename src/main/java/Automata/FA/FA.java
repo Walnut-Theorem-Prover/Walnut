@@ -34,7 +34,7 @@ import java.util.function.BiFunction;
 
 /**
  * Abstraction of NFA/DFA/DFAO code from Automaton.
- * TODO: fully abstract transitions such that this is easily an NFA, DFA, or anywhere in between.
+ * TODO: fully abstract transitions such that this is explicitly an NFA or a DFA.
  */
 public class FA implements Cloneable {
 
