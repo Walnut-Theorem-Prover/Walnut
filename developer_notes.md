@@ -5,7 +5,6 @@ build system, and supports:
 - Unit testing via [JUnit](https://junit.org)
   - Unit tests are stored in `src/test/`
   - Integration testing is done via the unit testing process, to show code coverage
-  - Integration testing runs by default. Be careful; it has the ability to overwrite some Automata text files.
   - To rebuild integration test files, uncomment the `@Test` attribute before `createTestCases()` in IntegrationTests.java
 - Code coverage reports via [JaCoCo](https://jacoco.org/jacoco)
 - Static analysis via [SpotBugs](https://spotbugs.github.io)
@@ -32,9 +31,11 @@ such that all its files are generated at `src/test/resources`.
 ## Libraries
 
 Walnut uses the following libraries:
-- [fastutil](https://github.com/vigna/fastutil): memory-efficient collections
+- [AutomataLib](https://github.com/LearnLib/automatalib) - DFA/NFA implementation, BA format
 - [dk.brics.automaton](https://brics.dk/automaton) - DFA/NFA implementation
-  - Much of this is not used; this library uses `char` primitives for states, which would mean a limit of 65536 states
+  - Much of this is not used; it could also be combined with AutomataLib references
+- [fastutil](https://github.com/vigna/fastutil): memory-efficient collections library for Java
+- [OTF](https://github.com/jn1z/OTF) - On-The-Fly determinization algorithms, sometimes useful for (drastically) faster determinization
 
 ## Optimizations
 
