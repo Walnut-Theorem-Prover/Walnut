@@ -45,10 +45,6 @@ public class AutomatonQuantification {
           AutomatonLogicalOps.fixTrailingZerosProblem(A, print, prefix, log);
   }
 
-  /**
-   * This method is very similar to public void quantify(Set<String> listOfLabelsToQuantify,boolean leadingZeros)
-   * with the exception that, this method does not deal with leading/trailing zeros problem.
-   */
   private static void quantifyHelper(
       Automaton A, Set<String> labelsToQuantify, boolean print, String prefix, StringBuilder log) {
       if (labelsToQuantify.isEmpty() || A.getLabel() == null) {
