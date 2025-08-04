@@ -673,9 +673,9 @@ public class Prover {
     M.richAlphabet.setA(alphabets);
     M.determineAlphabetSize();
 
-    String baseExp = ProverHelper.determineBaseExp(m.group(R_REGEXP), M.richAlphabet.getA().size(), M.richAlphabet);
+    String regex = ProverHelper.determineEncodedRegex(m.group(R_REGEXP), M.richAlphabet.getA().size(), M.richAlphabet);
 
-    Automaton R = new Automaton(baseExp, M.getAlphabetSize());
+    Automaton R = new Automaton(regex, M.getAlphabetSize());
     R.richAlphabet.setA(M.richAlphabet.getA());
     R.determineAlphabetSize();
     R.setNS(NS);

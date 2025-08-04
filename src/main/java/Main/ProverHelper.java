@@ -20,7 +20,6 @@ import static Main.TestCase.DEFAULT_TESTFILE;
  * Helper class for Prover.
  */
 public class ProverHelper {
-
   static NumberSystem getNumberSystem(String base, List<NumberSystem> numSys, int proverNumberSystem) {
     try {
       if (!Predicate.numberSystemHash.containsKey(base))
@@ -66,7 +65,7 @@ public class ProverHelper {
     System.out.flush();
   }
 
-  static String determineBaseExp(String baseexp, int inputLength, RichAlphabet r) {
+  static String determineEncodedRegex(String baseexp, int inputLength, RichAlphabet r) {
     Matcher m2 = Prover.PAT_FOR_AN_ALPHABET_VECTOR.matcher(baseexp);
     // if we haven't had to replace any input vectors with unicode, we use the legacy method of constructing the automaton
     while (m2.find()) {
@@ -104,10 +103,11 @@ public class ProverHelper {
        * then run baseexp.replace(alphabetVectorCopy, replacementStr),
        * and then replace "%PLACEHOLDER%" with "[-2]".
        */
+      final String NEGATIVE_PLACEHOLDER = "%PLACEHOLDER%";
       baseexp = baseexp
-          .replace("[-" + alphabetVectorCopy + "]", "§")
+          .replace("[-" + alphabetVectorCopy + "]", NEGATIVE_PLACEHOLDER)
           .replace(alphabetVectorCopy, replacementStr)
-          .replace("§", "[-" + alphabetVectorCopy + "]");
+          .replace(NEGATIVE_PLACEHOLDER, "[-" + alphabetVectorCopy + "]");
     }
 
     // We should always do this with replacement, since we may have regexes such as "...", which accepts any three characters
