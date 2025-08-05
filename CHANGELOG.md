@@ -27,7 +27,7 @@ All notable changes to Walnut will be documented here. Format is based on [Keep 
 
 - Major performance improvements, particularly in product automata construction, Walnut file I/O, and the `test` command.
 - Fixed OOM error when writing large Graphviz files (reported by Pierre Ganty).
-- Fixed `reg` bug introduced in Walnut 5 (reported by Luke Schaeffer).
+- Fixed [`reg` bug](https://github.com/Walnut-Theorem-Prover/Walnut/issues/37) (reported by Luke Schaeffer).
 - Removed unnecessary determinizations when handling leading/trailing zeros.
 - Drastically increased code re-use, testing, and code coverage.
 - Fixed unexpected behavior for Word Automata when all outputs > 0.
