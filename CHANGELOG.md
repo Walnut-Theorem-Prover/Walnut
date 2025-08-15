@@ -2,7 +2,7 @@
 
 All notable changes to Walnut will be documented here. Format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-## [Walnut 7.0] - Author: John Nicol
+## [Walnut 7.0] - 2025-08-01 - Author: John Nicol
 
 - Source: [https://github.com/Walnut-Theorem-Prover/Walnut]
 
