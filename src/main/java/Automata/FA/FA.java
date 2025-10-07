@@ -342,10 +342,8 @@ public class FA implements Cloneable {
     }
   }
 
-
   /**
    * This method adds a dead state to totalize the transition function
-   *
    */
   public void totalize(boolean print, String prefix, StringBuilder log) {
     long timeBefore = System.currentTimeMillis();
@@ -469,25 +467,6 @@ public class FA implements Cloneable {
       }
     }
     return added;
-  }
-
-  public void handleZeroState() {
-    boolean zeroStateNeeded =
-        this.t.getNfaD().stream().anyMatch(
-            tm -> tm.int2ObjectEntrySet().stream().anyMatch(
-                es -> es.getValue().getInt(0) == 0));
-    if (!zeroStateNeeded) {
-      // remove 0th state
-      this.t.getNfaD().remove(0);
-      getO().removeInt(0);
-      Q--;
-      this.t.getNfaD().forEach(tm -> {
-        tm.forEach((k, v) -> {
-          int dest = v.getInt(0) - 1;
-          v.set(0, dest);
-        });
-      });
-    }
   }
 
   public int getQ0() {
