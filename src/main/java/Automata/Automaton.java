@@ -722,7 +722,7 @@ public class Automaton {
         if (fa.isTRUE_FALSE_AUTOMATON()) {
             return !fa.isTRUE_AUTOMATON();
         }
-        return this.fa.toDkBricsAutomaton().isEmpty();
+        return this.fa.isLanguageEmpty();
     }
 
     public void setLabel(List<String> label) {

@@ -905,4 +905,39 @@ public class FA implements Cloneable {
       this.addOutput(flag);
     }
   }
+
+  /**
+   * Determine if this FA accepts only the empty language.
+   * We assume that this is an NFA.
+   */
+  public boolean isLanguageEmpty() {
+    // No states at all => empty language
+    if (getQ() <= 0) return true;
+
+    // Accepts ε ?
+    if (isAccepting(getQ0())) return false;
+
+    // BFS from q0; stop as soon as we see an accepting state
+    IntSet seen = new IntOpenHashSet();
+    Deque<Integer> q = new ArrayDeque<>();
+    seen.add(getQ0());
+    q.add(getQ0());
+
+    if (t.getNfaD() != null) {
+      List<Int2ObjectRBTreeMap<IntList>> nfa = t.getNfaD();
+      while (!q.isEmpty()) {
+        int s = q.pop();
+        Int2ObjectRBTreeMap<IntList> row = nfa.get(s);
+        for (Int2ObjectMap.Entry<IntList> e : row.int2ObjectEntrySet()) {
+          for (int t : e.getValue()) {
+            if (seen.add(t)) {
+              if (isAccepting(t)) return false;
+              q.add(t);
+            }
+          }
+        }
+      }
+    }
+    return true;    // Never reached an accepting state
+  }
 }
