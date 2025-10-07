@@ -408,23 +408,20 @@ public class Prover {
       throw WalnutException.noSuchCommand();
     }
 
-    switch (commandName) {
-      case EXIT, QUIT -> {
-        return false;
-      }
-      case LOAD -> {
-        if (!loadCommand(s)) return false;
-      }
+    boolean exitVal = !(commandName.equals(EXIT) || commandName.equals(QUIT));
+    if (commandName.equals(LOAD)) {
+      exitVal = loadCommand(s); // special-case, since load is a batch command
+    } else {
+      processCommand(s, commandName);
     }
-    processCommand(s, commandName);
+
     if (Prover.usingOTF) {
       UtilityMethods.logAndPrint(true,
           "\nIf the CCL(S) or BRZ-CCL(S) algorithms are used in a result," +
               "please cite the OTF paper by John Nicol and Markus Frohme." +
               "the latest citation information is available at https://github.com/jn1z/OTF/blob/main/README.md", log);
-
     }
-    return true;
+    return exitVal;
   }
 
   private String parseSetup(String s) {

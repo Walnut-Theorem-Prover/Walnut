@@ -4,6 +4,13 @@ All notable changes to Walnut will be documented here. Format is based on [Keep 
 
 ## [Walnut 7.1] - IN PROGRESS
 
+### Added
+### Fixed
+
+- Fixed regression [#38 (load commands running twice)](https://github.com/Walnut-Theorem-Prover/Walnut/issues/38)
+
+### Changed
+
 ## [Walnut 7.0] - 2025-08-01 - Author: John Nicol
 
 - Source: [https://github.com/Walnut-Theorem-Prover/Walnut]
