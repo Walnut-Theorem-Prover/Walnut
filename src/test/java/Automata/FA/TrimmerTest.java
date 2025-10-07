@@ -65,7 +65,7 @@ public class TrimmerTest {
         Int2ObjectRBTreeMap<IntList> s3 = a.t.addMapToNfaD();
 
         IntSet initialStates = new IntOpenHashSet(IntSet.of(0));
-        IntSet rTrim = Trimmer.rightTrim(1, a.t.getNfaD(), initialStates);
+        IntSet rTrim = Trimmer.rightTrim(a.t.getNfaD(), initialStates);
         Assertions.assertEquals(IntSet.of(0,1,2), rTrim);
 
         IntSet lTrim = Trimmer.leftTrim(a);
@@ -96,7 +96,7 @@ public class TrimmerTest {
         Int2ObjectRBTreeMap<IntList> s3 = a.t.addMapToNfaD();
 
         IntSet initialStates = new IntOpenHashSet(IntSet.of(0));
-        IntSet rTrim = Trimmer.rightTrim(1, a.t.getNfaD(), initialStates);
+        IntSet rTrim = Trimmer.rightTrim(a.t.getNfaD(), initialStates);
         Assertions.assertEquals(IntSet.of(0,2,3), rTrim);
 
         IntSet lTrim = Trimmer.leftTrim(a);

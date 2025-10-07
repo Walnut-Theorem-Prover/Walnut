@@ -1,3 +1,20 @@
+/*	 2025 John Nicol
+ *
+ *   This file is part of Walnut.
+ *
+ *   Walnut is free software: you can redistribute it and/or modify
+ *   it under the terms of the GNU General Public License as published by
+ *   the Free Software Foundation, either version 3 of the License, or
+ *   (at your option) any later version.
+ *
+ *   Walnut is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   GNU General Public License for more details.
+ *
+ *   You should have received a copy of the GNU General Public License
+ *   along with Walnut.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package Automata.FA;
 
 import it.unimi.dsi.fastutil.ints.*;
@@ -16,7 +33,7 @@ public class Trimmer {
         }
         IntSet initialStates = new IntOpenHashSet();
         initialStates.add(a.getQ0());
-        IntSet trimmed = rightTrim(a.getAlphabetSize(), a.t.getNfaD(), initialStates);
+        IntSet trimmed = rightTrim(a.t.getNfaD(), initialStates);
         IntSet trimmed2 = leftTrim(a);
         trimmed.retainAll(trimmed2);
         quotient(a, trimmed);
@@ -66,13 +83,9 @@ public class Trimmer {
             }
             Int2ObjectRBTreeMap<IntList> iMap = oldD.get(i);
             Int2ObjectRBTreeMap<IntList> newMap = newD.get(oldToNewMap[i]);
-            for (int in = 0; in < a.getAlphabetSize(); in++) {
-                IntList iList = iMap.get(in);
-                if (iList == null) {
-                    continue;
-                }
-                IntList newList = newMap.computeIfAbsent(in, (x -> new IntArrayList()));
-                for (int k : iList) {
+            for (Int2ObjectMap.Entry<IntList> entry : iMap.int2ObjectEntrySet()) {
+                IntList newList = newMap.computeIfAbsent(entry.getIntKey(), (x -> new IntArrayList()));
+                for (int k : entry.getValue()) {
                     if (oldToNewMap[k] != INVALID_VALUE) {
                         newList.add(oldToNewMap[k]);
                     }
@@ -86,16 +99,16 @@ public class Trimmer {
     /**
      * Return the states that can reach final states.
      */
-    public static IntSet leftTrim(FA a) {
+    static IntSet leftTrim(FA a) {
         IntSet initialStates = a.getFinalStates(); // reversed -- final are now initial
-        return rightTrim(a.getAlphabetSize(), flipTransitions(a.t.getNfaD()), initialStates);
+        return rightTrim(flipTransitions(a.t.getNfaD()), initialStates);
     }
 
     /**
      * Return the states that are reachable from initial states.
      */
-    public static IntSet rightTrim(
-            int alphabetSize, List<Int2ObjectRBTreeMap<IntList>> d, IntSet initialStates) {
+    static IntSet rightTrim(
+            List<Int2ObjectRBTreeMap<IntList>> d, IntSet initialStates) {
         IntSet found = new IntOpenHashSet();
         Deque<Integer> stack = new ArrayDeque<>();
 
@@ -107,14 +120,9 @@ public class Trimmer {
         while (!stack.isEmpty()) {
             Integer curr = stack.pop();
             Int2ObjectRBTreeMap<IntList> iMap = d.get(curr);
-            for (int in = 0; in < alphabetSize; in++) {
-                IntList iList = iMap.get(in);
-                if (iList != null) {
-                    for (int succState : iList) {
-                        if (found.add(succState)) {
-                            stack.push(succState);
-                        }
-                    }
+            for (Int2ObjectMap.Entry<IntList> entry : iMap.int2ObjectEntrySet()) {
+                for (int succState : entry.getValue()) {
+                    if (found.add(succState)) stack.push(succState);
                 }
             }
         }
