@@ -17,6 +17,7 @@
  */
 package Automata;
 
+import Automata.FA.FA;
 import Automata.FA.ProductStrategies;
 import Main.EvalComputations.Token.LogicalOperator;
 import Main.EvalComputations.Token.Operator;
@@ -541,7 +542,7 @@ public class AutomatonLogicalOps {
                 log
         );
 
-        A.fa.updateTransitionsFromMorphism(exponent);
+        updateTransitionsFromMorphism(A.fa, exponent);
 
         // Update number system: msd_{base^exponent}
         A.getNS().set(0, new NumberSystem("msd_" + newBase));
@@ -714,5 +715,64 @@ public class AutomatonLogicalOps {
         first.canonizeAndApplyAllRepresentationsWithOutput(print, prefix + " ", log);
 
         return first;
+    }
+
+    /**
+     * Build transitions from the final morphism matrix. Used in convertMsdBaseToExponent.
+     */
+    private static List<Int2ObjectRBTreeMap<IntList>> buildTransitionsFromMorphism(FA fa, List<List<Integer>> morphism) {
+        List<Int2ObjectRBTreeMap<IntList>> newD = new ArrayList<>(fa.getQ());
+        for (int q = 0; q < fa.getQ(); q++) {
+            Int2ObjectRBTreeMap<IntList> transitionMap = new Int2ObjectRBTreeMap<>();
+            List<Integer> row = morphism.get(q);
+            for (int di = 0; di < row.size(); di++) {
+                IntList list = new IntArrayList();
+                list.add((int)row.get(di));
+                transitionMap.put(di, list);
+            }
+            newD.add(transitionMap);
+        }
+        return newD;
+    }
+
+    /**
+     * Extend morphism by applying the automaton transitions again.
+     */
+    private static void updateTransitionsFromMorphism(FA fa, int exponent) {
+        List<List<Integer>> prevMorphism = buildInitialMorphism(fa);
+        // Repeatedly extend the morphism exponent-1 more times
+        for (int i = 2; i <= exponent; i++) {
+          List<List<Integer>> newMorphism = new ArrayList<>(fa.getQ());
+          for (int j = 0; j < fa.getQ(); j++) {
+            List<Integer> extendedRow = new ArrayList<>();
+            for (int k = 0; k < prevMorphism.get(j).size(); k++) {
+              // For each digit di in state j:
+              for (int di : fa.t.getNfaStateKeySet(j)) {
+                int nextState = fa.t.getNfaStateDests(prevMorphism.get(j).get(k), di).getInt(0);
+                extendedRow.add(nextState);
+              }
+            }
+            newMorphism.add(extendedRow);
+          }
+          prevMorphism = newMorphism;
+        }
+        // Create new transitions from the final morphism
+        fa.t.setNfaD(buildTransitionsFromMorphism(fa, prevMorphism));
+    }
+
+    /**
+     * Build the initial morphism from the automaton transitions.
+     * (Used in convertMsdBaseToExponent)
+     */
+    private static List<List<Integer>> buildInitialMorphism(FA fa) {
+      List<List<Integer>> result = new ArrayList<>(fa.getQ());
+      for (int q = 0; q < fa.getQ(); q++) {
+        List<Integer> row = new ArrayList<>(fa.getAlphabetSize());
+        for (int di = 0; di < fa.getAlphabetSize(); di++) {
+          row.add(fa.t.getNfaStateDests(q, di).getInt(0));
+        }
+        result.add(row);
+      }
+      return result;
     }
 }

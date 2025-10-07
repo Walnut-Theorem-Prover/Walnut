@@ -124,49 +124,6 @@ public class FA implements Cloneable {
       return totalized;
   }
 
-  /**
-   * Build transitions from the final morphism matrix. Used in convertMsdBaseToExponent.
-   */
-  private List<Int2ObjectRBTreeMap<IntList>> buildTransitionsFromMorphism(List<List<Integer>> morphism) {
-      List<Int2ObjectRBTreeMap<IntList>> newD = new ArrayList<>(Q);
-      for (int q = 0; q < Q; q++) {
-          Int2ObjectRBTreeMap<IntList> transitionMap = new Int2ObjectRBTreeMap<>();
-          List<Integer> row = morphism.get(q);
-          for (int di = 0; di < row.size(); di++) {
-              IntList list = new IntArrayList();
-              list.add((int)row.get(di));
-              transitionMap.put(di, list);
-          }
-          newD.add(transitionMap);
-      }
-      return newD;
-  }
-
-  /**
-   * Extend morphism by applying the automaton transitions again.
-   */
-  public void updateTransitionsFromMorphism(int exponent) {
-      List<List<Integer>> prevMorphism = buildInitialMorphism();
-      // Repeatedly extend the morphism exponent-1 more times
-      for (int i = 2; i <= exponent; i++) {
-        List<List<Integer>> newMorphism = new ArrayList<>(Q);
-        for (int j = 0; j < Q; j++) {
-          List<Integer> extendedRow = new ArrayList<>();
-          for (int k = 0; k < prevMorphism.get(j).size(); k++) {
-            // For each digit di in state j:
-            for (int di : t.getNfaStateKeySet(j)) {
-              int nextState = t.getNfaStateDests(prevMorphism.get(j).get(k), di).getInt(0);
-              extendedRow.add(nextState);
-            }
-          }
-          newMorphism.add(extendedRow);
-        }
-        prevMorphism = newMorphism;
-      }
-      // Create new transitions from the final morphism
-      t.setNfaD(buildTransitionsFromMorphism(prevMorphism));
-  }
-
   public void clear() {
     O.clear();
     t.clearNfaD();
@@ -176,7 +133,7 @@ public class FA implements Cloneable {
   public static void starStates(FA automaton, FA N) {
     // N is a clone of automaton.
     // We add a new state which will be our new initial state.
-    N.q0 = N.Q++;;
+    N.q0 = N.Q++;
     N.addOutput(true);  // The newly added state is a final state.
     N.t.addMapToNfaD();
     N.mergeInTransitions(N.Q, automaton.t.getEntriesNfaD(automaton.q0));
@@ -622,8 +579,6 @@ public class FA implements Cloneable {
   /**
    * Transform this automaton from Automaton to dk.brics.automaton.Automaton. This automaton can be
    * any automaton (deterministic/non-deterministic and with output/without output).
-   *
-   * @return
    */
   public dk.brics.automaton.Automaton toDkBricsAutomaton() {
     validateBricsAlphabetSize(getAlphabetSize());
@@ -664,7 +619,6 @@ public class FA implements Cloneable {
 
   /**
    * Returns the set of states reachable from the initial state by reading 0*
-   *
    */
   public IntSet zeroReachableStates(int zero) {
     // Ensure q0 is initialized in nfaD
@@ -752,22 +706,6 @@ public class FA implements Cloneable {
       }
     }
     return true;
-  }
-
-  /**
-   * Build the initial morphism from the automaton transitions.
-   * (Used in convertMsdBaseToExponent)
-   */
-  private List<List<Integer>> buildInitialMorphism() {
-    List<List<Integer>> result = new ArrayList<>(Q);
-    for (int q = 0; q < Q; q++) {
-      List<Integer> row = new ArrayList<>(alphabetSize);
-      for (int di = 0; di < alphabetSize; di++) {
-        row.add(t.getNfaStateDests(q, di).getInt(0));
-      }
-      result.add(row);
-    }
-    return result;
   }
 
   /**
