@@ -920,8 +920,8 @@ public class IntegrationTest {
 				} else if (actualA == null) {
 					Assertions.fail("actual automaton was null, but not expected");
 				} else {
-					// We don't use assertEquals here, since equals has been overridden in the Automaton class
-					Assertions.assertTrue(actualA.equals(expectedA),
+					// We don't use assertEquals here, since equals has been overridden in the FA class
+					Assertions.assertTrue(EqualityUtils.faEqual(actualA.fa, expectedA.fa),
 							"Actual result: " + actualA + " does not equal expected result: " + expectedA);
 				}
 			}

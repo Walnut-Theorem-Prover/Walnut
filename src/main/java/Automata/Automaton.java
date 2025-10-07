@@ -185,11 +185,6 @@ public class Automaton {
         }
     }
 
-    public boolean equals(Automaton M) {
-        if (M == null) return false;
-        return this.fa.equals(M.fa);
-    }
-
     /**
      * Either perform the union or intersection of a list of automata.
      *

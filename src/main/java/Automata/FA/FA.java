@@ -56,8 +56,6 @@ public class FA implements Cloneable {
   private boolean TRUE_FALSE_AUTOMATON;
   private boolean TRUE_AUTOMATON = false;
 
-  private static final int MAX_BRICS_CHARACTER = (1 << Character.SIZE) - 1;
-
   public FA() {
     O = new IntArrayList();
     t = new Transitions();
@@ -101,16 +99,6 @@ public class FA implements Cloneable {
     for(int i = 0; i < Q; i++) {
       this.t.addMapToNfaD();
     }
-  }
-
-  public boolean equals(FA M) {
-    if (isTRUE_FALSE_AUTOMATON() != M.isTRUE_FALSE_AUTOMATON()) return false;
-    if (isTRUE_FALSE_AUTOMATON() && M.isTRUE_FALSE_AUTOMATON()) {
-      return isTRUE_AUTOMATON() == M.isTRUE_AUTOMATON();
-    }
-    dk.brics.automaton.Automaton Y = M.toDkBricsAutomaton();
-    dk.brics.automaton.Automaton X = this.toDkBricsAutomaton();
-    return X.equals(Y);
   }
 
   @Override
@@ -302,21 +290,18 @@ public class FA implements Cloneable {
   }
 
   public void convertFromBrics(List<Integer> alphabet, String regularExpression) {
-    long timeBefore = System.currentTimeMillis();
     // For example if alphabet = {2,4,1} then intersectingRegExp = [241]*
-    StringBuilder intersectingRegExp = new StringBuilder("[");
+    StringBuilder internalRegEx = new StringBuilder();
     for (int x : alphabet) {
       if (x < 0 || x > 9) {
         throw new WalnutException("the input alphabet of an automaton generated from a regular expression must be a subset of {0,1,...,9}");
       }
-      intersectingRegExp.append(x);
+      internalRegEx.append(x);
     }
-    intersectingRegExp.append("]*");
-    regularExpression = "(" + regularExpression + ")&" + intersectingRegExp;
 
-    dk.brics.automaton.RegExp RE = new RegExp(regularExpression);
-    dk.brics.automaton.Automaton M = RE.toAutomaton();
-    M.minimize();
+    long timeBefore = System.currentTimeMillis();
+
+    dk.brics.automaton.Automaton M = buildBricsAutomaton(regularExpression, internalRegEx);
 
     alphabetSize = alphabet.size();
 
@@ -330,22 +315,26 @@ public class FA implements Cloneable {
     System.out.println("Converted from brics:" + getQ() + " states - " + (timeAfter - timeBefore) + "ms");
   }
 
-  public void setFromBricsAutomaton(int alphabetSize, String regularExpression) {
-    if (alphabetSize > ((1 << Character.SIZE) - 1)) {
-      throw new WalnutException("size of input alphabet exceeds the limit of " + ((1 << Character.SIZE) - 1));
-    }
-    long timeBefore = System.currentTimeMillis();
-    StringBuilder intersectingRegExp = new StringBuilder("[");
-    for (int x = 0; x < alphabetSize; x++) {
-      char nextChar = (char) (128 + x);
-      intersectingRegExp.append(nextChar);
-    }
-    intersectingRegExp.append("]*");
-    regularExpression = "(" + regularExpression + ")&" + intersectingRegExp;
-
-    dk.brics.automaton.RegExp RE = new RegExp(regularExpression);
+  private static dk.brics.automaton.Automaton buildBricsAutomaton(String regularExpression, StringBuilder internalRegEx) {
+    regularExpression = "(" + regularExpression + ")&" + "[" + internalRegEx + "]*";
+    RegExp RE = new RegExp(regularExpression);
     dk.brics.automaton.Automaton M = RE.toAutomaton();
     M.minimize();
+    return M;
+  }
+
+  public void setFromBricsAutomaton(int alphabetSize, String regularExpression) {
+    validateBricsAlphabetSize(alphabetSize);
+
+    StringBuilder internalRegEx = new StringBuilder();
+    for (int x = 0; x < alphabetSize; x++) {
+      char nextChar = (char) (128 + x);
+      internalRegEx.append(nextChar);
+    }
+
+    long timeBefore = System.currentTimeMillis();
+
+    dk.brics.automaton.Automaton M = buildBricsAutomaton(regularExpression, internalRegEx);
 
     // We use packagedk.brics.automaton for automata minimization.
     if (!M.isDeterministic())
@@ -637,14 +626,7 @@ public class FA implements Cloneable {
    * @return
    */
   public dk.brics.automaton.Automaton toDkBricsAutomaton() {
-    /**
-     * Since the dk.brics.automaton uses char as its input alphabet for an automaton, then in order to transform
-     * Automata.Automaton to dk.brics.automaton.Automata we've got to make sure, the input alphabet is less than
-     * size of char which 2^16 - 1
-     */
-    if (getAlphabetSize() > MAX_BRICS_CHARACTER) {
-      throw WalnutException.alphabetExceedsSize(MAX_BRICS_CHARACTER);
-    }
+    validateBricsAlphabetSize(getAlphabetSize());
     boolean deterministic = true;
     List<dk.brics.automaton.State> setOfStates = new ArrayList<>(Q);
     for (int q = 0; q < Q; q++) {
@@ -665,6 +647,19 @@ public class FA implements Cloneable {
     M.restoreInvariant();
     M.setDeterministic(deterministic);
     return M;
+  }
+
+  /**
+   * Since the dk.brics.automaton uses char as its input alphabet for an automaton, then in order to transform
+   * Automata.Automaton to dk.brics.automaton.Automata we ensure the input alphabet is no more than
+   * the size of char, which is 2^16 - 1.
+   * TODO: apparently there is some way to use UTF-16 in brics, but it's not obvious.
+   */
+  private static void validateBricsAlphabetSize(int alphabetSize) {
+    final int MAX_BRICS_CHARACTER = (1 << Character.SIZE) - 1;
+    if (alphabetSize > MAX_BRICS_CHARACTER) {
+      throw WalnutException.alphabetExceedsSize(MAX_BRICS_CHARACTER);
+    }
   }
 
   /**

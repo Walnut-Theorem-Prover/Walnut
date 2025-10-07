@@ -1,5 +1,6 @@
 package Automata;
 
+import Main.EqualityUtils;
 import Main.Session;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -13,7 +14,7 @@ class AutomatonExpressionTest {
         Automaton a = new Automaton();
 
         try {
-            Assertions.assertFalse(a.equals(null));
+            Assertions.assertNotNull(a);
         }
         catch (RuntimeException ex) {
             // Hack because everything s
@@ -27,14 +28,14 @@ class AutomatonExpressionTest {
         try {
             a = new Automaton(true);
             b = new Automaton(true);
-            Assertions.assertTrue(a.equals(b), a.fa + " != " + b.fa);
-            Assertions.assertTrue(a.equals(b.clone()));
+            Assertions.assertTrue(EqualityUtils.faEqual(a.fa, b.fa), a.fa + " != " + b.fa);
+            Assertions.assertTrue(EqualityUtils.faEqual(a.fa, b.clone().fa));
             AutomatonLogicalOps.reverse(b, false, "", null, false);
-            Assertions.assertTrue(a.equals(b), a.fa + " != " + b.fa);
+            Assertions.assertTrue(EqualityUtils.faEqual(a.fa, b.fa), a.fa + " != " + b.fa);
 
             b = new Automaton(false);
-            Assertions.assertFalse(a.equals(b), a.fa + " == " + b.fa);
-            Assertions.assertFalse(a.equals(b.clone()));
+            Assertions.assertFalse(EqualityUtils.faEqual(a.fa, b.fa), a.fa + " == " + b.fa);
+            Assertions.assertFalse(EqualityUtils.faEqual(a.fa, b.clone().fa));
 
         }
         catch (RuntimeException ex) {
@@ -56,26 +57,26 @@ class AutomatonExpressionTest {
 
             a = new Automaton("01*", alphabet, null);
             //Assertions.assertEquals("[{0=>[1]}, {1=>[1]}]", a.d.toString());
-            Assertions.assertTrue(a.equals(a.clone()));
+            Assertions.assertTrue(EqualityUtils.faEqual(a.fa, a.clone().fa));
             List<String> labels = new ArrayList<>();
             labels.add("");
             Assertions.assertEquals(labels.toString(), a.getLabel().toString());
 
             b = new Automaton("10*", alphabet, null);
-            Assertions.assertFalse(a.equals(b), a.fa + " == " + b.fa);
+            Assertions.assertFalse(EqualityUtils.faEqual(a.fa, b.fa), a.fa + " == " + b.fa);
 
             b = a.clone();
             AutomatonLogicalOps.reverse(b, false, "", null, false);
-            Assertions.assertFalse(a.equals(b), a.fa + " == " + b.fa);
+            Assertions.assertFalse(EqualityUtils.faEqual(a.fa, b.fa), a.fa + " == " + b.fa);
             Assertions.assertEquals("[{0=>[1], 1=>[0]}, {}]", b.getFa().t.getNfaD().toString());
             AutomatonLogicalOps.reverse(b, false, "", null, false);
-            Assertions.assertTrue(a.equals(b), a.fa + " != " + b.fa);
+            Assertions.assertTrue(EqualityUtils.faEqual(a.fa, b.fa), a.fa + " != " + b.fa);
 
             b = a.clone();
             AutomatonLogicalOps.not(b, false, "", null);
-            Assertions.assertFalse(a.equals(b), a.fa + " == " + b.fa);
+            Assertions.assertFalse(EqualityUtils.faEqual(a.fa, b.fa), a.fa + " == " + b.fa);
             AutomatonLogicalOps.not(b, false, "", null);
-            Assertions.assertTrue(a.equals(b), a.fa + " != " + b.fa);
+            Assertions.assertTrue(EqualityUtils.faEqual(a.fa, b.fa), a.fa + " != " + b.fa);
         }
         catch (RuntimeException ex) {
             // Hack because everything s

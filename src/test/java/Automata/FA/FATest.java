@@ -1,5 +1,6 @@
 package Automata.FA;
 
+import Main.EqualityUtils;
 import Main.WalnutException;
 import net.automatalib.alphabet.impl.Alphabets;
 import net.automatalib.automaton.fsa.impl.CompactNFA;
@@ -31,7 +32,7 @@ public class FATest {
     }
     //Assertions.assertEquals(compactNFA, compactNFA2); // equals isn't defined properly for these
     FA fa2 = FA.compactNFAToFA(compactNFA2);
-    Assertions.assertTrue(fa.equals(fa2));
+    Assertions.assertTrue(EqualityUtils.faEqual(fa, fa2));
   }
 
   @Test
