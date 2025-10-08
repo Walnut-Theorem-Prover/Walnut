@@ -1,5 +1,6 @@
 package Main;
 
+import Automata.FA.BricsConverter;
 import Automata.FA.FA;
 
 public class EqualityUtils {
@@ -8,8 +9,8 @@ public class EqualityUtils {
     if (a.isTRUE_FALSE_AUTOMATON() && b.isTRUE_FALSE_AUTOMATON()) {
       return a.isTRUE_AUTOMATON() == b.isTRUE_AUTOMATON();
     }
-    dk.brics.automaton.Automaton Y = b.toDkBricsAutomaton();
-    dk.brics.automaton.Automaton X = a.toDkBricsAutomaton();
+    dk.brics.automaton.Automaton Y = BricsConverter.toDkBricsAutomaton(b);
+    dk.brics.automaton.Automaton X = BricsConverter.toDkBricsAutomaton(a);
     return X.equals(Y);
   }
 }

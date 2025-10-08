@@ -1,6 +1,7 @@
 package Main;
 
 import Automata.*;
+import Automata.FA.BricsConverter;
 import Automata.FA.Infinite;
 import Main.EvalComputations.Token.ArithmeticOperator;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
@@ -85,13 +86,7 @@ public class ProverHelper {
       if (L.size() != inputLength) {
         throw new WalnutException("Mismatch between vector length in regex and specified number of inputs to automaton");
       }
-      int vectorEncoding = r.encode(L);
-      // dk.brics regex has several reserved characters - we cannot use these or the method that generates the automaton will
-      // not be able to parse the string properly. All of these reserved characters have UTF-16 values between 0 and 127, so offsetting
-      // our encoding by 128 will be enough to ensure that we have no conflicts
-      vectorEncoding += 128;
-      char replacement = (char) vectorEncoding;
-      String replacementStr = Character.toString(replacement);
+      String replacementStr = BricsConverter.convertEncodingForBrics(r.encode(L));
 
       // replace exactly this match
       m2.appendReplacement(sb, Matcher.quoteReplacement(replacementStr));

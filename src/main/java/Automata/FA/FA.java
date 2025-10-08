@@ -21,16 +21,12 @@ import Automata.Automaton;
 import Automata.RichAlphabet;
 import Main.WalnutException;
 import Main.UtilityMethods;
-import dk.brics.automaton.RegExp;
-import dk.brics.automaton.State;
-import dk.brics.automaton.Transition;
 import it.unimi.dsi.fastutil.ints.*;
 import net.automatalib.alphabet.impl.Alphabets;
 import net.automatalib.automaton.fsa.impl.CompactDFA;
 import net.automatalib.automaton.fsa.impl.CompactNFA;
 
 import java.util.*;
-import java.util.function.BiFunction;
 
 /**
  * Abstraction of NFA/DFA/DFAO code from Automaton.
@@ -246,102 +242,6 @@ public class FA implements Cloneable {
     return permutationMap;
   }
 
-  public void convertFromBrics(List<Integer> alphabet, String regularExpression) {
-    // For example if alphabet = {2,4,1} then intersectingRegExp = [241]*
-    StringBuilder internalRegEx = new StringBuilder();
-    for (int x : alphabet) {
-      if (x < 0 || x > 9) {
-        throw new WalnutException("the input alphabet of an automaton generated from a regular expression must be a subset of {0,1,...,9}");
-      }
-      internalRegEx.append(x);
-    }
-
-    long timeBefore = System.currentTimeMillis();
-
-    dk.brics.automaton.Automaton M = buildBricsAutomaton(regularExpression, internalRegEx);
-
-    alphabetSize = alphabet.size();
-
-    convertBricsAutomatonToInternalRepresentation(M, (t, a) -> {
-      // We only care about characters '0' through '9'
-      int digit = a - '0';
-      return alphabet.contains(digit) ? alphabet.indexOf(digit) : -1;
-    });
-
-    long timeAfter = System.currentTimeMillis();
-    System.out.println("Converted from brics:" + getQ() + " states - " + (timeAfter - timeBefore) + "ms");
-  }
-
-  private static dk.brics.automaton.Automaton buildBricsAutomaton(String regularExpression, StringBuilder internalRegEx) {
-    regularExpression = "(" + regularExpression + ")&" + "[" + internalRegEx + "]*";
-    RegExp RE = new RegExp(regularExpression);
-    dk.brics.automaton.Automaton M = RE.toAutomaton();
-    M.minimize();
-    return M;
-  }
-
-  public void setFromBricsAutomaton(int alphabetSize, String regularExpression) {
-    validateBricsAlphabetSize(alphabetSize);
-
-    StringBuilder internalRegEx = new StringBuilder();
-    for (int x = 0; x < alphabetSize; x++) {
-      char nextChar = (char) (128 + x);
-      internalRegEx.append(nextChar);
-    }
-
-    long timeBefore = System.currentTimeMillis();
-
-    dk.brics.automaton.Automaton M = buildBricsAutomaton(regularExpression, internalRegEx);
-
-    // We use packagedk.brics.automaton for automata minimization.
-    if (!M.isDeterministic())
-      throw WalnutException.bricsNFA();
-
-    // Here, each character 'a' is used directly as the key.
-    convertBricsAutomatonToInternalRepresentation(M, (t, a) -> (int) a);
-
-    // We added 128 to the encoding of every input vector before to avoid reserved characters, now we subtract it again
-    // to get back the standard encoding
-    t.setNfaD(this.addOffsetToInputs(-128));
-
-    long timeAfter = System.currentTimeMillis();
-    System.out.println("Set from brics:" + getQ() + " states - " + (timeAfter - timeBefore) + "ms");
-  }
-
-  private List<Int2ObjectRBTreeMap<IntList>> addOffsetToInputs(int offset) {
-    List<Int2ObjectRBTreeMap<IntList>> newD = new ArrayList<>(Q);
-    for (int q = 0; q < Q; q++) {
-      Int2ObjectRBTreeMap<IntList> iMap = new Int2ObjectRBTreeMap<>();
-      newD.add(iMap);
-      for (Int2ObjectMap.Entry<IntList> entry : this.t.getEntriesNfaD(q)) {
-        iMap.put(entry.getIntKey() + offset, entry.getValue());
-      }
-    }
-    return newD;
-  }
-
-  private void convertBricsAutomatonToInternalRepresentation(
-      dk.brics.automaton.Automaton M, BiFunction<Transition, Character, Integer> keyMapper) {
-    List<State> setOfStates = new ArrayList<>(M.getStates());
-    Q = setOfStates.size();
-    q0 = setOfStates.indexOf(M.getInitialState());
-    this.initO(Q);
-    t.setNfaD(new ArrayList<>(Q));
-    for (int q = 0; q < Q; q++) {
-      State state = setOfStates.get(q);
-      this.addOutput(state.isAccept());
-      this.t.addMapToNfaD();
-      for (Transition t : state.getTransitions()) {
-        for (char a = t.getMin(); a <= t.getMax(); a++) {
-          int key = keyMapper.apply(t, a);
-          if (key != -1) {
-            addTransition(this.t.getNfaD(), q, key, setOfStates.indexOf(t.getDest()));
-          }
-        }
-      }
-    }
-  }
-
   /**
    * This method adds a dead state to totalize the transition function
    */
@@ -423,7 +323,7 @@ public class FA implements Cloneable {
       return newInitialStates;
   }
 
-  private static void addTransition(List<Int2ObjectRBTreeMap<IntList>> transitions,
+  static void addTransition(List<Int2ObjectRBTreeMap<IntList>> transitions,
                                     int state, int symbol, int destination) {
     IntList destList = transitions.get(state).get(symbol);
     if (destList == null) {
@@ -553,46 +453,6 @@ public class FA implements Cloneable {
         permutedNfaD.put(encodedInputPermutation[entry.getIntKey()], entry.getValue());
       }
       t.getNfaD().set(q, permutedNfaD);
-    }
-  }
-  /**
-   * Transform this automaton from Automaton to dk.brics.automaton.Automaton. This automaton can be
-   * any automaton (deterministic/non-deterministic and with output/without output).
-   */
-  public dk.brics.automaton.Automaton toDkBricsAutomaton() {
-    validateBricsAlphabetSize(getAlphabetSize());
-    boolean deterministic = true;
-    List<dk.brics.automaton.State> setOfStates = new ArrayList<>(Q);
-    for (int q = 0; q < Q; q++) {
-      setOfStates.add(new dk.brics.automaton.State());
-      if (isAccepting(q)) setOfStates.get(q).setAccept(true);
-    }
-    dk.brics.automaton.State initialState = setOfStates.get(getQ0());
-    for (int q = 0; q < Q; q++) {
-      for (Int2ObjectMap.Entry<IntList> entry : this.t.getEntriesNfaD(q)) {
-        for (int dest : entry.getValue()) {
-          setOfStates.get(q).addTransition(new dk.brics.automaton.Transition((char) entry.getIntKey(), setOfStates.get(dest)));
-        }
-        if (entry.getValue().size() > 1) deterministic = false;
-      }
-    }
-    dk.brics.automaton.Automaton M = new dk.brics.automaton.Automaton();
-    M.setInitialState(initialState);
-    M.restoreInvariant();
-    M.setDeterministic(deterministic);
-    return M;
-  }
-
-  /**
-   * Since the dk.brics.automaton uses char as its input alphabet for an automaton, then in order to transform
-   * Automata.Automaton to dk.brics.automaton.Automata we ensure the input alphabet is no more than
-   * the size of char, which is 2^16 - 1.
-   * TODO: apparently there is some way to use UTF-16 in brics, but it's not obvious.
-   */
-  private static void validateBricsAlphabetSize(int alphabetSize) {
-    final int MAX_BRICS_CHARACTER = (1 << Character.SIZE) - 1;
-    if (alphabetSize > MAX_BRICS_CHARACTER) {
-      throw WalnutException.alphabetExceedsSize(MAX_BRICS_CHARACTER);
     }
   }
 

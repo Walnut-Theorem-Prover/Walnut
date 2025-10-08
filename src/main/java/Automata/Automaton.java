@@ -18,10 +18,7 @@
 
 package Automata;
 
-import Automata.FA.DeterminizationStrategies;
-import Automata.FA.FA;
-import Automata.FA.ProductStrategies;
-import Automata.FA.Trimmer;
+import Automata.FA.*;
 import Main.EvalComputations.Token.ArithmeticOperator;
 import Main.EvalComputations.Token.LogicalOperator;
 import Main.WalnutException;
@@ -139,7 +136,7 @@ public class Automaton {
         UtilityMethods.removeDuplicates(alphabet);
         this.richAlphabet.getA().add(alphabet);
 
-        this.fa.convertFromBrics(alphabet, regularExpression);
+        BricsConverter.convertFromBrics(this.fa, alphabet, regularExpression);
         getNS().add(numSys);
     }
 
@@ -147,7 +144,7 @@ public class Automaton {
     // TODO - maybe exactly the same as above
     public Automaton(String regularExpression, Integer alphabetSize) {
         this();
-        this.fa.setFromBricsAutomaton(alphabetSize, regularExpression);
+        BricsConverter.setFromBricsAutomaton(this.fa, alphabetSize, regularExpression);
     }
 
     /**

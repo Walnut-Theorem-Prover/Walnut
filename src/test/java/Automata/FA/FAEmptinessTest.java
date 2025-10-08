@@ -38,22 +38,22 @@ class FAEmptinessTest {
   @Test
   void singleStateNonAcceptingIsEmpty() {
     FA fa = newNFA(0, 1, 0 /* alphabetSize=0, no edges */);
-    assertTrue(fa.toDkBricsAutomaton().isEmpty());
+    assertTrue(BricsConverter.toDkBricsAutomaton(fa).isEmpty());
     assertTrue(fa.isLanguageEmpty());
 
     Trimmer.trimAutomaton(fa);
-    assertTrue(fa.toDkBricsAutomaton().isEmpty());
+    assertTrue(BricsConverter.toDkBricsAutomaton(fa).isEmpty());
     assertTrue(fa.isLanguageEmpty());
   }
 
   @Test
   void singleStateAcceptingIsNotEmpty() {
     FA fa = newNFA(0, 1, 0, 0); // q0 is accepting, accepts ε
-    assertFalse(fa.toDkBricsAutomaton().isEmpty());
+    assertFalse(BricsConverter.toDkBricsAutomaton(fa).isEmpty());
     assertFalse(fa.isLanguageEmpty());
 
     Trimmer.trimAutomaton(fa);
-    assertFalse(fa.toDkBricsAutomaton().isEmpty());
+    assertFalse(BricsConverter.toDkBricsAutomaton(fa).isEmpty());
     assertFalse(fa.isLanguageEmpty());
   }
 
@@ -63,11 +63,11 @@ class FAEmptinessTest {
     FA fa = newNFA(0, 2, 1, 1); // accepting state is 1, but no transitions
     // add an unrelated self-loop on accepting state so it exists but is unreachable
     addNfaEdge(fa, 1, 0, 1);
-    assertTrue(fa.toDkBricsAutomaton().isEmpty());
+    assertTrue(BricsConverter.toDkBricsAutomaton(fa).isEmpty());
     assertTrue(fa.isLanguageEmpty());
 
     Trimmer.trimAutomaton(fa);
-    assertTrue(fa.toDkBricsAutomaton().isEmpty());
+    assertTrue(BricsConverter.toDkBricsAutomaton(fa).isEmpty());
     assertTrue(fa.isLanguageEmpty());
   }
 
@@ -75,11 +75,11 @@ class FAEmptinessTest {
   void nfaReachableAcceptingIsNotEmpty() {
     FA fa = newNFA(0, 2, 1, 1);
     addNfaEdge(fa, 0, 0, 1); // 0 --0--> 1(accept)
-    assertFalse(fa.toDkBricsAutomaton().isEmpty());
+    assertFalse(BricsConverter.toDkBricsAutomaton(fa).isEmpty());
     assertFalse(fa.isLanguageEmpty());
 
     Trimmer.trimAutomaton(fa);
-    assertFalse(fa.toDkBricsAutomaton().isEmpty());
+    assertFalse(BricsConverter.toDkBricsAutomaton(fa).isEmpty());
     assertFalse(fa.isLanguageEmpty());
   }
 
@@ -88,11 +88,11 @@ class FAEmptinessTest {
     // Ensure we iterate actual keys present, not 0..alphabetSize-1
     FA fa = newNFA(0, 2, 1, 1); // alphabetSize=1 but we will use symbol=5
     addNfaEdge(fa, 0, 5, 1);    // sparse key!
-    assertFalse(fa.toDkBricsAutomaton().isEmpty());
+    assertFalse(BricsConverter.toDkBricsAutomaton(fa).isEmpty());
     assertFalse(fa.isLanguageEmpty());
 
     Trimmer.trimAutomaton(fa);
-    assertFalse(fa.toDkBricsAutomaton().isEmpty());
+    assertFalse(BricsConverter.toDkBricsAutomaton(fa).isEmpty());
     assertFalse(fa.isLanguageEmpty());
   }
 
@@ -100,22 +100,22 @@ class FAEmptinessTest {
   void zeroAlphabetWithNonAcceptingIsEmpty() {
     // No symbols, no transitions: only ε could be accepted; q0 is non-accepting.
     FA fa = newNFA(0, 3, 0 /* alphabetSize=0 */);
-    assertTrue(fa.toDkBricsAutomaton().isEmpty());
+    assertTrue(BricsConverter.toDkBricsAutomaton(fa).isEmpty());
     assertTrue(fa.isLanguageEmpty());
 
     Trimmer.trimAutomaton(fa);
-    assertTrue(fa.toDkBricsAutomaton().isEmpty());
+    assertTrue(BricsConverter.toDkBricsAutomaton(fa).isEmpty());
     assertTrue(fa.isLanguageEmpty());
   }
 
   @Test
   void zeroAlphabetWithAcceptingInitialIsNotEmpty() {
     FA fa = newNFA(0, 2, 0, 0); // accepting initial -> accepts ε even with no alphabet
-    assertFalse(fa.toDkBricsAutomaton().isEmpty());
+    assertFalse(BricsConverter.toDkBricsAutomaton(fa).isEmpty());
     assertFalse(fa.isLanguageEmpty());
 
     Trimmer.trimAutomaton(fa);
-    assertFalse(fa.toDkBricsAutomaton().isEmpty());
+    assertFalse(BricsConverter.toDkBricsAutomaton(fa).isEmpty());
     assertFalse(fa.isLanguageEmpty());
   }
 }
