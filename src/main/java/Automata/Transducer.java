@@ -295,7 +295,7 @@ public class Transducer extends Automaton {
         }
 
         // verify that the automaton is indeed nondeterministic, i.e. it has undefined transitions. If it is not, transduce normally.
-        boolean totalized = M.fa.isTotalized();
+        boolean totalized = isTotalized(M.fa);
         Automaton N;
         if (totalized) {
             // transduce normally
@@ -327,6 +327,22 @@ public class Transducer extends Automaton {
         }
 
         return N;
+    }
+
+    private static boolean isTotalized(FA fa) {
+        boolean totalized = true;
+        for(int q = 0; q < fa.getQ(); q++){
+            for(int x = 0; x < fa.getAlphabetSize(); x++){
+                IntList iList = fa.t.getNfaStateDests(q, x);
+                if (iList == null) {
+                    totalized = false;
+                }
+                else if (iList.size() > 1) {
+                    throw new WalnutException("Automaton must have at most one transition per input per state.");
+                }
+            }
+        }
+        return totalized;
     }
 
     /**

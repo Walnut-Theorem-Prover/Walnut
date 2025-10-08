@@ -17,8 +17,6 @@
  */
 package Automata.FA;
 
-import Automata.Automaton;
-import Automata.RichAlphabet;
 import Main.WalnutException;
 import Main.UtilityMethods;
 import it.unimi.dsi.fastutil.ints.*;
@@ -71,24 +69,6 @@ public class FA implements Cloneable {
     return false;
   }
 
-  /**
-   * Rebuild transitions based on new alphabet
-   */
-  public void rebuildTransitions(RichAlphabet oldAlphabet, Automaton M) {
-      List<Int2ObjectRBTreeMap<IntList>> newD = new ArrayList<>(M.fa.getQ());
-      for (int q = 0; q < M.fa.getQ(); q++) {
-          Int2ObjectRBTreeMap<IntList> newMap = new Int2ObjectRBTreeMap<>();
-          for (Int2ObjectMap.Entry<IntList> entry: t.getEntriesNfaD(q)) {
-            List<Integer> decoded = oldAlphabet.decode(entry.getIntKey());
-            if (M.richAlphabet.isInNewAlphabet(decoded)) {
-              newMap.put(M.richAlphabet.encode(decoded), entry.getValue());
-            }
-          }
-          newD.add(newMap);
-      }
-      M.fa.t.setNfaD(newD);
-  }
-
   public void initBasicFA(IntList O) {
     this.O = new IntArrayList(O);
     Q = O.size();
@@ -102,22 +82,6 @@ public class FA implements Cloneable {
     return "T/F:(" + TRUE_FALSE_AUTOMATON + "," + TRUE_AUTOMATON + ")" +
             "Q:" + Q + ", q0:" + q0 + ", canon: " + canonized + ", O:" + O +
             ", dfaD:" + t.getDfaD() + ", nfaD:" + t.getNfaD();
-  }
-
-  public boolean isTotalized() {
-      boolean totalized = true;
-      for(int q = 0; q < Q; q++){
-          for(int x = 0; x < alphabetSize; x++){
-            IntList iList = t.getNfaStateDests(q, x);
-              if (iList == null) {
-                  totalized = false;
-              }
-              else if (iList.size() > 1) {
-                  throw new WalnutException("Automaton must have at most one transition per input per state.");
-              }
-          }
-      }
-      return totalized;
   }
 
   public void clear() {
@@ -457,38 +421,6 @@ public class FA implements Cloneable {
   }
 
   /**
-   * Returns the set of states reachable from the initial state by reading 0*
-   */
-  public IntSet zeroReachableStates(int zero) {
-    // Ensure q0 is initialized in nfaD
-    IntList dQ0 = t.getNfaState(q0).computeIfAbsent(zero, k -> new IntArrayList());
-    if (!dQ0.contains(q0)) {
-      dQ0.add(q0);
-    }
-
-    // Perform BFS to find zero-reachable states
-    IntSet result = new IntOpenHashSet();
-    Queue<Integer> queue = new LinkedList<>();
-    queue.add(q0);
-
-    while (!queue.isEmpty()) {
-      int q = queue.poll();
-      if (result.add(q)) { // Add q to result; skip if already processed
-        IntList transitions = t.getNfaStateDests(q, zero);
-        if (transitions != null) {
-          for (int p : transitions) {
-            if (!result.contains(p)) {
-              queue.add(p);
-            }
-          }
-        }
-      }
-    }
-
-    return result;
-  }
-
-  /**
    * So for example if f is a final state and f is reachable from q by reading 0*
    * then q will be in the resulting set of this method.
    * Side effect: this may alter O.
@@ -562,19 +494,6 @@ public class FA implements Cloneable {
       }
     }
     return minOutput;
-  }
-
-  // remove all states that have an output of minOutput
-  public void removeStatesWithMinOutput(int minOutput) {
-    Set<Integer> statesToRemove = new HashSet<>();
-    for (int q = 0; q < Q; q++) {
-      if (O.getInt(q) == minOutput) {
-        statesToRemove.add(q);
-      }
-    }
-    for (int q = 0; q < Q; q++) {
-      this.t.getEntriesNfaD(q).removeIf(entry -> statesToRemove.contains(entry.getValue().getInt(0)));
-    }
   }
 
   public void setFields(int newStates, IntList newO, List<Int2ObjectRBTreeMap<IntList>> newD) {

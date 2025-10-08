@@ -269,27 +269,59 @@ public class AutomatonLogicalOps {
         long timeBefore = System.currentTimeMillis();
         UtilityMethods.logMessage(print, prefix + "fixing leading zeros:" + A.fa.getQ() + " states", log);
         A.fa.setCanonized(false);
-        int zero = determineZero(A);
+        int zero = determineZero(A.richAlphabet);
 
         // Subset Construction with different initial state
-        IntSet initial_state = A.fa.zeroReachableStates(zero);
+        IntSet initial_state = zeroReachableStates(A.fa, zero);
         A.determinizeAndMinimize(initial_state, print, prefix, log);
 
         long timeAfter = System.currentTimeMillis();
         UtilityMethods.logMessage(print, prefix + "fixed leading zeros:" + A.fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
     }
 
-    private static int determineZero(Automaton A) {
-        List<Integer> ZERO = new ArrayList<>(A.richAlphabet.getA().size());//all zero input
-        for (List<Integer> i : A.richAlphabet.getA()) ZERO.add(i.indexOf(0));
-        return A.richAlphabet.encode(ZERO);
+    /**
+     * Returns the set of states reachable from the initial state by reading 0*
+     * This can alter FA itself
+     */
+    private static IntSet zeroReachableStates(FA fa, int zero) {
+        // Ensure q0 is initialized in nfaD
+        IntList dQ0 = fa.t.getNfaState(fa.getQ0()).computeIfAbsent(zero, k -> new IntArrayList());
+        if (!dQ0.contains(fa.getQ0())) {
+            dQ0.add(fa.getQ0());
+        }
+
+        // Perform BFS to find zero-reachable states
+        IntSet result = new IntOpenHashSet();
+        Queue<Integer> queue = new LinkedList<>();
+        queue.add(fa.getQ0());
+
+        while (!queue.isEmpty()) {
+            int q = queue.poll();
+            if (result.add(q)) { // Add q to result; skip if already processed
+                IntList transitions = fa.t.getNfaStateDests(q, zero);
+                if (transitions != null) {
+                    for (int p : transitions) {
+                        if (!result.contains(p)) {
+                            queue.add(p);
+                        }
+                    }
+                }
+            }
+        }
+        return result;
+    }
+
+    private static int determineZero(RichAlphabet richAlphabet) {
+        List<Integer> ZERO = new ArrayList<>(richAlphabet.getA().size());//all zero input
+        for (List<Integer> i : richAlphabet.getA()) ZERO.add(i.indexOf(0));
+        return richAlphabet.encode(ZERO);
     }
 
     /**
      * Make automaton accept x0*, iff it used to accept x.
      */
     public static void fixTrailingZerosProblem(Automaton A, boolean print, String prefix, StringBuilder log) {
-        if (A.fa.setStatesReachableToFinalStatesByZeros(determineZero(A))) {
+        if (A.fa.setStatesReachableToFinalStatesByZeros(determineZero(A.richAlphabet))) {
             long timeBefore = System.currentTimeMillis();
             UtilityMethods.logMessage(print, prefix + "fixing trailing zeros:" + A.fa.getQ() + " states", log);
             A.fa.setCanonized(false);
@@ -447,9 +479,22 @@ public class AutomatonLogicalOps {
     }
 
     static void removeStatesWithMinOutput(Automaton N, int minOutput) {
-        N.fa.removeStatesWithMinOutput(minOutput);
+        removeStatesWithMinOutput(N.fa, minOutput);
         N.fa.setCanonized(false);
         N.canonize();
+    }
+
+    // remove all states that have an output of minOutput
+    private static void removeStatesWithMinOutput(FA fa, int minOutput) {
+        Set<Integer> statesToRemove = new HashSet<>();
+        for (int q = 0; q < fa.getQ(); q++) {
+            if (fa.getO().getInt(q) == minOutput) {
+                statesToRemove.add(q);
+            }
+        }
+        for (int q = 0; q < fa.getQ(); q++) {
+            fa.t.getEntriesNfaD(q).removeIf(entry -> statesToRemove.contains(entry.getValue().getInt(0)));
+        }
     }
 
     /**

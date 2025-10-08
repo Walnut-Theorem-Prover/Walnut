@@ -351,7 +351,7 @@ public class Automaton {
         M.determineAlphabetSize();
         M.richAlphabet.setupEncoder();
 
-        this.getFa().rebuildTransitions(this.richAlphabet, M);
+        rebuildTransitions(this.getFa(), this.richAlphabet, M);
 
         if (isDFAO) {
             WordAutomaton.minimizeSelfWithOutput(M, print, prefix, log);
@@ -365,6 +365,24 @@ public class Automaton {
 
         long timeAfter = System.currentTimeMillis();
         UtilityMethods.logMessage(print, prefix + "set alphabet complete:" + (timeAfter - timeBefore) + "ms", log);
+    }
+
+    /**
+     * Rebuild transitions based on new alphabet
+     */
+    private static void rebuildTransitions(FA fa, RichAlphabet oldAlphabet, Automaton M) {
+        List<Int2ObjectRBTreeMap<IntList>> newD = new ArrayList<>(M.getFa().getQ());
+        for (int q = 0; q < M.getFa().getQ(); q++) {
+            Int2ObjectRBTreeMap<IntList> newMap = new Int2ObjectRBTreeMap<>();
+            for (Int2ObjectMap.Entry<IntList> entry: fa.t.getEntriesNfaD(q)) {
+                List<Integer> decoded = oldAlphabet.decode(entry.getIntKey());
+                if (M.richAlphabet.isInNewAlphabet(decoded)) {
+                    newMap.put(M.richAlphabet.encode(decoded), entry.getValue());
+                }
+            }
+            newD.add(newMap);
+        }
+        M.getFa().t.setNfaD(newD);
     }
 
     // TODO: possibly this can just be determined when setA() is called.
