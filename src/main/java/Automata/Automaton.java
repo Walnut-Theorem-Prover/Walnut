@@ -377,7 +377,8 @@ public class Automaton {
             for (Int2ObjectMap.Entry<IntList> entry: fa.t.getEntriesNfaD(q)) {
                 List<Integer> decoded = oldAlphabet.decode(entry.getIntKey());
                 if (M.richAlphabet.isInNewAlphabet(decoded)) {
-                    newMap.put(M.richAlphabet.encode(decoded), entry.getValue());
+                    // For safety, clone the dest list to avoid aliasing
+                    newMap.put(M.richAlphabet.encode(decoded), new IntArrayList(entry.getValue()));
                 }
             }
             newD.add(newMap);
