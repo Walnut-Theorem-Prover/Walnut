@@ -8,6 +8,8 @@ All notable changes to Walnut will be documented here. Format is based on [Keep 
 ### Fixed
 
 - Fixed regression [#38 (load commands running twice)](https://github.com/Walnut-Theorem-Prover/Walnut/issues/38)
+- Improved limitations on alphabet size [#37](https://github.com/Walnut-Theorem-Prover/Walnut/issues/37)
+- Made `reg` command more robust
 
 ### Changed
 

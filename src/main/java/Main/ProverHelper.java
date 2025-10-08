@@ -68,11 +68,11 @@ public class ProverHelper {
   static String determineEncodedRegex(String baseexp, int inputLength, RichAlphabet r) {
     Matcher m2 = Prover.PAT_FOR_AN_ALPHABET_VECTOR.matcher(baseexp);
     // if we haven't had to replace any input vectors with unicode, we use the legacy method of constructing the automaton
+    StringBuilder sb = new StringBuilder();
     while (m2.find()) {
       String alphabetVector = m2.group();
 
       // needed to replace this string with the unicode mapping
-      String alphabetVectorCopy = alphabetVector;
       if (alphabetVector.charAt(0) == '[') {
         alphabetVector = alphabetVector.substring(1, alphabetVector.length() - 1); // truncate brackets [ ]
       }
@@ -93,29 +93,17 @@ public class ProverHelper {
       char replacement = (char) vectorEncoding;
       String replacementStr = Character.toString(replacement);
 
-      /*
-       * If alphabetVectorCopy is "2" and baseexp is "(22|[-2][-2])",
-       * and you just run
-       * baseexp.replace(alphabetVectorCopy, replacementStr)
-       * normally, then this will turn baseexp to "(|[-][-])"
-       * instead of "(|[-2][-2])".
-       * Instead, we replace all occurrences of "[-2]" with "%PLACEHOLDER%",
-       * then run baseexp.replace(alphabetVectorCopy, replacementStr),
-       * and then replace "%PLACEHOLDER%" with "[-2]".
-       */
-      final String NEGATIVE_PLACEHOLDER = "%PLACEHOLDER%";
-      baseexp = baseexp
-          .replace("[-" + alphabetVectorCopy + "]", NEGATIVE_PLACEHOLDER)
-          .replace(alphabetVectorCopy, replacementStr)
-          .replace(NEGATIVE_PLACEHOLDER, "[-" + alphabetVectorCopy + "]");
+      // replace exactly this match
+      m2.appendReplacement(sb, Matcher.quoteReplacement(replacementStr));
     }
+    m2.appendTail(sb);
 
     // We should always do this with replacement, since we may have regexes such as "...", which accepts any three characters
     // in a row, on an alphabet containing bracketed characters. We don't make any replacements here, but they are implicitly made
     // when we intersect with our alphabet(s).
 
     // remove all whitespace from regular expression.
-    return baseexp.replaceAll("\\s", "");
+    return sb.toString().replaceAll("\\s", "");
   }
 
   static TestCase describe(boolean isDFAO, String inFileName) {
