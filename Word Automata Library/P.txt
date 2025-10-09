@@ -1,4 +1,4 @@
-# Paperfolding word, MSD representation
+# The regular paperfolding sequence, MSD representation
 msd_2
 
 0 0

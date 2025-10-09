@@ -1,3 +1,4 @@
+# The Cantor sequence.
 msd_3
 
 0 1

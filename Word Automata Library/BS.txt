@@ -1,3 +1,4 @@
+# The Baum-Sweet sequence.
 msd_2
 
 0 1

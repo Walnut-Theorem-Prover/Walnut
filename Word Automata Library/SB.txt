@@ -1,3 +1,4 @@
+# The second-bit sequence.
 msd_2
 
 0 0

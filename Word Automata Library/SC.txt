@@ -1,3 +1,4 @@
+# Stewart's choral sequence.
 msd_3
 
 0 0 

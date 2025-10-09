@@ -1,3 +1,4 @@
+# The Sierpinski carpet array.
 msd_3 msd_3
 
 0 1

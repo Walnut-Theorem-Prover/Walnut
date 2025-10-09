@@ -1,3 +1,4 @@
+# The characteristic sequence of the powers of 2.
 msd_2
 
 0 0

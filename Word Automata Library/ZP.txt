@@ -1,3 +1,4 @@
+# Variant of the paperfolding sequence.
 msd_2
 
 0 0

@@ -1,4 +1,4 @@
-# Period-doubling word
+# The period-doubling sequence.
 msd_2
 0 1
 0 -> 0

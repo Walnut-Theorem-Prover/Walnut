@@ -1,3 +1,4 @@
+# The Tower of Hanoi solution sequence.
 msd_2
 
 0 0

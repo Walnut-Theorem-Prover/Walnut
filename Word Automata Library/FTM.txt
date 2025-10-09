@@ -1,3 +1,4 @@
+# The Fibonacci-Thue-Morse word.
 msd_fib
 
 0 0

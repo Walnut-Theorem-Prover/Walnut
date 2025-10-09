@@ -1,3 +1,4 @@
+# The ternary Thue-Morse sequence.
 msd_2
 
 0 2

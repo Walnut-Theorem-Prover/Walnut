@@ -1,3 +1,4 @@
+# The moves of the Hilbert curve.
 msd_4
 
 0 0

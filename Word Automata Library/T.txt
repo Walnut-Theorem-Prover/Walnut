@@ -1,4 +1,4 @@
-# Thue-Morse word
+# The Thue-Morse sequence.
 msd_2
 
 0 0

@@ -1,4 +1,4 @@
-# Rudin-Shapiro word
+# The Rudin-Shapiro sequence.
 msd_2
 0 0
 0 -> 0
