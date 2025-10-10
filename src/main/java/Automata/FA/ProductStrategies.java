@@ -308,19 +308,17 @@ public class ProductStrategies {
     private static int[] computeAllInputsOfAxB(
         int aAlphSize, RichAlphabet aRichAlphabet, int bAlphSize, RichAlphabet bRichAlphabet,
         RichAlphabet AxBRichAlphabet, int[] sameInputsInMAndThis) {
-        IntList allInputsOfN = new IntArrayList(aAlphSize * bAlphSize);
+        int[] allInputsOfN = new int[aAlphSize * bAlphSize];
+        int idx = 0;
         for (int i = 0; i < aAlphSize; i++) {
             List<Integer> aDecodeI = aRichAlphabet.decode(i);
             for (int j = 0; j < bAlphSize; j++) {
                 List<Integer> inputForN = joinTwoInputsForCrossProduct(
                     aDecodeI, bRichAlphabet.decode(j), sameInputsInMAndThis);
-                if (inputForN == null)
-                    allInputsOfN.add(-1);
-                else
-                    allInputsOfN.add(AxBRichAlphabet.encode(inputForN));
+                allInputsOfN[idx++] = inputForN == null ? -1 : AxBRichAlphabet.encode(inputForN);
             }
         }
-        return allInputsOfN.toArray(new int[0]);
+        return allInputsOfN;
     }
 
     /**
