@@ -477,7 +477,7 @@ public class Automaton {
             // crossProduct requires both automata to be totalized, otherwise it has no idea which cartesian states to transition to
             first.fa.totalize(print, prefix + " ", log);
             next.fa.totalize(print, prefix + " ", log);
-            first = ProductStrategies.crossProduct(first, next, "first", print, prefix + " ", log);
+            first = ProductStrategies.crossProduct(first, next, Prover.FIRST_OP, print, prefix + " ", log);
             first = WordAutomaton.minimizeWithOutput(first, print, prefix + " ", log);
 
             long timeAfter = System.currentTimeMillis();
@@ -557,7 +557,7 @@ public class Automaton {
                 Automaton N = ns.getAllRepresentations();
                 if (N != null && ns.useAllRepresentations()) {
                     N.bind(List.of(getLabel().get(i)));
-                    K = ProductStrategies.crossProduct(this, N, "if_other", print, prefix, log);
+                    K = ProductStrategies.crossProduct(this, N, Prover.IF_OTHER_OP, print, prefix, log);
                 }
             }
         }

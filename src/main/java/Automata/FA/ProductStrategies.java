@@ -20,6 +20,7 @@ import java.util.*;
  * Automata are numbered, which is useful for meta-commands like [export]
  */
 public class ProductStrategies {
+
     /**
      * Cross-product of two DFAs. Output is an NFA (for now).
      */
@@ -169,8 +170,8 @@ public class ProductStrategies {
             case LogicalOperator.IMPLY -> (aP == 0 || mQ != 0) ? 1 : 0;
             case LogicalOperator.IFF -> ((aP == 0 && mQ == 0) || (aP != 0 && mQ != 0)) ? 1 : 0;
             case Prover.COMBINE -> (mQ == 1) ? combineOut : aP;
-            case "first" -> aP == 0 ? mQ : aP;
-            case "if_other" -> mQ != 0 ? aP : 0;
+            case Prover.FIRST_OP -> aP == 0 ? mQ : aP;
+            case Prover.IF_OTHER_OP -> mQ != 0 ? aP : 0;
             default -> throw WalnutException.unexpectedOperator(op);
         };
     }

@@ -74,7 +74,8 @@ public class Prover {
   public static final String BA_EXTENSION = DOT + BA_STRING;
   public static final String MPL_STRING = "mpl";
   public static final String MPL_EXTENSION = DOT + MPL_STRING;
-
+  public static final String FIRST_OP = "first";
+  public static final String IF_OTHER_OP = "if_other";
 
   /**
    * group for filename in RE_FOR_load_CMD
