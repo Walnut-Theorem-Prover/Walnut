@@ -879,6 +879,7 @@ public class IntegrationTest {
 		L.add("[export 1 BA]eval test660 \"TH[a+c] + TH[b-d] = 0\"::");
 
 		L.add("reg test661 {0,1,2,3} {0,1,2,3} {0,1,2,3} \"([3,1,2]*)\":");
+
 	}
 
 	@TestFactory

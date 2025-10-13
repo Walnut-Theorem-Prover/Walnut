@@ -1,4 +1,4 @@
-The "test" command outputs the first n values accepted by an automaton in LSD radix order (see: https://en.wikipedia.org/wiki/Radix_sort), where n is a number supplied by the user.
+The "test" command outputs the first n non-empty values accepted by an automaton in shortlex order: https://en.wikipedia.org/wiki/Shortlex_order), where n is a number supplied by the user.
 
 The syntax for the "test" command is as follows:
 	

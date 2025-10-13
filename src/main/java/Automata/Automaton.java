@@ -518,6 +518,7 @@ public class Automaton {
                     input = input.substring(1, input.length() - 1);
                 }
             }
+            final int oldLen = path.length();
             StringBuilder appendPath = path.append(input);
             for (int y : entry.getValue()) {
                 // if we've already found as much as we need, then there's no need to search further; we propagate the signal
@@ -525,6 +526,7 @@ public class Automaton {
                     return true;
                 }
             }
+            path.setLength(oldLen); // <-- backtrack
         }
         return false;
     }

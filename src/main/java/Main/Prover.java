@@ -841,64 +841,7 @@ public class Prover {
 
   public static boolean testCommand(String s) {
     Matcher m = ProverHelper.matchOrFail(PAT_FOR_test_CMD, s, TEST);
-
-    int needed = Integer.parseInt(m.group(GROUP_TEST_NUM));
-
-    String testName = m.group(GROUP_TEST_NAME);
-
-    // We find the first n inputs accepted by our automaton, lexicographically. If less than n inputs are accepted,
-    // we output all that are.
-    Automaton M = Automaton.readAutomatonFromFile(testName);
-
-    // we don't want to count multiple representations of the same value as distinct accepted values
-    M.randomLabel();
-    M = AutomatonLogicalOps.removeLeadingZeroes(M, M.getLabel(), false, null, null);
-
-    boolean infinite = ProverHelper.infFromAddress(testName);
-
-    // TODO - Call reg command directly, rather than through fake command
-    StringBuilder incLengthReg = new StringBuilder();
-    incLengthReg.append("reg ").append(testName).append("_len ");
-    for (int i = 0; i < M.richAlphabet.getA().size(); i++) {
-      String alphaString = M.richAlphabet.getA().get(i).toString();
-      alphaString = alphaString.substring(1, alphaString.length() - 1);
-      alphaString = "{" + alphaString + "} ";
-      incLengthReg.append(alphaString);
-    }
-
-    StringBuilder dotReg = new StringBuilder();
-    int searchLength = 0;
-    List<String> accepted = new ArrayList<>();
-    while (true) {
-      searchLength++;
-      dotReg.append(".");
-      TestCase retrieval = regCommand(incLengthReg + "\"" + dotReg + "\";");
-      if (retrieval.getAutomatonPairs().size() != 1) {
-        throw new WalnutException("Unexpected retrieval output");
-      }
-      Automaton R = retrieval.getAutomatonPairs().get(0).automaton().clone();
-
-      // and-ing automata uses the cross product routine, which requires labeled automata
-      R.setLabel(M.getLabel());
-      Automaton N = AutomatonLogicalOps.and(M, R, false, null, null);
-      accepted.addAll(N.findAccepted(searchLength, needed - accepted.size()));
-      if (accepted.size() >= needed) {
-        break;
-      }
-
-      // If our automaton accepts finitely many inputs, it does not have a non-redundant cycle, and so the highest length input that could be
-      // accepted is equal to the number of states in the automaton
-      if (!(infinite) && (searchLength >= M.fa.getQ())) {
-        break;
-      }
-    }
-    if (accepted.size() < needed) {
-      System.out.println(testName + " only accepts " + accepted.size() + " inputs, which are as follows: ");
-    }
-    for (String input : accepted) {
-      System.out.println(input);
-    }
-    return accepted.size() >= needed;
+    return ProverHelper.testCommand(m.group(GROUP_TEST_NAME), Integer.parseInt(m.group(GROUP_TEST_NUM)));
   }
 
   public static TestCase ostCommand(String s) {

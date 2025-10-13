@@ -7,11 +7,14 @@ All notable changes to Walnut will be documented here. Format is based on [Keep 
 ### Added
 ### Fixed
 
-- Fixed regression [#38 (load commands running twice)](https://github.com/Walnut-Theorem-Prover/Walnut/issues/38)
-- Improved limitations on alphabet size [#37](https://github.com/Walnut-Theorem-Prover/Walnut/issues/37)
-- Made `reg` command more robust
+- Fixed regression from 7.0 [#38 (load commands running twice)](https://github.com/Walnut-Theorem-Prover/Walnut/issues/38)
+- Fixed regression from 7.0 : `test` command not returning all accepted strings
+- Corrected help message for `test`
+- Fix edge case in `reg` command
 
 ### Changed
+
+- Removed >65K alphabet size limitation [#37](https://github.com/Walnut-Theorem-Prover/Walnut/issues/37)
 
 ## [Walnut 7.0] - 2025-08-01 - Author: John Nicol
 

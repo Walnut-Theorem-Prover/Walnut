@@ -1,6 +1,7 @@
 package Automata;
 
 import Main.MetaCommands;
+import Main.Session;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -33,6 +34,7 @@ class AutomatonTest {
     Assertions.assertEquals(0, A.getArity());
     A.sortLabel();
     Assertions.assertThrows(RuntimeException.class, () -> A.bind(List.of()));
+    Assertions.assertFalse(A.isEmpty());
   }
 
   @Test
@@ -43,5 +45,16 @@ class AutomatonTest {
     Assertions.assertEquals(0, A.getArity());
     A.sortLabel();
     Assertions.assertThrows(RuntimeException.class, () -> A.bind(List.of()));
+    Assertions.assertTrue(A.isEmpty());
+  }
+
+
+  @Test
+  void testGetArity() {
+    Automaton A = new Automaton(Session.getAddressForTestResources() + "unitTests/T.txt");
+    Assertions.assertFalse(A.isEmpty());
+    Assertions.assertEquals(1, A.richAlphabet.getA().size());
+    Assertions.assertEquals(List.of(0,1), A.richAlphabet.getA().get(0));
+    Assertions.assertEquals(1, A.getArity()); // Thue-Morse alphabet [[0,1]] is arity 1
   }
 }
