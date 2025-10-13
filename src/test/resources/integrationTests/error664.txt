@@ -1,0 +1,1 @@
+Intersect requires at least one automaton as input.

@@ -880,6 +880,10 @@ public class IntegrationTest {
 
 		L.add("reg test661 {0,1,2,3} {0,1,2,3} {0,1,2,3} \"([3,1,2]*)\":");
 
+		L.add("combine test662;"); //error
+		L.add("union test663;"); //error
+		L.add("intersect test664;"); //error
+		L.add("concat test665;"); //error
 	}
 
 	@TestFactory
