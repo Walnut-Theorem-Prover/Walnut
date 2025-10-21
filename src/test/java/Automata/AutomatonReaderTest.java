@@ -23,12 +23,12 @@ public class AutomatonReaderTest {
 
   @Test
   void testTrueFalse() {
-    AutomatonReader.readAutomaton(A, Session.getAddressForTestResources() + "unitTests/tf1.txt");
+    AutomatonReader.readAutomaton(A, Session.getAddressForUnitTestResources() + "tf1.txt");
     Assertions.assertTrue(A.fa.isTRUE_FALSE_AUTOMATON());
     Assertions.assertTrue(A.fa.isTRUE_AUTOMATON());
 
     A = new Automaton();
-    AutomatonReader.readAutomaton(A, Session.getAddressForTestResources() + "unitTests/tf2.txt");
+    AutomatonReader.readAutomaton(A, Session.getAddressForUnitTestResources() + "tf2.txt");
     Assertions.assertTrue(A.fa.isTRUE_FALSE_AUTOMATON());
     Assertions.assertFalse( A.fa.isTRUE_AUTOMATON());
   }
@@ -37,21 +37,21 @@ public class AutomatonReaderTest {
   void testBogus1() {
     // transition declared before states
     Assertions.assertThrows(WalnutException.class, () ->
-        AutomatonReader.readAutomaton(A, Session.getAddressForTestResources() + "unitTests/bogus1.txt"));
+        AutomatonReader.readAutomaton(A, Session.getAddressForUnitTestResources() + "bogus1.txt"));
   }
 
   @Test
   void testBogus2() {
     // invalid syntax
     Assertions.assertThrows(WalnutException.class, () ->
-        AutomatonReader.readAutomaton(A, Session.getAddressForTestResources() + "unitTests/bogus2.txt"));
+        AutomatonReader.readAutomaton(A, Session.getAddressForUnitTestResources() + "bogus2.txt"));
   }
 
   @Test
   void testBogus3() {
     // Alphabet doesn't match inputs
     Assertions.assertThrows(WalnutException.class, () ->
-        AutomatonReader.readAutomaton(A, Session.getAddressForTestResources() + "unitTests/bogus3.txt"));
+        AutomatonReader.readAutomaton(A, Session.getAddressForUnitTestResources() + "bogus3.txt"));
   }
 
   @Test

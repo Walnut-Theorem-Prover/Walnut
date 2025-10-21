@@ -829,7 +829,7 @@ public class IntegrationTest {
 		L.add("def test623 \"?msd_fib Ex,y $test621(3*n,x) & $test621(n,y) & x=3*y+2\";"); // def phid3b "?msd_fib Ex,y $phin(3*n,x) & $phin(n,y) & x=3*y+2":
 		L.add("combine test624 test622=1 test623=2;"); // combine FD3 phid3a=1 phid3b=2:
 
-		// Ostrowski test
+		// Ostrowski test. Other Ostrowski tests are in the unit test folder.
 		L.add("ost test625 [0 3 1] [1 2];");
 
 		// Handle multiply by zero
@@ -993,10 +993,10 @@ public class IntegrationTest {
 
 			// hack for repr files.
 			// TODO: make this more generic to auto-detect other files with a given number in their name.
-			automatonFilePath = directoryAddress + "automaton_repr" + i + TXT_EXTENSION;
+			automatonFilePath = directoryAddress + TestCase.OST_REPR_TESTFILE + i + TXT_EXTENSION;
 			if (new File(automatonFilePath).isFile()) {
 				Automaton M2 = new Automaton(automatonFilePath);
-				automatonFilenamePairs.add(new TestCase.AutomatonFilenamePair(M2, "automaton_repr"));
+				automatonFilenamePairs.add(new TestCase.AutomatonFilenamePair(M2, TestCase.OST_REPR_TESTFILE));
 			}
 
 			String error = UtilityMethods.readFromFile(directoryAddress + ERROR_FILE + i + TXT_EXTENSION);

@@ -32,6 +32,7 @@ public class TestCase {
     private final List<AutomatonFilenamePair> automatonPairs;
 
     public static final String DEFAULT_TESTFILE = "automaton";
+    public static final String OST_REPR_TESTFILE = DEFAULT_TESTFILE + "_repr";
     public static final String ERROR_FILE = "error";
     public static final String DETAILS_FILE = "details";
 

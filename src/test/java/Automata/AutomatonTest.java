@@ -51,7 +51,7 @@ class AutomatonTest {
 
   @Test
   void testGetArity() {
-    Automaton A = new Automaton(Session.getAddressForTestResources() + "unitTests/T.txt");
+    Automaton A = new Automaton(Session.getAddressForUnitTestResources() + "T.txt");
     Assertions.assertFalse(A.isEmpty());
     Assertions.assertEquals(1, A.richAlphabet.getA().size());
     Assertions.assertEquals(List.of(0,1), A.richAlphabet.getA().get(0));

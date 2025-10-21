@@ -856,7 +856,7 @@ public class Prover {
 
     return new TestCase(adder,
         List.of(new TestCase.AutomatonFilenamePair(adder, DEFAULT_TESTFILE),
-            new TestCase.AutomatonFilenamePair(repr, "automaton_repr")));
+            new TestCase.AutomatonFilenamePair(repr, TestCase.OST_REPR_TESTFILE)));
   }
 
   public TestCase transduceCommand(String s) {

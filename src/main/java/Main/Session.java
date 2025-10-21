@@ -141,6 +141,9 @@ public class Session {
   public static String getAddressForTestResources() {
     return "src/test/resources/";
   }
+  public static String getAddressForUnitTestResources() {
+    return getAddressForTestResources() + "unitTests/";
+  }
   // read/write from, don't need session-specific code
   public static String getAddressForIntegrationTestResults() {
     return getAddressForTestResources() + "integrationTests/";

@@ -20,7 +20,7 @@ public class ProverHelperTest {
   @Test
   void testFindAcceptedRegression() {
     String testName = "findAcceptedRegression";
-    String testAddress = Session.getAddressForTestResources() + "unitTests/findAcceptedRegression.txt";
+    String testAddress = Session.getAddressForUnitTestResources() + "findAcceptedRegression.txt";
     Automaton M = new Automaton(testAddress);
     List<String> expected = List.of("0", "1", "00", "01", "10", "11", "000", "001", "010", "011");
     Assertions.assertEquals(expected, ProverHelper.findAccepted(M, testName, 10));
@@ -29,7 +29,7 @@ public class ProverHelperTest {
   @Test
   void testInf() {
     String testName = "findAcceptedRegression";
-    String testAddress = Session.getAddressForTestResources() + "unitTests/findAcceptedRegression.txt";
+    String testAddress = Session.getAddressForUnitTestResources() + "findAcceptedRegression.txt";
     Automaton M = new Automaton(testAddress);
     // we don't want to count multiple representations of the same value as distinct accepted values
     M.randomLabel();

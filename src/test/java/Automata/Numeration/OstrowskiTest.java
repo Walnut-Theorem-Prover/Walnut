@@ -2,11 +2,17 @@ package Automata.Numeration;
 
 import Automata.Automaton;
 import Automata.AutomatonWriter;
+import Main.Session;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestClassOrder;
 
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 
 public class OstrowskiTest {
@@ -31,28 +37,132 @@ public class OstrowskiTest {
         Assertions.assertEquals(-1, nodeState.compareTo(nodeState2));
     }
 
+    /**
+     * Test against msd_fib
+     */
     @Test
     void createFib() {
         Ostrowski ost = new Ostrowski("fib", "0 2", "1");
         Assertions.assertEquals(List.of(2),ost.preperiod);
         Assertions.assertEquals(List.of(1),ost.period);
 
-        Automaton repr = ost.createRepresentationAutomaton();
+        testAgainstFile(Session.getAddressForUnitTestResources() + "msd_fib.txt",
+            ost.createRepresentationAutomaton());
+        testAgainstFile(Session.getAddressForUnitTestResources() + "msd_fib_addition.txt",
+            ost.createAdderAutomaton());
+    }
+
+    /**
+     * Test against msd_numSys. This is the example from Ostrowski documentation.
+     */
+    @Test
+    void createNumSys() {
+        Ostrowski ost = new Ostrowski("numsys", "0 3 1", "1 2");
+        Assertions.assertEquals(List.of(3,1),ost.preperiod);
+        Assertions.assertEquals(List.of(1,2),ost.period);
+
+        testAgainstFile(Session.getAddressForUnitTestResources() + "msd_numsys.txt",
+            ost.createRepresentationAutomaton());
+        testAgainstFile(Session.getAddressForUnitTestResources() + "msd_numsys_addition.txt",
+            ost.createAdderAutomaton());
+    }
+
+    /**
+     * Test against msd_pell.
+     */
+    @Test
+    void createPell() {
+        Ostrowski ost = new Ostrowski("pell", "0", "2");
+        Assertions.assertEquals(List.of(2),ost.preperiod); // 0+2
+        Assertions.assertEquals(List.of(2),ost.period);
+
+        testAgainstFile(Session.getAddressForUnitTestResources() + "msd_pell.txt",
+            ost.createRepresentationAutomaton());
+        testAgainstFile(Session.getAddressForUnitTestResources() + "msd_pell_addition.txt",
+            ost.createAdderAutomaton());
+    }
+
+    /**
+     * Test against msd_ns6, from https://www.sciencedirect.com/science/article/pii/S0304397521000311
+     */
+    @Test
+    void createNs6() {
+        Ostrowski ost = new Ostrowski("ns6", "0 1 2 1 1", "1 1 1 2");
+        Assertions.assertEquals(List.of(3, 1, 1),ost.preperiod); // 0+1+2, 1, 1
+        Assertions.assertEquals(List.of(1,1,1,2), ost.period);
+
+        testAgainstFile(Session.getAddressForUnitTestResources() + "msd_ns6.txt",
+            ost.createRepresentationAutomaton());
+        testAgainstFile(Session.getAddressForUnitTestResources() + "msd_ns6_addition.txt",
+            ost.createAdderAutomaton());
+    }
+    /**
+     * Test against msd_ns7, from https://www.sciencedirect.com/science/article/pii/S0304397521000311
+     */
+    @Test
+    void createNs7() {
+        Ostrowski ost = new Ostrowski("ns7", "0 1 1 3", "1 2 1");
+        Assertions.assertEquals(List.of(2,3),ost.preperiod); // 0+1+1, 3
+        Assertions.assertEquals(List.of(1,2,1), ost.period);
+
+        testAgainstFile(Session.getAddressForUnitTestResources() + "msd_ns7.txt",
+            ost.createRepresentationAutomaton());
+        testAgainstFile(Session.getAddressForUnitTestResources() + "msd_ns7_addition.txt",
+            ost.createAdderAutomaton());
+    }
+    /**
+     * Test against msd_ns8, from https://www.sciencedirect.com/science/article/pii/S0304397521000311
+     */
+    @Test
+    void createNs8() {
+        Ostrowski ost = new Ostrowski("ns8", "0 1 3 1", "2");
+        Assertions.assertEquals(List.of(4,1),ost.preperiod); // 0+1+3, 1
+        Assertions.assertEquals(List.of(2), ost.period);
+
+        testAgainstFile(Session.getAddressForUnitTestResources() + "msd_ns8.txt",
+            ost.createRepresentationAutomaton());
+        testAgainstFile(Session.getAddressForUnitTestResources() + "msd_ns8_addition.txt",
+            ost.createAdderAutomaton());
+    }
+    /**
+     * Test against msd_ns9, from https://www.sciencedirect.com/science/article/pii/S0304397521000311
+     */
+    @Test
+    void createNs9() {
+        Ostrowski ost = new Ostrowski("ns9", "0 1 2 3", "2");
+        Assertions.assertEquals(List.of(3,3),ost.preperiod); // 0+1+2,3
+        Assertions.assertEquals(List.of(2), ost.period);
+
+        testAgainstFile(Session.getAddressForUnitTestResources() + "msd_ns9.txt",
+            ost.createRepresentationAutomaton());
+        testAgainstFile(Session.getAddressForUnitTestResources() + "msd_ns9_addition.txt",
+            ost.createAdderAutomaton());
+    }
+    /**
+     * Test against msd_ns10, from https://www.sciencedirect.com/science/article/pii/S0304397521000311
+     */
+    @Test
+    void createNs10() {
+        Ostrowski ost = new Ostrowski("ns10", "0 1 4 2", "3");
+        Assertions.assertEquals(List.of(5, 2),ost.preperiod); // 0+1+4, 2
+        Assertions.assertEquals(List.of(3), ost.period);
+
+        testAgainstFile(Session.getAddressForUnitTestResources() + "msd_ns10.txt",
+            ost.createRepresentationAutomaton());
+        testAgainstFile(Session.getAddressForUnitTestResources() + "msd_ns10_addition.txt",
+            ost.createAdderAutomaton());
+    }
+
+    private static void testAgainstFile(String expectedFileLoc, Automaton actualAutomaton) {
         StringWriter stringWriter = new StringWriter();
         PrintWriter printWriter = new PrintWriter(stringWriter);
-        AutomatonWriter.writeTxtFormatToStream(repr, printWriter);
-        String reprString = stringWriter.toString();
-        reprString = reprString.replace(" ","").replace("\n","");
-        Assertions.assertEquals("{0,1}010->01->1110->0", reprString);
-
-        Automaton adder = ost.createAdderAutomaton();
-        stringWriter = new StringWriter();
-        printWriter = new PrintWriter(stringWriter);
-        AutomatonWriter.writeTxtFormatToStream(adder, printWriter);
-        String adderString = stringWriter.toString();
-        adderString = adderString.replace(" ","").replace("\n","");
-        Assertions.assertEquals(
-            "{0,1}{0,1}{0,1}01000->0001->1101->0011->010000->2100->3010->3110->4101->2011->2111->320100->2010->2110->3111->230000->1100->0010->0101->1011->1111->041000->5001->6101->5011->550001->061000->3100->4010->4001->2101->3011->3111->4",
-            adderString);
+        String expectedAutomaton = null;
+        try {
+            expectedAutomaton = Files.readString(Path.of(expectedFileLoc));
+        } catch (IOException ex) {
+            Assertions.fail("Unexpected: " + ex);
+        }
+        AutomatonWriter.writeTxtFormatToStream(actualAutomaton, printWriter);
+        Assertions.assertEquals(expectedAutomaton, stringWriter.toString());
     }
 }
