@@ -341,11 +341,7 @@ public class AutomatonLogicalOps {
      * union all these automata together, and intersect with our original automaton.
      */
     public static Automaton removeLeadingZeroes(Automaton A, List<String> listOfLabels, boolean print, String prefix, StringBuilder log) {
-        for (String s : listOfLabels) {
-            if (!A.getLabel().contains(s)) {
-                throw new WalnutException("Variable " + s + " in the list of quantified variables is not a free variable.");
-            }
-        }
+        AutomatonQuantification.validateLabels(A, listOfLabels);
         if (listOfLabels.isEmpty()) {
             return A.clone();
         }

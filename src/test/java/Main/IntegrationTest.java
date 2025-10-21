@@ -884,6 +884,8 @@ public class IntegrationTest {
 		L.add("union test663;"); //error
 		L.add("intersect test664;"); //error
 		L.add("concat test665;"); //error
+
+		L.add("eval test666 \"An (n>=4) => Ex x>=1 | x<=1\";"); // regression test, okay in Walnut 5, too strict in Walnut 7.0
 	}
 
 	@TestFactory

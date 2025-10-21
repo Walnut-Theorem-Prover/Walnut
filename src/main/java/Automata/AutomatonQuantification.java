@@ -7,10 +7,7 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectRBTreeMap;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class AutomatonQuantification {
   public static void quantify(Automaton A, String labelToQuantify, boolean print, String prefix, StringBuilder log) {
@@ -47,17 +44,12 @@ public class AutomatonQuantification {
 
   private static void quantifyHelper(
       Automaton A, Set<String> labelsToQuantify, boolean print, String prefix, StringBuilder log) {
-      if (labelsToQuantify.isEmpty() || A.getLabel() == null) {
+      if (labelsToQuantify.isEmpty() || A.getLabel() == null || A.getLabel().isEmpty()) {
           return;
       }
 
-      for (String s : labelsToQuantify) {
-          if (!A.getLabel().contains(s)) {
-              throw new WalnutException(
-                      "Variable " + s + " in the list of quantified variables is not a free variable.");
-          }
-      }
-      long timeBefore = System.currentTimeMillis();
+    validateLabels(A, labelsToQuantify);
+    long timeBefore = System.currentTimeMillis();
       UtilityMethods.logMessage(print, prefix + "quantifying:" + A.fa.getQ() + " states", log);
 
       //If this is the case, then the quantified automaton is either the true or false automaton.
@@ -108,6 +100,14 @@ public class AutomatonQuantification {
       A.determinizeAndMinimize(print, prefix + " ", log);
       long timeAfter = System.currentTimeMillis();
       UtilityMethods.logMessage(print, prefix + "quantified:" + A.fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
+  }
+
+  static void validateLabels(Automaton A, Collection<String> labelsToQuantify) {
+    for (String s : labelsToQuantify) {
+        if (!A.getLabel().contains(s)) {
+            throw WalnutException.notFreeVariable(s);
+        }
+    }
   }
 
   /**

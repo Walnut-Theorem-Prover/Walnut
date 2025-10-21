@@ -82,6 +82,9 @@ public class WalnutException extends RuntimeException {
         return new WalnutException("No such command exists.");
     }
 
+    public static WalnutException notFreeVariable(String s) {
+        return new WalnutException("Variable " + s + " in the list of quantified variables is not a free variable.");
+    }
     public static WalnutException operatorMissing(int index) {
         return new WalnutException("An operator is missing: char at " + index);
     }

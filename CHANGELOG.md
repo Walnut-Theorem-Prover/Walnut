@@ -7,10 +7,11 @@ All notable changes to Walnut will be documented here. Format is based on [Keep 
 ### Added
 ### Fixed
 
-- Fixed regression from 7.0 [#38 (load commands running twice)](https://github.com/Walnut-Theorem-Prover/Walnut/issues/38)
-- Fixed regression from 7.0 : `test` command not returning all accepted strings
+- Fixed regression [#38 (load commands running twice)](https://github.com/Walnut-Theorem-Prover/Walnut/issues/38)
+- Fixed regression : `test` command not outputting all accepted strings
+- Fixed regression : free-variable validation became too strict
 - Corrected help message for `test`
-- Fix edge case in `reg` command
+- Fix old edge case in `reg` command
 
 ### Changed
 
