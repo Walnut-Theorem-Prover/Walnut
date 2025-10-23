@@ -260,6 +260,7 @@ public class DeterminizationStrategies {
     }
     final Threshold threshold = Threshold.adaptiveSteps(4000);
     Registry registry = new AntichainForestRegistry<>(reduced, simRels.toArray(new BitSet[0]));
+    simRels.clear(); // help GC
     Alphabet<Integer> inputs = reduced.getInputAlphabet();
     AcceptorPowersetViewTS<BitSet, Integer, Integer> nfa = reduced.powersetView();
     Deque<DeterminizeRecord<BitSet>> stack = new ArrayDeque<>();

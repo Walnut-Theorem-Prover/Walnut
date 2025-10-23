@@ -48,7 +48,7 @@ public class MetaCommands {
   }
 
   /**
-   * Add "export 15 BA" for example. Currently only BA is supported.
+   * Add "export 15 BA" for example.
    */
   public void addExport(String automataIdx, String format) {
     String formatLower = format.toLowerCase();
