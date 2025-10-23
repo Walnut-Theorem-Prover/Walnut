@@ -45,6 +45,13 @@ public class WalnutException extends RuntimeException {
     public static WalnutException fileDoesNotExist(String address) {
         return new WalnutException("File does not exist: " + address);
     }
+    public static WalnutException fileEmpty(String address) {
+        return new WalnutException("File is empty or contains only comments/whitespace: " + address);
+    }
+    public static WalnutException fileHasConflict(String address, long lineNumber) {
+        return new WalnutException("A file that declares 'true'/'false' must not contain other statements: " +
+            "line " + lineNumber + " of file " + address);
+    }
 
     public static WalnutException internalMacro(int index) {
         return new WalnutException("a function/macro cannot be called from inside another function/macro's argument list: char at " + index);

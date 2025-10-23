@@ -7,7 +7,8 @@ public class ProverTest {
   @Test
   void testInfCommand() {
     Assertions.assertThrows(WalnutException.class, () -> Prover.infCommand(""));
-    Assertions.assertThrows(IllegalArgumentException.class, () -> Prover.infCommand("inf NONEXISTENT"));
+    Assertions.assertThrows(WalnutException.class, () -> Prover.infCommand("inf NONEXISTENT"),
+        WalnutException.fileDoesNotExist("inf NONEXISTENT").getMessage());
 
     Session.setPathsAndNamesIntegrationTests();
     Assertions.assertTrue(Prover.infCommand("inf diffbyone"));

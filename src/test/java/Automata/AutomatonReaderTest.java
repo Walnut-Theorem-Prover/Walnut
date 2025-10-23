@@ -34,30 +34,63 @@ public class AutomatonReaderTest {
   }
 
   @Test
-  void testBogus1() {
+  void testTransitionDeclaredFirst() {
     // transition declared before states
     Assertions.assertThrows(WalnutException.class, () ->
-        AutomatonReader.readAutomaton(A, Session.getAddressForUnitTestResources() + "bogus1.txt"));
+        AutomatonReader.readAutomaton(A,
+            Session.getAddressForUnitTestResources() + "bogusTransitionDeclaredFirst.txt"));
   }
 
   @Test
-  void testBogus2() {
+  void testInvalidSyntax() {
     // invalid syntax
     Assertions.assertThrows(WalnutException.class, () ->
-        AutomatonReader.readAutomaton(A, Session.getAddressForUnitTestResources() + "bogus2.txt"));
+        AutomatonReader.readAutomaton(A,
+            Session.getAddressForUnitTestResources() + "bogusInvalidSyntax.txt"));
   }
 
   @Test
-  void testBogus3() {
+  void testAlphabetNotMatch() {
     // Alphabet doesn't match inputs
     Assertions.assertThrows(WalnutException.class, () ->
-        AutomatonReader.readAutomaton(A, Session.getAddressForUnitTestResources() + "bogus3.txt"));
+        AutomatonReader.readAutomaton(A,
+            Session.getAddressForUnitTestResources() + "bogusAlphabetNotMatch.txt"));
   }
 
   @Test
-  void testBogus4() {
+  void testTrueWithConflict() {
+    Assertions.assertThrows(WalnutException.class, () ->
+        AutomatonReader.readAutomaton(A,
+            Session.getAddressForUnitTestResources() + "bogusTrueWithConflict.txt"));
+  }
+
+  @Test
+  void testNonexistentFile() {
     // File doesn't exist
-    Assertions.assertThrows(IllegalArgumentException.class, () ->
-        AutomatonReader.readAutomaton(A, Session.getAddressForTestResources() + "NONEXISTENTFILE"));
+    String address = Session.getAddressForUnitTestResources() + "NONEXISTENTFILE";
+    Assertions.assertThrows(WalnutException.class, () ->
+        AutomatonReader.readAutomaton(A, address),
+        WalnutException.fileDoesNotExist(address).getMessage());
+  }
+
+  @Test
+  void testEmptyFile() {
+    Assertions.assertThrows(WalnutException.class, () ->
+        AutomatonReader.readAutomaton(A, Session.getAddressForUnitTestResources() + "emptyFile.txt"));
+  }
+
+  @Test
+  void testReadComments() {
+    // This can be a bogus automaton
+    String c = AutomatonReader.readComments(
+        Session.getAddressForUnitTestResources() + "bogusTransitionDeclaredFirst.txt");
+    Assertions.assertEquals("# No states declared", c);
+  }
+  @Test
+  void testReadCommentsNonexistentFile() {
+    String address = Session.getAddressForUnitTestResources() + "NONEXISTENTFILE";
+    Assertions.assertThrows(WalnutException.class, () ->
+            AutomatonReader.readComments(address),
+        WalnutException.fileDoesNotExist(address).getMessage());
   }
 }

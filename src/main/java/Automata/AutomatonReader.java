@@ -14,7 +14,7 @@ import static Automata.ParseMethods.PATTERN_WHITESPACE;
 
 public class AutomatonReader {
     static void readAutomaton(Automaton A, String address) {
-        File f = UtilityMethods.validateFile(address);
+        File f = new File(address);
 
         long lineNumber = 0;
         A.setAlphabetSize(1);
@@ -112,6 +112,8 @@ public class AutomatonReader {
     static long firstParse(Automaton automaton,
                            String address, BufferedReader in, long lineNumber, Boolean[] trueFalseSingleton) throws IOException {
         String line;
+        boolean sawHeader = false;
+
         while ((line = in.readLine()) != null) {
             lineNumber++;
 
@@ -119,31 +121,47 @@ public class AutomatonReader {
                 continue;
             }
 
+            // Handle true/false files (automata only)
             if (trueFalseSingleton != null && ParseMethods.parseTrueFalse(line, trueFalseSingleton)) {
-                // It is a true/false automaton.
                 automaton.fa.setTRUE_FALSE_AUTOMATON(true);
                 automaton.fa.setTRUE_AUTOMATON(trueFalseSingleton[0]);
-                break;
+                sawHeader = true;
+
+                // ensure nothing else follows except comments/whitespace
+                while ((line = in.readLine()) != null) {
+                    lineNumber++;
+                    if (!shouldSkipLine(line)) {
+                        throw WalnutException.fileHasConflict(address, lineNumber);
+                    }
+                }
+                return lineNumber; // done
             }
 
+            // Handle alphabet declaration
             if (ParseMethods.parseAlphabetDeclaration(line, automaton.richAlphabet.getA(), automaton.getNS())) {
                 for (int i = 0; i < automaton.richAlphabet.getA().size(); i++) {
                     if (automaton.getNS().get(i) != null &&
-                        (!automaton.richAlphabet.getA().get(i).contains(0) || !automaton.richAlphabet.getA().get(i).contains(1))) {
+                        (!automaton.richAlphabet.getA().get(i).contains(0)
+                            || !automaton.richAlphabet.getA().get(i).contains(1))) {
                         throw new WalnutException(
-                            "The " + (i + 1) + "th input of type arithmetic " +
-                                "of the automaton declared in file " + address +
-                                " requires 0 and 1 in its input alphabet: line " +
-                                lineNumber);
+                            "The " + (i + 1) + "th input of type arithmetic of the automaton declared in file " +
+                                address + " requires 0 and 1 in its input alphabet: line " + lineNumber);
                     }
                     UtilityMethods.removeDuplicates(automaton.richAlphabet.getA().get(i));
                 }
                 automaton.determineAlphabetSize();
+                sawHeader = true;
                 break;
             } else {
                 throw WalnutException.undefinedStatement(lineNumber, address);
             }
         }
+
+        // raise on empty/comments-only file
+        if (!sawHeader) {
+            throw WalnutException.fileEmpty(address);
+        }
+
         return lineNumber;
     }
 
@@ -161,7 +179,7 @@ public class AutomatonReader {
     }
 
     public static void readTransducer(Transducer transducer, String address) {
-        File f = UtilityMethods.validateFile(address);
+        File f = new File(address);
 
         long lineNumber = 0;
         transducer.setAlphabetSize(1);
@@ -245,7 +263,7 @@ public class AutomatonReader {
      */
     public static String readComments(String address) {
         StringBuilder sb = new StringBuilder();
-        File f = UtilityMethods.validateFile(address);
+        File f = new File(address);
         String line;
         try (BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(f)))) {
             while ((line = in.readLine()) != null) {
