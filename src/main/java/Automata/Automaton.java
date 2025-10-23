@@ -250,7 +250,7 @@ public class Automaton {
             if (ns != null && ns.useAllRepresentations()) {
                 switchNS = true;
                 int max = Collections.max(richAlphabet.getA().get(i));
-                numberSystems.add(new NumberSystem((ns.isMsd() ? "msd_" : "lsd_") + (max + 1)));
+                numberSystems.add(new NumberSystem(ns.determineBaseNameUnderscore() + (max + 1)));
             } else {
                 numberSystems.add(ns);
             }

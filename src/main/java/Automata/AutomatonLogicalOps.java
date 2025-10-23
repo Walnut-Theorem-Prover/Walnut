@@ -575,22 +575,25 @@ public class AutomatonLogicalOps {
 
         long timeBefore = System.currentTimeMillis();
         int newBase = (int) Math.pow(base, exponent);
+        String msdUnderscore = NumberSystem.MSD_UNDERSCORE;
 
         UtilityMethods.logMessage(
                 print,
-                prefix + "Converting: msd_" + base + " to msd_" + newBase
-                        + ", " + A.fa.getQ() + " states",
+                prefix + "Converting: " + msdUnderscore + base + " to " +
+                    msdUnderscore + newBase +
+                    ", " + A.fa.getQ() + " states",
                 log
         );
 
         updateTransitionsFromMorphism(A.fa, exponent);
 
         // Update number system: msd_{base^exponent}
-        A.getNS().set(0, new NumberSystem("msd_" + newBase));
+        A.getNS().set(0, new NumberSystem(msdUnderscore + newBase));
         setAutomatonAlphabet(A, newBase);
 
-        UtilityMethods.logMessage(print, prefix + "Converted: msd_" + base + " to msd_" + newBase
-                + ", " + A.fa.getQ() + " states - " + (System.currentTimeMillis() - timeBefore) + "ms", log);
+        UtilityMethods.logMessage(print, prefix + "Converted: " + msdUnderscore + base + " to " +
+            msdUnderscore + newBase +
+            ", " + A.fa.getQ() + " states - " + (System.currentTimeMillis() - timeBefore) + "ms", log);
     }
 
     /**
@@ -605,12 +608,14 @@ public class AutomatonLogicalOps {
         if (base != (int) expected) {
             throw new WalnutException("Base mismatch: expected " + (int) expected + ", found " + base);
         }
+        final String lsdUnderscore = NumberSystem.LSD_UNDERSCORE;
 
         long timeBefore = System.currentTimeMillis();
         UtilityMethods.logMessage(
                 print,
-                prefix + "Converting: lsd_" + base + " to lsd_" + (int) expected
-                        + ", " + A.fa.getQ() + " states",
+                prefix + "Converting: " + lsdUnderscore + base + " to " +
+                    lsdUnderscore + (int) expected +
+                    ", " + A.fa.getQ() + " states",
                 log
         );
 
@@ -683,13 +688,14 @@ public class AutomatonLogicalOps {
         A.fa.setCanonized(false);
 
         // Update number system to lsd_root
-        A.getNS().set(0, new NumberSystem("lsd_" + root));
+        A.getNS().set(0, new NumberSystem(lsdUnderscore + root));
         setAutomatonAlphabet(A, root);
 
         UtilityMethods.logMessage(
                 print,
-                prefix + prefix + "Converted: lsd_" + base + " to lsd_" + (int) expected
-                        + ", " + A.fa.getQ() + " states - " + (System.currentTimeMillis() - timeBefore) + "ms",
+                prefix + prefix + "Converted: " + lsdUnderscore + base +
+                    " to " + lsdUnderscore + (int) expected +
+                    ", " + A.fa.getQ() + " states - " + (System.currentTimeMillis() - timeBefore) + "ms",
                 log);
     }
 

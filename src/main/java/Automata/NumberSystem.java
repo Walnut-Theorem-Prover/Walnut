@@ -69,20 +69,28 @@ public class NumberSystem {
     public static final String MSD_UNDERSCORE = MSD + "_";
     public static final String MSD_2 = MSD_UNDERSCORE + "2";
     public static final String LSD = "lsd";
+    public static final String LSD_UNDERSCORE = LSD + "_";
 
+    private static final String NEG_UNDERSCORE = "neg_";
+    private static final String UNDERSCORE_NEG_UNDERSCORE = "_" + NEG_UNDERSCORE;
+
+    public static final String UNDERSCORE_ADDITION_AUTOMATON = "_addition" + Prover.TXT_EXTENSION;
+
+    public static final String UNDERSCORE_BASE_CHANGE_AUTOMATON = "_base_change" + Prover.TXT_EXTENSION;
+
+    public static final String UNDERSCORE_LESS_THAN_AUTOMATON = "_less_than" + Prover.TXT_EXTENSION;
     /**
-     * Examples: msd_2, lsd_3, lsd_fib, ...
+     * Examples: msd_2, lsd_3, lsd_fib, msd_neg_fib...
      */
     private final String name;
 
     /**
-     * is_msd is used to determine which of first or last digit is the most significant digit. It'll be used when we
-     * call quantify method, and also in many other places.
+     * isMsd is used to determine which of first or last digit is the most significant digit.
      */
     private final boolean isMsd;
 
     /**
-     * is_neg is used to determine whether the base is negative.
+     * isNeg is used to determine whether the base is negative.
      */
     private final boolean isNeg;
 
@@ -160,6 +168,10 @@ public class NumberSystem {
         return isMsd;
     }
 
+    /**
+     * Determine negative number system.
+     * Currently used ONLY in split command.
+     */
     NumberSystem determineNegativeNS() {
         NumberSystem negativeNumberSystem;
         if (isNeg) {
@@ -167,7 +179,7 @@ public class NumberSystem {
         } else {
             String msdOrLsd = determineMsdOrLsd(name);
             String base = determineBase(name);
-            negativeNumberSystem = new NumberSystem(msdOrLsd + "_neg_" + base);
+            negativeNumberSystem = new NumberSystem(msdOrLsd + UNDERSCORE_NEG_UNDERSCORE + base);
         }
         negativeNumberSystem.setBaseChangeAutomaton();
         return negativeNumberSystem;
@@ -176,6 +188,7 @@ public class NumberSystem {
     /**
      * Parse the base (k) from an Automaton's number system name, e.g. "msd_10" => 10.
      * Throws if base is invalid.
+     * TODO: Note this currently only works for positive bases. That may be by design?
      */
     public int parseBase() {
         String baseStr = determineBase(name);
@@ -210,7 +223,7 @@ public class NumberSystem {
         this.name = name;
         String msdOrLsd = determineMsdOrLsd(name);
         isMsd = msdOrLsd.equals(MSD);
-        isNeg = name.contains("neg");
+        isNeg = name.contains(UNDERSCORE_NEG_UNDERSCORE); // fix: msd_neg_fib... but not msd_renege
         String base = determineBase(name);
 
         setAdditionAutomaton(name, base);
@@ -255,7 +268,7 @@ public class NumberSystem {
     @SuppressWarnings("this-escape")
     private void setAdditionAutomaton(
         String name, String base) {
-        addition = loadAutomatonOrNull(name, "_addition.txt", base);
+        addition = loadAutomatonOrNull(name, UNDERSCORE_ADDITION_AUTOMATON, base);
         if (addition == null) {
             if (UtilityMethods.isNumber(base) && Integer.parseInt(base) > 1) {
                 addition = baseNadditionAutomaton(Integer.parseInt(base));
@@ -303,7 +316,7 @@ public class NumberSystem {
 
     private void setLessThanAutomaton(
         String name, String base) {
-        lessThan = loadAutomatonOrNull(name, "_less_than.txt", base);
+        lessThan = loadAutomatonOrNull(name, UNDERSCORE_LESS_THAN_AUTOMATON, base);
         if (lessThan == null) {
             if (UtilityMethods.parseNegNumber(base) > 1) {
                 lessThan = baseNegNLessThan(UtilityMethods.parseNegNumber(base));
@@ -317,23 +330,21 @@ public class NumberSystem {
 
         // The lessThan automata must have 2 arithmetic inputs, with the same alphabet as the addition automaton.
         if (lessThan.richAlphabet.getA() == null || lessThan.richAlphabet.getA().size() != 2) {
-            throw new WalnutException(
-                "The less_than automaton must have exactly 2 inputs: base " + name);
+            throw new WalnutException(UNDERSCORE_LESS_THAN_AUTOMATON + " must have exactly 2 inputs: base " + name);
         }
 
         for (int i = 0; i < lessThan.richAlphabet.getA().size(); i++) {
             if (!UtilityMethods.areEqual(lessThan.richAlphabet.getA().get(i), getAlphabet())) {
                 throw new WalnutException(
-                    "Inputs of the less_than automaton must have the same alphabet " +
-                        "as the alphabet of inputs of addition automaton: base " + name);
+                    "Inputs of " + UNDERSCORE_LESS_THAN_AUTOMATON + " must have the same alphabet " +
+                        "as the alphabet of inputs of " + UNDERSCORE_ADDITION_AUTOMATON + " : base " + name);
             }
 
             lessThan.getNS().set(i, this);
         }
     }
 
-    private void setAllRepAutomaton(
-        String name, String base) {
+    private void setAllRepAutomaton(String name, String base) {
         //the set of all representations
         allRepresentations = loadAutomatonOrNull(name, Prover.TXT_EXTENSION, base);
         if (allRepresentations == null) {
@@ -387,12 +398,19 @@ public class NumberSystem {
      * the positive or negative one. This is not initialized for all number systems by default. You should call this
      * function to initialize as required. If no baseChange file is found in the custom bases, we leave the baseChange
      * automaton unset.
+     * Currently used ONLY in split command.
      */
     private void setBaseChangeAutomaton() {
         if (baseChange != null) return;
-        String base = determineBase(name);
-        baseChange = loadAutomatonOrNull(
-            isNeg ? name : determineMsdOrLsd(name), "_base_change.txt", base);
+        final String base = determineBase(name);
+
+        // For positive bases, base-change files are named using "neg_" (e.g., msd_neg_10_base_change.txt).
+        // For negative bases, we use the full name verbatim (e.g., msd_neg_10_base_change.txt).
+        // Build names like "msd_neg_10" / "lsd_neg_10" without introducing a double "_"
+        final String negBaseNoLead = NEG_UNDERSCORE + base;                  // "neg_10"
+        final String mainName = isNeg ? name : (determineMsdOrLsd(name) + "_" + negBaseNoLead); // "msd_neg_10"
+        final String compBase = isNeg ? base : negBaseNoLead;
+        baseChange = loadAutomatonOrNull(mainName, UNDERSCORE_BASE_CHANGE_AUTOMATON, compBase);
         if (baseChange == null) {
             if (UtilityMethods.parseNegNumber(base) > 1) {
                 baseChange = baseNBaseChange(UtilityMethods.parseNegNumber(base));
@@ -401,7 +419,7 @@ public class NumberSystem {
                 }
             }
             if (baseChange == null) {
-                throw new WalnutException("Number system cannot be compared.");
+                throw WalnutException.numberSystemCannotCompare();
             }
         }
         baseChange.applyAllRepresentations();
@@ -520,7 +538,7 @@ public class NumberSystem {
     private Automaton baseNBaseChange(int n) {
         List<Integer> alphabet = buildAlphabet(n);
         Automaton baseChange = initBasicAutomaton(IntList.of(1,1,0,0));
-        String baseNameUnderScore = (isMsd ? MSD : LSD) + "_";
+        String baseNameUnderScore = determineBaseNameUnderscore();
         baseChange.getNS().add(new NumberSystem(baseNameUnderScore + n));
         baseChange.getNS().add(new NumberSystem(baseNameUnderScore + "neg_" + n));
         baseChange.richAlphabet.getA().add(new ArrayList<>(alphabet));
@@ -550,6 +568,10 @@ public class NumberSystem {
             }
         }
         return baseChange;
+    }
+
+    public String determineBaseNameUnderscore() {
+        return isMsd ? MSD_UNDERSCORE : LSD_UNDERSCORE;
     }
 
     private static Automaton initBasicAutomaton(IntList O) {

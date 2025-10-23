@@ -886,6 +886,8 @@ public class IntegrationTest {
 		L.add("concat test665;"); //error
 
 		L.add("eval test666 \"An (n>=4) => Ex x>=1 | x<=1\";"); // regression test, okay in Walnut 5, too strict in Walnut 7.0
+
+		L.add("convert $blah msd_2 foo;"); // 667: can't convert DFAO into function
 	}
 
 	@TestFactory

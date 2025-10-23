@@ -128,7 +128,7 @@ public class Morphism {
         // this word automaton is purely symbolic in input and we want it in the exact order given
         promotion.fa.setCanonized(true);
         // the base for the automata is the length of the longest image of any letter under the morphism
-        promotion.getNS().add(new NumberSystem("msd_" + maxImageLength));
+        promotion.getNS().add(new NumberSystem(NumberSystem.MSD_UNDERSCORE + maxImageLength));
 
         return promotion;
     }

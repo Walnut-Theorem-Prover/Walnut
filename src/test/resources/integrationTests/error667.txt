@@ -1,0 +1,1 @@
+Cannot convert a Word Automaton into a function

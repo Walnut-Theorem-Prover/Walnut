@@ -811,11 +811,7 @@ public class Prover {
       } else {
         String addressForAutomaton
             = Session.getReadFileForAutomataLibrary(automatonName + TXT_EXTENSION);
-        if ((new File(addressForAutomaton)).isFile()) {
-          M = new Automaton(addressForAutomaton);
-        } else {
-          throw new WalnutException("Automaton " + automatonName + " does not exist.");
-        }
+        M = new Automaton(addressForAutomaton);
       }
 
       String automatonInputs = m1.group(GROUP_JOIN_AUTOMATON_INPUT);
@@ -850,9 +846,10 @@ public class Prover {
     String name = m.group(GROUP_OST_NAME);
     Ostrowski ostr = new Ostrowski(name, m.group(GROUP_OST_PREPERIOD), m.group(GROUP_OST_PERIOD));
     Automaton repr = ostr.createRepresentationAutomaton();
-    Ostrowski.writeAutomaton(name, "msd_" + name + TXT_EXTENSION, repr);
+    String msdName = NumberSystem.MSD_UNDERSCORE + name;
+    Ostrowski.writeAutomaton(name, msdName + TXT_EXTENSION, repr);
     Automaton adder = ostr.createAdderAutomaton();
-    Ostrowski.writeAutomaton(name, "msd_" + name + "_addition" + TXT_EXTENSION, adder);
+    Ostrowski.writeAutomaton(name, msdName + NumberSystem.UNDERSCORE_ADDITION_AUTOMATON, adder);
 
     return new TestCase(adder,
         List.of(new TestCase.AutomatonFilenamePair(adder, DEFAULT_TESTFILE),
@@ -900,7 +897,7 @@ public class Prover {
     String oldDollarSign = m.group(GROUP_CONVERT_OLD_DOLLAR_SIGN);
     boolean oldIsDFAO = !oldDollarSign.equals("$");
     if (oldIsDFAO && !newIsDFAO) {
-      throw new WalnutException("Cannot convert a Word Automaton into a function");
+      throw WalnutException.convertDFAOIntoFunction();
     }
     
     String inFileName = m.group(GROUP_CONVERT_OLD_NAME) + TXT_EXTENSION;

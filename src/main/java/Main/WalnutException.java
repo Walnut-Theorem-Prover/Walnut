@@ -34,6 +34,10 @@ public class WalnutException extends RuntimeException {
         return new WalnutException("cannot set an automaton of type Automaton to a non-deterministic automaton of type dk.bricks.automaton.Automaton");
     }
 
+    public static WalnutException convertDFAOIntoFunction() {
+        return new WalnutException("Cannot convert a Word Automaton into a function");
+    }
+
     public static WalnutException divisionByZero() {
         return new WalnutException("division by zero");
     }
@@ -91,6 +95,9 @@ public class WalnutException extends RuntimeException {
 
     public static WalnutException notFreeVariable(String s) {
         return new WalnutException("Variable " + s + " in the list of quantified variables is not a free variable.");
+    }
+    public static WalnutException numberSystemCannotCompare() {
+        return new WalnutException("Number system cannot be compared.");
     }
     public static WalnutException operatorMissing(int index) {
         return new WalnutException("An operator is missing: char at " + index);
