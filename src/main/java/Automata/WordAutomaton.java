@@ -177,7 +177,8 @@ public class WordAutomaton {
       minimizeSelfWithOutput(wordA, print, prefix + " ", log);
 
       if (addedDeadState) {
-          AutomatonLogicalOps.removeStatesWithMinOutput(wordA, minOutput);
+          AutomatonLogicalOps.removeStatesWithMinOutput(wordA.fa, minOutput);
+          wordA.forceCanonize();
       }
 
       long timeAfter = System.currentTimeMillis();

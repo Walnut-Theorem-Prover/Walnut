@@ -234,13 +234,6 @@ public class Automaton {
         return AutomatonLogicalOps.combine(this, subautomata, outputs, print, prefix, log);
     }
 
-    // For use in the "combine" command.
-    public void canonizeAndApplyAllRepresentationsWithOutput(boolean print, String prefix, StringBuilder log) {
-        this.fa.setCanonized(false);
-        this.canonize();
-        this.applyAllRepresentationsWithOutput(print, prefix, log);
-    }
-
     private void normalizeNumberSystems(boolean print, String prefix, StringBuilder log) {
         // set all the number systems to be null.
         boolean switchNS = false;
@@ -271,8 +264,7 @@ public class Automaton {
         Automaton N = clone();
         FA.starStates(this.fa, N.fa);
         N.normalizeNumberSystems(print, prefix, log);
-        N.fa.setCanonized(false);
-        N.canonize();
+        N.forceCanonize();
         N.determinizeAndMinimize(print, prefix, log);
         N.applyAllRepresentations();
 
@@ -326,7 +318,6 @@ public class Automaton {
 
 
     public void setAlphabet(boolean isDFAO, List<NumberSystem> numberSystems, List<List<Integer>> alphabet, boolean print, String prefix, StringBuilder log) {
-
         if (alphabet.size() != richAlphabet.getA().size()) {
             throw new WalnutException("The number of alphabets must match the number of alphabets in the input automaton.");
         }
@@ -359,7 +350,8 @@ public class Automaton {
             M.determinizeAndMinimize(print, prefix, log);
         }
 
-        M.canonizeAndApplyAllRepresentationsWithOutput(print, prefix + " ", log);
+        M.forceCanonize();
+        M.applyAllRepresentationsWithOutput(print, prefix + " ", log);
 
         copy(M);
 
@@ -536,12 +528,10 @@ public class Automaton {
         Automaton K = this;
         for (int i = 0; i < richAlphabet.getA().size(); i++) {
             NumberSystem ns = getNS().get(i);
-            if (ns != null) {
+            if (ns != null && ns.useAllRepresentations()) {
                 Automaton N = ns.getAllRepresentations();
-                if (N != null && ns.useAllRepresentations()) {
-                    N.bind(List.of(getLabel().get(i)));
-                    K = AutomatonLogicalOps.and(K, N, false, null, null);
-                }
+                N.bind(List.of(getLabel().get(i)));
+                K = AutomatonLogicalOps.and(K, N, false, null, null);
             }
         }
         if (flag)
@@ -549,18 +539,16 @@ public class Automaton {
         copy(K);
     }
 
-    private void applyAllRepresentationsWithOutput(boolean print, String prefix, StringBuilder log) {
+    void applyAllRepresentationsWithOutput(boolean print, String prefix, StringBuilder log) {
         // this can be a word automaton
         boolean flag = determineRandomLabel();
         Automaton K = this;
         for (int i = 0; i < richAlphabet.getA().size(); i++) {
             NumberSystem ns = getNS().get(i);
-            if (ns != null) {
+            if (ns != null && ns.useAllRepresentations()) {
                 Automaton N = ns.getAllRepresentations();
-                if (N != null && ns.useAllRepresentations()) {
-                    N.bind(List.of(getLabel().get(i)));
-                    K = ProductStrategies.crossProduct(this, N, Prover.IF_OTHER_OP, print, prefix, log);
-                }
+                N.bind(List.of(getLabel().get(i)));
+                K = ProductStrategies.crossProduct(this, N, Prover.IF_OTHER_OP, print, prefix, log);
             }
         }
         if (flag)
@@ -610,6 +598,10 @@ public class Automaton {
     public void canonize() {
         sortLabel();
         this.fa.canonizeInternal();
+    }
+    void forceCanonize() {
+        this.fa.setCanonized(false);
+        this.canonize();
     }
 
     /**

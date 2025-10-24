@@ -319,7 +319,8 @@ public class Transducer extends Automaton {
 
             N = Tnew.transduceMsdDeterministic(Mnew, print, prefix+" ", log);
 
-            AutomatonLogicalOps.removeStatesWithMinOutput(N, minOutput);
+            AutomatonLogicalOps.removeStatesWithMinOutput(N.fa, minOutput);
+            N.forceCanonize();
         }
 
         if (toLsd) {

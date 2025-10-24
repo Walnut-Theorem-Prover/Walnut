@@ -208,8 +208,7 @@ public class AutomatonLogicalOps {
 
             if (i != 0) {
                 T.fa.setQ0(i);
-                T.fa.setCanonized(false);
-                T.canonize();
+                T.forceCanonize();
             }
 
             // need to have the same label for cross product (including "and")
@@ -223,8 +222,7 @@ public class AutomatonLogicalOps {
 
         M.determinizeAndMinimize(print, prefix, log);
         M.applyAllRepresentations();
-        M.fa.setCanonized(false);
-        M.canonize();
+        M.forceCanonize();
 
         long timeAfter = System.currentTimeMillis();
         UtilityMethods.logMessage(print, prefix + "right quotient complete: " + M.fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
@@ -256,8 +254,7 @@ public class AutomatonLogicalOps {
     private static Automaton reverseAndCanonize(Automaton A, boolean print, String prefix, StringBuilder log) {
         Automaton M1 = A.clone();
         reverse(M1, print, prefix, log, true);
-        M1.fa.setCanonized(false);
-        M1.canonize();
+        M1.forceCanonize();
         return M1;
     }
 
@@ -474,14 +471,8 @@ public class AutomatonLogicalOps {
         UtilityMethods.logMessage(print, prefix + "reversed:" + A.fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
     }
 
-    static void removeStatesWithMinOutput(Automaton N, int minOutput) {
-        removeStatesWithMinOutput(N.fa, minOutput);
-        N.fa.setCanonized(false);
-        N.canonize();
-    }
-
     // remove all states that have an output of minOutput
-    private static void removeStatesWithMinOutput(FA fa, int minOutput) {
+    static void removeStatesWithMinOutput(FA fa, int minOutput) {
         Set<Integer> statesToRemove = new HashSet<>();
         for (int q = 0; q < fa.getQ(); q++) {
             if (fa.getO().getInt(q) == minOutput) {
@@ -759,7 +750,8 @@ public class AutomatonLogicalOps {
 
         // totalize the resulting A
         first.fa.totalize(print, prefix + " ", log);
-        first.canonizeAndApplyAllRepresentationsWithOutput(print, prefix + " ", log);
+        first.forceCanonize();
+        first.applyAllRepresentationsWithOutput(print, prefix + " ", log);
 
         return first;
     }
