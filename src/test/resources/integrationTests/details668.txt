@@ -1,0 +1,6 @@
+File location: src/test/resources/integrationTests/Global/Automata Library/diffbyone.txt
+Comments: 
+State count:2
+Transition count:6
+Alphabet size:4
+Number systems:[null, null]
