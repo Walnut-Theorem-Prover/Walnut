@@ -19,6 +19,16 @@ public class AutomatonReaderTest {
   void testLucas() {
     AutomatonReader.readAutomaton(A, Session.getAddressForTestResources() + "LUCAS.txt");
     Assertions.assertEquals(6, A.fa.getQ());
+    Assertions.assertFalse(A.fa.isDFAO());
+    Assertions.assertFalse(A.fa.isDeterministicAndTotal()); // not total
+  }
+
+  @Test
+  void testHilbert() {
+    AutomatonReader.readAutomaton(A, Session.getAddressForUnitTestResources() + "HC.txt");
+    Assertions.assertEquals(8, A.fa.getQ());
+    Assertions.assertTrue(A.fa.isDFAO());
+    Assertions.assertTrue(A.fa.isDeterministicAndTotal());
   }
 
   @Test

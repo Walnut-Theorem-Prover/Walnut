@@ -470,7 +470,7 @@ public class FA implements Cloneable {
   /**
    * Check if automaton is deterministic (and total): each state must have exactly alphabetSize transitions
    */
-  public boolean isDeterministic() {
+  public boolean isDeterministicAndTotal() {
     for (int q = 0; q < Q; q++) {
       if (t.getNfaStateKeySet(q).size() != alphabetSize) {
         return false;

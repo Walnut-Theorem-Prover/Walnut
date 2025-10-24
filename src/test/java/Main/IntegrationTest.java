@@ -818,7 +818,7 @@ public class IntegrationTest {
 
 		// test alphabet on word automata
 		// first, test it on output in {0, 1}
-		L.add("alphabet test617 msd_4 T;");
+		L.add("alphabet test617 msd_4 T::"); // also, output
 		L.add("alphabet test618 msd_2 test614;");
 		L.add("alphabet test619 msd_fib test614;");
 
@@ -891,8 +891,10 @@ public class IntegrationTest {
 
 		L.add("describe $diffbyone;"); // 668
 
-		L.add("def test669 \"(((\";"); // unbalanced parentheses
-		L.add("def test670 \")))\";"); // unbalanced parentheses
+		L.add("def test669 \"(((\";"); // 669: unbalanced parentheses
+		L.add("def test670 \")))\";"); // 670: unbalanced parentheses
+
+		L.add("split NONEXISTENT NONEXISTENT [+] [-] [];"); // 671: NONEXISTENT does not exist
 	}
 
 	@TestFactory

@@ -567,7 +567,7 @@ public class AutomatonLogicalOps {
      */
     private static void convertMsdBaseToExponent(Automaton A, int exponent,
                                                  boolean print, String prefix, StringBuilder log) {
-        if (!A.fa.isDeterministic()) {
+        if (!A.fa.isDeterministicAndTotal()) {
             throw new WalnutException("Automaton must be deterministic for msd_k^j conversion");
         }
 

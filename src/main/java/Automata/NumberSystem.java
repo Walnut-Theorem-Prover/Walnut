@@ -154,6 +154,9 @@ public class NumberSystem {
         return false;
     }
 
+    /**
+     * Determine if any of the systems are MSD.
+     */
   static Boolean determineMsd(List<NumberSystem> numberSystems) {
         boolean isMsd = true;
         boolean flag = false;
@@ -728,13 +731,11 @@ public class NumberSystem {
         validateNeg(b);
         Automaton N;
         if (arithmeticOperator.equals(ArithmeticOperator.Ops.MULT)) {
-            //note that the case of b = 0 is handled in Computer class
             N = getMultiplication(b);
             N.bind(List.of(a, c));
             return N;
         }
         if (arithmeticOperator.equals(ArithmeticOperator.Ops.DIV)) {
-            if (b == 0) throw WalnutException.divisionByZero();
             N = getDivision(b);
             N.bind(List.of(a, c));
             return N;

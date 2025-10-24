@@ -11,6 +11,7 @@ import java.util.List;
 public class ProverHelperTest {
   @Test
   void testDetermineEncodedRegex() {
+    new ProverHelper(); // just for coverage
     RichAlphabet r = new RichAlphabet();
     r.setA(List.of(List.of(0,1,2,3), List.of(0,1,2,3), List.of(0,1,2,3)));
     String s = ProverHelper.determineEncodedRegex("([3,1,2]*)", 3, r);
