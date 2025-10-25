@@ -1,4 +1,4 @@
-# Walnut version 7.0
+# Walnut version 7.1 (beta)
 Walnut is an automated theorem prover for automatic words.
 
 For a list of changes since previous versions, see [the CHANGELOG](CHANGELOG.md).
