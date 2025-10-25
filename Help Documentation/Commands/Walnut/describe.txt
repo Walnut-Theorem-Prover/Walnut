@@ -1,0 +1,17 @@
+The "describe" command is used to get additional information about a Walnut file. Examples:
+
+[Walnut]$ describe $diffbyone;
+File location: Automata Library/diffbyone.txt
+Comments: 
+State count:2
+Transition count:6
+Alphabet size:4
+Number systems:[null, null]
+
+[Walnut]$ describe T;
+File location: Word Automata Library/T.txt
+Comments: # The Thue-Morse sequence.
+State count:2
+Transition count:4
+Alphabet size:2
+Number systems:[msd_2]
