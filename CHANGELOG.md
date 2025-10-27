@@ -16,6 +16,7 @@ All notable changes to Walnut will be documented here. Format is based on [Keep 
 ### Changed
 
 - Removed >65K alphabet size limitation [#37](https://github.com/Walnut-Theorem-Prover/Walnut/issues/37)
+- Upgraded OTF to version 1.1.0. Several performance fixes, see [OTF changelog](https://github.com/jn1z/OTF/blob/main/CHANGELOG.md)
 
 ## [Walnut 7.0] - 2025-08-01 - Author: John Nicol
 
