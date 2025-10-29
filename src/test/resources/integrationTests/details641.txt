@@ -133,8 +133,8 @@ n=((x+y)+z):3 states - 0ms
           Calculating simulation relations; this can be resource-intensive
           Simulation altered to 337 states
           Found 1019 simulation relations
-          Reverse: 480 states - 
-          Minimizing: 480 states.
+          Reverse: 360 states - 
+          Minimizing: 360 states.
           Minimized:14 states - 0ms.
           Reverse of reverse -- Determinizing with strategy:SC.
           Reverse of reverse: 12 states - 

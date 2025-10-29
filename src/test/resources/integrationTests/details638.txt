@@ -132,8 +132,8 @@ n=((x+y)+z):3 states - 0ms
           Calculating simulation relations; this can be resource-intensive
           Simulation altered to 339 states
           Found 2919 simulation relations
-          Determinized: 14609 states - 293ms
-          Minimizing: 14609 states.
+          Determinized: 14605 states - 293ms
+          Minimizing: 14605 states.
           Minimized:12 states - 2ms.
         quantified:12 states - 297ms
         fixing leading zeros:12 states
