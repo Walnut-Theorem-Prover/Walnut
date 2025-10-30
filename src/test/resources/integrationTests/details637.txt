@@ -1,8 +1,8 @@
-Computing x+y
+computing x+y
 computed x+y
-Computing (x+y)+z
+computing (x+y)+z
  computing &:2 states - 2 states
-  Computing cross product:2 states - 2 states
+  computing cross product:2 states - 2 states
   computed cross product:4 states - 0ms
   Minimizing: 4 states.
   Minimized:4 states - 0ms.
@@ -22,7 +22,7 @@ Computing (x+y)+z
 computed (x+y)+z
 computing n=((x+y)+z)
  computing &:1 states - 3 states
-  Computing cross product:1 states - 3 states
+  computing cross product:1 states - 3 states
   computed cross product:3 states - 0ms
   Minimizing: 3 states.
   Minimized:3 states - 0ms.
@@ -61,7 +61,7 @@ n=((x+y)+z):3 states - 0ms
  QQ[x]=@1:15 states - 0ms
   computing n=((x+y)+z)&QQ[x]=@1
    computing &:3 states - 15 states
-    Computing cross product:3 states - 15 states
+    computing cross product:3 states - 15 states
     computed cross product:45 states - 0ms
     Minimizing: 45 states.
     Minimized:45 states - 0ms.
@@ -88,7 +88,7 @@ n=((x+y)+z):3 states - 0ms
    QQ[y]=@1:15 states - 0ms
     computing (n=((x+y)+z)&QQ[x]=@1)&QQ[y]=@1
      computing &:45 states - 15 states
-      Computing cross product:45 states - 15 states
+      computing cross product:45 states - 15 states
         Progress: Added 100 states - 189 states left in queue - 289 reachable states - 0ms
       computed cross product:675 states - 1ms
       Minimizing: 675 states.
@@ -116,7 +116,7 @@ n=((x+y)+z):3 states - 0ms
      QQ[z]=@1:15 states - 0ms
       computing ((n=((x+y)+z)&QQ[x]=@1)&QQ[y]=@1)&QQ[z]=@1
        computing &:331 states - 15 states
-        Computing cross product:331 states - 15 states
+        computing cross product:331 states - 15 states
           Progress: Added 100 states - 415 states left in queue - 515 reachable states - 0ms
           Progress: Added 1000 states - 1867 states left in queue - 2867 reachable states - 1ms
         computed cross product:4965 states - 5ms

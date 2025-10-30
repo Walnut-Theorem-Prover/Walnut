@@ -32,6 +32,8 @@ import Automata.Automaton;
 import Main.EvalComputations.Expressions.AutomatonExpression;
 import Main.EvalComputations.Expressions.VariableExpression;
 
+import static Main.Logging.COMPUTED;
+import static Main.Logging.COMPUTING;
 import static Main.Prover.TXT_EXTENSION;
 
 public class LogicalOperator extends Operator {
@@ -75,7 +77,7 @@ public class LogicalOperator extends Operator {
         Expression a = S.pop();
 
         if (a instanceof AutomatonExpression && b instanceof AutomatonExpression) {
-            UtilityMethods.logAndPrint(print, prefix + "computing " + a + op + b, log);
+            UtilityMethods.logAndPrint(print, prefix + COMPUTING + " " + a + op + b, log);
             String opString = "(" + a + op + b + ")";
             AutomatonExpression ae = switch (op) {
               case AND ->
@@ -91,7 +93,7 @@ public class LogicalOperator extends Operator {
             };
             S.push(ae);
 
-            UtilityMethods.logAndPrint(print, prefix + "computed " + a + op + b, log);
+            UtilityMethods.logAndPrint(print, prefix + COMPUTED + " " + a + op + b, log);
             return;
         }
         throw WalnutException.invalidDualOperators(op, a, b);
@@ -109,13 +111,13 @@ public class LogicalOperator extends Operator {
     private void actNegationOrReverse(Stack<Expression> S, boolean print, String prefix, StringBuilder log) {
         Expression a = S.pop();
         if (a instanceof AutomatonExpression) {
-            UtilityMethods.logAndPrint(print, prefix + "computing " + op + a, log);
+            UtilityMethods.logAndPrint(print, prefix + COMPUTING + " " + op + a, log);
             if (op.equals(Operator.REVERSE))
                 AutomatonLogicalOps.reverse(a.M, print, prefix + " ", log, true);
             if (this.isNegation(op))
                 AutomatonLogicalOps.not(a.M, print, prefix + " ", log);
             S.push(new AutomatonExpression(op + a, a.M));
-            UtilityMethods.logAndPrint(print, prefix + "computed " + op + a, log);
+            UtilityMethods.logAndPrint(print, prefix + COMPUTED + " " + op + a, log);
             return;
         }
         throw WalnutException.invalidOperator(op, a);
@@ -126,7 +128,7 @@ public class LogicalOperator extends Operator {
         StringBuilder stringValue = new StringBuilder("(" + op + " ");
         Stack<Expression> temp = reverseStack(S);
         Automaton M = null;
-        UtilityMethods.logAndPrint(print, prefix + "computing quantifier " + op, log);
+        UtilityMethods.logAndPrint(print, prefix + COMPUTING + " quantifier " + op, log);
         List<String> identifiersToQuantify = new ArrayList<>();
         for (int i = 0; i < arity; i++) {
             Expression operand = temp.pop();
@@ -169,6 +171,6 @@ public class LogicalOperator extends Operator {
         }
         stringValue.append(")");
         S.push(new AutomatonExpression(stringValue.toString(), M));
-        UtilityMethods.logAndPrint(print, prefix + "computed quantifier " + stringValue, log);
+        UtilityMethods.logAndPrint(print, prefix + COMPUTED + " quantifier " + stringValue, log);
     }
 }

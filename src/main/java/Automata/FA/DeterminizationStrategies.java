@@ -19,6 +19,9 @@ import net.automatalib.ts.AcceptorPowersetViewTS;
 
 import java.util.*;
 
+import static Main.Logging.DETERMINIZED;
+import static Main.Logging.DETERMINIZING;
+
 /**
  * Determinization logic, with support for alternative strategies of:
  * Brzozowski, OTF, OTF-no-simulation, OTF-Brzozowski, and OTF-Brzozowski-no-simulation
@@ -106,8 +109,8 @@ public class DeterminizationStrategies {
               exportFormat, A, fa.isDFAO());
         }
 
-        UtilityMethods.logMessage(print, prefix +
-            "Determinizing " + strategy.outputName(automataIdx) + ": " + fa.getQ() + " states", log);
+        UtilityMethods.logMessage(print, prefix + DETERMINIZING +
+            " " + strategy.outputName(automataIdx) + ": " + fa.getQ() + " states", log);
       }
 
       if (strategy != Strategy.SC) {
@@ -125,7 +128,7 @@ public class DeterminizationStrategies {
       long timeAfter = System.currentTimeMillis();
 
       UtilityMethods.logMessage(
-          print, prefix + "Determinized: " + fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
+          print, prefix + DETERMINIZED + ": " + fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
     }
 
   /**
@@ -151,7 +154,7 @@ public class DeterminizationStrategies {
     long timeBefore = System.currentTimeMillis();
     IntSet newInitialStates = fa.reverseToNFAInternal(initialStates);
     UtilityMethods.logMessage(
-        print, prefix + message + " -- Determinizing with strategy:" + strategy.name + ".", log);
+        print, prefix + message + " -- " + DETERMINIZING + " with strategy:" + strategy.name + ".", log);
     if (strategy.equals(Strategy.SC)) {
       SC(fa, newInitialStates, print, prefix, log);
     } else {

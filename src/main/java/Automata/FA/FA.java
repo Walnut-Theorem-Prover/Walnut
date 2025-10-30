@@ -26,6 +26,8 @@ import net.automatalib.automaton.fsa.impl.CompactNFA;
 
 import java.util.*;
 
+import static Main.Logging.*;
+
 /**
  * Abstraction of NFA/DFA/DFAO code from Automaton.
  * TODO: fully abstract transitions such that this is explicitly an NFA or a DFA.
@@ -211,14 +213,14 @@ public class FA implements Cloneable {
    */
   public void totalize(boolean print, String prefix, StringBuilder log) {
     long timeBefore = System.currentTimeMillis();
-    UtilityMethods.logMessage(print, prefix + "totalizing:" + Q + " states", log);
+    UtilityMethods.logMessage(print, prefix + TOTALIZING + ":" + Q + " states", log);
     //we first check if the automaton is totalized
     int sinkState = Q; // potential new dead state
     if (!totalizeStates(sinkState)) {
       addSinkState(0, sinkState);
     }
     long timeAfter = System.currentTimeMillis();
-    UtilityMethods.logMessage(print, prefix + "totalized:" + Q + " states - " + (timeAfter - timeBefore) + "ms", log);
+    UtilityMethods.logMessage(print, prefix + TOTALIZED + ":" + Q + " states - " + (timeAfter - timeBefore) + "ms", log);
   }
 
 
@@ -527,7 +529,7 @@ public class FA implements Cloneable {
   public void justMinimize(boolean print, String prefix, StringBuilder log) {
     long timeBefore = System.currentTimeMillis();
     UtilityMethods.logMessage(
-            print, prefix + "Minimizing: " + Q + " states.", log);
+            print, prefix + MINIMIZING + ": " + Q + " states.", log);
 
     this.convertNFAtoDFA();
     ValmariDFA v = new ValmariDFA(this, Q);
@@ -538,7 +540,7 @@ public class FA implements Cloneable {
 
     long timeAfter = System.currentTimeMillis();
     UtilityMethods.logMessage(
-            print, prefix + "Minimized:" + Q + " states - " + (timeAfter - timeBefore) + "ms.", log);
+            print, prefix + MINIMIZED + ":" + Q + " states - " + (timeAfter - timeBefore) + "ms.", log);
   }
 
   public void setCanonized(boolean canonized) {

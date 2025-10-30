@@ -1,13 +1,13 @@
-Computing a+c
+computing a+c
 computed a+c
 computing TH[...]
 computed TH[(a+c)]
-Computing b-d
+computing b-d
 computed b-d
 computing TH[...]
 computed TH[(b-d)]
 applying operator (+):6 states - 6 states
- Computing cross product:6 states - 6 states
+ computing cross product:6 states - 6 states
  computed cross product:36 states - 
  Determinizing [#0, strategy: SC]: 36 states
  Determinized: 36 states - 
@@ -58,7 +58,7 @@ applying operator (+):6 states - 6 states
  totalized:25 states - 
  totalizing:25 states
  totalized:25 states - 
- Computing cross product:25 states - 25 states
+ computing cross product:25 states - 25 states
  computed cross product:25 states - 
  computed =>:25 states - 
  computing =>:25 states - 36 states
@@ -66,7 +66,7 @@ applying operator (+):6 states - 6 states
  totalized:25 states - 
  totalizing:36 states
  totalized:36 states - 
- Computing cross product:25 states - 36 states
+ computing cross product:25 states - 36 states
  computed cross product:36 states - 
  computed =>:36 states - 
  computing =>:36 states - 36 states
@@ -74,7 +74,7 @@ applying operator (+):6 states - 6 states
  totalized:36 states - 
  totalizing:36 states
  totalized:36 states - 
- Computing cross product:36 states - 36 states
+ computing cross product:36 states - 36 states
  computed cross product:36 states - 
  computed =>:36 states - 
  computing =>:36 states - 36 states
@@ -82,7 +82,7 @@ applying operator (+):6 states - 6 states
  totalized:36 states - 
  totalizing:36 states
  totalized:36 states - 
- Computing cross product:36 states - 36 states
+ computing cross product:36 states - 36 states
  computed cross product:36 states - 
  computed =>:36 states - 
  computing =>:36 states - 36 states
@@ -90,7 +90,7 @@ applying operator (+):6 states - 6 states
  totalized:36 states - 
  totalizing:36 states
  totalized:36 states - 
- Computing cross product:36 states - 36 states
+ computing cross product:36 states - 36 states
  computed cross product:36 states - 
  computed =>:36 states - 
  computing =>:36 states - 25 states
@@ -98,7 +98,7 @@ applying operator (+):6 states - 6 states
  totalized:36 states - 
  totalizing:25 states
  totalized:25 states - 
- Computing cross product:36 states - 25 states
+ computing cross product:36 states - 25 states
  computed cross product:36 states - 
  computed =>:36 states - 
  computing =>:36 states - 12 states
@@ -106,7 +106,7 @@ applying operator (+):6 states - 6 states
  totalized:36 states - 
  totalizing:12 states
  totalized:12 states - 
- Computing cross product:36 states - 12 states
+ computing cross product:36 states - 12 states
  computed cross product:36 states - 
  computed =>:36 states - 
  computing =>:36 states - 16 states
@@ -114,7 +114,7 @@ applying operator (+):6 states - 6 states
  totalized:36 states - 
  totalizing:16 states
  totalized:16 states - 
- Computing cross product:36 states - 16 states
+ computing cross product:36 states - 16 states
  computed cross product:36 states - 
  computed =>:36 states - 
  computing =>:36 states - 16 states
@@ -122,7 +122,7 @@ applying operator (+):6 states - 6 states
  totalized:36 states - 
  totalizing:16 states
  totalized:16 states - 
- Computing cross product:36 states - 16 states
+ computing cross product:36 states - 16 states
  computed cross product:36 states - 
  computed =>:36 states - 
  computing =>:36 states - 25 states
@@ -130,14 +130,14 @@ applying operator (+):6 states - 6 states
  totalized:36 states - 
  totalizing:25 states
  totalized:25 states - 
- Computing cross product:36 states - 25 states
+ computing cross product:36 states - 25 states
  computed cross product:36 states - 
  computed =>:36 states - 
  totalizing:36 states
  totalized:36 states - 
 applied operator (+):6 states - 
  computing &:2 states - 2 states
- Computing cross product:2 states - 2 states
+ computing cross product:2 states - 2 states
  computed cross product:4 states - 
  Minimizing: 4 states.
  Minimized:4 states - .
@@ -150,7 +150,7 @@ computing TH[(a+c)]=0
    Minimized:25 states - .
  compared (=) against 0:25 states - 
  computing &:25 states - 4 states
- Computing cross product:25 states - 4 states
+ computing cross product:25 states - 4 states
  computed cross product:100 states - 
  Minimizing: 100 states.
  Minimized:80 states - .

@@ -33,6 +33,9 @@ import Main.UtilityMethods;
 import Automata.Automaton;
 import Automata.NumberSystem;
 
+import static Main.Logging.COMPUTED;
+import static Main.Logging.COMPUTING;
+
 
 public class Function extends Token {
     private Automaton A;
@@ -57,7 +60,7 @@ public class Function extends Token {
         super.validateArity(S, "function ", " arguments");
         Stack<Expression> temp = reverseStack(S);
         String stringValue = this + "(";
-        UtilityMethods.logAndPrint(print, prefix + "computing " + stringValue + "...)", log);
+        UtilityMethods.logAndPrint(print, prefix + COMPUTING + " " + stringValue + "...)", log);
         Automaton M = new Automaton(true);
         List<String> identifiers = new ArrayList<>();
         List<String> quantify = new ArrayList<>();
@@ -87,6 +90,6 @@ public class Function extends Token {
         AutomatonQuantification.quantify(A, quantify, print, prefix + " ", log);
 
         S.push(new AutomatonExpression(stringValue, A));
-        UtilityMethods.logAndPrint(print, prefix + "computed " + stringValue, log);
+        UtilityMethods.logAndPrint(print, prefix + COMPUTED + " " + stringValue, log);
     }
 }

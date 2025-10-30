@@ -11,6 +11,8 @@ import it.unimi.dsi.fastutil.ints.IntList;
 
 import java.util.*;
 
+import static Main.Logging.*;
+
 /**
  * This class handles various NFAO and DFAO operations.
  * Eventually this should be strong-typed.
@@ -26,14 +28,14 @@ public class WordAutomaton {
       Automaton wordA, int o, RelationalOperator.Ops operator, boolean print, String prefix, StringBuilder log) {
       String opStr = operator.getSymbol();
       long timeBefore = System.currentTimeMillis();
-      UtilityMethods.logMessage(print, prefix + "comparing (" + opStr + ") against " + o + ":" + wordA.fa.getQ() + " states", log);
+      UtilityMethods.logMessage(print, prefix + COMPARING + " (" + opStr + ") against " + o + ":" + wordA.fa.getQ() + " states", log);
       for (int p = 0; p < wordA.fa.getQ(); p++) {
           wordA.fa.setOutputIfEqual(p, RelationalOperator.compare(operator, wordA.fa.getO().getInt(p), o));
       }
       // As of now, this is *not* a word automaton
       wordA.determinizeAndMinimize(print, prefix + " ", log);
       long timeAfter = System.currentTimeMillis();
-      UtilityMethods.logMessage(print, prefix + "compared (" + opStr + ") against " + o + ":" + wordA.fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
+      UtilityMethods.logMessage(print, prefix + COMPARED + " (" + opStr + ") against " + o + ":" + wordA.fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
   }
 
     /**
@@ -46,12 +48,12 @@ public class WordAutomaton {
         Automaton wordA, Automaton wordB, String operator, boolean print, String prefix, StringBuilder log) {
         long timeBefore = System.currentTimeMillis();
         UtilityMethods.logMessage(print,
-            prefix + "comparing (" + operator + "):"
+            prefix + COMPARING + " (" + operator + "):"
                 + wordA.fa.getQ() + " states - "+ wordB.fa.getQ() + " states", log);
         Automaton M = ProductStrategies.crossProductAndMinimize(wordA, wordB, operator, print, prefix + " ", log);
         long timeAfter = System.currentTimeMillis();
         UtilityMethods.logMessage(print,
-            prefix + "compared (" + operator + "):"
+            prefix + COMPARED + " (" + operator + "):"
                 + M.fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
         return M;
     }
@@ -66,7 +68,7 @@ public class WordAutomaton {
                                               boolean print, String prefix, StringBuilder log) {
         String opStr = op.getSymbol();
         long timeBefore = System.currentTimeMillis();
-        UtilityMethods.logMessage(print, prefix + "applying operator (" + opStr + "):"
+        UtilityMethods.logMessage(print, prefix + APPLYING + " operator (" + opStr + "):"
             + wordA.fa.getQ() + " states", log);
         for (int p = 0; p < wordA.fa.getQ(); p++) {
             IntList thisO = wordA.fa.getO();
@@ -76,7 +78,7 @@ public class WordAutomaton {
         }
         minimizeSelfWithOutput(wordA, print, prefix + " ", log);
         long timeAfter = System.currentTimeMillis();
-        UtilityMethods.logMessage(print, prefix + "applied operator (" + opStr + "):"
+        UtilityMethods.logMessage(print, prefix + APPLIED + " operator (" + opStr + "):"
             + wordA.fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
     }
 
@@ -88,12 +90,12 @@ public class WordAutomaton {
     public static Automaton applyWordOperator(Automaton wordA, Automaton wordB, String operator,
                                               boolean print, String prefix, StringBuilder log) {
         long timeBefore = System.currentTimeMillis();
-        UtilityMethods.logMessage(print, prefix + "applying operator (" + operator + "):"
+        UtilityMethods.logMessage(print, prefix + APPLYING + " operator (" + operator + "):"
             + wordA.fa.getQ() + " states - " + wordB.fa.getQ() + " states", log);
         Automaton N = ProductStrategies.crossProduct(wordA, wordB, operator, print, prefix + " ", log);
         minimizeWithOutput(N, print, prefix + " ", log);
         long timeAfter = System.currentTimeMillis();
-        UtilityMethods.logMessage(print, prefix + "applied operator (" + operator + "):"
+        UtilityMethods.logMessage(print, prefix + APPLIED + " operator (" + operator + "):"
             + wordA.fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
         return N;
     }
@@ -108,7 +110,7 @@ public class WordAutomaton {
       }
 
       long timeBefore = System.currentTimeMillis();
-      UtilityMethods.logMessage(print, prefix + "reversing: " + wordA.fa.getQ() + " states", log);
+      UtilityMethods.logMessage(print, prefix + REVERSING + ": " + wordA.fa.getQ() + " states", log);
 
       boolean addedDeadState = wordA.fa.addDistinguishedDeadState(print, prefix, log);
 
@@ -182,7 +184,7 @@ public class WordAutomaton {
       }
 
       long timeAfter = System.currentTimeMillis();
-      UtilityMethods.logMessage(print, prefix + "reversed: " + wordA.fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
+      UtilityMethods.logMessage(print, prefix + REVERSED + ": " + wordA.fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
   }
 
   /**

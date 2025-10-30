@@ -1,8 +1,8 @@
-Computing n+1
+computing n+1
 computed n+1
 computing fibmr(...)
  computing &:59 states - 4 states
-  Computing cross product:59 states - 4 states
+  computing cross product:59 states - 4 states
   computed cross product:37 states - 1ms
   Minimizing: 37 states.
   Minimized:22 states - 0ms.
@@ -20,11 +20,11 @@ computing fibmr(...)
   Minimized:19 states - 0ms.
  fixed leading zeros:19 states - 0ms
 computed fibmr(i,n,(n+1)))
-Computing n-1
+computing n-1
 computed n-1
 computing fibmr(...)
  computing &:59 states - 4 states
-  Computing cross product:59 states - 4 states
+  computing cross product:59 states - 4 states
   computed cross product:37 states - 0ms
   Minimizing: 37 states.
   Minimized:22 states - 0ms.
@@ -55,7 +55,7 @@ computed ~fibmr(i,(n-1),n))
 ~fibmr(i,(n-1),n)):21 states - 1ms
  computing fibmr(i,n,(n+1)))&~fibmr(i,(n-1),n))
   computing &:19 states - 21 states
-   Computing cross product:19 states - 21 states
+   computing cross product:19 states - 21 states
    computed cross product:21 states - 0ms
    Minimizing: 21 states.
    Minimized:12 states - 0ms.

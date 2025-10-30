@@ -15,6 +15,9 @@ import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 
 import java.util.*;
 
+import static Main.Logging.COMPUTED;
+import static Main.Logging.COMPUTING;
+
 /**
  * Product strategy logic.
  * Automata are numbered, which is useful for meta-commands like [export]
@@ -84,7 +87,7 @@ public class ProductStrategies {
         AxB.setQ(statesList.size());
         long timeAfter = System.currentTimeMillis();
         UtilityMethods.logMessage(print,
-                prefix + "computed cross product:" + AxB.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
+                prefix + COMPUTED + " cross product:" + AxB.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
     }
 
     /**
@@ -153,7 +156,7 @@ public class ProductStrategies {
 
         long timeAfter = System.currentTimeMillis();
         UtilityMethods.logMessage(print,
-                prefix + "computed cross product:" + AxB.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
+                prefix + COMPUTED + " cross product:" + AxB.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
     }
 
     private static int determineOutput(int aP, int mQ, String op, int combineOut) {
@@ -231,7 +234,7 @@ public class ProductStrategies {
         if (print) {
             //FA.IncrementIndex();
             UtilityMethods.logMessage(print,
-                prefix + "Computing cross product:" + aQ + " states - " + bQ + " states", log);
+                prefix + COMPUTING + " cross product:" + aQ + " states - " + bQ + " states", log);
         }
     }
 

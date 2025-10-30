@@ -34,6 +34,8 @@ import java.util.*;
 
 import it.unimi.dsi.fastutil.ints.*;
 
+import static Main.Logging.COMPUTED;
+import static Main.Logging.COMPUTING;
 import static Main.Prover.GV_EXTENSION;
 import static Main.Prover.TXT_EXTENSION;
 
@@ -215,7 +217,7 @@ public class Automaton {
             }
 
             long timeAfter = System.currentTimeMillis();
-            UtilityMethods.logMessage(print, prefix + "computed =>:" + first.fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
+            UtilityMethods.logMessage(print, prefix + COMPUTED + " =>:" + first.fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
         }
         return first;
     }
@@ -454,7 +456,7 @@ public class Automaton {
         while (!subautomata.isEmpty()) {
             Automaton next = subautomata.remove();
             long timeBefore = System.currentTimeMillis();
-            UtilityMethods.logMessage(print, prefix + "computing =>:" + first.fa.getQ() + " states - " + next.fa.getQ() + " states", log);
+            UtilityMethods.logMessage(print, prefix + COMPUTING + " =>:" + first.fa.getQ() + " states - " + next.fa.getQ() + " states", log);
 
             // crossProduct requires both automata to be totalized, otherwise it has no idea which cartesian states to transition to
             first.fa.totalize(print, prefix + " ", log);
@@ -463,7 +465,7 @@ public class Automaton {
             first = WordAutomaton.minimizeWithOutput(first, print, prefix + " ", log);
 
             long timeAfter = System.currentTimeMillis();
-            UtilityMethods.logMessage(print, prefix + "computed =>:" + first.fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
+            UtilityMethods.logMessage(print, prefix + COMPUTED + " =>:" + first.fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
         }
         return first;
     }

@@ -9,6 +9,9 @@ import it.unimi.dsi.fastutil.ints.IntList;
 
 import java.util.*;
 
+import static Main.Logging.QUANTIFIED;
+import static Main.Logging.QUANTIFYING;
+
 public class AutomatonQuantification {
   public static void quantify(Automaton A, String labelToQuantify, boolean print, String prefix, StringBuilder log) {
       quantify(A, Set.of(labelToQuantify), print, prefix, log);
@@ -50,7 +53,7 @@ public class AutomatonQuantification {
 
     validateLabels(A, labelsToQuantify);
     long timeBefore = System.currentTimeMillis();
-      UtilityMethods.logMessage(print, prefix + "quantifying:" + A.fa.getQ() + " states", log);
+      UtilityMethods.logMessage(print, prefix + QUANTIFYING + ":" + A.fa.getQ() + " states", log);
 
       //If this is the case, then the quantified automaton is either the true or false automaton.
       //It is true if the language is not empty.
@@ -99,7 +102,7 @@ public class AutomatonQuantification {
       A.fa.t.setNfaD(newD);
       A.determinizeAndMinimize(print, prefix + " ", log);
       long timeAfter = System.currentTimeMillis();
-      UtilityMethods.logMessage(print, prefix + "quantified:" + A.fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
+      UtilityMethods.logMessage(print, prefix + QUANTIFIED + ":" + A.fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
   }
 
   static void validateLabels(Automaton A, Collection<String> labelsToQuantify) {

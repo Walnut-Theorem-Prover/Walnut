@@ -28,6 +28,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Stack;
 
+import static Main.Logging.COMPUTED;
+import static Main.Logging.COMPUTING;
+
 
 public class RelationalOperator extends Operator {
     private final NumberSystem ns;
@@ -89,7 +92,7 @@ public class RelationalOperator extends Operator {
             S.push(new AutomatonExpression(a + op + b, new Automaton(compare(opp, a.constant, b.constant))));
             return;
         }
-        UtilityMethods.logAndPrint(print, prefix + "computing " + a + op + b, log);
+        UtilityMethods.logAndPrint(print, prefix + COMPUTING + " " + a + op + b, log);
         if ((a instanceof WordExpression && (b instanceof ArithmeticExpression || b instanceof VariableExpression)) ||
                 ((a instanceof ArithmeticExpression || a instanceof VariableExpression) && b instanceof WordExpression)) {
             /* We rewrite T[a] < b as
@@ -162,7 +165,7 @@ public class RelationalOperator extends Operator {
         } else {
             throw WalnutException.invalidDualOperators(op, a, b);
         }
-        UtilityMethods.logAndPrint(print, prefix + "computed " + a + op + b, log);
+        UtilityMethods.logAndPrint(print, prefix + COMPUTED + " " + a + op + b, log);
     }
 
     private static Automaton andQuantifyIfArithmetic(boolean print, String prefix, StringBuilder log, Expression arithmetic, Automaton M) {

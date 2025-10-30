@@ -4,29 +4,29 @@ j<i:6 states - 0ms
  computing k<n
  computed k<n
  k<n:6 states - 0ms
-  Computing j+k
+  computing j+k
   computed j+k
   computing F[...]
   computed F[(j+k)]
-  Computing i+k
+  computing i+k
   computed i+k
   computing F[...]
   computed F[(i+k)]
   computing F[(j+k)]!=F[(i+k)]
    comparing (!=):2 states - 2 states
-    Computing cross product:2 states - 2 states
+    computing cross product:2 states - 2 states
     computed cross product:4 states - 0ms
     Minimizing: 4 states.
     Minimized:4 states - 0ms.
    compared (!=):4 states - 0ms
    computing &:4 states - 16 states
-    Computing cross product:4 states - 16 states
+    computing cross product:4 states - 16 states
     computed cross product:34 states - 0ms
     Minimizing: 34 states.
     Minimized:32 states - 0ms.
    computed &:32 states - 0ms
    computing &:32 states - 16 states
-    Computing cross product:32 states - 16 states
+    computing cross product:32 states - 16 states
       Progress: Added 100 states - 59 states left in queue - 159 reachable states - 1ms
     computed cross product:166 states - 2ms
     Minimizing: 166 states.
@@ -61,7 +61,7 @@ j<i:6 states - 0ms
   F[(j+k)]!=F[(i+k)]:51 states - 6ms
    computing k<n&F[(j+k)]!=F[(i+k)]
     computing &:6 states - 51 states
-     Computing cross product:6 states - 51 states
+     computing cross product:6 states - 51 states
        Progress: Added 100 states - 45 states left in queue - 145 reachable states - 1ms
      computed cross product:153 states - 1ms
      Minimizing: 153 states.
@@ -91,7 +91,7 @@ j<i:6 states - 0ms
        totalized:7 states - 0ms
        totalizing:23 states
        totalized:24 states - 0ms
-       Computing cross product:7 states - 24 states
+       computing cross product:7 states - 24 states
        computed cross product:59 states - 1ms
        Minimizing: 59 states.
        Minimized:36 states - 0ms.

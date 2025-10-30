@@ -27,6 +27,9 @@ import Main.EvalComputations.Expressions.Expression;
 import Automata.Automaton;
 import Main.UtilityMethods;
 
+import static Main.Logging.COMPUTED;
+import static Main.Logging.COMPUTING;
+
 public class Word extends Token {
     private final Automaton wordAutomaton;
     private final String name;
@@ -48,7 +51,7 @@ public class Word extends Token {
         super.validateArity(S, "word ", " indices");
         Stack<Expression> temp = reverseStack(S);
         StringBuilder stringValue = new StringBuilder(name);
-        UtilityMethods.logAndPrint(print, prefix + "computing " + stringValue + "[...]", log);
+        UtilityMethods.logAndPrint(print, prefix + COMPUTING + " " + stringValue + "[...]", log);
         List<String> identifiers = new ArrayList<>();
         List<String> quantify = new ArrayList<>();
         Automaton M = new Automaton(true);
@@ -72,6 +75,6 @@ public class Word extends Token {
         }
         wordAutomaton.bind(identifiers);
         S.push(new WordExpression(stringValue.toString(), wordAutomaton, M, quantify));
-        UtilityMethods.logAndPrint(print, prefix + "computed " + stringValue, log);
+        UtilityMethods.logAndPrint(print, prefix + COMPUTED + " " + stringValue, log);
     }
 }

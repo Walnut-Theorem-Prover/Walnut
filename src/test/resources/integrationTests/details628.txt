@@ -1,13 +1,13 @@
 computing j<=i
 computed j<=i
 j<=i:2 states - 0ms
- Computing i+m
+ computing i+m
  computed i+m
- Computing j+n
+ computing j+n
  computed j+n
  computing (i+m)<=(j+n)
   computing &:2 states - 2 states
-   Computing cross product:2 states - 2 states
+   computing cross product:2 states - 2 states
    computed cross product:4 states - 0ms
    Minimizing: 4 states.
    Minimized:4 states - 0ms.
@@ -20,7 +20,7 @@ j<=i:2 states - 0ms
   quantified:3 states - 0ms
   fixing trailing zeros: no change necessary.
   computing &:3 states - 2 states
-   Computing cross product:3 states - 2 states
+   computing cross product:3 states - 2 states
    computed cross product:6 states - 0ms
    Minimizing: 6 states.
    Minimized:6 states - 0ms.
@@ -39,7 +39,7 @@ j<=i:2 states - 0ms
  (i+m)<=(j+n):4 states - 1ms
   computing j<=i&(i+m)<=(j+n)
    computing &:2 states - 4 states
-    Computing cross product:2 states - 4 states
+    computing cross product:2 states - 4 states
     computed cross product:6 states - 0ms
     Minimizing: 6 states.
     Minimized:6 states - 0ms.
