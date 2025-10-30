@@ -224,16 +224,6 @@ public class Automaton {
         return new Automaton(Session.getReadFileForAutomataLibrary(automataName + TXT_EXTENSION));
     }
 
-    public Automaton combine(List<String> automataNames, IntList outputs, boolean print, String prefix, StringBuilder log) {
-        Queue<Automaton> subautomata = new LinkedList<>();
-
-        for (String name : automataNames) {
-            Automaton M = readAutomatonFromFile(name);
-            subautomata.add(M);
-        }
-        return AutomatonLogicalOps.combine(this, subautomata, outputs, print, prefix, log);
-    }
-
     private void normalizeNumberSystems(boolean print, String prefix, StringBuilder log) {
         // set all the number systems to be null.
         boolean switchNS = false;
@@ -548,6 +538,8 @@ public class Automaton {
             if (ns != null && ns.useAllRepresentations()) {
                 Automaton N = ns.getAllRepresentations();
                 N.bind(List.of(getLabel().get(i)));
+                // NOTE: unlike applyAllRepresentations(), the following combines with "this" automaton rather than K.
+                // This appears to be by design, and causes a bug in combine() otherwise.
                 K = ProductStrategies.crossProduct(this, N, Prover.IF_OTHER_OP, print, prefix, log);
             }
         }

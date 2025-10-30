@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -297,5 +298,25 @@ public class ProverHelper {
   static String determineOutLibrary(boolean isDFAO) {
     return isDFAO ?
         Session.getWriteAddressForWordsLibrary() : Session.getWriteAddressForAutomataLibrary();
+  }
+
+  static TestCase combineCommand(boolean print, String s, List<String> automataNames, IntList outputs, Matcher m) {
+    if (automataNames.isEmpty()) {
+      throw new WalnutException("Combine requires at least one automaton as input.");
+    }
+    Automaton first = Automaton.readAutomatonFromFile(automataNames.get(0));
+    automataNames.remove(0);
+
+    Queue<Automaton> subautomata = new LinkedList<>();
+
+    for (String name : automataNames) {
+      Automaton M = Automaton.readAutomatonFromFile(name);
+      subautomata.add(M);
+    }
+
+    Automaton C = AutomatonLogicalOps.combine(first, subautomata, outputs, print, Prover.prefix, Prover.log);
+
+    C.writeAutomata(s, Session.getWriteAddressForWordsLibrary(), m.group(Prover.GROUP_COMBINE_NAME), true);
+    return new TestCase(C);
   }
 }

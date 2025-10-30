@@ -705,16 +705,7 @@ public class Prover {
       automataNames.add(t);
     }
 
-    if (automataNames.isEmpty()) {
-      throw new WalnutException("Combine requires at least one automaton as input.");
-    }
-    Automaton first = Automaton.readAutomatonFromFile(automataNames.get(0));
-    automataNames.remove(0);
-
-    Automaton C = first.combine(automataNames, outputs, printFlag, prefix, log);
-
-    C.writeAutomata(s, Session.getWriteAddressForWordsLibrary(), m.group(GROUP_COMBINE_NAME), true);
-    return new TestCase(C);
+    return ProverHelper.combineCommand(this.printFlag, s, automataNames, outputs, m);
   }
 
   public TestCase describeCommand(String s) {
