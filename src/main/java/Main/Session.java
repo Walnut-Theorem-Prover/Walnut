@@ -27,6 +27,9 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
+import static Main.Prover.homeDirArg;
+import static Main.Prover.sessionDirArg;
+
 /**
  * This class stores session-specific data, like Results directories.
  * Every run of Walnut starts a new Session, although a previous session can be loaded.
@@ -37,6 +40,7 @@ public class Session {
   private static String name; // user-friendly session name, may be a timestamp
   private static String mainWalnutDir = "";
   private static String sessionWalnutDir;
+  static boolean globalSession = false;
 
   static final String WALNUT_VERSION = "7.1.0-beta";
   static final String PROMPT = "\n[Walnut]$ ";
@@ -54,7 +58,7 @@ public class Session {
   private static final String COMMAND_FILES = "Command Files/";
   private static final String RESULT = "Result/";
 
-  public static void setPathsAndNames(String sessionDir, String homeDir) {
+  public static void setPathsAndNames(String sessionDir, String homeDir, boolean globalSession) {
     if (homeDir == null) {
       String path = System.getProperty("user.dir");
       if (path.endsWith("bin"))
@@ -63,7 +67,10 @@ public class Session {
       mainWalnutDir = homeDir;
     }
 
-    if (sessionDir == null) {
+    if (globalSession) {
+      Session.globalSession = true;
+      sessionWalnutDir = mainWalnutDir;
+    } else if (sessionDir == null) {
       name = SESSION_NAME + "/" +
           LocalDateTime.now().format(DateTimeFormatter.ofPattern(FRIENDLY_DATE_TIME_PATTERN)) + "/";
       if (sessionWalnutDir == null) {
@@ -76,8 +83,8 @@ public class Session {
   }
 
   public static void setPathsAndNamesIntegrationTests() {
-    String[] args = new String[]{"--home-dir=" + getAddressForIntegrationTestResults() + GLOBAL_NAME,
-    "--session-dir=" + getAddressForIntegrationTestResults() + SESSION_NAME};
+    String[] args = new String[]{homeDirArg + getAddressForIntegrationTestResults() + GLOBAL_NAME,
+    sessionDirArg + getAddressForIntegrationTestResults() + SESSION_NAME};
     Prover.parseArgs(args);
     // clear out directory if it has anything in it
     try {
@@ -116,6 +123,7 @@ public class Session {
             sessionWalnutDir, getAddressForResult(), getWriteAddressForAutomataLibrary(),
         getWriteAddressForCustomBases(), getWriteAddressForMacroLibrary(), getWriteAddressForMorphismLibrary(),
         getWriteAddressForWordsLibrary())) {
+      if (s.isEmpty()) { continue; }
       File f = new File(s);
       if (!f.isDirectory() && !f.mkdir()) {
         throw new WalnutException("Couldn't create directory:" + s);
@@ -171,8 +179,12 @@ public class Session {
   }
 
   private static String globalOrSessionFile(String testAddress) {
-    String sessionFile = sessionWalnutDir + testAddress;
     String globalFile = mainWalnutDir + testAddress;
+    if (globalSession) {
+      return globalFile;
+    }
+
+    String sessionFile = sessionWalnutDir + testAddress;
     if (!(new File(sessionFile).isFile())) {
       return globalFile;
     }

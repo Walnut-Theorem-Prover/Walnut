@@ -288,6 +288,7 @@ public class Prover {
                             command). If omitted, starts an interactive session.
 
       Options:
+        --global-session    Use the old (Walnut 6 and earlier) global session behavior.
         --session-dir PATH  Use PATH instead of an auto-generated Session directory.
         --home-dir PATH     Use PATH instead of the current working directory.
         --help              Show this help message and exit.
@@ -300,8 +301,9 @@ public class Prover {
       The latest citation information is available at https://github.com/jn1z/OTF/blob/main/README.md
       """;
 
-  private static final String homeDirArg = "--home-dir=";
-  private static final String sessionDirArg = "--session-dir=";
+  static final String homeDirArg = "--home-dir=";
+  static final String sessionDirArg = "--session-dir=";
+  private static final String globalSessionArg = "--global-session";
   /**
    * if the command line argument is not empty, we treat args[0] as a filename.
    * if this is the case, we read from the file and load its commands before we submit control to user.
@@ -318,6 +320,7 @@ public class Prover {
     String filename = null;
     String sessionDir = null;
     String homeDir = null;
+    boolean globalSession = false;
 
     for (String arg : args) {
       if (arg.startsWith("--help") || arg.equals("-h")) {
@@ -334,12 +337,14 @@ public class Prover {
         if (!homeDir.endsWith("/")) {
           homeDir += "/";
         }
+      } else if (arg.equals(globalSessionArg)) {
+        globalSession = true;
       } else if (filename == null) {
         filename = arg; // Assume the first non-flag argument is the filename
         UtilityMethods.validateFile(Session.getReadAddressForCommandFiles(filename));
       }
     }
-    Session.setPathsAndNames(sessionDir, homeDir);
+    Session.setPathsAndNames(sessionDir, homeDir, globalSession);
     return filename;
   }
   public static void run(String filename) {
@@ -356,7 +361,11 @@ public class Prover {
     // Parse commands from the console.
     System.out.println("Welcome to Walnut v" + Session.WALNUT_VERSION +
         "! Type \"help;\" to see all available commands.");
-    System.out.println("Starting Walnut session: " + Session.getName());
+    if (Session.globalSession) {
+      System.out.println("Using global Walnut session.");
+    } else {
+      System.out.println("Starting Walnut session: " + Session.getName());
+    }
     try (BufferedReader in = new BufferedReader(new InputStreamReader(System.in))) {
       mainProver.readBuffer(in, true);
     } catch (Exception e) {

@@ -29,8 +29,9 @@ public class WordAutomaton {
       String opStr = operator.getSymbol();
       long timeBefore = System.currentTimeMillis();
       UtilityMethods.logMessage(print, prefix + COMPARING + " (" + opStr + ") against " + o + ":" + wordA.fa.getQ() + " states", log);
+      IntList wordAOutput = wordA.getFa().getO();
       for (int p = 0; p < wordA.fa.getQ(); p++) {
-          wordA.fa.setOutputIfEqual(p, RelationalOperator.compare(operator, wordA.fa.getO().getInt(p), o));
+          wordA.fa.setOutputIfEqual(p, RelationalOperator.compare(operator, wordAOutput.getInt(p), o));
       }
       // As of now, this is *not* a word automaton
       wordA.determinizeAndMinimize(print, prefix + " ", log);
@@ -102,6 +103,7 @@ public class WordAutomaton {
 
   /**
    * Reverse a DFAO. Use Theorem 4.3.3 from Allouche & Shallit.
+   * The returned object is deterministic.
    */
   public static void reverseWithOutput(Automaton wordA, boolean reverseMsd,
                                        boolean print, String prefix, StringBuilder log) {
@@ -179,7 +181,8 @@ public class WordAutomaton {
       minimizeSelfWithOutput(wordA, print, prefix + " ", log);
 
       if (addedDeadState) {
-          AutomatonLogicalOps.removeStatesWithMinOutput(wordA.fa, minOutput);
+          // note: wordA is deterministic
+          AutomatonLogicalOps.removeStatesWithOutputRebuild(wordA.fa, minOutput);
           wordA.forceCanonize();
       }
 

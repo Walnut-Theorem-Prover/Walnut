@@ -194,7 +194,8 @@ public class AutomatonLogicalOps {
         for (int q = 0; q < otherClone.fa.getQ(); q++) {
             Int2ObjectRBTreeMap<IntList> newMap = new Int2ObjectRBTreeMap<>();
             for (Int2ObjectMap.Entry<IntList> entry : otherClone.fa.t.getEntriesNfaD(q)) {
-                newMap.put(A.richAlphabet.encode(otherClone.richAlphabet.decode(entry.getIntKey())), entry.getValue());
+                newMap.put(A.richAlphabet.encode(otherClone.richAlphabet.decode(entry.getIntKey())),
+                    new IntArrayList(entry.getValue()));
             }
             newOtherD.add(newMap);
         }
@@ -312,7 +313,11 @@ public class AutomatonLogicalOps {
 
     private static int determineZero(RichAlphabet richAlphabet) {
         List<Integer> ZERO = new ArrayList<>(richAlphabet.getA().size());//all zero input
-        for (List<Integer> i : richAlphabet.getA()) ZERO.add(i.indexOf(0));
+        for (List<Integer> i : richAlphabet.getA()) {
+            int pos = i.indexOf(0);
+            if (pos < 0) throw new WalnutException("Alphabet has no zero digit: " + i);
+            ZERO.add(pos);
+        }
         return richAlphabet.encode(ZERO);
     }
 
@@ -473,8 +478,11 @@ public class AutomatonLogicalOps {
         UtilityMethods.logMessage(print, prefix + REVERSED + ":" + A.fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
     }
 
-    // remove all states that have an output of minOutput
-    static void removeStatesWithMinOutput(FA fa, int minOutput) {
+    /**
+     * Deletes all states whose output equals the given value, remaps remaining states, and preserves only transitions among kept states.
+     * @param fa - deterministic FA
+     */
+    static void removeStatesWithOutputRebuild(FA fa, int minOutput) {
         Set<Integer> statesToRemove = new HashSet<>();
         for (int q = 0; q < fa.getQ(); q++) {
             if (fa.getO().getInt(q) == minOutput) {
@@ -686,7 +694,7 @@ public class AutomatonLogicalOps {
 
         UtilityMethods.logMessage(
                 print,
-                prefix + prefix + "Converted: " + lsdUnderscore + base +
+                prefix + "Converted: " + lsdUnderscore + base +
                     " to " + lsdUnderscore + (int) expected +
                     ", " + A.fa.getQ() + " states - " + (System.currentTimeMillis() - timeBefore) + "ms",
                 log);

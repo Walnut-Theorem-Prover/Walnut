@@ -5,6 +5,9 @@ All notable changes to Walnut will be documented here. Format is based on [Keep 
 ## [Walnut 7.1] - IN PROGRESS
 
 ### Added
+
+- Added --global-session arg, to support old (Walnut 6 and earlier) globsl session behavior.
+ 
 ### Fixed
 
 - Fixed regression [#38 (load commands running twice)](https://github.com/Walnut-Theorem-Prover/Walnut/issues/38)
@@ -16,7 +19,7 @@ All notable changes to Walnut will be documented here. Format is based on [Keep 
 
 - Removed >65K alphabet size limitation [#37](https://github.com/Walnut-Theorem-Prover/Walnut/issues/37)
 - Upgraded OTF to version 1.1.0. Several performance fixes, sometimes 10x faster; for larger NFAs, sometimes 10x less memory. [OTF changelog](https://github.com/jn1z/OTF/blob/main/CHANGELOG.md)
-- Corrected and reorganized help messages
+- Corrected and reorganized help and usage messages
 
 ## [Walnut 7.0] - 2025-08-01 - Author: John Nicol
 
