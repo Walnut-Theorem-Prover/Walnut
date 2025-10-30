@@ -299,6 +299,7 @@ public class Predicate {
         return MATCHER_FOR_LIST_OF_QUANTIFIED_VARIABLES.end();
     }
 
+    // TODO: Essentially same as Prover.determineBase()
     private static String deriveNumberSystem(Matcher m1) {
         if (m1.group(R_NS_AND_BASE) != null) return m1.group(R_NS_AND_BASE);
         if (m1.group(R_BASE_ONLY) != null) return MSD_UNDERSCORE + m1.group(R_BASE_ONLY);

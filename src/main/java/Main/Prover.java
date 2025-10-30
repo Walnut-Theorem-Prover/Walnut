@@ -175,7 +175,7 @@ public class Prover {
   static final int GROUP_TEST_NAME = 1, GROUP_TEST_NUM = 2;
 
   public static final String TRANSDUCE = "transduce";
-  public static final String DOLLAR = "\\s+(\\$|\\s*)";
+  private static final String DOLLAR = "\\s+(\\$|\\s*)";
   static final String RE_FOR_transduce_CMD = RE_START + TRANSDUCE + RE_WORD_OF_CMD + RE_WORD_OF_CMD + DOLLAR + RE_WORD_OF_CMD_NO_SPC;
   static final Pattern PAT_FOR_transduce_CMD = Pattern.compile(RE_FOR_transduce_CMD);
   static final int GROUP_TRANSDUCE_NEW_NAME = 1, GROUP_TRANSDUCE_TRANSDUCER = 2,
@@ -277,6 +277,31 @@ public class Prover {
   public static String currentEvalName; // current evaluation name, used for export metacommand
   public static boolean usingOTF = false; // whether the current command is using OTF algorithms
   public static boolean earlyExistTermination = false; // earlyExistTermination metacommand
+
+  private static final String usageMessage = """
+      Usage: walnut [OPTIONS] [<filename>]
+
+      Walnut command-line interface.
+
+      Positional arguments:
+        <filename>          File of commands to execute (same effect as the `load`
+                            command). If omitted, starts an interactive session.
+
+      Options:
+        --session-dir PATH  Use PATH instead of an auto-generated Session directory.
+        --home-dir PATH     Use PATH instead of the current working directory.
+        --help              Show this help message and exit.
+      """;
+
+  private static final String OTF_MESSAGE = """
+
+      If the CCL(S) or BRZ-CCL(S) algorithms are used in a result,
+      please cite the OTF paper by John Nicol and Markus Frohme.
+      The latest citation information is available at https://github.com/jn1z/OTF/blob/main/README.md
+      """;
+
+  private static final String homeDirArg = "--home-dir=";
+  private static final String sessionDirArg = "--session-dir=";
   /**
    * if the command line argument is not empty, we treat args[0] as a filename.
    * if this is the case, we read from the file and load its commands before we submit control to user.
@@ -295,20 +320,17 @@ public class Prover {
     String homeDir = null;
 
     for (String arg : args) {
-      if (arg.startsWith("--help")) {
-        System.out.println("Usage: walnut [--session-dir=<SESSION_DIR>] [--home-dir=<HOME_DIR>] <filename>");
-        System.out.println("If Session directory is specified, use instead of generated Session directory.");
-        System.out.println("If Home directory is specified, use instead of current directory.");
-        System.out.println("If filename is specified, read commands from file. Similar to `load` command.");
+      if (arg.startsWith("--help") || arg.equals("-h")) {
+        System.out.println(usageMessage);
         System.exit(0);
       }
-      if (arg.startsWith("--session-dir=")) {
-        sessionDir = arg.substring("--session-dir=".length());
+      if (arg.startsWith(sessionDirArg)) {
+        sessionDir = arg.substring(sessionDirArg.length());
         if (!sessionDir.endsWith("/")) {
           sessionDir += "/";
         }
-      } else if (arg.startsWith("--home-dir=")) {
-        homeDir = arg.substring("--home-dir=".length());
+      } else if (arg.startsWith(homeDirArg)) {
+        homeDir = arg.substring(homeDirArg.length());
         if (!homeDir.endsWith("/")) {
           homeDir += "/";
         }
@@ -417,10 +439,7 @@ public class Prover {
     }
 
     if (Prover.usingOTF) {
-      UtilityMethods.logAndPrint(true,
-          "\nIf the CCL(S) or BRZ-CCL(S) algorithms are used in a result," +
-              "please cite the OTF paper by John Nicol and Markus Frohme." +
-              "the latest citation information is available at https://github.com/jn1z/OTF/blob/main/README.md", log);
+      UtilityMethods.logAndPrint(true, OTF_MESSAGE, log);
     }
     return exitVal;
   }
@@ -739,7 +758,7 @@ public class Prover {
     if (!h.isUniform()) {
       throw new WalnutException("A morphism applied to a word automaton must be uniform.");
     }
-    StringBuilder combineString = new StringBuilder("combine " + m.group(GROUP_IMAGE_NEW_NAME));
+    StringBuilder combineString = new StringBuilder(Prover.COMBINE + " " + m.group(GROUP_IMAGE_NEW_NAME));
 
     // We need to know the number system of our old automaton: the new one should match, as should intermediary expressions
     Automaton M = new Automaton(Session.getReadFileForWordsLibrary(m.group(GROUP_IMAGE_OLD_NAME) + TXT_EXTENSION));
@@ -962,6 +981,7 @@ public class Prover {
     }
   }
 
+  // TODO: Essentially same as Predicate.deriveNumberSystem()
   public static String determineBase(Matcher m1) {
     String base = MSD_2;
     if (m1.group(3) != null) base = m1.group(3);
