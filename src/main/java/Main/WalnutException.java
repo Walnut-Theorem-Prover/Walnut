@@ -65,10 +65,6 @@ public class WalnutException extends RuntimeException {
         return new WalnutException("invalid use of method bind");
     }
 
-    public static WalnutException invalidCommand() {
-        return new WalnutException("Invalid command.");
-    }
-
     public static WalnutException invalidCommand(String command) {
         return new WalnutException("Invalid command: " + command);
     }

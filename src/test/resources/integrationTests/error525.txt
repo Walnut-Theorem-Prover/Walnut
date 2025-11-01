@@ -1,1 +1,1 @@
-Invalid command.
+Invalid command: rsplit test525[+] FASQ

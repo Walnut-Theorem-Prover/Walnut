@@ -432,7 +432,7 @@ public class Prover {
 
     Matcher matcher_for_command = PAT_FOR_CMD.matcher(s);
     if (!matcher_for_command.find()) {
-      throw WalnutException.invalidCommand();
+      throw WalnutException.invalidCommand(s);
     }
 
     String commandName = matcher_for_command.group(1);
@@ -460,7 +460,7 @@ public class Prover {
     printSteps = printDetails = printFlag = false; // reset flags
 
     if (!s.endsWith(";") && !s.endsWith(":")) {
-      throw WalnutException.invalidCommand();
+      throw WalnutException.invalidCommand(s);
     }
     int endingToRemove = 1;
     if (s.endsWith(":")) {
@@ -488,7 +488,7 @@ public class Prover {
     }
 
     Matcher matcher_for_command = PAT_FOR_CMD.matcher(s);
-    if (!matcher_for_command.find()) throw WalnutException.invalidCommand();
+    if (!matcher_for_command.find()) throw WalnutException.invalidCommand(s);
 
     String commandName = matcher_for_command.group(1);
     if (!commandName.matches(RE_FOR_THE_LIST_OF_CMDS)) {

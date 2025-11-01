@@ -1,1 +1,1 @@
-Invalid command.
+Invalid command: rsplit test526[-] FTM

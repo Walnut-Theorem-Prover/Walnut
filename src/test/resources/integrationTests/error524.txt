@@ -1,1 +1,1 @@
-Invalid command.
+Invalid command: split test524 FASQ[-]
