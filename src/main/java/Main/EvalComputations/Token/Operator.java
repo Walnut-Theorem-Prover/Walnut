@@ -18,6 +18,10 @@
 
 package Main.EvalComputations.Token;
 
+import Automata.Automaton;
+import Automata.AutomatonLogicalOps;
+import Automata.AutomatonQuantification;
+import Main.EvalComputations.Expressions.ArithmeticExpression;
 import Main.EvalComputations.Expressions.Expression;
 import Main.WalnutException;
 
@@ -140,5 +144,14 @@ public abstract class Operator extends Token {
 
     protected void validateArity(Stack<Expression> S) {
         if (S.size() < arity) throw new WalnutException("operator " + op + " requires " + arity + " operands");
+    }
+
+    static Automaton andThenQuantifyIfArithmetic(boolean print, String prefix, StringBuilder log,
+                                                                Expression a, Automaton M) {
+        if (a instanceof ArithmeticExpression) {
+            M = AutomatonLogicalOps.and(M, a.M, print, prefix + " ", log);
+            AutomatonQuantification.quantify(M, a.identifier, print, prefix + " ", log);
+        }
+        return M;
     }
 }

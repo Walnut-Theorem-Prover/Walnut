@@ -66,7 +66,7 @@ public class ArithmeticOperator extends Operator {
                     return op;
                 }
             }
-            throw new IllegalArgumentException("Unknown comparison operator: " + symbol);
+            throw new IllegalArgumentException("Unknown arithmetic operator: " + symbol);
         }
     }
 
@@ -115,7 +115,7 @@ public class ArithmeticOperator extends Operator {
         // b + c = 0
         Automaton M = ns.arithmetic(b.identifier, c, 0, Ops.PLUS);
         UtilityMethods.logAndPrint(print, prefix + COMPUTING + " " + op + b, log);
-        M = andAndQuantifyArithmeticExpression(print, prefix, log, b, M);
+        M = andThenQuantifyIfArithmetic(print, prefix, log, b, M);
         S.push(new ArithmeticExpression("(" + op + b + ")", M, c));
         UtilityMethods.logAndPrint(print, prefix + COMPUTED + " " + op + b, log);
     }
@@ -188,7 +188,7 @@ public class ArithmeticOperator extends Operator {
             }
             M = AutomatonLogicalOps.and(M, word.M, print, prefix + " ", log);
             AutomatonQuantification.quantify(M, word.identifiersToQuantify, print, prefix + " ", log);
-            M = andAndQuantifyArithmeticExpression(print, prefix, log, arithmetic, M);
+            M = andThenQuantifyIfArithmetic(print, prefix, log, arithmetic, M);
         } else {
             if (a instanceof NumberLiteralExpression) {
                 if (a.constant == 0 && opp.equals(Ops.MULT)) {
@@ -206,36 +206,27 @@ public class ArithmeticOperator extends Operator {
                 M = ns.arithmetic(a.identifier, b.identifier, c, opp);
             }
 
-            M = andAndQuantifyArithmeticExpression(print, prefix, log, a, M);
-            M = andAndQuantifyArithmeticExpression(print, prefix, log, b, M);
+            M = andThenQuantifyIfArithmetic(print, prefix, log, a, M);
+            M = andThenQuantifyIfArithmetic(print, prefix, log, b, M);
         }
         S.push(new ArithmeticExpression("(" + a + op + b + ")", M, c));
         UtilityMethods.logAndPrint(print, prefix + COMPUTED + " " + a + op + b, log);
     }
 
-    private static Automaton andAndQuantifyArithmeticExpression(boolean print, String prefix, StringBuilder log,
-                                                                Expression a, Automaton M) {
-        if (a instanceof ArithmeticExpression) {
-            M = AutomatonLogicalOps.and(M, a.M, print, prefix + " ", log);
-            AutomatonQuantification.quantify(M, a.identifier, print, prefix + " ", log);
-        }
-        return M;
-    }
-
     public static int arith(ArithmeticOperator.Ops op, int a, int b) {
         switch (op) {
             case PLUS -> {
-                return a + b;
+                return Math.addExact(a, b);
             }
             case MINUS -> {
-                return a - b;
+                return Math.subtractExact(a, b);
             }
             case DIV -> {
                 if (b == 0) throw WalnutException.divisionByZero();
                 return Math.floorDiv(a, b);
             }
             case MULT -> {
-                return a * b;
+                return Math.multiplyExact(a, b);
             }
             default -> throw WalnutException.unexpectedOperator(op.getSymbol());
         }

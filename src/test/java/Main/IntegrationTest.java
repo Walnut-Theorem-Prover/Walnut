@@ -895,6 +895,8 @@ public class IntegrationTest {
 		L.add("def test670 \")))\";"); // 670: unbalanced parentheses
 
 		L.add("split NONEXISTENT NONEXISTENT [+] [-] [];"); // 671: NONEXISTENT does not exist
+
+		L.add("def test672 \"50000 * 50000 > 100\";"); // Overflow exception. Pre-Walnut-7.1, this was false (bug!)
 	}
 
 	@TestFactory

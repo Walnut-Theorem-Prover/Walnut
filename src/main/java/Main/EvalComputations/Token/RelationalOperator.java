@@ -127,21 +127,21 @@ public class RelationalOperator extends Operator {
             }
             M = AutomatonLogicalOps.and(M, word.M, print, prefix + " ", log);
             AutomatonQuantification.quantify(M, word.identifiersToQuantify, print, prefix + " ", log);
-            M = andQuantifyIfArithmetic(print, prefix, log, arithmetic, M);
+            M = andThenQuantifyIfArithmetic(print, prefix, log, arithmetic, M);
             S.push(new AutomatonExpression(word.toString(), M));
         } else if ((a instanceof ArithmeticExpression || a instanceof VariableExpression)
                 && (b instanceof ArithmeticExpression || b instanceof VariableExpression)) {
             Automaton M = ns.comparison(a.identifier, b.identifier, opp);
-            M = andQuantifyIfArithmetic(print, prefix, log, a, M);
-            M = andQuantifyIfArithmetic(print, prefix, log, b, M);
+            M = andThenQuantifyIfArithmetic(print, prefix, log, a, M);
+            M = andThenQuantifyIfArithmetic(print, prefix, log, b, M);
             S.push(new AutomatonExpression(a + op + b, M));
         } else if ((a instanceof NumberLiteralExpression || a instanceof AlphabetLetterExpression) && (b instanceof ArithmeticExpression || b instanceof VariableExpression)) {
             Automaton M = ns.comparison(a.constant, b.identifier, opp);
-            M = andQuantifyIfArithmetic(print, prefix, log, b, M);
+            M = andThenQuantifyIfArithmetic(print, prefix, log, b, M);
             S.push(new AutomatonExpression(a + op + b, M));
         } else if ((a instanceof ArithmeticExpression || a instanceof VariableExpression) && (b instanceof NumberLiteralExpression || b instanceof AlphabetLetterExpression)) {
             Automaton M = ns.comparison(a.identifier, b.constant, opp);
-            M = andQuantifyIfArithmetic(print, prefix, log, a, M);
+            M = andThenQuantifyIfArithmetic(print, prefix, log, a, M);
             S.push(new AutomatonExpression(a + op + b, M));
         } else if (a instanceof WordExpression && b instanceof WordExpression) {
             Automaton M = WordAutomaton.compareWordAutomata(a.wordAutomaton, b.wordAutomaton, op, print, prefix + " ", log);
@@ -166,14 +166,6 @@ public class RelationalOperator extends Operator {
             throw WalnutException.invalidDualOperators(op, a, b);
         }
         UtilityMethods.logAndPrint(print, prefix + COMPUTED + " " + a + op + b, log);
-    }
-
-    private static Automaton andQuantifyIfArithmetic(boolean print, String prefix, StringBuilder log, Expression arithmetic, Automaton M) {
-        if (arithmetic instanceof ArithmeticExpression) {
-            M = AutomatonLogicalOps.and(M, arithmetic.M, print, prefix + " ", log);
-            AutomatonQuantification.quantify(M, arithmetic.identifier, print, prefix + " ", log);
-        }
-        return M;
     }
 
     public static boolean compare(Ops op, int a, int b) {
