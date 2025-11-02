@@ -121,17 +121,21 @@ public class HelpMessages {
     if (directories == null || directories.length == 0) {
       return;
     }
-    Arrays.sort(directories, (d1, d2) -> d1.getName().compareToIgnoreCase(d2.getName()));
+    sortByNames(directories);
     for (File dir : directories) {
       System.out.println("Group: " + dir.getName());
       File[] txtFiles = dir.listFiles((d, name) -> name.endsWith(TXT_EXTENSION));
       if (txtFiles != null && txtFiles.length > 0) {
-        Arrays.sort(txtFiles, (f1, f2) -> f1.getName().compareToIgnoreCase(f2.getName()));
+        sortByNames(txtFiles);
         System.out.println("  Commands:");
         outputCommands(txtFiles, "   - ");
       }
       System.out.println();
     }
+  }
+
+  private static void sortByNames(File[] directories) {
+    Arrays.sort(directories, (d1, d2) -> d1.getName().compareToIgnoreCase(d2.getName()));
   }
 
   /**
@@ -147,7 +151,7 @@ public class HelpMessages {
     if (txtFiles == null || txtFiles.length == 0) {
       return;
     }
-    Arrays.sort(txtFiles, (f1, f2) -> f1.getName().compareToIgnoreCase(f2.getName()));
+    sortByNames(txtFiles);
     outputCommands(txtFiles, " - ");
   }
 

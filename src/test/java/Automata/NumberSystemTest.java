@@ -133,4 +133,20 @@ public class NumberSystemTest {
     B.canonize();
     Assertions.assertEquals(A.toString(), B.toString()); // basically the same...
   }
+
+  @Test
+  void testNegConstant() {
+    NumberSystem ns = new NumberSystem("msd_neg_10");
+    Automaton a = ns.getConstant(-5);
+    Assertions.assertEquals(10, a.richAlphabet.getA().get(0).size());
+    // TODO: add more tests here
+  }
+
+  @Test
+  void testLsdOne() {
+    NumberSystem ns = new NumberSystem("lsd_5");
+    Automaton a = ns.getConstant(1);
+    Assertions.assertEquals(5, a.richAlphabet.getA().get(0).size());
+    // TODO: add more tests here
+  }
 }
