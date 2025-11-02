@@ -14,6 +14,7 @@ All notable changes to Walnut will be documented here. Format is based on [Keep 
 - Fixed regression : `test` command not outputting all accepted strings
 - Fixed regression : free-variable validation became too strict
 - Fix old edge case in `reg` command
+- Fix old bug: silent integer overflow in evaluations
 
 ### Changed
 
