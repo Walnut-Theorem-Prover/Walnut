@@ -103,6 +103,10 @@ public class WalnutException extends RuntimeException {
         return new WalnutException("the operator " + operator + " cannot be applied to two variables");
     }
 
+    public static WalnutException unbalancedBracket(int index) {
+        return new WalnutException("unbalanced bracket: char at " + index);
+    }
+
     public static WalnutException unbalancedParen(int index) {
         return new WalnutException("unbalanced parenthesis: char at " + index);
     }

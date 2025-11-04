@@ -125,8 +125,6 @@ public class AutomatonReader {
             if (trueFalseSingleton != null && ParseMethods.parseTrueFalse(line, trueFalseSingleton)) {
                 automaton.fa.setTRUE_FALSE_AUTOMATON(true);
                 automaton.fa.setTRUE_AUTOMATON(trueFalseSingleton[0]);
-                sawHeader = true;
-
                 // ensure nothing else follows except comments/whitespace
                 while ((line = in.readLine()) != null) {
                     lineNumber++;

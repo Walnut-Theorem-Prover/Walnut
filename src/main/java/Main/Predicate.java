@@ -168,11 +168,11 @@ public class Predicate {
             if (MATCHER_FOR_LOGICAL_OPERATORS.find(index)) {
                 lastTokenWasOperator = true;
                 Matcher matcher = MATCHER_FOR_LOGICAL_OPERATORS;
-                if (matcher.group(1).equals(Operator.EXISTS) || matcher.group(1).equals(Operator.FORALL) || matcher.group(1).equals(Operator.INFINITE)) {
+                final String opStr = matcher.group(1);
+                if (opStr.equals(Operator.EXISTS) || opStr.equals(Operator.FORALL) || opStr.equals(Operator.INFINITE)) {
                     if (!MATCHER_FOR_LIST_OF_QUANTIFIED_VARIABLES.find(matcher.end())) {
                         throw new WalnutException(
-                                "Operator " + matcher.group(1) +
-                                        " requires a list of variables: char at " +
+                                "Operator " + opStr + " requires a list of variables: char at " +
                                         (realStartingPosition + index));
                     }
 
@@ -230,7 +230,7 @@ public class Predicate {
                 t.put(postOrder);
                 index = MATCHER_FOR_NUMBER_LITERAL.end();
             } else if (MATCHER_FOR_ALPHABET_LETTER.find(index)) {
-                if (!lastTokenWasOperator) throw WalnutException.operatorMissing(index);
+                if (!lastTokenWasOperator) throw WalnutException.operatorMissing(realStartingPosition + index);
                 lastTokenWasOperator = false;
                 t = new AlphabetLetter(realStartingPosition + MATCHER_FOR_ALPHABET_LETTER.start(1), UtilityMethods.parseInt(MATCHER_FOR_ALPHABET_LETTER.group(1)));
                 t.put(postOrder);
@@ -328,7 +328,7 @@ public class Predicate {
             char ch = predicate.charAt(i);
             if (ch == ']') {
                 if (bracketStack.isEmpty())
-                    throw new WalnutException("unbalanced bracket: chat at " + (realStartingPosition + i));
+                    throw WalnutException.unbalancedBracket(realStartingPosition + i);
                 bracketStack.pop();
                 if (bracketStack.isEmpty()) {
                     indices.add(new Predicate(defaultNumberSystem, buf.toString(), realStartingPosition + startingPosition));
