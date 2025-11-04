@@ -155,7 +155,7 @@ public class AutomatonWriter {
 
     public static void writeTxtFormatToStream(Automaton automaton, PrintWriter out) {
         if (automaton.fa.isTRUE_FALSE_AUTOMATON()) {
-            out.write(automaton.fa.isTRUE_AUTOMATON() ? "true" : "false");
+            out.write(automaton.fa.trueFalseString());
         } else {
             automaton.canonize();
             writeAlphabet(automaton, out);

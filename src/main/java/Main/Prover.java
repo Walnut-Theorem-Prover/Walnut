@@ -640,7 +640,7 @@ public class Prover {
     c.writeLogs(resultName, printDetails);
 
     if (M.fa.isTRUE_FALSE_AUTOMATON()) {
-      System.out.println("____\n" + (M.fa.isTRUE_AUTOMATON() ? "TRUE" : "FALSE"));
+      System.out.println("____\n" + M.fa.trueFalseString().toUpperCase());
     }
 
     return new TestCase(M, "", mplAddress, gvAddress, printDetails ? c.logDetails.toString() : "",

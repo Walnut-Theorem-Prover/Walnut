@@ -64,13 +64,12 @@ public class ParseMethods {
 
     public static final Pattern PATTERN_WHITESPACE = Pattern.compile("^\\s*$");
     public static final Pattern PATTERN_COMMENT = Pattern.compile("^\\s*#.*$");
-
-
-
+    private static final String TRUE = Boolean.TRUE.toString();
+    
     public static boolean parseTrueFalse(String s, Boolean[] singleton) {
         Matcher m = PATTERN_FOR_TRUE_FALSE.matcher(s);
         if (m.find()) {
-            singleton[0] = m.group(1).equals("true");
+            singleton[0] = m.group(1).equals(TRUE);
             return true;
         }
         return false;

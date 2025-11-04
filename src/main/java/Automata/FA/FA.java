@@ -17,6 +17,7 @@
  */
 package Automata.FA;
 
+import Automata.ParseMethods;
 import Main.WalnutException;
 import Main.UtilityMethods;
 import it.unimi.dsi.fastutil.ints.*;
@@ -562,6 +563,10 @@ public class FA implements Cloneable {
 
   public boolean isTRUE_AUTOMATON() {
     return TRUE_AUTOMATON;
+  }
+
+  public String trueFalseString() {
+    return Boolean.toString(TRUE_AUTOMATON);
   }
 
   public void setTRUE_AUTOMATON(boolean TRUE_AUTOMATON) {
