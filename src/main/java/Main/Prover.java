@@ -652,7 +652,7 @@ public class Prover {
     List<String> freeVariables = determineFreeVariables(freeVariablesStr);
     if (!freeVariables.isEmpty()) {
       mplAddress = resultName + MPL_EXTENSION;
-      AutomatonWriter.writeMatrices(M, mplAddress, freeVariables);
+      AutomatonMplWriter.writeMatrices(M, mplAddress, freeVariables);
     }
     return mplAddress;
   }
