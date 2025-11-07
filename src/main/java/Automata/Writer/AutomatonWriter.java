@@ -171,15 +171,4 @@ public class AutomatonWriter {
         }
     }
 
-    /**
-     * Writes down matrices for this automaton to a .mpl file given by the address.
-     */
-    public static void writeMatrices(Automaton automaton, String address, List<String> freeVariables) {
-      try (Writer w = new BufferedWriter(new FileWriter(address));
-           MatrixEmitter emitter = new MapleEmitter(w)) {
-        AutomatonMatrixDump.writeAll(automaton, freeVariables, emitter);
-      } catch (IOException e) {
-        UtilityMethods.printTruncatedStackTrace(e);
-      }
-    }
 }

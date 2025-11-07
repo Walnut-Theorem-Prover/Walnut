@@ -17,10 +17,14 @@
  */
 package Automata.Writer;
 
+import Main.Prover;
+
 import java.io.PrintWriter;
 import java.io.Writer;
 
 public final class MathematicaEmitter implements MatrixEmitter {
+  public static final String MATHEMATICA_STRING = "wl"; // note the usual, "m" conflicts with Matlab
+  public static final String EXTENSION = Prover.DOT + MATHEMATICA_STRING;
   private final PrintWriter out;
   private boolean firstRow;
 

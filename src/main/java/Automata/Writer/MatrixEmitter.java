@@ -11,7 +11,7 @@ public interface MatrixEmitter extends AutoCloseable {
   /** Called exactly Q times per matrix */
   void emitRow(int[] row);
 
-  void endMatrix() throws java.io.IOException;
+  void endMatrix();
 
   void emitFinalColumnVector(String name, boolean[] isAccepting);
 

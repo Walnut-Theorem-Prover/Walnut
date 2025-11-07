@@ -17,10 +17,14 @@
  */
 package Automata.Writer;
 
+import Main.Prover;
+
 import java.io.PrintWriter;
 import java.io.Writer;
 
 public final class SageEmitter implements MatrixEmitter {
+  public static final String SAGE_STRING = "sage";
+  public static final String EXTENSION = Prover.DOT + SAGE_STRING;
   private final PrintWriter out;
   private boolean firstRowOpen = false;
 

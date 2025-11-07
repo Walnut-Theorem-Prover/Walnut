@@ -17,6 +17,8 @@
  */
 package Automata.Writer;
 
+import Main.Prover;
+
 import java.io.PrintWriter;
 import java.io.Writer;
 
@@ -24,6 +26,8 @@ import java.io.Writer;
  * MATLAB / Octave emitter.
  */
 public final class MatlabEmitter implements MatrixEmitter {
+  public static final String MATLAB_STRING = "m"; // note this conflicts with Mathematica
+  public static final String EXTENSION = Prover.DOT + MATLAB_STRING;
   private final PrintWriter out;
   private boolean firstRow = true;
 

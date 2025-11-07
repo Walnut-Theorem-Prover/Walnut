@@ -2,11 +2,12 @@ package Automata.Writer;
 
 import Automata.Automaton;
 import Automata.FA.FA;
+import Main.UtilityMethods;
 import Main.WalnutException;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.IntList;
 
-import java.io.PrintWriter;
+import java.io.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -14,23 +15,18 @@ public final class AutomatonMatrixDump {
   /**
    * Walks the automaton and streams v, all M_<vars>_<values>, and w to the given emitter.
    * The emitter controls the target syntax (Maple, Sage, MATLAB, etc).
+   * It is assumed that freeVariables is non-null and non-empty.
    */
   public static void writeAll(Automaton automaton,
                               List<String> freeVariables,
-                              MatrixEmitter emitter) throws java.io.IOException {
+                              MatrixEmitter emitter) {
     final FA fa = automaton.getFa();
     if (fa.isTRUE_FALSE_AUTOMATON()) {
       throw new WalnutException("incidence matrices cannot be calculated, because the automaton does not have a free variable.");
     }
-    if (freeVariables == null || freeVariables.isEmpty()) {
-      throw new WalnutException("No free variables were provided.");
-    }
 
     // Keep behavior consistent with your current writer
     automaton.canonize();
-
-    final int Q  = fa.getQ();
-    final int q0 = fa.getQ0();
 
     // Build variable -> index using the automaton's label (List<String>)
     final List<String> labelVars = automaton.getLabel();
@@ -73,6 +69,9 @@ public final class AutomatonMatrixDump {
       if (dom.contains(0)) rep.add(0);
       else rep.add(dom.get(0));
     }
+
+    final int Q  = fa.getQ();
+    final int q0 = fa.getQ0();
 
     emitter.begin();
     emitter.emitInitialRowVector("v", Q, q0);
@@ -162,5 +161,20 @@ public final class AutomatonMatrixDump {
   public static void writeFinalColumnVectorComment(PrintWriter out, String wName) {
     out.println("# The column vector " + wName + " denotes the indicator vector of the");
     out.println("# set of final states.");
+  }
+
+  /**
+   * Writes down matrix for this automaton to file in specified format.
+   * @return filename where matrix is written.
+   */
+  public static String writeMatrix(Automaton automaton, String address, String extension, List<String> freeVariables) {
+    String filename = address + extension;
+    try (Writer w = new BufferedWriter(new FileWriter(filename))) {
+      MatrixEmitter emitter = new MapleEmitter(w);
+      writeAll(automaton, freeVariables, emitter);
+    } catch (IOException e) {
+      UtilityMethods.printTruncatedStackTrace(e);
+    }
+    return filename;
   }
 }

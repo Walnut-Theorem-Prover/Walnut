@@ -25,6 +25,7 @@ import java.util.List;
 
 import Automata.Automaton;
 import Automata.Writer.AutomatonWriter;
+import Automata.Writer.MapleEmitter;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
@@ -1015,7 +1016,7 @@ public class IntegrationTest {
 			String error = UtilityMethods.readFromFile(directoryAddress + ERROR_FILE + i + TXT_EXTENSION);
 			String details = UtilityMethods.readFromFile(directoryAddress+ DETAILS_FILE + i + TXT_EXTENSION);
 			testCases.add(new TestCase(
-					M,error,directoryAddress + MPL_STRING + i + MPL_EXTENSION,
+					M,error,directoryAddress + MapleEmitter.MPL_STRING + i + MapleEmitter.EXTENSION,
 					directoryAddress + GV_STRING + i + GV_EXTENSION,details,
 					automatonFilenamePairs));
 		}
@@ -1053,7 +1054,7 @@ public class IntegrationTest {
 				writeToFile(directory, ERROR_FILE, i, TXT_EXTENSION, t.getError());
 			}
 			if(t.getMpl() != null && !t.getMpl().isEmpty()){
-				writeToFile(directory, MPL_STRING, i, MPL_EXTENSION, t.getMpl());
+				writeToFile(directory, MapleEmitter.MPL_STRING, i, MapleEmitter.EXTENSION, t.getMpl());
 			}
 			if(t.getDetails() != null && !t.getDetails().isEmpty()){
 				writeToFile(directory, DETAILS_FILE, i, TXT_EXTENSION, t.getDetails());

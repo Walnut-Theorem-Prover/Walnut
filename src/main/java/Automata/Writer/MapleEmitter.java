@@ -17,10 +17,14 @@
  */
 package Automata.Writer;
 
+import Main.Prover;
+
 import java.io.PrintWriter;
 import java.io.Writer;
 
 public final class MapleEmitter implements MatrixEmitter {
+  public static final String MPL_STRING = "mpl";
+  public static final String EXTENSION = Prover.DOT + MPL_STRING;
   private final PrintWriter out;
   private boolean firstRowOpen = false;
 

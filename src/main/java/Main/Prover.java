@@ -27,7 +27,8 @@ import java.util.regex.Pattern;
 
 import Automata.*;
 import Automata.Numeration.Ostrowski;
-import Automata.Writer.AutomatonWriter;
+import Automata.Writer.AutomatonMatrixDump;
+import Automata.Writer.MapleEmitter;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 
@@ -73,8 +74,6 @@ public class Prover {
   public static final String GV_EXTENSION = DOT + GV_STRING;
   public static final String BA_STRING = "ba";
   public static final String BA_EXTENSION = DOT + BA_STRING;
-  public static final String MPL_STRING = "mpl";
-  public static final String MPL_EXTENSION = DOT + MPL_STRING;
   public static final String FIRST_OP = "first";
   public static final String IF_OTHER_OP = "if_other";
 
@@ -85,6 +84,7 @@ public class Prover {
   static final String RE_FOR_load_CMD = RE_START + LOAD + "\\s+(\\w+\\.txt)";
   static final Pattern PAT_FOR_load_CMD = Pattern.compile(RE_FOR_load_CMD);
 
+  // eval/def <name> [<space-separated variables for matrix>] "<predicate>"
   static final String RE_FOR_eval_def_CMDS = RE_START + "(eval|def)" + RE_WORD_OF_CMD + "((" + RE_WORD_OF_CMD + ")*)\\s+\"(.*)\"";
   /**
    * important groups in RE_FOR_eval_def_CMDS
@@ -256,7 +256,8 @@ public class Prover {
   static final String EXPORT = "export";
   static final String EARLY_EXIST_TERMINATION = "earlyExistTermination";
 
-  static final String RE_FOR_export_CMD = RE_START + EXPORT + DOLLAR + RE_WORD_OF_CMD_NO_SPC + RE_WORD_OF_CMD;
+  // export <automata> <format> [<space-separated list of variables for matrix>]
+  static final String RE_FOR_export_CMD = RE_START + EXPORT + DOLLAR + RE_WORD_OF_CMD_NO_SPC + RE_WORD_OF_CMD + "((" + RE_WORD_OF_CMD + ")*)";
   static final Pattern PAT_FOR_export_CMD = Pattern.compile(RE_FOR_export_CMD);
   static final int GROUP_export_DOLLAR_SIGN = 1, GROUP_export_NAME = 2, GROUP_export_TYPE = 3;
 
@@ -643,7 +644,9 @@ public class Prover {
 
     M.writeAutomata(predicateStr, Session.getWriteAddressForAutomataLibrary(), evalName, false);
 
-    String mplAddress = writeMatricesIfFreeVariables(m.group(ED_FREE_VARIABLES), resultName, M);
+    List<String> freeVariables = determineFreeVariables(m.group(ED_FREE_VARIABLES));
+    String mplAddress = freeVariables.isEmpty() ? null :
+        AutomatonMatrixDump.writeMatrix(M, resultName, MapleEmitter.EXTENSION, freeVariables);
 
     c.writeLogs(resultName, printDetails);
 
@@ -655,26 +658,16 @@ public class Prover {
         List.of(new TestCase.AutomatonFilenamePair(M, DEFAULT_TESTFILE)));
   }
 
-  private static String writeMatricesIfFreeVariables(String freeVariablesStr, String resultName, Automaton M) {
-    String mplAddress = null;
-    List<String> freeVariables = determineFreeVariables(freeVariablesStr);
-    if (!freeVariables.isEmpty()) {
-      mplAddress = resultName + MPL_EXTENSION;
-      AutomatonWriter.writeMatrices(M, mplAddress, freeVariables);
-    }
-    return mplAddress;
-  }
-
-  static List<String> determineFreeVariables(String freeVarString) {
-    List<String> free_variables = new ArrayList<>();
-    if (freeVarString != null) {
-      Matcher m1 = PAT_FOR_A_FREE_VARIABLE_IN_eval_def_CMDS.matcher(freeVarString);
+  static List<String> determineFreeVariables(String freeVariablesStr) {
+    List<String> freeVariables = new ArrayList<>();
+    if (freeVariablesStr != null) {
+      Matcher m1 = PAT_FOR_A_FREE_VARIABLE_IN_eval_def_CMDS.matcher(freeVariablesStr);
       while (m1.find()) {
         String t = m1.group();
-        free_variables.add(t);
+        freeVariables.add(t);
       }
     }
-    return free_variables;
+    return freeVariables;
   }
 
   public static TestCase macroCommand(String s) {
