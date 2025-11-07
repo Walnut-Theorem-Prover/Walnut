@@ -27,6 +27,7 @@ import java.util.regex.Pattern;
 
 import Automata.*;
 import Automata.Numeration.Ostrowski;
+import Automata.Writer.AutomatonWriter;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 
@@ -652,7 +653,7 @@ public class Prover {
     List<String> freeVariables = determineFreeVariables(freeVariablesStr);
     if (!freeVariables.isEmpty()) {
       mplAddress = resultName + MPL_EXTENSION;
-      AutomatonMplWriter.writeMatrices(M, mplAddress, freeVariables);
+      AutomatonWriter.writeMatrices(M, mplAddress, freeVariables);
     }
     return mplAddress;
   }

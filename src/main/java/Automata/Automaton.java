@@ -19,6 +19,7 @@
 package Automata;
 
 import Automata.FA.*;
+import Automata.Writer.AutomatonWriter;
 import Main.EvalComputations.Token.ArithmeticOperator;
 import Main.EvalComputations.Token.LogicalOperator;
 import Main.WalnutException;

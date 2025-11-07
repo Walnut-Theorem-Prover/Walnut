@@ -24,7 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import Automata.Automaton;
-import Automata.AutomatonWriter;
+import Automata.Writer.AutomatonWriter;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;

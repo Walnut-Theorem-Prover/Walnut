@@ -1,5 +1,6 @@
 package Automata;
 
+import Automata.Writer.AutomatonWriter;
 import Main.Session;
 import it.unimi.dsi.fastutil.ints.IntList;
 import org.junit.jupiter.api.Assertions;

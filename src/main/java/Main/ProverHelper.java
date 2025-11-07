@@ -3,6 +3,7 @@ package Main;
 import Automata.*;
 import Automata.FA.BricsConverter;
 import Automata.FA.Infinite;
+import Automata.Writer.AutomatonWriter;
 import Main.EvalComputations.Token.ArithmeticOperator;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;

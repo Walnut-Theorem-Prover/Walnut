@@ -15,8 +15,9 @@
  *   You should have received a copy of the GNU General Public License
  *   along with Walnut.  If not, see <http://www.gnu.org/licenses/>.
  */
-package Automata;
+package Automata.Writer;
 
+import Automata.Automaton;
 import Automata.FA.FA;
 import Main.UtilityMethods;
 import Main.WalnutException;
@@ -166,5 +167,17 @@ public class AutomatonWriter {
         } catch (IOException e) {
           UtilityMethods.printTruncatedStackTrace(e);
         }
+    }
+
+    /**
+     * Writes down matrices for this automaton to a .mpl file given by the address.
+     */
+    public static void writeMatrices(Automaton automaton, String address, List<String> freeVariables) {
+      try (Writer w = new BufferedWriter(new FileWriter(address));
+           MatrixEmitter emitter = new MapleEmitter(w)) {
+        AutomatonMatrixDump.writeAll(automaton, freeVariables, emitter);
+      } catch (IOException e) {
+        UtilityMethods.printTruncatedStackTrace(e);
+      }
     }
 }

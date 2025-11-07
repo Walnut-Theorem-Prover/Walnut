@@ -1,16 +1,14 @@
 package Automata.Numeration;
 
 import Automata.Automaton;
-import Automata.AutomatonWriter;
+import Automata.Writer.AutomatonWriter;
 import Main.Session;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestClassOrder;
 
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;

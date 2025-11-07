@@ -24,6 +24,7 @@ import java.util.function.Predicate;
 
 import Automata.*;
 import Automata.FA.FA;
+import Automata.Writer.AutomatonWriter;
 import Main.Session;
 import Main.WalnutException;
 import it.unimi.dsi.fastutil.ints.Int2ObjectRBTreeMap;
