@@ -23,8 +23,9 @@ import java.io.PrintWriter;
 import java.io.Writer;
 
 public final class SageEmitter implements MatrixEmitter {
-  public static final String SAGE_STRING = "sage";
-  public static final String EXTENSION = Prover.DOT + SAGE_STRING;
+  public static final String STR = "sage";
+  private static final String COMMENT_CHAR = "#";
+  public static final String EXTENSION = Prover.DOT + STR;
   private final PrintWriter out;
   private boolean firstRowOpen = false;
 
@@ -39,7 +40,7 @@ public final class SageEmitter implements MatrixEmitter {
 
   @Override
   public void emitInitialRowVector(String name, int Q, int q0) {
-    AutomatonMatrixWriter.writeInitialRowVectorComment(out, name);
+    AutomatonMatrixWriter.writeInitialRowVectorComment(out, name, COMMENT_CHAR);
     out.print(name + " = matrix(ZZ, 1, " + Q + ", [");
     for (int q = 0; q < Q; ++q) {
       out.print(q == q0 ? "1" : "0");
@@ -47,7 +48,7 @@ public final class SageEmitter implements MatrixEmitter {
     }
     out.println("])");
     out.println();
-    AutomatonMatrixWriter.writeIncidenceMatricesComment(out);
+    AutomatonMatrixWriter.writeIncidenceMatricesComment(out, COMMENT_CHAR);
   }
 
   @Override
@@ -79,7 +80,7 @@ public final class SageEmitter implements MatrixEmitter {
   @Override
   public void emitFinalColumnVector(String name, boolean[] isAccepting) {
     out.println();
-    AutomatonMatrixWriter.writeFinalColumnVectorComment(out, name);
+    AutomatonMatrixWriter.writeFinalColumnVectorComment(out, name, COMMENT_CHAR);
     out.print(name + " = matrix(ZZ, " + isAccepting.length + ", 1, [");
     for (int i = 0; i < isAccepting.length; ++i) {
       out.print(isAccepting[i] ? "1" : "0");

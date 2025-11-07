@@ -23,8 +23,9 @@ import java.io.PrintWriter;
 import java.io.Writer;
 
 public final class MathematicaEmitter implements MatrixEmitter {
-  public static final String MATHEMATICA_STRING = "wl"; // note the usual, "m" conflicts with Matlab
-  public static final String EXTENSION = Prover.DOT + MATHEMATICA_STRING;
+  public static final String STR = "wl"; // note the usual, "m" conflicts with Matlab
+  public static final String EXTENSION = Prover.DOT + STR;
+  private static final String COMMENT_CHAR = "#";
   private final PrintWriter out;
   private boolean firstRow;
 
@@ -39,7 +40,7 @@ public final class MathematicaEmitter implements MatrixEmitter {
 
   @Override
   public void emitInitialRowVector(String name, int Q, int q0) {
-    AutomatonMatrixWriter.writeInitialRowVectorComment(out, name);
+    AutomatonMatrixWriter.writeInitialRowVectorComment(out, name, COMMENT_CHAR);
     out.print(name + " = {{");
     for (int q = 0; q < Q; ++q) {
       out.print(q == q0 ? "1" : "0");
@@ -47,7 +48,7 @@ public final class MathematicaEmitter implements MatrixEmitter {
     }
     out.println("}};");
     out.println();
-    AutomatonMatrixWriter.writeIncidenceMatricesComment(out);
+    AutomatonMatrixWriter.writeIncidenceMatricesComment(out, COMMENT_CHAR);
   }
 
   @Override
@@ -78,7 +79,7 @@ public final class MathematicaEmitter implements MatrixEmitter {
   @Override
   public void emitFinalColumnVector(String name, boolean[] isAccepting) {
     out.println();
-    AutomatonMatrixWriter.writeFinalColumnVectorComment(out, name);
+    AutomatonMatrixWriter.writeFinalColumnVectorComment(out, name, COMMENT_CHAR);
     out.print(name + " = {");
     for (int i = 0; i < isAccepting.length; ++i) {
       out.print("{" + (isAccepting[i] ? "1" : "0") + "}");

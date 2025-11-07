@@ -645,8 +645,9 @@ public class Prover {
     M.writeAutomata(predicateStr, Session.getWriteAddressForAutomataLibrary(), evalName, false);
 
     List<String> freeVariables = determineFreeVariables(m.group(ED_FREE_VARIABLES));
-    String mplAddress = freeVariables.isEmpty() ? null :
-        AutomatonMatrixWriter.writeMatrix(M, resultName, MapleEmitter.EXTENSION, freeVariables);
+    if (!freeVariables.isEmpty()) {
+      AutomatonMatrixWriter.writeAll(M, resultName, freeVariables);
+    }
 
     c.writeLogs(resultName, printDetails);
 
@@ -654,7 +655,15 @@ public class Prover {
       System.out.println("____\n" + M.fa.trueFalseString().toUpperCase());
     }
 
-    return new TestCase(M, "", mplAddress, gvAddress, printDetails ? c.logDetails.toString() : "",
+    List<String> matrixAddresses = new ArrayList<>();
+    if (!freeVariables.isEmpty()) {
+      System.out.println("Matrix files:");
+      for(AutomatonMatrixWriter.EmitterSpec emitterSpec: AutomatonMatrixWriter.EMITTERS) {
+        System.out.println(resultName + emitterSpec.extension());
+        matrixAddresses.add(resultName + emitterSpec.extension());
+      }
+    }
+    return new TestCase(M, "", matrixAddresses, gvAddress, printDetails ? c.logDetails.toString() : "",
         List.of(new TestCase.AutomatonFilenamePair(M, DEFAULT_TESTFILE)));
   }
 

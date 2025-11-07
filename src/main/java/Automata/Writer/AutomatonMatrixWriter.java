@@ -9,17 +9,30 @@ import it.unimi.dsi.fastutil.ints.IntList;
 
 import java.io.*;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public final class AutomatonMatrixWriter {
+  public record EmitterSpec(String str, String extension, Function<Writer, MatrixEmitter> ctor) {}
+
+  public static final List<EmitterSpec> EMITTERS = List.of(
+      new EmitterSpec(MapleEmitter.STR,       MapleEmitter.EXTENSION,       MapleEmitter::new),
+      new EmitterSpec(MatlabEmitter.STR,      MatlabEmitter.EXTENSION,      MatlabEmitter::new),
+      new EmitterSpec(MathematicaEmitter.STR, MathematicaEmitter.EXTENSION, MathematicaEmitter::new),
+      new EmitterSpec(SageEmitter.STR,        SageEmitter.EXTENSION,        SageEmitter::new)
+  );
+
+  // Used in default test cases. This is a central location for that.
+  public static final List<String> EMPTY_MATRIX_TEST_CASES = List.of("", "", "", "");
+
   /**
    * Walks the automaton and streams v, all M_<vars>_<values>, and w to the given emitter.
    * The emitter controls the target syntax (Maple, Sage, MATLAB, etc).
    * It is assumed that freeVariables is non-null and non-empty.
    */
-  public static void writeAll(Automaton automaton,
-                              List<String> freeVariables,
-                              MatrixEmitter emitter) {
+  public static void writeMatrix(Automaton automaton,
+                                 List<String> freeVariables,
+                                 MatrixEmitter emitter) {
     final FA fa = automaton.getFa();
     if (fa.isTRUE_FALSE_AUTOMATON()) {
       throw new WalnutException("incidence matrices cannot be calculated, because the automaton does not have a free variable.");
@@ -145,36 +158,36 @@ public final class AutomatonMatrixWriter {
     return result;
   }
 
-  public static void writeInitialRowVectorComment(PrintWriter out, String vName) {
-    out.println("# The row vector " + vName + " denotes the indicator vector of the (singleton)");
-    out.println("# set of initial states.");
+  public static void writeInitialRowVectorComment(PrintWriter out, String vName, String commentChar) {
+    out.println(commentChar + " The row vector " + vName + " denotes the indicator vector of the (singleton)");
+    out.println(commentChar + " set of initial states.");
   }
 
-  public static void writeIncidenceMatricesComment(PrintWriter out) {
-    out.println("# In what follows, the M_i_x, for a free variable i and a value x, denotes");
-    out.println("# an incidence matrix of the underlying graph of (the automaton of)");
-    out.println("# the predicate in the query.");
-    out.println("# For every pair of states p and q, the entry M_i_x[p][q] denotes the number of");
-    out.println("# transitions with i=x from p to q.");
+  public static void writeIncidenceMatricesComment(PrintWriter out, String commentChar) {
+    out.println(commentChar + " In what follows, the M_i_x, for a free variable i and a value x, denotes");
+    out.println(commentChar + " an incidence matrix of the underlying graph of (the automaton of)");
+    out.println(commentChar + " the predicate in the query.");
+    out.println(commentChar + " For every pair of states p and q, the entry M_i_x[p][q] denotes the number of");
+    out.println(commentChar + " transitions with i=x from p to q.");
   }
 
-  public static void writeFinalColumnVectorComment(PrintWriter out, String wName) {
-    out.println("# The column vector " + wName + " denotes the indicator vector of the");
-    out.println("# set of final states.");
+  public static void writeFinalColumnVectorComment(PrintWriter out, String wName, String commentChar) {
+    out.println(commentChar + " The column vector " + wName + " denotes the indicator vector of the");
+    out.println(commentChar + " set of final states.");
   }
 
   /**
-   * Writes down matrix for this automaton to file in specified format.
-   * @return filename where matrix is written.
+   * Writes automaton in al matrix formats.
    */
-  public static String writeMatrix(Automaton automaton, String address, String extension, List<String> freeVariables) {
-    String filename = address + extension;
-    try (Writer w = new BufferedWriter(new FileWriter(filename))) {
-      MatrixEmitter emitter = new MapleEmitter(w);
-      writeAll(automaton, freeVariables, emitter);
-    } catch (IOException e) {
-      UtilityMethods.printTruncatedStackTrace(e);
+  public static void writeAll(Automaton automaton, String address, List<String> freeVariables) {
+    for (EmitterSpec spec : EMITTERS) {
+      String filename = address + spec.extension();
+      try (Writer w = new BufferedWriter(new FileWriter(filename));
+           MatrixEmitter emitter = spec.ctor().apply(w)) {
+        writeMatrix(automaton, freeVariables, emitter);
+      } catch (IOException e) {
+        UtilityMethods.printTruncatedStackTrace(e);
+      }
     }
-    return filename;
   }
 }

@@ -21,12 +21,15 @@ package Main;
 import Automata.Automaton;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
+
+import static Automata.Writer.AutomatonMatrixWriter.EMPTY_MATRIX_TEST_CASES;
 
 public class TestCase {
     private final String error;
     private final String details;
-    private final String mplAddress;
+    private final List<String> matrixAddresses;
     private final String gvAddress;
     private final Automaton result;
     private final List<AutomatonFilenamePair> automatonPairs;
@@ -37,32 +40,36 @@ public class TestCase {
     public static final String DETAILS_FILE = "details";
 
     public TestCase(
-        Automaton result, String error, String mplAddress, String gvAddress,
+        Automaton result, String error, List<String> matrixAddresses, String gvAddress,
         String details, List<AutomatonFilenamePair> automatonPairs) {
         this.result = result;
         this.error = error;
-        this.mplAddress = mplAddress;
+        this.matrixAddresses = matrixAddresses;
         this.gvAddress = gvAddress;
         this.details = details;
         this.automatonPairs = automatonPairs;
     }
     public TestCase(Automaton result) {
-        this(result, "", "", "", "",
+        this(result, "", EMPTY_MATRIX_TEST_CASES, "", "",
             List.of(new AutomatonFilenamePair(result, DEFAULT_TESTFILE)));
     }
     public TestCase(Automaton result, List<AutomatonFilenamePair> automatonPairs) {
-        this(result, "", "", "", "", automatonPairs);
+        this(result, "", EMPTY_MATRIX_TEST_CASES, "", "", automatonPairs);
     }
 
     public List<AutomatonFilenamePair> getAutomatonPairs() {
         return automatonPairs;
     }
 
-    public String getMpl() throws IOException {
-        if (mplAddress == null || mplAddress.isEmpty()) {
-            return "";
+    public List<String> getMatrixOutput() throws IOException {
+        if (matrixAddresses == null || matrixAddresses.isEmpty()) {
+            return EMPTY_MATRIX_TEST_CASES;
         }
-        return UtilityMethods.readFromFile(mplAddress);
+        List<String> output = new ArrayList<>();
+        for (String address: matrixAddresses) {
+            output.add(UtilityMethods.readFromFile(address));
+        }
+        return output;
     }
 
     public String getGraphViz() throws IOException {

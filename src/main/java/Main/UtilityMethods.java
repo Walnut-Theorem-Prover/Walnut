@@ -169,10 +169,10 @@ public class UtilityMethods {
             return "";
         }
         StringBuilder output = new StringBuilder();
-        try (BufferedReader mplReader = new BufferedReader(new InputStreamReader(new FileInputStream(f)))) {
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(f)))) {
             String temp;
             boolean flag = false;
-            while ((temp = mplReader.readLine()) != null) {
+            while ((temp = reader.readLine()) != null) {
                 output.append(flag ? System.lineSeparator() : "").append(temp);
                 flag = true;
             }

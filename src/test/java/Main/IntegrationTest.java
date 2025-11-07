@@ -24,12 +24,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 import Automata.Automaton;
-import Automata.Writer.AutomatonWriter;
-import Automata.Writer.MapleEmitter;
+import Automata.Writer.*;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
 
+import static Automata.Writer.AutomatonMatrixWriter.EMPTY_MATRIX_TEST_CASES;
 import static Main.Prover.*;
 import static Main.TestCase.DETAILS_FILE;
 import static Main.TestCase.ERROR_FILE;
@@ -921,7 +921,14 @@ public class IntegrationTest {
 				Assertions.assertNull(expected, "actual was null, but not expected");
 				return;
 			}
-			assertEqualMessages(expected.getMpl().trim(), actual.getMpl().trim());
+
+			List<String> expectedMatrixOutput = expected.getMatrixOutput();
+			List<String> actualMatrixOutput = actual.getMatrixOutput();
+			Assertions.assertEquals(expectedMatrixOutput.size(), actualMatrixOutput.size());
+			for(int j=0;j<expectedMatrixOutput.size();j++) {
+				assertEqualMessages(expectedMatrixOutput.get(j).trim(), actualMatrixOutput.get(j).trim());
+			}
+
 			String expectedGraphViz = expected.getGraphViz().trim();
 			if (!expectedGraphViz.isEmpty()) {
 				// Rather than creating 100s of graphviz files for testing and dealing with DFAOs etc.,
@@ -1015,8 +1022,12 @@ public class IntegrationTest {
 
 			String error = UtilityMethods.readFromFile(directoryAddress + ERROR_FILE + i + TXT_EXTENSION);
 			String details = UtilityMethods.readFromFile(directoryAddress+ DETAILS_FILE + i + TXT_EXTENSION);
+			List<String> matrixAddresses = new ArrayList<>();
+			for(AutomatonMatrixWriter.EmitterSpec emitterSpec: AutomatonMatrixWriter.EMITTERS) {
+				matrixAddresses.add(directoryAddress + TestCase.DEFAULT_TESTFILE + i + emitterSpec.extension());
+			}
 			testCases.add(new TestCase(
-					M,error,directoryAddress + MapleEmitter.MPL_STRING + i + MapleEmitter.EXTENSION,
+					M,error, matrixAddresses,
 					directoryAddress + GV_STRING + i + GV_EXTENSION,details,
 					automatonFilenamePairs));
 		}
@@ -1032,7 +1043,7 @@ public class IntegrationTest {
       try {
         test_case = new Prover().dispatchForIntegrationTest(command, "integ:" + command);
       } catch (Exception e) {
-        test_case = new TestCase(null, e.getMessage(), "", "", "",
+        test_case = new TestCase(null, e.getMessage(), EMPTY_MATRIX_TEST_CASES, "", "",
 						List.of(new TestCase.AutomatonFilenamePair(null, TestCase.DEFAULT_TESTFILE)));
       }
       testCases.add(test_case);
@@ -1053,8 +1064,13 @@ public class IntegrationTest {
 			if(t.getError() != null && !t.getError().isEmpty()){
 				writeToFile(directory, ERROR_FILE, i, TXT_EXTENSION, t.getError());
 			}
-			if(t.getMpl() != null && !t.getMpl().isEmpty()){
-				writeToFile(directory, MapleEmitter.MPL_STRING, i, MapleEmitter.EXTENSION, t.getMpl());
+			List<String> matrixOutput = t.getMatrixOutput();
+			if(matrixOutput != null && !matrixOutput.isEmpty()){
+				Assertions.assertEquals(AutomatonMatrixWriter.EMITTERS.size(), matrixOutput.size());
+				for(int j=0;j<matrixOutput.size();j++) {
+					AutomatonMatrixWriter.EmitterSpec emitterSpec = AutomatonMatrixWriter.EMITTERS.get(j);
+					writeToFile(directory, emitterSpec.str(), i, emitterSpec.extension(), matrixOutput.get(j));
+				}
 			}
 			if(t.getDetails() != null && !t.getDetails().isEmpty()){
 				writeToFile(directory, DETAILS_FILE, i, TXT_EXTENSION, t.getDetails());
