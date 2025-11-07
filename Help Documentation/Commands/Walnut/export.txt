@@ -1,9 +1,9 @@
 The "export" command exports an automaton to the specified export format (if supported).
-Currently supported formats are Graphview (.gv) and BA (.ba) formats. Walnut (.txt) is unnecessary, since this command is actually reading from a .txt file.
+Currently supported formats are Graphviz (.gv) and BA (.ba) formats. Walnut (.txt) is unnecessary, since this command is actually reading from a .txt file.
 
-A Word automaton can be exported to Graphview format. Exporting to BA format is not supported (it can't handle DFAO).
+A Word automaton can be exported to Graphviz format. Exporting to BA format is not supported (it can't handle DFAO).
 
-An ordinary automaton can be exported to either Graphview or BA formats.
+An ordinary automaton can be exported to either Graphviz or BA formats.
 
 The syntax for the "export" command for Word Automata is as follows:
 
@@ -13,11 +13,11 @@ For ordinary automata, prepend the "$" symbol to the automaton name:
 
 	export $<name> <format>
 
-For example, to export a Word Automaton named "AUT" saved in "Word Automata Library/" to Graphview format, write:
+For example, to export a Word Automaton named "AUT" saved in "Word Automata Library/" to Graphviz format, write:
 
 	export AUT GV
 
-To export an automaton named "aut" saved in "Automata Library/" to Graphview and BA formats, write:
+To export an automaton named "aut" saved in "Automata Library/" to Graphviz and BA formats, write:
 
 	export $aut GV
 	export $aut BA 
