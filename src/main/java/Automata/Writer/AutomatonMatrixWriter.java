@@ -11,7 +11,7 @@ import java.io.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public final class AutomatonMatrixDump {
+public final class AutomatonMatrixWriter {
   /**
    * Walks the automaton and streams v, all M_<vars>_<values>, and w to the given emitter.
    * The emitter controls the target syntax (Maple, Sage, MATLAB, etc).

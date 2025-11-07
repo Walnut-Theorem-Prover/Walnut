@@ -27,7 +27,7 @@ import java.util.regex.Pattern;
 
 import Automata.*;
 import Automata.Numeration.Ostrowski;
-import Automata.Writer.AutomatonMatrixDump;
+import Automata.Writer.AutomatonMatrixWriter;
 import Automata.Writer.MapleEmitter;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
@@ -256,8 +256,8 @@ public class Prover {
   static final String EXPORT = "export";
   static final String EARLY_EXIST_TERMINATION = "earlyExistTermination";
 
-  // export <automata> <format> [<space-separated list of variables for matrix>]
-  static final String RE_FOR_export_CMD = RE_START + EXPORT + DOLLAR + RE_WORD_OF_CMD_NO_SPC + RE_WORD_OF_CMD + "((" + RE_WORD_OF_CMD + ")*)";
+  // export <automata> <format>
+  static final String RE_FOR_export_CMD = RE_START + EXPORT + DOLLAR + RE_WORD_OF_CMD_NO_SPC + RE_WORD_OF_CMD;
   static final Pattern PAT_FOR_export_CMD = Pattern.compile(RE_FOR_export_CMD);
   static final int GROUP_export_DOLLAR_SIGN = 1, GROUP_export_NAME = 2, GROUP_export_TYPE = 3;
 
@@ -646,7 +646,7 @@ public class Prover {
 
     List<String> freeVariables = determineFreeVariables(m.group(ED_FREE_VARIABLES));
     String mplAddress = freeVariables.isEmpty() ? null :
-        AutomatonMatrixDump.writeMatrix(M, resultName, MapleEmitter.EXTENSION, freeVariables);
+        AutomatonMatrixWriter.writeMatrix(M, resultName, MapleEmitter.EXTENSION, freeVariables);
 
     c.writeLogs(resultName, printDetails);
 

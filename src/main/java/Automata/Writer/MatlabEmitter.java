@@ -42,7 +42,7 @@ public final class MatlabEmitter implements MatrixEmitter {
 
   @Override
   public void emitInitialRowVector(String name, int Q, int q0) {
-    AutomatonMatrixDump.writeInitialRowVectorComment(out, name);
+    AutomatonMatrixWriter.writeInitialRowVectorComment(out, name);
     out.print(name + " = [");
     for (int q = 0; q < Q; ++q) {
       out.print(q == q0 ? "1" : "0");
@@ -50,7 +50,7 @@ public final class MatlabEmitter implements MatrixEmitter {
     }
     out.println("];");
     out.println();
-    AutomatonMatrixDump.writeIncidenceMatricesComment(out);
+    AutomatonMatrixWriter.writeIncidenceMatricesComment(out);
   }
 
   @Override
@@ -78,7 +78,7 @@ public final class MatlabEmitter implements MatrixEmitter {
   @Override
   public void emitFinalColumnVector(String name, boolean[] isAccepting) {
     out.println();
-    AutomatonMatrixDump.writeFinalColumnVectorComment(out, name);
+    AutomatonMatrixWriter.writeFinalColumnVectorComment(out, name);
     out.print(name + " = [");
     for (int i = 0; i < isAccepting.length; ++i) {
       out.print(isAccepting[i] ? "1" : "0");
