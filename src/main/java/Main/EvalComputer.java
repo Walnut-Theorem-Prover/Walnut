@@ -41,12 +41,11 @@ public class EvalComputer {
     private final boolean printStepsOrDetails;
     private final boolean printDetails;
 
-    public EvalComputer(String predicate, boolean printSteps, boolean printDetails) {
+    public EvalComputer(boolean printSteps, boolean printDetails) {
         this.log = new StringBuilder();
         this.logDetails = new StringBuilder();
         this.printStepsOrDetails = printSteps || printDetails;
         this.printDetails = printDetails;
-        compute(new Predicate(predicate));
     }
 
     public String toString() {
@@ -64,7 +63,7 @@ public class EvalComputer {
         }
     }
 
-    private void compute(Predicate predicate) {
+    void compute(Predicate predicate) {
         Stack<Expression> expressions = new Stack<>();
         List<Token> postOrder = predicate.getPostOrder();
         String prefix = "";

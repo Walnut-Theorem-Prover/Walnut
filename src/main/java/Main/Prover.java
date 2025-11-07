@@ -624,17 +624,24 @@ public class Prover {
   public TestCase evalDefCommands(String s) throws IOException {
     Matcher m = ProverHelper.matchOrFail(PAT_FOR_eval_def_CMDS, s, "eval/def");
 
-    String predicate = m.group(ED_PREDICATE);
+    String predicateStr = m.group(ED_PREDICATE);
     String evalName = m.group(ED_NAME);
     currentEvalName = evalName; // used for export metacommand
 
-    EvalComputer c = new EvalComputer(predicate, printSteps, printDetails);
+    // parse the predicates into an object
+    Predicate predicate = new Predicate(predicateStr);
+
+    // compute result based on predicate
+    // if we wanted an "execution plan", it would be hooked in here
+    EvalComputer c = new EvalComputer(printSteps, printDetails);
+    c.compute(predicate);
+
     Automaton M = c.result.M;
 
     String resultName = Session.getAddressForResult() + evalName;
     String gvAddress = resultName + GV_EXTENSION;
 
-    M.writeAutomata(predicate, Session.getWriteAddressForAutomataLibrary(), evalName, false);
+    M.writeAutomata(predicateStr, Session.getWriteAddressForAutomataLibrary(), evalName, false);
 
     String mplAddress = writeMatricesIfFreeVariables(m.group(ED_FREE_VARIABLES), resultName, M);
 
