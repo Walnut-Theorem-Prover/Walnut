@@ -6,6 +6,7 @@ import Main.WalnutException;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.IntList;
 
+import java.io.PrintWriter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -143,5 +144,23 @@ public final class AutomatonMatrixDump {
       }
     }
     return result;
+  }
+
+  public static void writeInitialRowVectorComment(PrintWriter out, String vName) {
+    out.println("# The row vector " + vName + " denotes the indicator vector of the (singleton)");
+    out.println("# set of initial states.");
+  }
+
+  public static void writeIncidenceMatricesComment(PrintWriter out) {
+    out.println("# In what follows, the M_i_x, for a free variable i and a value x, denotes");
+    out.println("# an incidence matrix of the underlying graph of (the automaton of)");
+    out.println("# the predicate in the query.");
+    out.println("# For every pair of states p and q, the entry M_i_x[p][q] denotes the number of");
+    out.println("# transitions with i=x from p to q.");
+  }
+
+  public static void writeFinalColumnVectorComment(PrintWriter out, String wName) {
+    out.println("# The column vector " + wName + " denotes the indicator vector of the");
+    out.println("# set of final states.");
   }
 }

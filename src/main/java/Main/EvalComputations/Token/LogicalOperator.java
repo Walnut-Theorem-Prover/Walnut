@@ -24,7 +24,6 @@ import java.util.Stack;
 
 import Automata.AutomatonLogicalOps;
 import Automata.AutomatonQuantification;
-import Automata.AutomatonWriter;
 import Automata.FA.Infinite;
 import Main.*;
 import Main.EvalComputations.Expressions.Expression;
@@ -34,7 +33,6 @@ import Main.EvalComputations.Expressions.VariableExpression;
 
 import static Main.Logging.COMPUTED;
 import static Main.Logging.COMPUTING;
-import static Main.Prover.TXT_EXTENSION;
 
 public class LogicalOperator extends Operator {
     public static final String AND = "&";

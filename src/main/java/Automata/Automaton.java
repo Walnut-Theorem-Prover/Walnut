@@ -64,7 +64,7 @@ public class Automaton {
     IntList combineOutputs;
 
     public void writeAutomata(String predicate, String outLibrary, String name, boolean isDFAO) {
-        AutomatonWriter.draw(this, Session.getAddressForResult() + name + GV_EXTENSION, predicate, isDFAO);
+        AutomatonWriter.writeToGV(this, Session.getAddressForResult() + name + GV_EXTENSION, predicate, isDFAO);
         String firstAddress = Session.getAddressForResult() + name + TXT_EXTENSION;
         AutomatonWriter.writeToTxtFormat(this, firstAddress);
         // Copy to second location, rather than rewriting.

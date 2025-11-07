@@ -19,6 +19,7 @@ package Automata.Writer;
 
 import Automata.Automaton;
 import Automata.FA.FA;
+import Automata.NumberSystem;
 import Main.UtilityMethods;
 import Main.WalnutException;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
@@ -57,16 +58,17 @@ public class AutomatonWriter {
 
     private static void writeAlphabet(Automaton automaton, PrintWriter out) {
         for (int i = 0; i < automaton.richAlphabet.getA().size(); i++) {
-            List<Integer> l = automaton.richAlphabet.getA().get(i);
-            if (automaton.getNS().get(i) == null) {
+            NumberSystem numberSystem = automaton.getNS().get(i);
+            if (numberSystem == null) {
+                List<Integer> l = automaton.richAlphabet.getA().get(i);
                 out.write("{");
                 out.write(UtilityMethods.genericListString(l, ", "));
                 out.write("} ");
             } else {
-                if (i == 0)
-                    out.write(automaton.getNS().get(i).toString());
-                else
-                    out.write(" " + automaton.getNS().get(i).toString());
+                if (i > 0) {
+                    out.write(" ");
+                }
+                out.write(numberSystem.toString());
             }
         }
         out.write(System.lineSeparator());
@@ -95,7 +97,7 @@ public class AutomatonWriter {
      * In case of a DFAO the drawing contains state outputs with a slash (eg. "0/2" represents an output
      * of 2 from state 0)
      */
-    public static void draw(Automaton automaton, String address, String predicate, boolean isDFAO) {
+    public static void writeToGV(Automaton automaton, String address, String predicate, boolean isDFAO) {
         try (PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter((address))))) {
             if (automaton.fa.isTRUE_FALSE_AUTOMATON()) {
                 out.println("digraph G {");
