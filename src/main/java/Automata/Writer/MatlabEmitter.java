@@ -28,6 +28,7 @@ import java.io.Writer;
 public final class MatlabEmitter implements MatrixEmitter {
   public static final String STR = "m"; // note this conflicts with Mathematica
   public static final String EXTENSION = Prover.DOT + STR;
+  public static final EmitterSpec SPEC = new EmitterSpec("MATLAB/Octave", STR, EXTENSION, MatlabEmitter::new);
   private static final String COMMENT_CHAR = "%";
   private final PrintWriter out;
   private boolean firstRow = true;

@@ -1,6 +1,11 @@
 package Automata.Writer;
 
+import java.io.Writer;
+import java.util.function.Function;
+
 public interface MatrixEmitter extends AutoCloseable {
+  record EmitterSpec(String intro, String str, String extension, Function<Writer, MatrixEmitter> ctor) {}
+
   void begin();
 
   void emitInitialRowVector(String name, int Q, int q0);

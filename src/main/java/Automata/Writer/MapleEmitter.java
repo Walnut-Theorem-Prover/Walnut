@@ -25,6 +25,7 @@ import java.io.Writer;
 public final class MapleEmitter implements MatrixEmitter {
   public static final String STR = "mpl";
   public static final String EXTENSION = Prover.DOT + STR;
+  public static final EmitterSpec SPEC = new EmitterSpec("Maple", STR, EXTENSION, MapleEmitter::new);
   private static final String COMMENT_CHAR = "#";
   private final PrintWriter out;
   private boolean firstRowOpen = false;

@@ -1023,7 +1023,7 @@ public class IntegrationTest {
 			String error = UtilityMethods.readFromFile(directoryAddress + ERROR_FILE + i + TXT_EXTENSION);
 			String details = UtilityMethods.readFromFile(directoryAddress+ DETAILS_FILE + i + TXT_EXTENSION);
 			List<String> matrixAddresses = new ArrayList<>();
-			for(AutomatonMatrixWriter.EmitterSpec emitterSpec: AutomatonMatrixWriter.EMITTERS) {
+			for(MatrixEmitter.EmitterSpec emitterSpec: AutomatonMatrixWriter.EMITTERS) {
 				matrixAddresses.add(directoryAddress + TestCase.DEFAULT_TESTFILE + i + emitterSpec.extension());
 			}
 			testCases.add(new TestCase(
@@ -1068,7 +1068,7 @@ public class IntegrationTest {
 			if(matrixOutput != null && !matrixOutput.isEmpty()){
 				Assertions.assertEquals(AutomatonMatrixWriter.EMITTERS.size(), matrixOutput.size());
 				for(int j=0;j<matrixOutput.size();j++) {
-					AutomatonMatrixWriter.EmitterSpec emitterSpec = AutomatonMatrixWriter.EMITTERS.get(j);
+					MatrixEmitter.EmitterSpec emitterSpec = AutomatonMatrixWriter.EMITTERS.get(j);
 					writeToFile(directory, emitterSpec.str(), i, emitterSpec.extension(), matrixOutput.get(j));
 				}
 			}

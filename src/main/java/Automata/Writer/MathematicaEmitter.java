@@ -25,6 +25,7 @@ import java.io.Writer;
 public final class MathematicaEmitter implements MatrixEmitter {
   public static final String STR = "wl"; // note the usual, "m" conflicts with Matlab
   public static final String EXTENSION = Prover.DOT + STR;
+  public static final EmitterSpec SPEC = new EmitterSpec("Mathematica", STR, EXTENSION, MathematicaEmitter::new);
   private static final String COMMENT_CHAR = "#";
   private final PrintWriter out;
   private boolean firstRow;

@@ -29,6 +29,7 @@ import Automata.*;
 import Automata.Numeration.Ostrowski;
 import Automata.Writer.AutomatonMatrixWriter;
 import Automata.Writer.MapleEmitter;
+import Automata.Writer.MatrixEmitter;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 
@@ -658,8 +659,8 @@ public class Prover {
     List<String> matrixAddresses = new ArrayList<>();
     if (!freeVariables.isEmpty()) {
       System.out.println("Matrix files:");
-      for(AutomatonMatrixWriter.EmitterSpec emitterSpec: AutomatonMatrixWriter.EMITTERS) {
-        System.out.println(resultName + emitterSpec.extension());
+      for(MatrixEmitter.EmitterSpec emitterSpec: AutomatonMatrixWriter.EMITTERS) {
+        System.out.println("  " + emitterSpec.intro() + ": " + resultName + emitterSpec.extension());
         matrixAddresses.add(resultName + emitterSpec.extension());
       }
     }

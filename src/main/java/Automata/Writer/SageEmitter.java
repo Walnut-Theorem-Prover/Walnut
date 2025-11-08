@@ -26,6 +26,7 @@ public final class SageEmitter implements MatrixEmitter {
   public static final String STR = "sage";
   private static final String COMMENT_CHAR = "#";
   public static final String EXTENSION = Prover.DOT + STR;
+  public static final EmitterSpec SPEC = new EmitterSpec("Sage", STR, EXTENSION, SageEmitter::new);
   private final PrintWriter out;
   private boolean firstRowOpen = false;
 

@@ -9,17 +9,12 @@ import it.unimi.dsi.fastutil.ints.IntList;
 
 import java.io.*;
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public final class AutomatonMatrixWriter {
-  public record EmitterSpec(String str, String extension, Function<Writer, MatrixEmitter> ctor) {}
 
-  public static final List<EmitterSpec> EMITTERS = List.of(
-      new EmitterSpec(MapleEmitter.STR,       MapleEmitter.EXTENSION,       MapleEmitter::new),
-      new EmitterSpec(MatlabEmitter.STR,      MatlabEmitter.EXTENSION,      MatlabEmitter::new),
-      new EmitterSpec(MathematicaEmitter.STR, MathematicaEmitter.EXTENSION, MathematicaEmitter::new),
-      new EmitterSpec(SageEmitter.STR,        SageEmitter.EXTENSION,        SageEmitter::new)
+  public static final List<MatrixEmitter.EmitterSpec> EMITTERS = List.of(
+      MapleEmitter.SPEC, MatlabEmitter.SPEC, MathematicaEmitter.SPEC, SageEmitter.SPEC
   );
 
   // Used in default test cases. This is a central location for that.
@@ -180,7 +175,7 @@ public final class AutomatonMatrixWriter {
    * Writes automaton in al matrix formats.
    */
   public static void writeAll(Automaton automaton, String address, List<String> freeVariables) {
-    for (EmitterSpec spec : EMITTERS) {
+    for (MatrixEmitter.EmitterSpec spec : EMITTERS) {
       String filename = address + spec.extension();
       try (Writer w = new BufferedWriter(new FileWriter(filename));
            MatrixEmitter emitter = spec.ctor().apply(w)) {
