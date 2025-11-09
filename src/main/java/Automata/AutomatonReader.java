@@ -1,5 +1,6 @@
 package Automata;
 
+import Main.Logging;
 import Main.UtilityMethods;
 import Main.WalnutException;
 import it.unimi.dsi.fastutil.ints.Int2ObjectRBTreeMap;
@@ -80,7 +81,7 @@ public class AutomatonReader {
 
             A.fa.setFieldsFromFile(Q, q0, output, transitions);
         } catch (IOException e) {
-            UtilityMethods.printTruncatedStackTrace(e);
+            Logging.printTruncatedStackTrace(e);
             throw WalnutException.fileDoesNotExist(address);
         }
     }
@@ -251,7 +252,7 @@ public class AutomatonReader {
             }
 
         } catch (IOException e) {
-            UtilityMethods.printTruncatedStackTrace(e);
+            Logging.printTruncatedStackTrace(e);
             throw WalnutException.fileDoesNotExist(address);
         }
     }
@@ -270,7 +271,7 @@ public class AutomatonReader {
                 }
             }
         } catch (IOException e) {
-            UtilityMethods.printTruncatedStackTrace(e);
+            Logging.printTruncatedStackTrace(e);
             throw WalnutException.fileDoesNotExist(address);
         }
         return sb.toString().strip();

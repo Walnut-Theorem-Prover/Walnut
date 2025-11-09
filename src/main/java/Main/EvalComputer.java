@@ -109,7 +109,7 @@ public class EvalComputer {
           prefix += " ";
         }
       } catch (RuntimeException e) {
-        UtilityMethods.printTruncatedStackTrace(e);
+        Logging.printTruncatedStackTrace(e);
         String message = e.getMessage();
         message += System.lineSeparator() + "\t: char at " + t.getPositionInPredicate();
         throw new WalnutException(message);

@@ -71,7 +71,7 @@ public class IntegrationTest {
 				Prover.mainProver.dispatchForIntegrationTest(integTests.get(i), "dispatch:" + i);
 			}
 		} catch (Exception e) {
-			UtilityMethods.printTruncatedStackTrace(e);
+			Logging.printTruncatedStackTrace(e);
 		}
 	}
 	public IntegrationTest(){

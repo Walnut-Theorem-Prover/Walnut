@@ -25,9 +25,9 @@ import java.util.Stack;
 
 import Automata.*;
 import Main.EvalComputations.Expressions.*;
+import Main.Logging;
 import Main.WalnutException;
 import Main.EvalComputations.Expressions.Expression;
-import Main.UtilityMethods;
 
 import static Main.Logging.COMPUTED;
 import static Main.Logging.COMPUTING;
@@ -114,10 +114,10 @@ public class ArithmeticOperator extends Operator {
         String c = getUniqueString();
         // b + c = 0
         Automaton M = ns.arithmetic(b.identifier, c, 0, Ops.PLUS);
-        UtilityMethods.logAndPrint(print, prefix + COMPUTING + " " + op + b, log);
+        Logging.logAndPrint(print, prefix + COMPUTING + " " + op + b, log);
         M = andThenQuantifyIfArithmetic(print, prefix, log, b, M);
         S.push(new ArithmeticExpression("(" + op + b + ")", M, c));
-        UtilityMethods.logAndPrint(print, prefix + COMPUTED + " " + op + b, log);
+        Logging.logAndPrint(print, prefix + COMPUTED + " " + op + b, log);
     }
 
     private void processBinaryOperator(Expression b, Stack<Expression> S, boolean print, String prefix, StringBuilder log) {
@@ -151,7 +151,7 @@ public class ArithmeticOperator extends Operator {
         }
         String c = getUniqueString();
         Automaton M;
-        UtilityMethods.logAndPrint(print, prefix + COMPUTING + " " + a + op + b, log);
+        Logging.logAndPrint(print, prefix + COMPUTING + " " + a + op + b, log);
         if (a instanceof WordExpression || (a instanceof ArithmeticExpression || a instanceof VariableExpression) && b instanceof WordExpression) {
             /* We rewrite T[a] * 5 = z as
              * (T[a] = @0 => 0 * 5 = z) & (T[a] = @1 => 1 * 5 = z)
@@ -210,7 +210,7 @@ public class ArithmeticOperator extends Operator {
             M = andThenQuantifyIfArithmetic(print, prefix, log, b, M);
         }
         S.push(new ArithmeticExpression("(" + a + op + b + ")", M, c));
-        UtilityMethods.logAndPrint(print, prefix + COMPUTED + " " + a + op + b, log);
+        Logging.logAndPrint(print, prefix + COMPUTED + " " + a + op + b, log);
     }
 
     public static int arith(ArithmeticOperator.Ops op, int a, int b) {

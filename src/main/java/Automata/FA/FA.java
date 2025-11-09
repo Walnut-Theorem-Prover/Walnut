@@ -17,9 +17,7 @@
  */
 package Automata.FA;
 
-import Automata.ParseMethods;
 import Main.WalnutException;
-import Main.UtilityMethods;
 import it.unimi.dsi.fastutil.ints.*;
 import net.automatalib.alphabet.impl.Alphabets;
 import net.automatalib.automaton.fsa.impl.CompactDFA;
@@ -214,14 +212,14 @@ public class FA implements Cloneable {
    */
   public void totalize(boolean print, String prefix, StringBuilder log) {
     long timeBefore = System.currentTimeMillis();
-    UtilityMethods.logMessage(print, prefix + TOTALIZING + ":" + Q + " states", log);
+    logMessage(print, prefix + TOTALIZING + ":" + Q + " states", log);
     //we first check if the automaton is totalized
     int sinkState = Q; // potential new dead state
     if (!totalizeStates(sinkState)) {
       addSinkState(0, sinkState);
     }
     long timeAfter = System.currentTimeMillis();
-    UtilityMethods.logMessage(print, prefix + TOTALIZED + ":" + Q + " states - " + (timeAfter - timeBefore) + "ms", log);
+    logMessage(print, prefix + TOTALIZED + ":" + Q + " states - " + (timeAfter - timeBefore) + "ms", log);
   }
 
 
@@ -232,7 +230,7 @@ public class FA implements Cloneable {
    */
   public boolean addDistinguishedDeadState(boolean print, String prefix, StringBuilder log) {
     long timeBefore = System.currentTimeMillis();
-    UtilityMethods.logMessage(print, prefix + "Adding distinguished dead state: " + getQ() + " states", log);
+    logMessage(print, prefix + "Adding distinguished dead state: " + getQ() + " states", log);
     boolean totalized = this.totalizeStates(this.Q);
     int min;
     if (totalized) {
@@ -248,7 +246,7 @@ public class FA implements Cloneable {
       if (!totalized) {
         msg = prefix + "Added distinguished dead state with output of " + (min - 1) + ": " + getQ() + " states - " + (timeAfter - timeBefore) + "ms";
       }
-      UtilityMethods.logMessage(true, msg, log);
+      logMessage(true, msg, log);
     }
     return !totalized;
   }
@@ -529,7 +527,7 @@ public class FA implements Cloneable {
    */
   public void justMinimize(boolean print, String prefix, StringBuilder log) {
     long timeBefore = System.currentTimeMillis();
-    UtilityMethods.logMessage(
+    logMessage(
             print, prefix + MINIMIZING + ": " + Q + " states.", log);
 
     this.convertNFAtoDFA();
@@ -540,7 +538,7 @@ public class FA implements Cloneable {
     this.canonized = false;
 
     long timeAfter = System.currentTimeMillis();
-    UtilityMethods.logMessage(
+    logMessage(
             print, prefix + MINIMIZED + ":" + Q + " states - " + (timeAfter - timeBefore) + "ms.", log);
   }
 

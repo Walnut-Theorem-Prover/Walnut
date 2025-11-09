@@ -29,6 +29,7 @@ import Main.EvalComputations.Expressions.ArithmeticExpression;
 import Main.EvalComputations.Expressions.AutomatonExpression;
 import Main.EvalComputations.Expressions.NumberLiteralExpression;
 import Main.EvalComputations.Expressions.VariableExpression;
+import Main.Logging;
 import Main.UtilityMethods;
 import Automata.Automaton;
 import Automata.NumberSystem;
@@ -60,7 +61,7 @@ public class Function extends Token {
         super.validateArity(S, "function ", " arguments");
         Stack<Expression> temp = reverseStack(S);
         String stringValue = this + "(";
-        UtilityMethods.logAndPrint(print, prefix + COMPUTING + " " + stringValue + "...)", log);
+        Logging.logAndPrint(print, prefix + COMPUTING + " " + stringValue + "...)", log);
         Automaton M = new Automaton(true);
         List<String> identifiers = new ArrayList<>();
         List<String> quantify = new ArrayList<>();
@@ -90,6 +91,6 @@ public class Function extends Token {
         AutomatonQuantification.quantify(A, quantify, print, prefix + " ", log);
 
         S.push(new AutomatonExpression(stringValue, A));
-        UtilityMethods.logAndPrint(print, prefix + COMPUTED + " " + stringValue, log);
+        Logging.logAndPrint(print, prefix + COMPUTED + " " + stringValue, log);
     }
 }

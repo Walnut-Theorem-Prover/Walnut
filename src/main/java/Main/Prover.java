@@ -353,7 +353,7 @@ public class Prover {
       try (BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(f)))) {
         if (!mainProver.readBuffer(in, false)) return;
       } catch (IOException e) {
-        UtilityMethods.printTruncatedStackTrace(e);
+        Logging.printTruncatedStackTrace(e);
       }
     }
 
@@ -368,7 +368,7 @@ public class Prover {
     try (BufferedReader in = new BufferedReader(new InputStreamReader(System.in))) {
       mainProver.readBuffer(in, true);
     } catch (Exception e) {
-      UtilityMethods.printTruncatedStackTrace(e);
+      Logging.printTruncatedStackTrace(e);
     }
   }
 
@@ -413,11 +413,11 @@ public class Prover {
             return false;
           }
         } catch (RuntimeException e) {
-          UtilityMethods.printTruncatedStackTrace(e);
+          Logging.printTruncatedStackTrace(e);
         }
       }
     } catch (IOException e) {
-      UtilityMethods.printTruncatedStackTrace(e);
+      Logging.printTruncatedStackTrace(e);
     }
 
     return true;
@@ -447,7 +447,7 @@ public class Prover {
     }
 
     if (Prover.usingOTF) {
-      UtilityMethods.logAndPrint(true, OTF_MESSAGE, log);
+      Logging.logAndPrint(true, OTF_MESSAGE, log);
     }
     return exitVal;
   }
@@ -613,7 +613,7 @@ public class Prover {
         return false;
       }
     } catch (IOException e) {
-      UtilityMethods.printTruncatedStackTrace(e);
+      Logging.printTruncatedStackTrace(e);
     }
     return true;
   }

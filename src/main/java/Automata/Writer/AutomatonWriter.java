@@ -20,6 +20,7 @@ package Automata.Writer;
 import Automata.Automaton;
 import Automata.FA.FA;
 import Automata.NumberSystem;
+import Main.Logging;
 import Main.UtilityMethods;
 import Main.WalnutException;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
@@ -40,7 +41,7 @@ public class AutomatonWriter {
         try (PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter((address))))) {
             writeTxtFormatToStream(automaton, out);
         } catch (IOException e) {
-            UtilityMethods.printTruncatedStackTrace(e);
+            Logging.printTruncatedStackTrace(e);
         }
     }
 
@@ -153,7 +154,7 @@ public class AutomatonWriter {
                 out.println("}");
             }
         } catch (IOException e) {
-            UtilityMethods.printTruncatedStackTrace(e);
+            Logging.printTruncatedStackTrace(e);
         }
     }
 
@@ -167,7 +168,7 @@ public class AutomatonWriter {
         try (BufferedOutputStream os = new BufferedOutputStream(new FileOutputStream(address))) {
             baWriter.writeModel(os, compactNFA, compactNFA.getInputAlphabet());
         } catch (IOException e) {
-          UtilityMethods.printTruncatedStackTrace(e);
+          Logging.printTruncatedStackTrace(e);
         }
     }
 

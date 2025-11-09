@@ -61,7 +61,7 @@ public class HelpMessages {
       // If you wanted to support deeper nesting, you'd extend this further.
       System.out.println("Too many arguments. Usage: help [group] [command];");
     } catch (IOException e) {
-      UtilityMethods.printTruncatedStackTrace(e);
+      Logging.printTruncatedStackTrace(e);
       throw WalnutException.errorCommand("help");
     }
   }

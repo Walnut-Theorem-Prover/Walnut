@@ -28,11 +28,9 @@ import java.util.stream.Collectors;
  */
 public class UtilityMethods {
     static String ADDRESS_FOR_UNIT_TEST_INTEGRATION_TEST_RESULTS = "src/test/resources/integrationTests/";
-
     private static final Pattern PATTERN_NUMBER = Pattern.compile("^\\d+$");
     private static final Pattern PATTERN_NEG_NUMBER = Pattern.compile("^neg_\\d+$");
     private static final Pattern PATTERN_WHITESPACE = Pattern.compile("\\s");
-
 
     /**
      * checks if a string is \\d+
@@ -141,20 +139,6 @@ public class UtilityMethods {
         return true;
     }
 
-    public static void logMessage(boolean print, String msg, StringBuilder log) {
-        if (print) {
-            log.append(msg).append(System.lineSeparator());
-            System.out.println(msg);
-        }
-    }
-
-    public static void logAndPrint(boolean print, String msg, StringBuilder log) {
-        log.append(msg).append(System.lineSeparator());
-        if (print) {
-            System.out.println(msg);
-        }
-    }
-
     public static File validateFile(String path) {
         File file = new File(path);
         if (!file.isFile()) {
@@ -178,24 +162,5 @@ public class UtilityMethods {
             }
         }
         return output.toString();
-    }
-
-
-    /**
-     * Create a truncated stack trace so users don't see a full screen stack dump
-     */
-    public static void printTruncatedStackTrace(Exception e) {
-        printTruncatedStackTrace(e, 1); // vaguely friendly stack length
-    }
-    public static void printTruncatedStackTrace(Exception e, int length) {
-        if (e instanceof WalnutException) {
-            System.out.println(e.getMessage());
-            // handled Walnut exception; only print message
-        } else {
-            // Create a truncated stack trace
-            StackTraceElement[] fullStack = e.getStackTrace();
-            e.setStackTrace(Arrays.copyOf(fullStack, Math.min(fullStack.length, length)));
-            e.printStackTrace();
-        }
     }
 }

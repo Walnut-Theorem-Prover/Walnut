@@ -2,7 +2,7 @@ package Automata.Writer;
 
 import Automata.Automaton;
 import Automata.FA.FA;
-import Main.UtilityMethods;
+import Main.Logging;
 import Main.WalnutException;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.IntList;
@@ -181,7 +181,7 @@ public final class AutomatonMatrixWriter {
            MatrixEmitter emitter = spec.ctor().apply(w)) {
         writeMatrix(automaton, freeVariables, emitter);
       } catch (IOException e) {
-        UtilityMethods.printTruncatedStackTrace(e);
+        Logging.printTruncatedStackTrace(e);
       }
     }
   }

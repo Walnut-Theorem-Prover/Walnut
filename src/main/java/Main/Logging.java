@@ -1,5 +1,7 @@
 package Main;
 
+import java.util.Arrays;
+
 public class Logging {
 
   public static final String APPLIED = "applied";
@@ -10,7 +12,6 @@ public class Logging {
 
   public static final String COMPUTED = "computed";
   public static final String COMPUTING = "computing";
-
 
   public static final String FIXED = "fixed";
   public static final String FIXING = "fixing";
@@ -35,4 +36,36 @@ public class Logging {
   public static final String MINIMIZED = "Minimized";
   public static final String MINIMIZING = "Minimizing";
 
+  public static void logMessage(boolean print, String msg, StringBuilder log) {
+      if (print) {
+          log.append(msg).append(System.lineSeparator());
+          System.out.println(msg);
+      }
+  }
+
+  public static void logAndPrint(boolean print, String msg, StringBuilder log) {
+      log.append(msg).append(System.lineSeparator());
+      if (print) {
+          System.out.println(msg);
+      }
+  }
+
+  /**
+   * Create a truncated stack trace so users don't see a full screen stack dump
+   */
+  public static void printTruncatedStackTrace(Exception e) {
+      printTruncatedStackTrace(e, 1); // vaguely friendly stack length
+  }
+
+  public static void printTruncatedStackTrace(Exception e, int length) {
+      if (e instanceof WalnutException) {
+          System.out.println(e.getMessage());
+          // handled Walnut exception; only print message
+      } else {
+          // Create a truncated stack trace
+          StackTraceElement[] fullStack = e.getStackTrace();
+          e.setStackTrace(Arrays.copyOf(fullStack, Math.min(fullStack.length, length)));
+          e.printStackTrace();
+      }
+  }
 }

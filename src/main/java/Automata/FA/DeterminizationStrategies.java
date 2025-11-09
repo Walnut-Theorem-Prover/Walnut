@@ -109,7 +109,7 @@ public class DeterminizationStrategies {
               exportFormat, A, fa.isDFAO());
         }
 
-        UtilityMethods.logMessage(print, prefix + DETERMINIZING +
+        Logging.logMessage(print, prefix + DETERMINIZING +
             " " + strategy.outputName(automataIdx) + ": " + fa.getQ() + " states", log);
       }
 
@@ -127,7 +127,7 @@ public class DeterminizationStrategies {
 
       long timeAfter = System.currentTimeMillis();
 
-      UtilityMethods.logMessage(
+      Logging.logMessage(
           print, prefix + DETERMINIZED + ": " + fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
     }
 
@@ -153,7 +153,7 @@ public class DeterminizationStrategies {
                               boolean print, String prefix, StringBuilder log, String message) {
     long timeBefore = System.currentTimeMillis();
     IntSet newInitialStates = fa.reverseToNFAInternal(initialStates);
-    UtilityMethods.logMessage(
+    Logging.logMessage(
         print, prefix + message + " -- " + DETERMINIZING + " with strategy:" + strategy.name + ".", log);
     if (strategy.equals(Strategy.SC)) {
       SC(fa, newInitialStates, print, prefix, log);
@@ -161,7 +161,7 @@ public class DeterminizationStrategies {
       OTF(fa, newInitialStates, strategy.doSimulation, print, prefix, log);
     }
     long timeAfter = System.currentTimeMillis();
-    UtilityMethods.logMessage(
+    Logging.logMessage(
         print, prefix + message + ": " + fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
   }
 
@@ -188,7 +188,7 @@ public class DeterminizationStrategies {
       if (print) {
         int statesSoFar = currentState + 1;
         long timeAfter = System.currentTimeMillis();
-        UtilityMethods.logMessage(statesSoFar == 1e2 || statesSoFar == 1e3 || statesSoFar % 1e4 == 0,
+        Logging.logMessage(statesSoFar == 1e2 || statesSoFar == 1e3 || statesSoFar % 1e4 == 0,
             prefix + "  Progress: Added " + statesSoFar + " states - "
                 + (stateCount - statesSoFar) + " states left in queue - "
                 + stateCount + " reachable states - " + (timeAfter - timeBefore) + "ms", log);
@@ -237,17 +237,17 @@ public class DeterminizationStrategies {
     CompactNFA<Integer> compactNFA = fa.FAtoCompactNFA(initialState);
     CompactNFA<Integer> reduced = NFATrim.bisim(compactNFA);
     if (reduced.size() < fa.getQ()) {
-      UtilityMethods.logMessage(
+      Logging.logMessage(
           print, prefix + "Bisimulation reduced to " + reduced.size() + " states", log);
     }
     ArrayList<BitSet> simRels = new ArrayList<>();
     if (doSimulation) {
-      UtilityMethods.logMessage(
+      Logging.logMessage(
           print, prefix + "Calculating simulation relations; this can be resource-intensive", log);
       int prevSize = reduced.size();
       reduced = ParallelSimulation.fullyComputeRels(reduced, simRels, true);
       if (reduced.size() != prevSize) {
-        UtilityMethods.logMessage(
+        Logging.logMessage(
             print, prefix + "Simulation altered to " + reduced.size() + " states", log);
       }
       if (!simRels.isEmpty()) {
@@ -257,7 +257,7 @@ public class DeterminizationStrategies {
             simCount += b.cardinality();
           }
         }
-        UtilityMethods.logMessage(
+        Logging.logMessage(
             print, prefix + "Found " + simCount + " simulation relations", log);
       }
     }
@@ -289,7 +289,7 @@ public class DeterminizationStrategies {
           int statesSoFar = out.size() - stateBuffer.size();
           int queueSize = stack.size();
           long timeAfter = System.currentTimeMillis();
-          UtilityMethods.logMessage(true,
+          Logging.logMessage(true,
               prefix + "  Progress: Explored " + statesExplored + " states - "
                   + queueSize + " states left in queue - " + statesSoFar + " states added - "
                   + (timeAfter - timeBefore) + "ms", log);
@@ -327,7 +327,7 @@ public class DeterminizationStrategies {
         int statesSoFar = out.size() - stateBuffer.size();
         threshold.update(statesSoFar);
         long timeAfter = System.currentTimeMillis();
-        UtilityMethods.logMessage(print,
+        Logging.logMessage(print,
             prefix + "  Progress: Periodic minimization: " + oldStatesSoFar + " -> " + statesSoFar + " states added - " + (timeAfter - timeBefore) + "ms", log);
       }
     }

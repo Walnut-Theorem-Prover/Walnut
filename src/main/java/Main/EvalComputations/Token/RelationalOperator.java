@@ -20,9 +20,9 @@ package Main.EvalComputations.Token;
 
 import Automata.*;
 import Main.EvalComputations.Expressions.*;
+import Main.Logging;
 import Main.WalnutException;
 import Main.EvalComputations.Expressions.Expression;
-import Main.UtilityMethods;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -92,7 +92,7 @@ public class RelationalOperator extends Operator {
             S.push(new AutomatonExpression(a + op + b, new Automaton(compare(opp, a.constant, b.constant))));
             return;
         }
-        UtilityMethods.logAndPrint(print, prefix + COMPUTING + " " + a + op + b, log);
+        Logging.logAndPrint(print, prefix + COMPUTING + " " + a + op + b, log);
         if ((a instanceof WordExpression && (b instanceof ArithmeticExpression || b instanceof VariableExpression)) ||
                 ((a instanceof ArithmeticExpression || a instanceof VariableExpression) && b instanceof WordExpression)) {
             /* We rewrite T[a] < b as
@@ -165,7 +165,7 @@ public class RelationalOperator extends Operator {
         } else {
             throw WalnutException.invalidDualOperators(op, a, b);
         }
-        UtilityMethods.logAndPrint(print, prefix + COMPUTED + " " + a + op + b, log);
+        Logging.logAndPrint(print, prefix + COMPUTED + " " + a + op + b, log);
     }
 
     public static boolean compare(Ops op, int a, int b) {

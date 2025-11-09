@@ -528,7 +528,7 @@ public class Predicate {
                 macro.append(line);
             }
         } catch (IOException e) {
-            UtilityMethods.printTruncatedStackTrace(e);
+            Logging.printTruncatedStackTrace(e);
             throw new WalnutException("Macro does not exist: " + filename, e);
         }
         return macro;

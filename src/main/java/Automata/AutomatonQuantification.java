@@ -1,5 +1,6 @@
 package Automata;
 
+import Main.Logging;
 import Main.UtilityMethods;
 import Main.WalnutException;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
@@ -53,7 +54,7 @@ public class AutomatonQuantification {
 
     validateLabels(A, labelsToQuantify);
     long timeBefore = System.currentTimeMillis();
-      UtilityMethods.logMessage(print, prefix + QUANTIFYING + ":" + A.fa.getQ() + " states", log);
+      Logging.logMessage(print, prefix + QUANTIFYING + ":" + A.fa.getQ() + " states", log);
 
       //If this is the case, then the quantified automaton is either the true or false automaton.
       //It is true if the language is not empty.
@@ -102,7 +103,7 @@ public class AutomatonQuantification {
       A.fa.t.setNfaD(newD);
       A.determinizeAndMinimize(print, prefix + " ", log);
       long timeAfter = System.currentTimeMillis();
-      UtilityMethods.logMessage(print, prefix + QUANTIFIED + ":" + A.fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
+      Logging.logMessage(print, prefix + QUANTIFIED + ":" + A.fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
   }
 
   static void validateLabels(Automaton A, Collection<String> labelsToQuantify) {

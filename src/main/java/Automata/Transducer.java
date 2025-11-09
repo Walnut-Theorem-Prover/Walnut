@@ -27,8 +27,8 @@ import java.util.LinkedList;
 import java.util.Queue;
 
 import Automata.FA.FA;
+import Main.Logging;
 import Main.WalnutException;
-import Main.UtilityMethods;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
@@ -101,7 +101,7 @@ public class Transducer extends Automaton {
      */
     public Automaton transduceMsdDeterministic(Automaton M, boolean print, String prefix, StringBuilder log) {
         long timeBefore = System.currentTimeMillis();
-        UtilityMethods.logMessage(print, prefix + "transducing: " + M.fa.getQ() + " state automaton - " + fa.getQ() + " state transducer", log);
+        Logging.logMessage(print, prefix + "transducing: " + M.fa.getQ() + " state automaton - " + fa.getQ() + " state transducer", log);
 
         // N will be the returned Automaton, just have to build it up.
         Automaton N = new Automaton();
@@ -236,7 +236,7 @@ public class Transducer extends Automaton {
         WordAutomaton.minimizeSelfWithOutput(N, print, prefix + " ", log);
 
         long timeAfter = System.currentTimeMillis();
-        UtilityMethods.logMessage(print, prefix + "transduced: " + N.fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
+        Logging.logMessage(print, prefix + "transduced: " + N.fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
 
         return N;
     }
@@ -289,7 +289,7 @@ public class Transducer extends Automaton {
         boolean toLsd = false;
 
         if (!M.getNS().get(0).isMsd()) {
-            UtilityMethods.logMessage(print, prefix + "Automaton number system is lsd, reversing", log);
+            Logging.logMessage(print, prefix + "Automaton number system is lsd, reversing", log);
             toLsd = true;
             WordAutomaton.reverseWithOutput(M, true, print, prefix+" ", log);
         }
