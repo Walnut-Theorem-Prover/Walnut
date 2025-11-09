@@ -273,9 +273,8 @@ public class Prover {
   public MetaCommands metaCommands = new MetaCommands();
 
   public static Prover mainProver = new Prover();
-  public boolean printSteps;
   public boolean printDetails;
-  public boolean printFlag; // helper variable, could be eliminated
+  public boolean printFlag;
 
   public static String currentEvalName; // current evaluation name, used for export metacommand
   public static boolean usingOTF = false; // whether the current command is using OTF algorithms
@@ -460,20 +459,19 @@ public class Prover {
     metaCommands = new MetaCommands();
     prefix = ""; // reset prefix
     log = new StringBuilder(); // reset log
-    printSteps = printDetails = printFlag = false; // reset flags
+    printDetails = printFlag = false; // reset flags
 
     if (!s.endsWith(";") && !s.endsWith(":")) {
       throw WalnutException.invalidCommand(s);
     }
     int endingToRemove = 1;
     if (s.endsWith(":")) {
-      printSteps = true;
+      printFlag = true;
       if (s.endsWith("::")) {
         endingToRemove++;
         printDetails = true;
       }
     }
-    printFlag = printSteps || printDetails;
     s = s.substring(0, s.length() - endingToRemove); // remove ;|:|::
     s = s.strip(); // remove end whitespace, Unicode-aware
 
@@ -635,7 +633,7 @@ public class Prover {
 
     // compute result based on predicate
     // if we wanted an "execution plan", it would be hooked in here
-    EvalComputer c = new EvalComputer(printSteps, printDetails);
+    EvalComputer c = new EvalComputer(printFlag, printDetails);
     c.compute(predicate);
 
     Automaton M = c.result.M;
