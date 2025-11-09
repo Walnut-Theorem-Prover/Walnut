@@ -27,9 +27,6 @@ import java.util.regex.Pattern;
 
 import Automata.*;
 import Automata.Numeration.Ostrowski;
-import Automata.Writer.AutomatonMatrixWriter;
-import Automata.Writer.MapleEmitter;
-import Automata.Writer.MatrixEmitter;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 
@@ -635,47 +632,14 @@ public class Prover {
     // if we wanted an "execution plan", it would be hooked in here
     EvalComputer c = new EvalComputer(printFlag, printDetails);
     c.compute(predicate);
-
     Automaton M = c.result.M;
-
     String resultName = Session.getAddressForResult() + evalName;
-    String gvAddress = resultName + GV_EXTENSION;
 
-    M.writeAutomata(predicateStr, Session.getWriteAddressForAutomataLibrary(), evalName, false);
-
-    List<String> freeVariables = determineFreeVariables(m.group(ED_FREE_VARIABLES));
-    if (!freeVariables.isEmpty()) {
-      AutomatonMatrixWriter.writeAll(M, resultName, freeVariables);
-    }
-
-    c.writeLogs(resultName, printDetails);
-
-    if (M.fa.isTRUE_FALSE_AUTOMATON()) {
-      System.out.println("____\n" + M.fa.trueFalseString().toUpperCase());
-    }
-
-    List<String> matrixAddresses = new ArrayList<>();
-    if (!freeVariables.isEmpty()) {
-      System.out.println("Matrix files:");
-      for(MatrixEmitter.EmitterSpec emitterSpec: AutomatonMatrixWriter.EMITTERS) {
-        System.out.println("  " + emitterSpec.intro() + ": " + resultName + emitterSpec.extension());
-        matrixAddresses.add(resultName + emitterSpec.extension());
-      }
-    }
-    return new TestCase(M, "", matrixAddresses, gvAddress, printDetails ? c.logDetails.toString() : "",
+    List<String> matrixAddresses =
+        c.writeAutomata(predicateStr, evalName, m.group(Prover.ED_FREE_VARIABLES), resultName);
+    return new TestCase(
+        M, "", matrixAddresses, resultName + GV_EXTENSION, c.getLogDetails(),
         List.of(new TestCase.AutomatonFilenamePair(M, DEFAULT_TESTFILE)));
-  }
-
-  static List<String> determineFreeVariables(String freeVariablesStr) {
-    List<String> freeVariables = new ArrayList<>();
-    if (freeVariablesStr != null) {
-      Matcher m1 = PAT_FOR_A_FREE_VARIABLE_IN_eval_def_CMDS.matcher(freeVariablesStr);
-      while (m1.find()) {
-        String t = m1.group();
-        freeVariables.add(t);
-      }
-    }
-    return freeVariables;
   }
 
   public static TestCase macroCommand(String s) {
