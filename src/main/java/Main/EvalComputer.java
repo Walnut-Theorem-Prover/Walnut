@@ -42,7 +42,7 @@ import Main.EvalComputations.Token.Token;
 public class EvalComputer {
   Expression result;
   private final StringBuilder log;
-  final StringBuilder logDetails;
+  private final StringBuilder logDetails;
   private final boolean printStepsOrDetails;
   private final boolean printDetails;
 
@@ -58,17 +58,6 @@ public class EvalComputer {
   }
 
   public String getLogDetails() { return printDetails ? logDetails.toString() : ""; }
-
-  void writeLogs(String resultName, boolean printDetails) throws IOException {
-    try (PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(resultName + "_log.txt")))) {
-      out.write(log.toString());
-    }
-    if (printDetails) {
-      try (PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(resultName + "_detailed_log.txt")))) {
-        out.write(logDetails.toString());
-      }
-    }
-  }
 
   void compute(Predicate predicate) {
     Stack<Expression> expressions = new Stack<>();
@@ -161,7 +150,7 @@ public class EvalComputer {
       AutomatonMatrixWriter.writeAll(M, resultName, freeVariables);
     }
 
-    writeLogs(resultName, printDetails);
+    writeLogs(resultName);
 
     if (M.fa.isTRUE_FALSE_AUTOMATON()) {
       System.out.println("____\n" + M.fa.trueFalseString().toUpperCase());
@@ -176,6 +165,17 @@ public class EvalComputer {
       }
     }
     return matrixAddresses;
+  }
+
+  void writeLogs(String resultName) throws IOException {
+    try (PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(resultName + "_log.txt")))) {
+      out.write(log.toString());
+    }
+    if (printDetails) {
+      try (PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(resultName + "_detailed_log.txt")))) {
+        out.write(logDetails.toString());
+      }
+    }
   }
 
   static List<String> determineFreeVariables(String freeVariablesStr) {
