@@ -12,6 +12,6 @@ public class MorphismTest {
         Morphism h = new Morphism(Session.getReadFileForMorphismLibrary("gam.txt"));
         Automaton P = h.toWordAutomaton();
         Assertions.assertEquals("[{0=>[0], 1=>[1]}, {0=>[2], 1=>[1]}, {0=>[0], 1=>[3]}, {0=>[2], 1=>[3]}]",
-            P.getFa().t.getNfaD().toString());
+            P.getFa().getT().getNfaD().toString());
     }
 }

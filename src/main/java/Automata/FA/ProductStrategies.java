@@ -55,11 +55,11 @@ public class ProductStrategies {
             int p = s.leftInt();
             int q = s.rightInt();
             Int2ObjectRBTreeMap<IntList> stateTransitions = new Int2ObjectRBTreeMap<>();
-            AxB.t.addToNfaD(stateTransitions);
+            AxB.getT().addToNfaD(stateTransitions);
             AxB.getO().add(determineOutput(A.getO().getInt(p), B.getO().getInt(q), op, combineOut));
 
-            Set<Int2ObjectMap.Entry<IntList>> Bset = B.t.getEntriesNfaD(q);
-            for (Int2ObjectMap.Entry<IntList> entryA : A.t.getEntriesNfaD(p)) {
+            Set<Int2ObjectMap.Entry<IntList>> Bset = B.getT().getEntriesNfaD(q);
+            for (Int2ObjectMap.Entry<IntList> entryA : A.getT().getEntriesNfaD(p)) {
                 final int AxBalphabet = entryA.getIntKey() * B.getAlphabetSize();
                 for (Int2ObjectMap.Entry<IntList> entryB : Bset) {
                     int z = allInputsOfAxB[AxBalphabet + entryB.getIntKey()];
@@ -101,8 +101,8 @@ public class ProductStrategies {
         Object2IntMap<IntIntPair> statesHash = new Object2IntOpenHashMap<>();
         statesHash.defaultReturnValue(-1);
         AxB.setQ0(0);
-        AxB.t.setNfaD(null);
-        AxB.t.setDfaD(new ArrayList<>());
+        AxB.getT().setNfaD(null);
+        AxB.getT().setDfaD(new ArrayList<>());
         statesList.add(new IntIntImmutablePair(A.getQ0(), B.getQ0()));
         statesHash.put(new IntIntImmutablePair(A.getQ0(), B.getQ0()), 0);
         int currentState = 0;
@@ -123,11 +123,11 @@ public class ProductStrategies {
             int p = s.leftInt();
             int q = s.rightInt();
             Int2IntMap stateTransitions = new Int2IntOpenHashMap();
-            AxB.t.getDfaD().add(stateTransitions);
+            AxB.getT().getDfaD().add(stateTransitions);
             AxB.getO().add(determineOutput(A.getO().getInt(p), B.getO().getInt(q), op, combineOut));
 
-            Set<Int2ObjectMap.Entry<IntList>> Bset = B.t.getEntriesNfaD(q);
-            for (Int2ObjectMap.Entry<IntList> entryA : A.t.getEntriesNfaD(p)) {
+            Set<Int2ObjectMap.Entry<IntList>> Bset = B.getT().getEntriesNfaD(q);
+            for (Int2ObjectMap.Entry<IntList> entryA : A.getT().getEntriesNfaD(p)) {
                 final int AxBalphabet = entryA.getIntKey() * B.getAlphabetSize();
                 for (Int2ObjectMap.Entry<IntList> entryB : Bset) {
                     int z = allInputsOfAxB[AxBalphabet + entryB.getIntKey()];
@@ -153,7 +153,7 @@ public class ProductStrategies {
         }
         AxB.setQ(statesList.size());
         statesList.clear(); // save memory
-        AxB.t.reduceDfaDMemory();
+        AxB.getT().reduceDfaDMemory();
 
         long timeAfter = System.currentTimeMillis();
         Logging.logMessage(print,
@@ -225,7 +225,7 @@ public class ProductStrategies {
         crossProductInternalDFA(
                 A.fa, B.fa, AxB.fa, combineOut, allInputsOfN, op, print, prefix, log, timeBefore);
         AxB.fa.justMinimize(print, prefix, log);
-        if (AxB.fa.t.getNfaD() == null) {
+        if (AxB.fa.getT().getNfaD() == null) {
             throw new WalnutException("Unexpected null");
         }
         return AxB;

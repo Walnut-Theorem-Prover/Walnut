@@ -190,7 +190,7 @@ public class Transducer extends Automaton {
             N.fa.getO().add((int) sigma.get(currState.iterates.get(0).get(
                 this.fa.getQ0())).get(richAlphabet.encode(List.of(M.fa.getO().getInt(currState.state)))));
 
-            N.fa.t.addMapToNfaD();
+            N.fa.getT().addMapToNfaD();
 
             // get h(w) where w = currState.string .
             List<Integer> newString = getDestinationForDFA(M, currState.iList);
@@ -202,7 +202,7 @@ public class Transducer extends Automaton {
 
             // look at the states that this state transitions to.
 
-            for (Int2ObjectMap.Entry<IntList> entry : M.fa.t.getEntriesNfaD(currState.state)) {
+            for (Int2ObjectMap.Entry<IntList> entry : M.fa.getT().getEntriesNfaD(currState.state)) {
                 int di = entry.getIntKey();
 
                 // make new state string
@@ -226,7 +226,7 @@ public class Transducer extends Automaton {
                 }
 
                 // set up the transition.
-                N.fa.addNewTransition(N.fa.t.getNfaD().size() - 1, statesHash.get(newState), di);
+                N.fa.addNewTransition(N.fa.getT().getNfaD().size() - 1, statesHash.get(newState), di);
             }
         }
 
@@ -251,7 +251,7 @@ public class Transducer extends Automaton {
     }
 
     private static void addFirstEntries(Automaton M, Integer integer, List<Integer> iString) {
-        for (Int2ObjectMap.Entry<IntList> entry : M.fa.t.getEntriesNfaD(integer)) {
+        for (Int2ObjectMap.Entry<IntList> entry : M.fa.getT().getEntriesNfaD(integer)) {
             // each list of states that this transition goes to.
             // we assuming it's a DFA for now, so this has length 1 we're assuming...
             // get the first index of M.d on state x and edge label l
@@ -280,7 +280,7 @@ public class Transducer extends Automaton {
         IntList O = M.fa.getO();
         for (int i = 0; i < O.size(); i++) {
             int encoded = richAlphabet.encode(List.of(O.getInt(i)));
-            if (fa.t.getNfaStateDests(0, encoded) == null) {
+            if (fa.getT().getNfaStateDests(0, encoded) == null) {
                 throw new WalnutException("Output alphabet of automaton must be compatible with the transducer input alphabet");
             }
         }
@@ -313,7 +313,7 @@ public class Transducer extends Automaton {
             for (int q = 0; q < Tnew.fa.getQ(); q++) {
                 IntList newList = new IntArrayList();
                 newList.add(q);
-                Tnew.fa.t.setNfaDTransition(q, minOutput, newList);
+                Tnew.fa.getT().setNfaDTransition(q, minOutput, newList);
                 Tnew.sigma.get(q).put(minOutput, minOutput);
             }
 
@@ -334,7 +334,7 @@ public class Transducer extends Automaton {
         boolean totalized = true;
         for(int q = 0; q < fa.getQ(); q++){
             for(int x = 0; x < fa.getAlphabetSize(); x++){
-                IntList iList = fa.t.getNfaStateDests(q, x);
+                IntList iList = fa.getT().getNfaStateDests(q, x);
                 if (iList == null) {
                     totalized = false;
                 }
@@ -396,7 +396,7 @@ public class Transducer extends Automaton {
         int encoded = richAlphabet.encode(List.of(M.getO().getInt(i)));
         Map<Integer, Integer> map = new HashMap<>();
         for (int j = 0; j < this.fa.getQ(); j++) {
-            map.put(j, this.fa.t.getNfaStateDests(mapSoFar.get(j), encoded).getInt(0));
+            map.put(j, this.fa.getT().getNfaStateDests(mapSoFar.get(j), encoded).getInt(0));
         }
         return map;
     }

@@ -190,7 +190,7 @@ public class Ostrowski {
         for (int q = 0; q < automaton.fa.getQ(); ++q) {
             automaton.fa.addOutput(isStateFinal.test(indexToNode.get(q)));
             this.stateTransitions.putIfAbsent(q, new Int2ObjectRBTreeMap<>());
-            automaton.fa.t.addToNfaD(this.stateTransitions.get(q));
+            automaton.fa.getT().addToNfaD(this.stateTransitions.get(q));
         }
 
         automaton.determinizeAndMinimize(false, "", null);
@@ -206,15 +206,15 @@ public class Ostrowski {
     // Note: this is a minimized and canonized DFA.
     private static void handleZeroState(FA fa) {
         boolean zeroStateNeeded =
-            fa.t.getNfaD().stream().anyMatch(
+            fa.getT().getNfaD().stream().anyMatch(
                 tm -> tm.int2ObjectEntrySet().stream().anyMatch(
                     es -> es.getValue().getInt(0) == 0));
         if (!zeroStateNeeded) {
             // remove 0th state
-            fa.t.getNfaD().remove(0);
+            fa.getT().getNfaD().remove(0);
             fa.getO().removeInt(0);
             fa.setQ(fa.getQ()-1);
-            fa.t.getNfaD().forEach(tm -> {
+            fa.getT().getNfaD().forEach(tm -> {
                 tm.forEach((k, v) -> {
                     int dest = v.getInt(0) - 1;
                     v.set(0, dest);

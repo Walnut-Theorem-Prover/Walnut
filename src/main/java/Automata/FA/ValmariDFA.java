@@ -45,7 +45,7 @@ public class ValmariDFA {
 
     public ValmariDFA(FA fa, int numStates) {
         // Pre-size the arrays.
-        long numTransitionsLong = fa.t.determineTransitionCount();
+        long numTransitionsLong = fa.getT().determineTransitionCount();
         if (numTransitionsLong > Integer.MAX_VALUE) {
             throw WalnutException.arrayOverflow("the number of transitions", numTransitionsLong);
         }
@@ -56,8 +56,8 @@ public class ValmariDFA {
         H = new int[numTransitions];
 
         int arrIndex = 0;
-        for(int q = 0; q != fa.t.getDfaD().size();++q){
-            for(Int2IntMap.Entry entry: fa.t.getDfaD().get(q).int2IntEntrySet()) {
+        for(int q = 0; q != fa.getT().getDfaD().size(); ++q){
+            for(Int2IntMap.Entry entry: fa.getT().getDfaD().get(q).int2IntEntrySet()) {
                 H[arrIndex] = entry.getIntValue();
                 T[arrIndex] = q;
                 L[arrIndex] = entry.getIntKey();
@@ -175,8 +175,8 @@ public class ValmariDFA {
         _A = _F = blocks.E = blocks.P = null;
         ValmariPartition.M = ValmariPartition.W = null; // this fixes an actual leak
         cords = null;
-        f.t.setNfaD(determineNfaD()); // needs blocks.(L,F,S), L, T, H
-        Transitions.reduceNfaDMemory(f.t.getNfaD());
+        f.getT().setNfaD(determineNfaD()); // needs blocks.(L,F,S), L, T, H
+        Transitions.reduceNfaDMemory(f.getT().getNfaD());
         L = T = H = blocks.L = blocks.S = null;
         determineO(f);
     }

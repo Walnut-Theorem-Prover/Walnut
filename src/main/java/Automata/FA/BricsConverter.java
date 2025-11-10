@@ -73,7 +73,7 @@ public class BricsConverter {
 
     // We added 128 to the encoding of every input vector before to avoid reserved characters, now we subtract it again
     // to get back the standard encoding
-    fa.t.setNfaD(addOffsetToInputs(fa, -128));
+    fa.getT().setNfaD(addOffsetToInputs(fa, -128));
 
     long timeAfter = System.currentTimeMillis();
     System.out.println("Set from brics:" + fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms");
@@ -84,7 +84,7 @@ public class BricsConverter {
     for (int q = 0; q < fa.getQ(); q++) {
       Int2ObjectRBTreeMap<IntList> iMap = new Int2ObjectRBTreeMap<>();
       newD.add(iMap);
-      for (Int2ObjectMap.Entry<IntList> entry : fa.t.getEntriesNfaD(q)) {
+      for (Int2ObjectMap.Entry<IntList> entry : fa.getT().getEntriesNfaD(q)) {
         iMap.put(entry.getIntKey() + offset, entry.getValue());
       }
     }
@@ -98,16 +98,16 @@ public class BricsConverter {
     fa.setQ(Q);
     fa.setQ0(setOfStates.indexOf(M.getInitialState()));
     fa.initO(Q);
-    fa.t.setNfaD(new ArrayList<>(Q));
+    fa.getT().setNfaD(new ArrayList<>(Q));
     for (int q = 0; q < Q; q++) {
       State state = setOfStates.get(q);
       fa.addOutput(state.isAccept());
-      fa.t.addMapToNfaD();
+      fa.getT().addMapToNfaD();
       for (Transition t : state.getTransitions()) {
         for (char a = t.getMin(); a <= t.getMax(); a++) {
           int key = keyMapper.apply(t, a);
           if (key != -1) {
-            FA.addTransition(fa.t.getNfaD(), q, key, setOfStates.indexOf(t.getDest()));
+            FA.addTransition(fa.getT().getNfaD(), q, key, setOfStates.indexOf(t.getDest()));
           }
         }
       }
@@ -128,7 +128,7 @@ public class BricsConverter {
     }
     State initialState = setOfStates.get(fa.getQ0());
     for (int q = 0; q < fa.getQ(); q++) {
-      for (Int2ObjectMap.Entry<IntList> entry : fa.t.getEntriesNfaD(q)) {
+      for (Int2ObjectMap.Entry<IntList> entry : fa.getT().getEntriesNfaD(q)) {
         for (int dest : entry.getValue()) {
           setOfStates.get(q).addTransition(new Transition((char) entry.getIntKey(), setOfStates.get(dest)));
         }

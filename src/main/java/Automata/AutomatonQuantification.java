@@ -90,7 +90,7 @@ public class AutomatonQuantification {
       for (int q = 0; q < Q; q++) {
           Int2ObjectRBTreeMap<IntList> newMemDTransitionFunction = new Int2ObjectRBTreeMap<>();
           newD.add(newMemDTransitionFunction);
-          for (Int2ObjectMap.Entry<IntList> transition : A.getFa().t.getEntriesNfaD(q)) {
+          for (Int2ObjectMap.Entry<IntList> transition : A.getFa().getT().getEntriesNfaD(q)) {
               int mappedKey = permutation.get(transition.getIntKey());
               IntList existingTransitions = newMemDTransitionFunction.get(mappedKey);
               if (existingTransitions != null) {
@@ -100,7 +100,7 @@ public class AutomatonQuantification {
               }
           }
       }
-      A.fa.t.setNfaD(newD);
+      A.fa.getT().setNfaD(newD);
       A.determinizeAndMinimize(print, prefix + " ", log);
       long timeAfter = System.currentTimeMillis();
       Logging.logMessage(print, prefix + QUANTIFIED + ":" + A.fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);

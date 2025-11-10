@@ -33,7 +33,7 @@ public class Trimmer {
         }
         IntSet initialStates = new IntOpenHashSet();
         initialStates.add(a.getQ0());
-        IntSet trimmed = rightTrim(a.t.getNfaD(), initialStates);
+        IntSet trimmed = rightTrim(a.getT().getNfaD(), initialStates);
         IntSet trimmed2 = leftTrim(a);
         trimmed.retainAll(trimmed2);
         quotient(a, trimmed);
@@ -47,8 +47,8 @@ public class Trimmer {
             // special case to make Walnut happy
             a.getO().clear();
             a.getO().add(0);
-            a.t.clearNfaD();
-            a.t.addMapToNfaD();
+            a.getT().clearNfaD();
+            a.getT().addMapToNfaD();
             a.setQ0(0);
             a.setQ(1);
             return;
@@ -62,7 +62,7 @@ public class Trimmer {
         IntList oldO = a.getO();
         IntList newO = new IntArrayList(newQ);
         int oldq0 = a.getQ0();
-        List<Int2ObjectRBTreeMap<IntList>> oldD = a.t.getNfaD();
+        List<Int2ObjectRBTreeMap<IntList>> oldD = a.getT().getNfaD();
         List<Int2ObjectRBTreeMap<IntList>> newD = new ArrayList<>(newQ);
         // Add new states -- initial, accepting properties
         for (int i = 0; i < oldQ; i++) {
@@ -101,7 +101,7 @@ public class Trimmer {
      */
     static IntSet leftTrim(FA a) {
         IntSet initialStates = a.getFinalStates(); // reversed -- final are now initial
-        return rightTrim(flipTransitions(a.t.getNfaD()), initialStates);
+        return rightTrim(flipTransitions(a.getT().getNfaD()), initialStates);
     }
 
     /**

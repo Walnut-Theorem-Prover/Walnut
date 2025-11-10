@@ -190,13 +190,13 @@ public class AutomatonLogicalOps {
 
         for (int q = 0; q < otherClone.fa.getQ(); q++) {
             Int2ObjectRBTreeMap<IntList> newMap = new Int2ObjectRBTreeMap<>();
-            for (Int2ObjectMap.Entry<IntList> entry : otherClone.fa.t.getEntriesNfaD(q)) {
+            for (Int2ObjectMap.Entry<IntList> entry : otherClone.fa.getT().getEntriesNfaD(q)) {
                 newMap.put(A.richAlphabet.encode(otherClone.richAlphabet.decode(entry.getIntKey())),
                     new IntArrayList(entry.getValue()));
             }
             newOtherD.add(newMap);
         }
-        otherClone.fa.t.setNfaD(newOtherD);
+        otherClone.fa.getT().setNfaD(newOtherD);
         otherClone.richAlphabet.setEncoder(A.richAlphabet.getEncoder());
         otherClone.richAlphabet.setA(A.richAlphabet.getA());
         otherClone.setAlphabetSize(A.getAlphabetSize());
@@ -282,7 +282,7 @@ public class AutomatonLogicalOps {
      */
     private static IntSet zeroReachableStates(FA fa, int zero) {
         // Ensure q0 is initialized in nfaD
-        IntList dQ0 = fa.t.getNfaState(fa.getQ0()).computeIfAbsent(zero, k -> new IntArrayList());
+        IntList dQ0 = fa.getT().getNfaState(fa.getQ0()).computeIfAbsent(zero, k -> new IntArrayList());
         if (!dQ0.contains(fa.getQ0())) {
             dQ0.add(fa.getQ0());
         }
@@ -295,7 +295,7 @@ public class AutomatonLogicalOps {
         while (!queue.isEmpty()) {
             int q = queue.poll();
             if (result.add(q)) { // Add q to result; skip if already processed
-                IntList transitions = fa.t.getNfaStateDests(q, zero);
+                IntList transitions = fa.getT().getNfaStateDests(q, zero);
                 if (transitions != null) {
                     for (int p : transitions) {
                         if (!result.contains(p)) {
@@ -395,9 +395,9 @@ public class AutomatonLogicalOps {
         for (int i = 0; i < A.getAlphabetSize(); i++) {
             List<Integer> list = A.richAlphabet.decode(i);
             if (list.get(n) != 0) {
-                M.fa.t.setNfaDTransition(0, i, new IntArrayList(dest));
+                M.fa.getT().setNfaDTransition(0, i, new IntArrayList(dest));
             }
-            M.fa.t.setNfaDTransition(1, i, new IntArrayList(dest));
+            M.fa.getT().setNfaDTransition(1, i, new IntArrayList(dest));
         }
         if (!A.getNS().get(n).isMsd()) {
             reverse(M, print, prefix, log, false);
@@ -437,14 +437,14 @@ public class AutomatonLogicalOps {
         for (int q = 0; q < Q; q++) {
             Int2ObjectRBTreeMap<IntList> currentStatesTransition = new Int2ObjectRBTreeMap<>();
             newD.add(currentStatesTransition);
-            for (Int2ObjectMap.Entry<IntList> entry : A.fa.t.getEntriesNfaD(q)) {
+            for (Int2ObjectMap.Entry<IntList> entry : A.fa.getT().getEntriesNfaD(q)) {
                 int m = map.get(entry.getIntKey());
                 if (m != -1) {
                     currentStatesTransition.computeIfAbsent(m, key -> new IntArrayList()).addAll(entry.getValue());
                 }
             }
         }
-        A.fa.t.setNfaD(newD);
+        A.fa.getT().setNfaD(newD);
         I.remove(0);
         UtilityMethods.removeIndices(A.getNS(), I);
         A.determineAlphabetSize();
@@ -487,7 +487,7 @@ public class AutomatonLogicalOps {
             }
         }
         for (int q = 0; q < fa.getQ(); q++) {
-            fa.t.getEntriesNfaD(q).removeIf(entry -> statesToRemove.contains(entry.getValue().getInt(0)));
+            fa.getT().getEntriesNfaD(q).removeIf(entry -> statesToRemove.contains(entry.getValue().getInt(0)));
         }
     }
 
@@ -618,7 +618,7 @@ public class AutomatonLogicalOps {
         );
 
         IntList oldO = A.fa.getO();
-        List<Int2ObjectRBTreeMap<IntList>> oldD = A.fa.t.getNfaD();
+        List<Int2ObjectRBTreeMap<IntList>> oldD = A.fa.getT().getNfaD();
 
         // Prepare BFS structures
         List<IntObjectPair<IntList>> newStates = new ArrayList<>();
@@ -793,8 +793,8 @@ public class AutomatonLogicalOps {
             List<Integer> extendedRow = new ArrayList<>();
             for (int k = 0; k < prevMorphism.get(j).size(); k++) {
               // For each digit di in state j:
-              for (int di : fa.t.getNfaStateKeySet(j)) {
-                int nextState = fa.t.getNfaStateDests(prevMorphism.get(j).get(k), di).getInt(0);
+              for (int di : fa.getT().getNfaStateKeySet(j)) {
+                int nextState = fa.getT().getNfaStateDests(prevMorphism.get(j).get(k), di).getInt(0);
                 extendedRow.add(nextState);
               }
             }
@@ -803,7 +803,7 @@ public class AutomatonLogicalOps {
           prevMorphism = newMorphism;
         }
         // Create new transitions from the final morphism
-        fa.t.setNfaD(buildTransitionsFromMorphism(fa, prevMorphism));
+        fa.getT().setNfaD(buildTransitionsFromMorphism(fa, prevMorphism));
     }
 
     /**
@@ -815,7 +815,7 @@ public class AutomatonLogicalOps {
       for (int q = 0; q < fa.getQ(); q++) {
         List<Integer> row = new ArrayList<>(fa.getAlphabetSize());
         for (int di = 0; di < fa.getAlphabetSize(); di++) {
-          row.add(fa.t.getNfaStateDests(q, di).getInt(0));
+          row.add(fa.getT().getNfaStateDests(q, di).getInt(0));
         }
         result.add(row);
       }

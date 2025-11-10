@@ -44,7 +44,7 @@ public class FA implements Cloneable {
   // and a value of zero means a non-final state.
   private IntList O;
 
-  public Transitions t;
+  private Transitions t;
 
   private boolean canonized; // When true, states are sorted in breadth-first order
 
@@ -723,5 +723,13 @@ public class FA implements Cloneable {
       }
     }
     return true;    // Never reached an accepting state
+  }
+
+  public Transitions getT() {
+    return t;
+  }
+
+  public void setT(Transitions t) {
+    this.t = t;
   }
 }

@@ -79,7 +79,7 @@ public class AutomatonWriter {
         out.write(
                 System.lineSeparator() + q + " " +
                         automaton.fa.getO().getInt(q) + System.lineSeparator());
-        for (Int2ObjectMap.Entry<IntList> entry : automaton.getFa().t.getEntriesNfaD(q)) {
+        for (Int2ObjectMap.Entry<IntList> entry : automaton.getFa().getT().getEntriesNfaD(q)) {
             List<Integer> l = automaton.richAlphabet.decode(entry.getIntKey());
             for (Integer integer : l) {
                 out.write(integer + " ");
@@ -135,7 +135,7 @@ public class AutomatonWriter {
                 for (int q = 0; q < Q; q++) {
                     TreeMap<Integer, List<String>> treeMap = new TreeMap<>();
                     transitions.put(q, treeMap);
-                    for (Int2ObjectMap.Entry<IntList> entry : automaton.fa.t.getEntriesNfaD(q)) {
+                    for (Int2ObjectMap.Entry<IntList> entry : automaton.fa.getT().getEntriesNfaD(q)) {
                         for (int dest : entry.getValue()) {
                             treeMap.putIfAbsent(dest, new ArrayList<>());
                             treeMap.get(dest).add(

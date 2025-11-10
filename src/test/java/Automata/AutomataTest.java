@@ -168,13 +168,13 @@ public class AutomataTest {
     Assertions.assertEquals(List.of(1,0), c.richAlphabet.decode(1));
 
     Assertions.assertEquals(0, c.fa.getO().getInt(0)); // first state outputs "0"
-    int nextState = c.fa.t.getNfaState(0).get(0).getInt(0);
+    int nextState = c.fa.getT().getNfaState(0).get(0).getInt(0);
 
     // follow the [1,0]* route. This might be an overcount, but it's guaranteed to terminate.
     int repCount = 0;
     while (repCount < c.fa.getQ()) {
       Assertions.assertEquals(2, c.fa.getO().getInt(nextState)); // other states output "2"
-      nextState = c.fa.t.getNfaState(nextState).get(1).getInt(0);
+      nextState = c.fa.getT().getNfaState(nextState).get(1).getInt(0);
       repCount++;
     }
   }

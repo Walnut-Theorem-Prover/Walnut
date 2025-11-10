@@ -107,7 +107,7 @@ public final class AutomatonMatrixWriter {
       int[] row = new int[Q];
       for (int p = 0; p < Q; ++p) {
         java.util.Arrays.fill(row, 0);
-        Set<Int2ObjectMap.Entry<IntList>> entrySet = fa.t.getEntriesNfaD(p);
+        Set<Int2ObjectMap.Entry<IntList>> entrySet = fa.getT().getEntriesNfaD(p);
         for (Int2ObjectMap.Entry<IntList> e : entrySet) {
           int sym = e.getIntKey();
           if (!encodedValues.contains(sym)) continue;

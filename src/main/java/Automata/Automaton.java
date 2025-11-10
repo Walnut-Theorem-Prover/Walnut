@@ -355,7 +355,7 @@ public class Automaton {
         List<Int2ObjectRBTreeMap<IntList>> newD = new ArrayList<>(M.getFa().getQ());
         for (int q = 0; q < M.getFa().getQ(); q++) {
             Int2ObjectRBTreeMap<IntList> newMap = new Int2ObjectRBTreeMap<>();
-            for (Int2ObjectMap.Entry<IntList> entry: fa.t.getEntriesNfaD(q)) {
+            for (Int2ObjectMap.Entry<IntList> entry: fa.getT().getEntriesNfaD(q)) {
                 List<Integer> decoded = oldAlphabet.decode(entry.getIntKey());
                 if (M.richAlphabet.isInNewAlphabet(decoded)) {
                     // For safety, clone the dest list to avoid aliasing
@@ -364,7 +364,7 @@ public class Automaton {
             }
             newD.add(newMap);
         }
-        M.getFa().t.setNfaD(newD);
+        M.getFa().getT().setNfaD(newD);
     }
 
     // TODO: possibly this can just be determined when setA() is called.
@@ -490,7 +490,7 @@ public class Automaton {
             }
         }
         boolean singleArity = richAlphabet.getA().size() == 1;
-        for (Int2ObjectMap.Entry<IntList> entry : getFa().t.getEntriesNfaD(state)) {
+        for (Int2ObjectMap.Entry<IntList> entry : getFa().getT().getEntriesNfaD(state)) {
             List<Integer> decodeAx = richAlphabet.decode(entry.getIntKey());
             String input = decodeAx.toString();
             // we remove brackets if we have a single arity input that is between 0 and 9 (and hence unambiguous)

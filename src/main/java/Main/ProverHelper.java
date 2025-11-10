@@ -112,7 +112,7 @@ public class ProverHelper {
     String comments = AutomatonReader.readComments(inLibrary);
     Logging.logMessage(true, "Comments: " + comments, Prover.log);
     Logging.logMessage(true, "State count:" + M.fa.getQ(), Prover.log);
-    Logging.logMessage(true, "Transition count:" + M.fa.t.determineTransitionCount(), Prover.log);
+    Logging.logMessage(true, "Transition count:" + M.fa.getT().determineTransitionCount(), Prover.log);
     Logging.logMessage(true, "Alphabet size:" + M.fa.getAlphabetSize(), Prover.log);
     Logging.logMessage(true, "Number systems:" + M.getNS(), Prover.log);
 

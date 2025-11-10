@@ -37,7 +37,7 @@ public class Infinite {
       return "";
     }
     visited.add(state);
-    for (Int2ObjectMap.Entry<IntList> entry : fa.t.getEntriesNfaD(state)) {
+    for (Int2ObjectMap.Entry<IntList> entry : fa.getT().getEntriesNfaD(state)) {
       for (int y: entry.getValue()) {
         // this adds brackets even when inputs have arity 1 - this is fine, since we just want a usable infinite regex
         String cycle = infiniteHelper(fa, r, visited, started, y, result + r.decode(entry.getIntKey()));
@@ -72,7 +72,7 @@ public class Infinite {
     while (!queue.isEmpty() && !found) {
       int current = queue.poll();
 
-      for (Int2ObjectMap.Entry<IntList> entry : fa.t.getEntriesNfaD(current)) {
+      for (Int2ObjectMap.Entry<IntList> entry : fa.getT().getEntriesNfaD(current)) {
         int x = entry.getIntKey();
         IntList transitions = entry.getValue();
 

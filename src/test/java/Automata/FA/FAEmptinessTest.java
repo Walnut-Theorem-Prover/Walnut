@@ -23,8 +23,8 @@ class FAEmptinessTest {
 
     // ensure NFA storage is present for all states
     for (int i = 0; i < Q; i++) {
-      if (fa.t.getNfaD().size() <= i) fa.t.addMapToNfaD();
-      else if (fa.t.getNfaState(i) == null) fa.t.addMapToNfaD();
+      if (fa.getT().getNfaD().size() <= i) fa.getT().addMapToNfaD();
+      else if (fa.getT().getNfaState(i) == null) fa.getT().addMapToNfaD();
     }
     return fa;
   }
@@ -32,7 +32,7 @@ class FAEmptinessTest {
   private static void addNfaEdge(FA fa, int src, int sym, int... dests) {
     IntArrayList list = new IntArrayList();
     for (int d : dests) list.add(d);
-    fa.t.getNfaState(src).put(sym, list);
+    fa.getT().getNfaState(src).put(sym, list);
   }
 
   @Test
