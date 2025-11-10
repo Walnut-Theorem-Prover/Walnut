@@ -141,9 +141,6 @@ public class AutomatonLogicalOps {
       return totalizeCrossProduct(A, B, print, prefix, log, friendlyOp);
     }
 
-    /**
-     * @return negation of A
-     */
     public static void not(Automaton A, boolean print, String prefix, StringBuilder log) {
         not(A, print, prefix, log, Operator.NEGATE);
     }

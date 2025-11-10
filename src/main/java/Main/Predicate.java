@@ -23,10 +23,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Stack;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -72,9 +69,9 @@ public class Predicate {
     private Matcher MATCHER_FOR_RIGHT_PARENTHESIS;
     private Matcher MATCHER_FOR_WHITESPACE;
 
-    static HashMap<String, NumberSystem> numberSystemHash = new HashMap<>();
+    static Map<String, NumberSystem> numberSystemHash = new HashMap<>();
 
-    public static HashMap<String, NumberSystem> getNumberSystemHash() {
+    public static Map<String, NumberSystem> getNumberSystemHash() {
         return numberSystemHash;
     }
 

@@ -1027,7 +1027,7 @@ public class IntegrationTest {
 				matrixAddresses.add(directoryAddress + TestCase.DEFAULT_TESTFILE + i + emitterSpec.extension());
 			}
 			testCases.add(new TestCase(
-					M,error, matrixAddresses,
+          error, matrixAddresses,
 					directoryAddress + GV_STRING + i + GV_EXTENSION,details,
 					automatonFilenamePairs));
 		}
@@ -1043,7 +1043,7 @@ public class IntegrationTest {
       try {
         test_case = new Prover().dispatchForIntegrationTest(command, "integ:" + command);
       } catch (Exception e) {
-        test_case = new TestCase(null, e.getMessage(), EMPTY_MATRIX_TEST_CASES, "", "",
+        test_case = new TestCase(e.getMessage(), EMPTY_MATRIX_TEST_CASES, "", "",
 						List.of(new TestCase.AutomatonFilenamePair(null, TestCase.DEFAULT_TESTFILE)));
       }
       testCases.add(test_case);

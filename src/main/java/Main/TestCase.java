@@ -31,7 +31,6 @@ public class TestCase {
     private final String details;
     private final List<String> matrixAddresses;
     private final String gvAddress;
-    private final Automaton result;
     private final List<AutomatonFilenamePair> automatonPairs;
 
     public static final String DEFAULT_TESTFILE = "automaton";
@@ -40,9 +39,8 @@ public class TestCase {
     public static final String DETAILS_FILE = "details";
 
     public TestCase(
-        Automaton result, String error, List<String> matrixAddresses, String gvAddress,
+        String error, List<String> matrixAddresses, String gvAddress,
         String details, List<AutomatonFilenamePair> automatonPairs) {
-        this.result = result;
         this.error = error;
         this.matrixAddresses = matrixAddresses;
         this.gvAddress = gvAddress;
@@ -50,11 +48,11 @@ public class TestCase {
         this.automatonPairs = automatonPairs;
     }
     public TestCase(Automaton result) {
-        this(result, "", EMPTY_MATRIX_TEST_CASES, "", "",
+        this("", EMPTY_MATRIX_TEST_CASES, "", "",
             List.of(new AutomatonFilenamePair(result, DEFAULT_TESTFILE)));
     }
-    public TestCase(Automaton result, List<AutomatonFilenamePair> automatonPairs) {
-        this(result, "", EMPTY_MATRIX_TEST_CASES, "", "", automatonPairs);
+    public TestCase(List<AutomatonFilenamePair> automatonPairs) {
+        this("", EMPTY_MATRIX_TEST_CASES, "", "", automatonPairs);
     }
 
     public List<AutomatonFilenamePair> getAutomatonPairs() {

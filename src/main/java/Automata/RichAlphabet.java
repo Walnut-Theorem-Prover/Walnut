@@ -176,11 +176,13 @@ public class RichAlphabet {
         newElt = n;
       } else {
         List<Integer> x = decode(A, n);
-        for (int i = 1; i < I.size(); i++)
-          if (x.get(I.get(i)) != x.get(I.get(0))) {
+        Integer i0 = x.get(I.get(0));
+        for (int i = 1; i < I.size(); i++) {
+          if (!(x.get(I.get(i)).equals(i0))) {
             newElt = -1;
             break;
           }
+        }
         if (newElt != -1) {
           List<Integer> y = new ArrayList<>();
           for (int i = 0; i < x.size(); i++)

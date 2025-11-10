@@ -50,7 +50,7 @@ public class Morphism {
     private Integer length;
 
     // The mapping between each letter of the alphabet and its image under the morphism
-    public TreeMap<Integer, List<Integer>> mapping;
+    public Map<Integer, List<Integer>> mapping;
 
     // The set of values in the image of the morphism
     public Set<Integer> range;

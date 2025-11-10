@@ -26,6 +26,7 @@ import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.stream.Stream;
 
 import static Main.Prover.homeDirArg;
 import static Main.Prover.sessionDirArg;
@@ -87,9 +88,8 @@ public class Session {
     sessionDirArg + getAddressForIntegrationTestResults() + SESSION_NAME};
     Prover.parseArgs(args);
     // clear out directory if it has anything in it
-    try {
-      Files.list(Paths.get(getAddressForResult()))
-          .filter(Files::isRegularFile) // Select only files
+    try (Stream<Path> p = Files.list(Paths.get(getAddressForResult()))){
+      p.filter(Files::isRegularFile) // Select only files
           .forEach(path -> path.toFile().delete()); // Delete each file
     } catch (IOException ex) {
       Logging.printTruncatedStackTrace(ex);
@@ -103,9 +103,8 @@ public class Session {
         sessionWalnutDir, getAddressForResult(), getWriteAddressForAutomataLibrary(),
         getWriteAddressForCustomBases(), getWriteAddressForMacroLibrary(), getWriteAddressForMorphismLibrary(),
         getWriteAddressForWordsLibrary())) {
-      try {
-        Files.list(Paths.get(s))
-            .filter(Files::isRegularFile) // Select only files
+      try (Stream<Path> p = Files.list(Paths.get(s))) {
+            p.filter(Files::isRegularFile) // Select only files
             .filter(path -> !filesToKeep.contains(path.getFileName().toString())) // Exclude files to keep
             .forEach(path -> path.toFile().delete()); // Delete each file
       } catch (IOException ex) {

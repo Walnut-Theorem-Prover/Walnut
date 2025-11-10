@@ -116,7 +116,7 @@ public class ProverHelper {
     Logging.logMessage(true, "Alphabet size:" + M.fa.getAlphabetSize(), Prover.log);
     Logging.logMessage(true, "Number systems:" + M.getNS(), Prover.log);
 
-    return new TestCase(M, "", null, null, Prover.log.toString(),
+    return new TestCase("", null, null, Prover.log.toString(),
         List.of(new TestCase.AutomatonFilenamePair(M, DEFAULT_TESTFILE)));
   }
 

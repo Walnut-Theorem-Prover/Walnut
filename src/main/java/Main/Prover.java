@@ -638,7 +638,7 @@ public class Prover {
     List<String> matrixAddresses =
         c.writeAutomata(predicateStr, evalName, m.group(Prover.ED_FREE_VARIABLES), resultName);
     return new TestCase(
-        M, "", matrixAddresses, resultName + GV_EXTENSION, c.getLogDetails(),
+        "", matrixAddresses, resultName + GV_EXTENSION, c.getLogDetails(),
         List.of(new TestCase.AutomatonFilenamePair(M, DEFAULT_TESTFILE)));
   }
 
@@ -843,7 +843,7 @@ public class Prover {
     Automaton adder = ostr.createAdderAutomaton();
     Ostrowski.writeAutomaton(name, msdName + NumberSystem.UNDERSCORE_ADDITION_AUTOMATON, adder);
 
-    return new TestCase(adder,
+    return new TestCase(
         List.of(new TestCase.AutomatonFilenamePair(adder, DEFAULT_TESTFILE),
             new TestCase.AutomatonFilenamePair(repr, TestCase.OST_REPR_TESTFILE)));
   }

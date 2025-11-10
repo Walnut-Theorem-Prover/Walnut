@@ -165,8 +165,8 @@ public class ParseMethods {
         }
     }
 
-    public static TreeMap<Integer, List<Integer>> parseMorphism(String mapString) {
-        TreeMap<Integer, List<Integer>> mapping = new TreeMap<>();
+    public static Map<Integer, List<Integer>> parseMorphism(String mapString) {
+        Map<Integer, List<Integer>> mapping = new TreeMap<>();
 
         Matcher m1 = ParseMethods.PATTERN_FOR_MAPPING_IN_morphism_COMMAND.matcher(mapString);
         while (m1.find()) {
