@@ -9,48 +9,26 @@ computed TH[(b-d)]
 applying operator (+):6 states - 6 states
  computing cross product:6 states - 6 states
  computed cross product:36 states - 
- Determinizing [#0, strategy: SC]: 36 states
- Determinized: 36 states - 
  Minimizing: 36 states.
  Minimized:25 states - .
- Determinizing [#1, strategy: SC]: 36 states
- Determinized: 36 states - 
  Minimizing: 36 states.
  Minimized:25 states - .
- Determinizing [#2, strategy: SC]: 36 states
- Determinized: 36 states - 
  Minimizing: 36 states.
  Minimized:36 states - .
- Determinizing [#3, strategy: SC]: 36 states
- Determinized: 36 states - 
  Minimizing: 36 states.
  Minimized:36 states - .
- Determinizing [#4, strategy: SC]: 36 states
- Determinized: 36 states - 
  Minimizing: 36 states.
  Minimized:36 states - .
- Determinizing [#5, strategy: SC]: 36 states
- Determinized: 36 states - 
  Minimizing: 36 states.
  Minimized:36 states - .
- Determinizing [#6, strategy: SC]: 36 states
- Determinized: 36 states - 
  Minimizing: 36 states.
  Minimized:25 states - .
- Determinizing [#7, strategy: SC]: 36 states
- Determinized: 36 states - 
  Minimizing: 36 states.
  Minimized:12 states - .
- Determinizing [#8, strategy: SC]: 36 states
- Determinized: 36 states - 
  Minimizing: 36 states.
  Minimized:16 states - .
- Determinizing [#9, strategy: SC]: 36 states
- Determinized: 36 states - 
  Minimizing: 36 states.
  Minimized:16 states - .
- Determinizing [#10, strategy: SC]: 36 states
- Determinized: 36 states - 
  Minimizing: 36 states.
  Minimized:25 states - .
  computing =>:25 states - 25 states
@@ -144,8 +122,6 @@ applied operator (+):6 states -
  computed &:4 states - 
 computing TH[(a+c)]=0
  comparing (=) against 0:36 states
-   Determinizing [#11, strategy: SC]: 36 states
-   Determinized: 36 states - 
    Minimizing: 36 states.
    Minimized:25 states - .
  compared (=) against 0:25 states - 
@@ -156,13 +132,13 @@ computing TH[(a+c)]=0
  Minimized:80 states - .
  computed &:80 states - 
  quantifying:80 states
-   Determinizing [#12, strategy: SC]: 80 states
+   Determinizing [#0, strategy: SC]: 80 states
    Determinized: 56 states - 
    Minimizing: 56 states.
    Minimized:56 states - .
  quantified:56 states - 
  fixing leading zeros:56 states
-  Determinizing [#13, strategy: SC]: 56 states
+  Determinizing [#1, strategy: SC]: 56 states
   Determinized: 56 states - 
   Minimizing: 56 states.
   Minimized:40 states - .

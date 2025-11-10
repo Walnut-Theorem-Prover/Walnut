@@ -155,20 +155,18 @@ j>=1:3 states - 1ms
        computing ~:93 states
         totalizing:93 states
         totalized:94 states - 0ms
-         Determinizing [#10, strategy: SC]: 94 states
-         Determinized: 94 states - 1ms
          Minimizing: 94 states.
          Minimized:94 states - 0ms.
        computed ~:85 states - 3ms
        quantifying:85 states
-         Determinizing [#11, strategy: SC]: 85 states
+         Determinizing [#10, strategy: SC]: 85 states
            Progress: Added 100 states - 71 states left in queue - 171 reachable states - 0ms
          Determinized: 236 states - 1ms
          Minimizing: 236 states.
          Minimized:12 states - 0ms.
        quantified:12 states - 1ms
        fixing leading zeros:12 states
-        Determinizing [#12, strategy: SC]: 12 states
+        Determinizing [#11, strategy: SC]: 12 states
         Determinized: 12 states - 0ms
         Minimizing: 12 states.
         Minimized:12 states - 0ms.
@@ -176,8 +174,6 @@ j>=1:3 states - 1ms
        computing ~:12 states
         totalizing:12 states
         totalized:13 states - 0ms
-         Determinizing [#13, strategy: SC]: 13 states
-         Determinized: 13 states - 0ms
          Minimizing: 13 states.
          Minimized:13 states - 0ms.
        computed ~:6 states - 0ms

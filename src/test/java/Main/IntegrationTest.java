@@ -851,11 +851,11 @@ public class IntegrationTest {
 
 		// thm5, from https://cs.uwaterloo.ca/~shallit/Papers/thm5.txt
 		// Very fast for BRZ and OTF
-		L.add("[strategy 10 BRZ]eval test637 \"E x,y,z (n=x+y+z)&(QQ[x]=@1)&(QQ[y]=@1)&(QQ[z]=@1)\"::");
-		L.add("[strategy 10 CCLS]eval test638 \"E x,y,z (n=x+y+z)&(QQ[x]=@1)&(QQ[y]=@1)&(QQ[z]=@1)\"::");
-		L.add("[strategy 10 CCL]eval test639 \"E x,y,z (n=x+y+z)&(QQ[x]=@1)&(QQ[y]=@1)&(QQ[z]=@1)\"::");
-		L.add("[strategy 10 BRZ_CCL]eval test640 \"E x,y,z (n=x+y+z)&(QQ[x]=@1)&(QQ[y]=@1)&(QQ[z]=@1)\"::");
-		L.add("[strategy 10 BRZ_CCLS]eval test641 \"E x,y,z (n=x+y+z)&(QQ[x]=@1)&(QQ[y]=@1)&(QQ[z]=@1)\"::");
+		L.add("[strategy 6 BRZ]eval test637 \"E x,y,z (n=x+y+z)&(QQ[x]=@1)&(QQ[y]=@1)&(QQ[z]=@1)\"::");
+		L.add("[strategy 6 CCLS]eval test638 \"E x,y,z (n=x+y+z)&(QQ[x]=@1)&(QQ[y]=@1)&(QQ[z]=@1)\"::");
+		L.add("[strategy 6 CCL]eval test639 \"E x,y,z (n=x+y+z)&(QQ[x]=@1)&(QQ[y]=@1)&(QQ[z]=@1)\"::");
+		L.add("[strategy 6 BRZ_CCL]eval test640 \"E x,y,z (n=x+y+z)&(QQ[x]=@1)&(QQ[y]=@1)&(QQ[z]=@1)\"::");
+		L.add("[strategy 6 BRZ_CCLS]eval test641 \"E x,y,z (n=x+y+z)&(QQ[x]=@1)&(QQ[y]=@1)&(QQ[z]=@1)\"::");
 
 		// Additional tests for division with negative numbers and DFAOs with negative outputs
 		L.add("eval test642 \"?msd_neg_2 _3 / _2 = 1\";");

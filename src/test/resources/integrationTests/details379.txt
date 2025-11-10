@@ -46,8 +46,6 @@ computing ~fibmr(i,(n-1),n))
  computing ~:15 states
   totalizing:15 states
   totalized:16 states - 0ms
-   Determinizing [#4, strategy: SC]: 16 states
-   Determinized: 16 states - 1ms
    Minimizing: 16 states.
    Minimized:16 states - 0ms.
  computed ~:21 states - 1ms

@@ -102,19 +102,17 @@ j<i:6 states - 0ms
        computing ~:25 states
         totalizing:25 states
         totalized:26 states - 0ms
-         Determinizing [#6, strategy: SC]: 26 states
-         Determinized: 26 states - 0ms
          Minimizing: 26 states.
          Minimized:26 states - 0ms.
        computed ~:13 states - 1ms
        quantifying:13 states
-         Determinizing [#7, strategy: SC]: 13 states
+         Determinizing [#6, strategy: SC]: 13 states
          Determinized: 16 states - 0ms
          Minimizing: 16 states.
          Minimized:8 states - 0ms.
        quantified:8 states - 0ms
        fixing leading zeros:8 states
-        Determinizing [#8, strategy: SC]: 8 states
+        Determinizing [#7, strategy: SC]: 8 states
         Determinized: 8 states - 0ms
         Minimizing: 8 states.
         Minimized:8 states - 0ms.
@@ -122,8 +120,6 @@ j<i:6 states - 0ms
        computing ~:8 states
         totalizing:8 states
         totalized:9 states - 0ms
-         Determinizing [#9, strategy: SC]: 9 states
-         Determinized: 9 states - 0ms
          Minimizing: 9 states.
          Minimized:9 states - 0ms.
        computed ~:10 states - 0ms

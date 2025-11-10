@@ -28,13 +28,11 @@ computing n=((x+y)+z)
   Minimized:3 states - 0ms.
  computed &:3 states - 0ms
  quantifying:3 states
-   Determinizing [#2, strategy: SC]: 3 states
-   Determinized: 3 states - 0ms
    Minimizing: 3 states.
    Minimized:3 states - 0ms.
  quantified:3 states - 0ms
  fixing leading zeros:3 states
-  Determinizing [#3, strategy: SC]: 3 states
+  Determinizing [#2, strategy: SC]: 3 states
   Determinized: 3 states - 0ms
   Minimizing: 3 states.
   Minimized:3 states - 0ms.
@@ -45,14 +43,11 @@ n=((x+y)+z):3 states - 0ms
  computed QQ[x]
  computing QQ[x]=@1
   comparing (=) against 1:16 states
-   Trimmed to: 15 states.
-    Determinizing [#4, strategy: SC]: 15 states
-    Determinized: 15 states - 0ms
-    Minimizing: 15 states.
+    Minimizing: 16 states.
     Minimized:15 states - 0ms.
   compared (=) against 1:15 states - 0ms
   fixing leading zeros:15 states
-   Determinizing [#5, strategy: SC]: 15 states
+   Determinizing [#3, strategy: SC]: 15 states
    Determinized: 15 states - 0ms
    Minimizing: 15 states.
    Minimized:15 states - 0ms.
@@ -72,14 +67,11 @@ n=((x+y)+z):3 states - 0ms
    computed QQ[y]
    computing QQ[y]=@1
     comparing (=) against 1:16 states
-     Trimmed to: 15 states.
-      Determinizing [#6, strategy: SC]: 15 states
-      Determinized: 15 states - 0ms
-      Minimizing: 15 states.
+      Minimizing: 16 states.
       Minimized:15 states - 0ms.
     compared (=) against 1:15 states - 0ms
     fixing leading zeros:15 states
-     Determinizing [#7, strategy: SC]: 15 states
+     Determinizing [#4, strategy: SC]: 15 states
      Determinized: 15 states - 0ms
      Minimizing: 15 states.
      Minimized:15 states - 0ms.
@@ -100,14 +92,11 @@ n=((x+y)+z):3 states - 0ms
      computed QQ[z]
      computing QQ[z]=@1
       comparing (=) against 1:16 states
-       Trimmed to: 15 states.
-        Determinizing [#8, strategy: SC]: 15 states
-        Determinized: 15 states - 0ms
-        Minimizing: 15 states.
+        Minimizing: 16 states.
         Minimized:15 states - 0ms.
       compared (=) against 1:15 states - 0ms
       fixing leading zeros:15 states
-       Determinizing [#9, strategy: SC]: 15 states
+       Determinizing [#5, strategy: SC]: 15 states
        Determinized: 15 states - 0ms
        Minimizing: 15 states.
        Minimized:15 states - 0ms.
@@ -127,7 +116,7 @@ n=((x+y)+z):3 states - 0ms
       (((n=((x+y)+z)&QQ[x]=@1)&QQ[y]=@1)&QQ[z]=@1):1790 states - 8ms
        computing quantifier E
         quantifying:1790 states
-          Determinizing [#10, strategy: CCLS]: 1790 states
+          Determinizing [#6, strategy: CCLS]: 1790 states
           Bisimulation reduced to 369 states
           Calculating simulation relations; this can be resource-intensive
           Simulation altered to 339 states
@@ -137,7 +126,7 @@ n=((x+y)+z):3 states - 0ms
           Minimized:12 states - 2ms.
         quantified:12 states - 297ms
         fixing leading zeros:12 states
-         Determinizing [#11, strategy: SC]: 12 states
+         Determinizing [#7, strategy: SC]: 12 states
          Determinized: 12 states - 0ms
          Minimizing: 12 states.
          Minimized:12 states - 0ms.

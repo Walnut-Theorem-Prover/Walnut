@@ -642,15 +642,18 @@ public class Automaton {
     }
 
     public void determinizeAndMinimize(boolean print, String prefix, StringBuilder log) {
-        // Working with NFA. Let's trim.
-        int oldQ = this.fa.getQ();
-        Trimmer.trimAutomaton(this.fa);
-        if (oldQ != this.fa.getQ()) {
-            Logging.logMessage(print, prefix + "Trimmed to: " + this.fa.getQ() + " states.", log);
+        if (!this.fa.getT().isDeterministic()) {
+            // Working with NFA. Let's trim.
+            int oldQ = this.fa.getQ();
+            Trimmer.trimAutomaton(this.fa);
+            if (oldQ != this.fa.getQ()) {
+                Logging.logMessage(print, prefix + "Trimmed to: " + this.fa.getQ() + " states.", log);
+            }
+            IntSet qqq = new IntOpenHashSet();
+            qqq.add(this.fa.getQ0());
+            DeterminizationStrategies.determinize(this, qqq, print, prefix + " ", log);
         }
-        IntSet qqq = new IntOpenHashSet();
-        qqq.add(this.fa.getQ0());
-        this.determinizeAndMinimize(qqq, print, prefix, log);
+        this.fa.justMinimize(print, prefix + " ", log);
     }
 
     /**
