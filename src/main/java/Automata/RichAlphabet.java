@@ -1,5 +1,8 @@
 package Automata;
 
+import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.ints.IntList;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -22,7 +25,7 @@ public class RichAlphabet {
    * 11 = (2,1,3)
    */
   private List<List<Integer>> A;
-  private List<Integer> encoder;
+  private IntList encoder;
 
   public RichAlphabet() {
     this.A = new ArrayList<>();
@@ -78,19 +81,20 @@ public class RichAlphabet {
     encoder = determineEncoder(A);
   }
 
-  public static List<Integer> determineEncoder(List<List<Integer>> A) {
-    List<Integer> encoder = new ArrayList<>(A.size());
-    encoder.add(1);
-    for (int i = 0; i < A.size() - 1; i++) {
-      encoder.add(encoder.get(i) * A.get(i).size());
+  public static IntList determineEncoder(List<List<Integer>> A) {
+    final IntList encoder = new IntArrayList(A.size());
+    int encoderVal = 1;
+    for (List<Integer> integers : A) {
+      encoder.add(encoderVal);
+      encoderVal = Math.multiplyExact(encoderVal, integers.size()); // throws on overflow
     }
     return encoder;
   }
 
-  public static int encode(List<Integer> l, List<List<Integer>> A, List<Integer> encoder) {
+  public static int encode(List<Integer> l, List<List<Integer>> A, IntList encoder) {
     int encoding = 0;
     for (int i = 0; i < l.size(); i++) {
-      encoding += encoder.get(i) * A.get(i).indexOf(l.get(i));
+      encoding += encoder.getInt(i) * A.get(i).indexOf(l.get(i));
     }
     return encoding;
   }
@@ -123,11 +127,11 @@ public class RichAlphabet {
    * So we don't store the list x.
    * We can decode, the number returned by encode(), and get x back using decode method.
    */
-  public List<Integer> getEncoder() {
+  public IntList getEncoder() {
     return encoder;
   }
 
-  public void setEncoder(List<Integer> encoder) {
+  public void setEncoder(IntList encoder) {
     this.encoder = encoder;
   }
 
@@ -167,7 +171,7 @@ public class RichAlphabet {
       if (!I.contains(i) || I.indexOf(i) == 0)
         newA.add(new ArrayList<>(A.get(i)));
 
-    List<Integer> newEncoder = determineEncoder(newA);
+    IntList newEncoder = determineEncoder(newA);
 
     List<Integer> map = new ArrayList<>(alphabetSize);
     for (int n = 0; n < alphabetSize; n++) {
@@ -203,7 +207,7 @@ public class RichAlphabet {
     RichAlphabet r = new RichAlphabet();
     r.A.addAll(A);
     if (encoder != null && !encoder.isEmpty()) {
-      r.encoder = new ArrayList<>(encoder);
+      r.encoder = new IntArrayList(encoder);
     }
     return r;
   }

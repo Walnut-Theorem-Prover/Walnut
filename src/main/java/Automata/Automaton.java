@@ -34,8 +34,7 @@ import it.unimi.dsi.fastutil.ints.*;
 
 import static Main.Logging.COMPUTED;
 import static Main.Logging.COMPUTING;
-import static Main.Prover.GV_EXTENSION;
-import static Main.Prover.TXT_EXTENSION;
+import static Main.Prover.*;
 
 /**
  * This class can represent different NFA, NFAO, DFA, DFAO.
@@ -206,9 +205,9 @@ public class Automaton {
             first.randomLabel();
             N.setLabel(first.getLabel());
 
-            if (op.equals("union")) {
+            if (op.equals(UNION)) {
                 first = AutomatonLogicalOps.or(first, N, print, prefix, log, LogicalOperator.OR);
-            } else if (op.equals("intersect")) {
+            } else if (op.equals(INTERSECT)) {
                 first = AutomatonLogicalOps.and(first, N, print, prefix, log);
             } else {
                 throw new WalnutException("Internal union/intersect error");
@@ -624,7 +623,7 @@ public class Automaton {
          */
         int[] labelPermutation = getLabelPermutation(getLabel(), sortedLabel);
         List<List<Integer>> permutedA = permute(richAlphabet.getA(), labelPermutation);
-        List<Integer> permutedEncoder = RichAlphabet.determineEncoder(permutedA);
+        IntList permutedEncoder = RichAlphabet.determineEncoder(permutedA);
 
         //For example encoded_input_permutation[2] = 5 means that encoded input 2 becomes 5 after sorting.
         int[] encodedInputPermutation = new int[getAlphabetSize()];

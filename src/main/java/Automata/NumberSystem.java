@@ -28,6 +28,7 @@ import Main.WalnutException;
 import Main.Prover;
 import Main.Session;
 import Main.UtilityMethods;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 
 /**
@@ -978,7 +979,7 @@ public class NumberSystem {
         M.richAlphabet.setA(new ArrayList<>());
         M.richAlphabet.getA().add(new ArrayList<>(getAlphabet()));
         M.determineAlphabetSize();
-        M.richAlphabet.setEncoder(new ArrayList<>());
+        M.richAlphabet.setEncoder(new IntArrayList());
         M.richAlphabet.getEncoder().add(1);
         M.canonize();
         constantsDynamicTable.put(constant, M);
