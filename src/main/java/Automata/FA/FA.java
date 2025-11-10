@@ -325,7 +325,7 @@ public class FA implements Cloneable {
     boolean added = false;
     for (int x = 0; x < alphabetSize; x++) {
       if (!iMap.containsKey(x)) {
-        IntList pointToSink = new IntArrayList();
+        IntList pointToSink = new IntArrayList(1); // saves peak memory; often in fact, this is a DFA
         pointToSink.add(sinkState);
         iMap.put(x, pointToSink);
         added = true;
@@ -657,14 +657,14 @@ public class FA implements Cloneable {
     if (t.getNfaD() == null) {
       return; // nothing to do
     }
+    if (!t.isDeterministic()) {
+      throw new WalnutException("Unexpected NFA instead of DFA.");
+    }
     t.setDfaD(new ArrayList<>(Q));
     for(int i=0;i<Q;i++) {
-      Set<Int2ObjectMap.Entry<IntList>> sourceEntrySet = this.t.getEntriesNfaD(i);
+      Set<Int2ObjectMap.Entry<IntList>> sourceEntrySet = t.getEntriesNfaD(i);
       Int2IntMap iMap = t.addMapToDfaD();
       for(Int2ObjectMap.Entry<IntList> entry : sourceEntrySet) {
-        if (entry.getValue().size() > 1) {
-          throw new WalnutException("Unexpected NFA instead of DFA.");
-        }
         iMap.put(entry.getIntKey(), entry.getValue().iterator().nextInt());
       }
     }

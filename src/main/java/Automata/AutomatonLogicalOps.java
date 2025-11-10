@@ -30,6 +30,8 @@ import java.util.*;
 
 import static Main.Logging.*;
 
+// TODO: almost all logical operations are, in fact, operating on DFAs
+//   Using a DFA-specific object for those would be a significant savings
 public class AutomatonLogicalOps {
 
     /**
@@ -141,6 +143,9 @@ public class AutomatonLogicalOps {
       return totalizeCrossProduct(A, B, print, prefix, log, friendlyOp);
     }
 
+    /**
+     * Negate automaton. NOTE: A is deterministic.
+     */
     public static void not(Automaton A, boolean print, String prefix, StringBuilder log) {
         if (A.fa.isTRUE_FALSE_AUTOMATON()) {
             A.fa.setTRUE_AUTOMATON(!A.fa.isTRUE_AUTOMATON());
@@ -152,14 +157,17 @@ public class AutomatonLogicalOps {
             throw new WalnutException("Unexpected NFA in not operation");
         }
 
-        // TODO: convert to DFA before calling internal NOT
+        // TODO: convert to DFA before calling internal NOT (or pass a DFA into this method)
+        //   However, totalize needs to support this
+        // A.getFa().convertNFAtoDFA();
 
         long timeBefore = System.currentTimeMillis();
         logMessage(print, prefix + COMPUTING + " " + Operator.NEGATE + ":" + A.fa.getQ() + " states", log);
 
-        A.fa.totalize(print, prefix + " ", log);
-        A.fa.flipOutput();
+        A.getFa().totalize(print, prefix + " ", log);
+        A.getFa().flipOutput();
 
+        // TODO: Since we're already in a DFA, we don't need to determinize
         A.determinizeAndMinimize(print, prefix + " ", log);
         A.applyAllRepresentations();
 

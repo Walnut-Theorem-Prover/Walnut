@@ -66,7 +66,7 @@ public class ProductStrategies {
                     if (z == -1) {
                         continue;
                     }
-                    IntList dest = new IntArrayList(entryA.getValue().size() * entryB.getValue().size());
+                    IntArrayList dest = new IntArrayList(entryA.getValue().size() * entryB.getValue().size());
                     stateTransitions.put(z, dest);
                     for (int destA : entryA.getValue()) {
                         for (int destB : entryB.getValue()) {
@@ -81,6 +81,7 @@ public class ProductStrategies {
                             dest.add(statesHash.getInt(dest3));
                         }
                     }
+                    dest.trim(); // save peak memory
                 }
             }
             currentState++;
