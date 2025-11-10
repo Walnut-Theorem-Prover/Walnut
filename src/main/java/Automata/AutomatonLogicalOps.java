@@ -142,17 +142,20 @@ public class AutomatonLogicalOps {
     }
 
     public static void not(Automaton A, boolean print, String prefix, StringBuilder log) {
-        not(A, print, prefix, log, Operator.NEGATE);
-    }
-
-    private static void not(Automaton A, boolean print, String prefix, StringBuilder log, String friendlyOp) {
         if (A.fa.isTRUE_FALSE_AUTOMATON()) {
             A.fa.setTRUE_AUTOMATON(!A.fa.isTRUE_AUTOMATON());
             return;
         }
 
+        // Automaton A *must* be deterministic, based on algorithm used. Assert this.
+        if (!A.getFa().getT().isDeterministic()) {
+            throw new WalnutException("Unexpected NFA in not operation");
+        }
+
+        // TODO: convert to DFA before calling internal NOT
+
         long timeBefore = System.currentTimeMillis();
-        logMessage(print, prefix + COMPUTING + " " + friendlyOp + ":" + A.fa.getQ() + " states", log);
+        logMessage(print, prefix + COMPUTING + " " + Operator.NEGATE + ":" + A.fa.getQ() + " states", log);
 
         A.fa.totalize(print, prefix + " ", log);
         A.fa.flipOutput();
@@ -161,7 +164,7 @@ public class AutomatonLogicalOps {
         A.applyAllRepresentations();
 
         long timeAfter = System.currentTimeMillis();
-        logMessage(print, prefix + COMPUTED + " " + friendlyOp + ":" + A.fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
+        logMessage(print, prefix + COMPUTED + " " + Operator.NEGATE + ":" + A.fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
     }
 
     /**

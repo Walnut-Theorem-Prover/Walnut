@@ -17,6 +17,7 @@
  */
 package Automata.FA;
 
+import Main.WalnutException;
 import it.unimi.dsi.fastutil.ints.*;
 
 import java.util.ArrayList;
@@ -132,6 +133,23 @@ public class Transitions {
       }
     }
     return numTransitionsLong;
+  }
+
+  public boolean isDeterministic() {
+    if (nfaD == null && dfaD == null) {
+      throw new WalnutException("Unexpected null transitions.");
+    }
+    if (dfaD != null) {
+      return true; // trivially, if we're using DFA transitions, we're in a DFA
+    }
+    for (int q = 0; q < nfaD.size(); q++) {
+      for (Int2ObjectMap.Entry<IntList> entry : this.getEntriesNfaD(q)) {
+        if (entry.getValue().size() > 1) {
+          return false;
+        }
+      }
+    }
+    return true;
   }
 
 }
