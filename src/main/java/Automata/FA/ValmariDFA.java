@@ -175,8 +175,11 @@ public class ValmariDFA {
         _A = _F = blocks.E = blocks.P = null;
         ValmariPartition.M = ValmariPartition.W = null; // this fixes an actual leak
         cords = null;
+
+        // TODO: when we fully strong-type, this should use a DFA representation
         f.getT().setNfaD(determineNfaD()); // needs blocks.(L,F,S), L, T, H
         Transitions.reduceNfaDMemory(f.getT().getNfaD());
+        
         L = T = H = blocks.L = blocks.S = null;
         determineO(f);
     }
@@ -191,7 +194,7 @@ public class ValmariDFA {
                 int q = blocks.S[T[t]];
                 int l = L[t];
                 int p = blocks.S[H[t]];
-                d.get(q).computeIfAbsent(l, key -> new IntArrayList()).add(p);
+                d.get(q).computeIfAbsent(l, key -> new IntArrayList(1)).add(p);
             }
         }
         return d;
