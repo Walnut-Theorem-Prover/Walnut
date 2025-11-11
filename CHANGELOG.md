@@ -19,6 +19,7 @@ All notable changes to Walnut will be documented here. Format is based on [Keep 
 
 ### Changed
 
+- Only determinize when not already deterministic. Also, other small space-saving improvements.
 - Removed >65K alphabet size limitation [#39](https://github.com/Walnut-Theorem-Prover/Walnut/issues/39)
 - Upgraded OTF to version 1.1.0. Several performance fixes, sometimes 10x faster; for larger NFAs, sometimes 10x less memory. [OTF changelog](https://github.com/jn1z/OTF/blob/main/CHANGELOG.md)
 - Corrected and reorganized help and usage messages
