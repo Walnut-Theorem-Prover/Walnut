@@ -154,7 +154,7 @@ public class ProductStrategies {
         }
         AxB.setQ(statesList.size());
         statesList.clear(); // save memory
-        AxB.getT().reduceDfaDMemory();
+        AxB.getT().reduceMemory();
 
         long timeAfter = System.currentTimeMillis();
         Logging.logMessage(print,

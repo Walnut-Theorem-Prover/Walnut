@@ -270,10 +270,11 @@ public class FA implements Cloneable {
           }
         }
       }
-      Transitions.reduceNfaDMemory(newNfaD);
 
       t.setNfaD(newNfaD);
       t.setDfaD(null); // this is explicitly an NFA now
+      t.reduceMemory();
+      
       IntSet newInitialStates = new IntOpenHashSet();
       // final states become initial states
       for (int q = 0; q < Q; q++) {
@@ -465,7 +466,7 @@ public class FA implements Cloneable {
       O.add((int) stateOutput.get(q));
       this.t.addToNfaD(stateTransition.get(q));
     }
-    Transitions.reduceNfaDMemory(t.getNfaD());
+    t.reduceMemory();
   }
 
   /**

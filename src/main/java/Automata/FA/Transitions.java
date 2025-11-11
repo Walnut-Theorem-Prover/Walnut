@@ -100,30 +100,28 @@ public class Transitions {
   }
 
   /**
-   * Reduce memory in NfaD by trimming all maps.
+   * Reduce memory by trimming all maps.
    */
-  public static void reduceNfaDMemory(List<Int2ObjectRBTreeMap<IntList>> nfaD) {
-    for (Int2ObjectRBTreeMap<IntList> iMap : nfaD) {
-      for(IntList iList: iMap.values()) {
-        ((IntArrayList)iList).trim();
+  public void reduceMemory() {
+    if (this.dfaD != null) {
+      for (Int2IntMap int2IntMap : this.dfaD) {
+        ((Int2IntOpenHashMap) int2IntMap).trim();
       }
     }
-  }
-
-  /**
-   * Reduce memory in DfaD by trimming all maps.
-   */
-  public void reduceDfaDMemory() {
-    for (Int2IntMap int2IntMap : this.dfaD) {
-      ((Int2IntOpenHashMap) int2IntMap).trim();
+    if (this.nfaD != null) {
+      for (Int2ObjectRBTreeMap<IntList> iMap : nfaD) {
+        for(IntList iList: iMap.values()) {
+          ((IntArrayList)iList).trim();
+        }
+      }
     }
   }
 
   public long determineTransitionCount() {
     long numTransitionsLong = 0;
     if (nfaD == null) {
-      for(int q = 0; q < dfaD.size();q++){
-        numTransitionsLong += dfaD.get(q).keySet().size();
+      for (Int2IntMap int2IntMap : dfaD) {
+        numTransitionsLong += int2IntMap.keySet().size();
       }
     } else {
       for (int q = 0; q < nfaD.size();q++) {
