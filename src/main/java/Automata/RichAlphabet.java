@@ -8,6 +8,7 @@ import java.util.HashSet;
 import java.util.List;
 
 public class RichAlphabet {
+  public static final int MISSING_REDUCED_DIMENSION_ELT = -1;
   /* Inputs to an ordinary automaton are n-tuples. Each coordinate has its own alphabet.
    * Let's see this by means of an example:
    * Suppose our automaton has 3-tuples as its input:
@@ -183,11 +184,11 @@ public class RichAlphabet {
         Integer i0 = x.get(I.get(0));
         for (int i = 1; i < I.size(); i++) {
           if (!(x.get(I.get(i)).equals(i0))) {
-            newElt = -1;
+            newElt = MISSING_REDUCED_DIMENSION_ELT;
             break;
           }
         }
-        if (newElt != -1) {
+        if (newElt != MISSING_REDUCED_DIMENSION_ELT) {
           List<Integer> y = new ArrayList<>();
           for (int i = 0; i < x.size(); i++)
             if (!I.contains(i) || I.indexOf(i) == 0)

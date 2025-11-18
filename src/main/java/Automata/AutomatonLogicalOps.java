@@ -28,7 +28,9 @@ import it.unimi.dsi.fastutil.ints.*;
 
 import java.util.*;
 
+import static Automata.RichAlphabet.MISSING_REDUCED_DIMENSION_ELT;
 import static Main.Logging.*;
+import static Main.UtilityMethods.NO_COMMON_ROOT;
 
 // TODO: almost all logical operations are, in fact, operating on DFAs
 //   Using a DFA-specific object for those would be a significant savings
@@ -441,7 +443,7 @@ public class AutomatonLogicalOps {
     }
 
     private static void reduceDimension(Automaton A, List<Integer> I) {
-        List<Integer> map = A.richAlphabet.determineReducedDimensionMap(A.getAlphabetSize(), I);
+        List<Integer> reducedDimensionMap = A.richAlphabet.determineReducedDimensionMap(A.getAlphabetSize(), I);
 
         int Q = A.fa.getQ();
         List<Int2ObjectRBTreeMap<IntList>> newD = new ArrayList<>(Q);
@@ -449,8 +451,8 @@ public class AutomatonLogicalOps {
             Int2ObjectRBTreeMap<IntList> currentStatesTransition = new Int2ObjectRBTreeMap<>();
             newD.add(currentStatesTransition);
             for (Int2ObjectMap.Entry<IntList> entry : A.fa.getT().getEntriesNfaD(q)) {
-                int m = map.get(entry.getIntKey());
-                if (m != -1) {
+                int m = reducedDimensionMap.get(entry.getIntKey());
+                if (m != MISSING_REDUCED_DIMENSION_ELT) {
                     currentStatesTransition.computeIfAbsent(m, key -> new IntArrayList()).addAll(entry.getValue());
                 }
             }
@@ -530,7 +532,7 @@ public class AutomatonLogicalOps {
 
         // 2) Check if fromBase and toBase are powers of the same root
         int commonRoot = UtilityMethods.commonRoot(fromBase, toBase);
-        if (commonRoot == -1) {
+        if (commonRoot == NO_COMMON_ROOT) {
             throw new WalnutException("New and old number systems must have bases k^i and k^j for some integer k.");
         }
 

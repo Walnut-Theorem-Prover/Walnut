@@ -18,13 +18,14 @@ import java.util.*;
 
 import static Main.Logging.COMPUTED;
 import static Main.Logging.COMPUTING;
+import static Main.UtilityMethods.MISSING_ELT;
 
 /**
  * Product strategy logic.
  * Automata are numbered, which is useful for meta-commands like [export]
  */
 public class ProductStrategies {
-
+    static final int NOT_SAME_INPUT_IN_BOTH = -1;
     /**
      * Cross-product of two DFAs. Output is an NFA (for now).
      */
@@ -33,7 +34,7 @@ public class ProductStrategies {
             boolean print, String prefix, StringBuilder log, long timeBefore) {
         List<IntIntPair> statesList = new ArrayList<>();
         Object2IntMap<IntIntPair> statesHash = new Object2IntOpenHashMap<>();
-        statesHash.defaultReturnValue(-1);
+        statesHash.defaultReturnValue(MISSING_ELT);
         AxB.setQ0(0);
         statesList.add(new IntIntImmutablePair(A.getQ0(), B.getQ0()));
         statesHash.put(new IntIntImmutablePair(A.getQ0(), B.getQ0()), 0);
@@ -73,7 +74,7 @@ public class ProductStrategies {
                             // Note: since A and B are DFAs, there's only one value ever here.
                             IntIntPair dest3 = new IntIntImmutablePair(destA, destB);
                             int statesHashVal = statesHash.getInt(dest3);
-                            if (statesHashVal == -1) {
+                            if (statesHashVal == MISSING_ELT) {
                                 statesHashVal = statesList.size();
                                 statesHash.put(dest3, statesHashVal);
                                 statesList.add(dest3);
@@ -100,7 +101,7 @@ public class ProductStrategies {
             boolean print, String prefix, StringBuilder log, long timeBefore) {
         List<IntIntPair> statesList = new ArrayList<>();
         Object2IntMap<IntIntPair> statesHash = new Object2IntOpenHashMap<>();
-        statesHash.defaultReturnValue(-1);
+        statesHash.defaultReturnValue(MISSING_ELT);
         AxB.setQ0(0);
         AxB.getT().setNfaD(null);
         AxB.getT().setDfaD(new ArrayList<>());
@@ -140,7 +141,7 @@ public class ProductStrategies {
                             // Note: since A and B are DFAs, there's only one value ever here.
                             IntIntPair dest3 = new IntIntImmutablePair(destA, destB);
                             int statesHashVal = statesHash.getInt(dest3);
-                            if (statesHashVal == -1) {
+                            if (statesHashVal == MISSING_ELT) {
                                 statesHashVal = statesList.size();
                                 statesHash.put(dest3, statesHashVal);
                                 statesList.add(dest3);
@@ -271,7 +272,7 @@ public class ProductStrategies {
         List<String> aLabel, List<List<Integer>> aA, List<String> bLabel, List<List<Integer>> bA) {
         int[] sameInputsInMAndThis = new int[bLabel.size()];
         for (int i = 0; i < bLabel.size(); i++) {
-            sameInputsInMAndThis[i] = -1;
+            sameInputsInMAndThis[i] = NOT_SAME_INPUT_IN_BOTH;
             int j = aLabel.indexOf(bLabel.get(i));
             if (j >= 0) {
                 if (!UtilityMethods.areEqual(aA.get(j), bA.get(i))) {
@@ -294,12 +295,12 @@ public class ProductStrategies {
             AxB.getNS().add(aNS.get(i));
         }
         for (int i = 0; i < bLabel.size(); i++) {
-            if (sameInputsInMAndThis[i] == -1) {
+            final int j = sameInputsInMAndThis[i];
+            if (j == NOT_SAME_INPUT_IN_BOTH) {
                 AxB.richAlphabet.getA().add(new ArrayList<>(bA.get(i)));
                 AxB.getLabel().add(bLabel.get(i));
                 AxB.getNS().add(bNS.get(i));
             } else {
-                int j = sameInputsInMAndThis[i];
                 if (bNS.get(i) != null && AxB.getNS().get(j) == null) {
                     AxB.getNS().set(j, bNS.get(i));
                 }
@@ -339,7 +340,7 @@ public class ProductStrategies {
         for (int i = 0; i < second.size(); i++) {
             int equalIndexI = equalIndices[i];
             int secondI = second.get(i);
-            if (equalIndexI == -1)
+            if (equalIndexI == NOT_SAME_INPUT_IN_BOTH)
                 R.add(secondI);
             else {
                 if (!first.get(equalIndexI).equals(secondI))

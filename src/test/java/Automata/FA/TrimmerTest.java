@@ -60,9 +60,9 @@ public class TrimmerTest {
         Int2ObjectRBTreeMap<IntList> s0 = a.getT().addMapToNfaD();
         s0.put(0, new IntArrayList(List.of(1, 2))); // 0: a -> {1,2}
 
-        Int2ObjectRBTreeMap<IntList> s1 = a.getT().addMapToNfaD();
-        Int2ObjectRBTreeMap<IntList> s2 = a.getT().addMapToNfaD();
-        Int2ObjectRBTreeMap<IntList> s3 = a.getT().addMapToNfaD();
+        a.getT().addMapToNfaD();
+        a.getT().addMapToNfaD();
+        a.getT().addMapToNfaD();
 
         IntSet initialStates = new IntOpenHashSet(IntSet.of(0));
         IntSet rTrim = Trimmer.rightTrim(a.getT().getNfaD(), initialStates);
@@ -91,9 +91,9 @@ public class TrimmerTest {
         Int2ObjectRBTreeMap<IntList> s0 = a.getT().addMapToNfaD();
         s0.put(0, new IntArrayList(List.of(2, 3))); // 0: a -> {1,2}
 
-        Int2ObjectRBTreeMap<IntList> s1 = a.getT().addMapToNfaD();
-        Int2ObjectRBTreeMap<IntList> s2 = a.getT().addMapToNfaD();
-        Int2ObjectRBTreeMap<IntList> s3 = a.getT().addMapToNfaD();
+        a.getT().addMapToNfaD();
+        a.getT().addMapToNfaD();
+        a.getT().addMapToNfaD();
 
         IntSet initialStates = new IntOpenHashSet(IntSet.of(0));
         IntSet rTrim = Trimmer.rightTrim(a.getT().getNfaD(), initialStates);
@@ -120,9 +120,9 @@ public class TrimmerTest {
         Int2ObjectRBTreeMap<IntList> s0 = a.getT().addMapToNfaD();
         s0.put(0, new IntArrayList(List.of(2, 3))); // 0: a -> {1,2}
 
-        Int2ObjectRBTreeMap<IntList> s1 = a.getT().addMapToNfaD();
-        Int2ObjectRBTreeMap<IntList> s2 = a.getT().addMapToNfaD();
-        Int2ObjectRBTreeMap<IntList> s3 = a.getT().addMapToNfaD();
+        a.getT().addMapToNfaD();
+        a.getT().addMapToNfaD();
+        a.getT().addMapToNfaD();
 
         Trimmer.trimAutomaton(a);
         Assertions.assertEquals(1, a.getQ());

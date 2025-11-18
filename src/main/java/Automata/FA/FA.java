@@ -435,7 +435,7 @@ public class FA implements Cloneable {
     List<List<Integer>> adjacencyList = new ArrayList<>(Q);
     for (int q = 0; q < Q; q++) adjacencyList.add(new ArrayList<>());
     for (int q = 0; q < Q; q++) {
-      List<Integer> destination = t.getNfaStateDests(q, zero);
+      IntList destination = t.getNfaStateDests(q, zero);
       if (destination != null) {
         for (int p : destination) {
           adjacencyList.get(p).add(q);

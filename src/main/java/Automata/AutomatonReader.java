@@ -14,6 +14,8 @@ import static Automata.ParseMethods.PATTERN_COMMENT;
 import static Automata.ParseMethods.PATTERN_WHITESPACE;
 
 public class AutomatonReader {
+    private static final int INVALID_STATE = -1;
+
     static void readAutomaton(Automaton A, String address) {
         File f = new File(address);
 
@@ -30,7 +32,7 @@ public class AutomatonReader {
             int[] pair = new int[2];
             List<Integer> input = new ArrayList<>();
             IntList dest = new IntArrayList();
-            int currentState = -1;
+            int currentState = INVALID_STATE;
             int currentOutput;
             Int2ObjectRBTreeMap<IntList> currentStateTransitions = new Int2ObjectRBTreeMap<>();
             Map<Integer, Integer> output = new TreeMap<>();
@@ -51,7 +53,7 @@ public class AutomatonReader {
 
                 if (ParseMethods.parseStateDeclaration(line, pair)) {
                     Q++;
-                    if (currentState == -1) {
+                    if (currentState == INVALID_STATE) {
                         q0 = pair[0];
                     }
 
@@ -98,7 +100,7 @@ public class AutomatonReader {
     }
 
     static void validateTransition(Automaton automaton, String address, int currentState, long lineNumber, List<Integer> input) {
-        if (currentState == -1) {
+        if (currentState == INVALID_STATE) {
             throw new WalnutException(
                 "Must declare a state before declaring a list of transitions: line " +
                     lineNumber + " of file " + address);
@@ -190,7 +192,7 @@ public class AutomatonReader {
             List<Integer> input = new ArrayList<>();
             IntList dest = new IntArrayList();
             List<Integer> output = new ArrayList<>();
-            int currentState = -1;
+            int currentState = INVALID_STATE;
             int currentStateOutput;
             Int2ObjectRBTreeMap<IntList> currentStateTransitions = new Int2ObjectRBTreeMap<>();
             Map<Integer, Integer> currentStateTransitionOutputs = new TreeMap<>();
@@ -213,7 +215,7 @@ public class AutomatonReader {
 
                 if (ParseMethods.parseTransducerStateDeclaration(line, singleton)) {
                     Q++;
-                    if (currentState == -1) {
+                    if (currentState == INVALID_STATE) {
                         q0 = singleton[0];
                     }
 

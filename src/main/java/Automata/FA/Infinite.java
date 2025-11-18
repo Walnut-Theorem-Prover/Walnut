@@ -10,6 +10,7 @@ import java.util.*;
 import java.util.function.Predicate;
 
 public class Infinite {
+  private static final int UNVISITED = -1;
   // Determines whether an automaton accepts infinitely many values. If it does, a regex of infinitely many accepted values (not all)
   // is given. This is true iff there exists a cycle in a minimized version of the automaton, which previously had leading or
   // trailing zeroes removed according to whether it was msd or lsd
@@ -57,9 +58,9 @@ public class Infinite {
     if (isFoundCondition.test(startState)) {
       return "";
     }
-    List<Integer> distance = new ArrayList<>(Collections.nCopies(fa.getQ(), -1));
-    List<Integer> prev = new ArrayList<>(Collections.nCopies(fa.getQ(), -1));
-    List<Integer> input = new ArrayList<>(Collections.nCopies(fa.getQ(), -1));
+    List<Integer> distance = new ArrayList<>(Collections.nCopies(fa.getQ(), UNVISITED));
+    List<Integer> prev = new ArrayList<>(Collections.nCopies(fa.getQ(), UNVISITED));
+    List<Integer> input = new ArrayList<>(Collections.nCopies(fa.getQ(), UNVISITED));
     distance.set(startState, 0);
 
     Queue<Integer> queue = new LinkedList<>();
@@ -81,7 +82,7 @@ public class Infinite {
             found = true;
             endState = y;
           }
-          if (distance.get(y) == -1) { // Unvisited state
+          if (distance.get(y) == UNVISITED) { // Unvisited state
             distance.set(y, distance.get(current) + 1);
             prev.set(y, current);
             input.set(y, x);

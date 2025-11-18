@@ -24,9 +24,12 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
- * This class contains a number of useful static methods.
+ * This class contains a number of useful static methods and constants.
  */
 public class UtilityMethods {
+    public static final int MISSING_ELT = -1; // useful for IntMaps especially
+    public static final int NO_COMMON_ROOT = -1;
+
     static String ADDRESS_FOR_UNIT_TEST_INTEGRATION_TEST_RESULTS = "src/test/resources/integrationTests/";
     private static final Pattern PATTERN_NUMBER = Pattern.compile("^\\d+$");
     private static final Pattern PATTERN_NEG_NUMBER = Pattern.compile("^neg_\\d+$");
@@ -106,12 +109,12 @@ public class UtilityMethods {
     }
 
     /**
-     * Return the common root of two numbers a, b. If no common root exists, return -1.
+     * Return the common root of two numbers a, b. If no common root exists, return -1 (NO_COMMON_ROOT).
      * https://stackoverflow.com/a/72369344/
      */
     public static int commonRoot(int a, int b) {
         if (a == 1 || b == 1) {
-            return -1;
+            return NO_COMMON_ROOT;
         }
         if (a == b) {
             return a;
@@ -119,7 +122,7 @@ public class UtilityMethods {
         if (a > b) {
             return commonRoot(b, a);
         }
-        return (b % a == 0) ? commonRoot(a, b / a) : -1;
+        return (b % a == 0) ? commonRoot(a, b / a) : NO_COMMON_ROOT;
     }
 
     /**

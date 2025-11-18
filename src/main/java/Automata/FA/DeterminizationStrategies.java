@@ -21,6 +21,7 @@ import java.util.*;
 
 import static Main.Logging.DETERMINIZED;
 import static Main.Logging.DETERMINIZING;
+import static Main.UtilityMethods.MISSING_ELT;
 
 /**
  * Determinization logic, with support for alternative strategies of:
@@ -171,7 +172,7 @@ public class DeterminizationStrategies {
 
     int stateCount = 0, currentState = 0;
     Object2IntMap<IntSet> metastateToId = new Object2IntOpenHashMap<>();
-    metastateToId.defaultReturnValue(-1);
+    metastateToId.defaultReturnValue(MISSING_ELT);
     List<IntSet> metastateList = new ArrayList<>();
     metastateList.add(initialState);
     metastateToId.put(initialState, 0);
@@ -210,7 +211,7 @@ public class DeterminizationStrategies {
         }
         int new_dValue;
         int key = metastateToId.getInt(metastate);
-        if (key != -1) {
+        if (key != MISSING_ELT) {
           new_dValue = key;
         } else {
           // TODO: BitSet may be a better choice, but it's not clear when NFA size is, say, >> 20000.
