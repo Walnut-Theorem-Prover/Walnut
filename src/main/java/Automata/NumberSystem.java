@@ -975,7 +975,7 @@ public class NumberSystem {
     }
 
     private Automaton makeConstant(String regex, int constant) {
-        Automaton M = new Automaton(regex, buildAlphabet(2), this);
+        Automaton M = new AutomatonDFA(regex, buildAlphabet(2), this);
         M.richAlphabet.setA(new ArrayList<>());
         M.richAlphabet.getA().add(new ArrayList<>(getAlphabet()));
         M.determineAlphabetSize();

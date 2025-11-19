@@ -668,13 +668,13 @@ public class Prover {
     // from a regular expression. Since the encoding method is within the Automaton class, we create a dummy instance and load it
     // with our sequence of number systems in order to access it. After the regex automaton is created, we set its alphabet to be the
     // one requested, instead of the unicode alphabet that dk.brics uses.
-    Automaton M = new Automaton();
+    AutomatonDFA M = new AutomatonDFA();
     M.richAlphabet.setA(alphabets);
     M.determineAlphabetSize();
 
     String regex = ProverHelper.determineEncodedRegex(m.group(R_REGEXP), M.richAlphabet.getA().size(), M.richAlphabet);
 
-    Automaton R = new Automaton(regex, M.getAlphabetSize());
+    AutomatonDFA R = new AutomatonDFA(regex, M.getAlphabetSize());
     R.richAlphabet.setA(M.richAlphabet.getA());
     R.determineAlphabetSize();
     R.setNS(NS);

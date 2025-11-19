@@ -11,7 +11,7 @@ import java.util.List;
 class AutomatonExpressionTest {
     @Test
     void testBaseAutomatonConstructor() {
-        Automaton a = new Automaton();
+        AutomatonDFA a = new AutomatonDFA();
 
         try {
             Assertions.assertNotNull(a);
@@ -24,16 +24,16 @@ class AutomatonExpressionTest {
 
     @Test
     void testBooleanAutomatonConstructor() {
-        Automaton a, b;
+        AutomatonDFA a, b;
         try {
-            a = new Automaton(true);
-            b = new Automaton(true);
+            a = new AutomatonDFA(true);
+            b = new AutomatonDFA(true);
             Assertions.assertTrue(EqualityUtils.faEqual(a.fa, b.fa), a.fa + " != " + b.fa);
             Assertions.assertTrue(EqualityUtils.faEqual(a.fa, b.clone().fa));
             AutomatonLogicalOps.reverse(b, false, "", null, false);
             Assertions.assertTrue(EqualityUtils.faEqual(a.fa, b.fa), a.fa + " != " + b.fa);
 
-            b = new Automaton(false);
+            b = new AutomatonDFA(false);
             Assertions.assertFalse(EqualityUtils.faEqual(a.fa, b.fa), a.fa + " == " + b.fa);
             Assertions.assertFalse(EqualityUtils.faEqual(a.fa, b.clone().fa));
 
@@ -46,7 +46,7 @@ class AutomatonExpressionTest {
 
     @Test
     void testRegexAutomatonConstructor() {
-        Automaton a, b;
+        AutomatonDFA a, b;
         try {
             // regularExpression = "01*" and alphabet = [0,1,2], then the resulting automaton accepts
             //     * words of the form 01* over the alphabet {0,1,2}.<br>
@@ -55,14 +55,14 @@ class AutomatonExpressionTest {
             alphabet.add(1);
             alphabet.add(2);
 
-            a = new Automaton("01*", alphabet, null);
+            a = new AutomatonDFA("01*", alphabet, null);
             //Assertions.assertEquals("[{0=>[1]}, {1=>[1]}]", a.d.toString());
             Assertions.assertTrue(EqualityUtils.faEqual(a.fa, a.clone().fa));
             List<String> labels = new ArrayList<>();
             labels.add("");
             Assertions.assertEquals(labels.toString(), a.getLabel().toString());
 
-            b = new Automaton("10*", alphabet, null);
+            b = new AutomatonDFA("10*", alphabet, null);
             Assertions.assertFalse(EqualityUtils.faEqual(a.fa, b.fa), a.fa + " == " + b.fa);
 
             b = a.clone();

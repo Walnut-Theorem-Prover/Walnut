@@ -113,40 +113,6 @@ public class Automaton {
     }
 
     /**
-     * Takes a regular expression and the alphabet for that regular expression and constructs the corresponding automaton.
-     * For example if the regularExpression = "01*" and alphabet = [0,1,2], then the resulting automaton accepts
-     * words of the form 01* over the alphabet {0,1,2}.
-     * We actually compute the automaton for regularExpression intersected with alphabet*.
-     * So for example if regularExpression = [^4]* and alphabet is [1,2,4], then the resulting
-     * automaton accepts (1|2)*
-     * An important thing to note here is that the automaton being constructed
-     * with this constructor, has only one input, and it is of type AlphabetLetter.
-     */
-    @SuppressWarnings("this-escape")
-    public Automaton(
-            String regularExpression,
-            List<Integer> alphabet,
-            NumberSystem numSys) {
-        this();
-        if (alphabet == null || alphabet.isEmpty()) throw new WalnutException("empty alphabet is not accepted");
-        alphabet = new ArrayList<>(alphabet);
-        //The alphabet is a set and does not allow repeated elements. However, the user might enter the command
-        //reg myreg {1,1,0,0,0} "10*"; and therefore alphabet = [1,1,0,0,0]. So remove duplicates.
-        UtilityMethods.removeDuplicates(alphabet);
-        this.richAlphabet.getA().add(alphabet);
-
-        BricsConverter.convertFromBrics(this.fa, alphabet, regularExpression);
-        getNS().add(numSys);
-    }
-
-    // This handles the generalised case of vectors such as "[0,1]*[0,0][0,1]"
-    // TODO - maybe exactly the same as above
-    public Automaton(String regularExpression, Integer alphabetSize) {
-        this();
-        BricsConverter.setFromBricsAutomaton(this.fa, alphabetSize, regularExpression);
-    }
-
-    /**
      * Takes an address and constructs the automaton represented by the file referred to by the address
      */
     @SuppressWarnings("this-escape")
