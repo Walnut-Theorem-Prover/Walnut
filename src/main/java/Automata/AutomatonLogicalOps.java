@@ -156,7 +156,7 @@ public class AutomatonLogicalOps {
 
         // Automaton A *must* be deterministic, based on algorithm used. Assert this.
         if (!A.getFa().getT().isDeterministic()) {
-            throw new WalnutException("Unexpected NFA in not operation");
+            throw WalnutException.nonDeterministic();
         }
 
         // TODO: convert to DFA before calling internal NOT (or pass a DFA into this method)
@@ -465,10 +465,11 @@ public class AutomatonLogicalOps {
     }
 
     /**
-     * This automaton should not be a word Automaton (i.e., with output). However, it can be NFA.
+     * The input automaton should not be a word Automaton (i.e., with output). However, it can be NFA.
      * Enabling the reverseMsd flag will flip the number system of the A from msd to lsd, and vice versa.
      * Reversing the Msd will also call this function as reversals are done in the NumberSystem class upon
      * initializing.
+     * NOTE: the output of this is a DFA.
      */
     public static void reverse(
         Automaton A, boolean print, String prefix, StringBuilder log, boolean reverseMsd) {

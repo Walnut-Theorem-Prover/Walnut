@@ -89,6 +89,8 @@ public class WalnutException extends RuntimeException {
         return new WalnutException("No such command exists.");
     }
 
+    public static WalnutException nonDeterministic() { return new WalnutException("NFA found when expecting a DFA."); }
+
     public static WalnutException notFreeVariable(String s) {
         return new WalnutException("Variable " + s + " in the list of quantified variables is not a free variable.");
     }
