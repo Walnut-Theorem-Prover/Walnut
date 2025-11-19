@@ -114,6 +114,7 @@ public class Automaton {
 
     /**
      * Takes an address and constructs the automaton represented by the file referred to by the address
+     * Note: this returns a DFA (or DFAO).
      */
     @SuppressWarnings("this-escape")
     public Automaton(String address) {

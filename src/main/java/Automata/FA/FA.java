@@ -60,8 +60,8 @@ public class FA implements Cloneable {
     return O.getInt(state) != 0;
   }
 
-  // Check if this is a DFAO.
-  public boolean isDFAO() {
+  // Check if this is an FAO.
+  public boolean isFAO() {
     for (int i=0;i<Q;i++) {
       if (O.getInt(i) > 1) {
         return true;
@@ -528,8 +528,7 @@ public class FA implements Cloneable {
    */
   public void justMinimize(boolean print, String prefix, StringBuilder log) {
     long timeBefore = System.currentTimeMillis();
-    logMessage(
-            print, prefix + MINIMIZING + ": " + Q + " states.", log);
+    logMessage(print, prefix + MINIMIZING + ": " + Q + " states.", log);
 
     this.convertNFAtoDFA();
     ValmariDFA v = new ValmariDFA(this, Q);

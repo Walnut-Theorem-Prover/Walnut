@@ -152,7 +152,7 @@ public class LogicalOperator extends Operator {
                         Logging.logAndPrint(print,
                             prefix + "special-case for final E, writing predicates: " + fileName, log);
                         M.writeAutomata(Prover.currentEvalName,
-                            Session.getWriteAddressForAutomataLibrary(), fileName, M.fa.isDFAO());
+                            Session.getWriteAddressForAutomataLibrary(), fileName, M.fa.isFAO());
                     }
                 } else if (op.equals(Operator.FORALL)) {
                     // A == ~ E ~

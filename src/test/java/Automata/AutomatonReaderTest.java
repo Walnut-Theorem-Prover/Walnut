@@ -19,7 +19,7 @@ public class AutomatonReaderTest {
   void testLucas() {
     AutomatonReader.readAutomaton(A, Session.getAddressForTestResources() + "LUCAS.txt");
     Assertions.assertEquals(6, A.fa.getQ());
-    Assertions.assertFalse(A.fa.isDFAO());
+    Assertions.assertFalse(A.fa.isFAO());
     Assertions.assertFalse(A.fa.isDeterministicAndTotal()); // not total
   }
 
@@ -27,7 +27,7 @@ public class AutomatonReaderTest {
   void testHilbert() {
     AutomatonReader.readAutomaton(A, Session.getAddressForUnitTestResources() + "HC.txt");
     Assertions.assertEquals(8, A.fa.getQ());
-    Assertions.assertTrue(A.fa.isDFAO());
+    Assertions.assertTrue(A.fa.isFAO());
     Assertions.assertTrue(A.fa.isDeterministicAndTotal());
   }
 
@@ -102,5 +102,13 @@ public class AutomatonReaderTest {
     Assertions.assertThrows(WalnutException.class, () ->
             AutomatonReader.readComments(address),
         WalnutException.fileDoesNotExist(address).getMessage());
+  }
+
+  @Test
+  void testReadNFA() {
+    String address = Session.getAddressForUnitTestResources() + "nfaAutomaton.txt";
+    AutomatonReader.readAutomaton(A, address);
+    Assertions.assertTrue(A.getFa().getT().isDeterministic());
+    Assertions.assertEquals(3, A.getFa().getQ()); // after determinization
   }
 }

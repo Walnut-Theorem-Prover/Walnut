@@ -82,6 +82,17 @@ public class AutomatonReader {
             validateDeclaredStates(setOfDestinationStates, output, address);
 
             A.fa.setFieldsFromFile(Q, q0, output, transitions);
+
+            if (!A.fa.getT().isDeterministic()) {
+                if (!A.getFa().isFAO()) {
+                    // if it's a non-word automaton, then we can determinize
+                    A.determinizeAndMinimize(false, "", null);
+                }
+                else {
+                    // unexpected case -- maybe we can handle this in the future
+                    throw WalnutException.nonDeterministic();
+                }
+            }
         } catch (IOException e) {
             Logging.printTruncatedStackTrace(e);
             throw WalnutException.fileDoesNotExist(address);

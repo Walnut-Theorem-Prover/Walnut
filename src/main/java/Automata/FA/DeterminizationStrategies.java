@@ -107,7 +107,7 @@ public class DeterminizationStrategies {
         if (exportName != null) {
           String exportFormat = mc.getExportFormat(automataIdx);
           ProverHelper.exportAutomata(Prover.currentEvalName, exportName + "_" + automataIdx + "_pre",
-              exportFormat, A, fa.isDFAO());
+              exportFormat, A, fa.isFAO());
         }
 
         Logging.logMessage(print, prefix + DETERMINIZING +
@@ -115,7 +115,7 @@ public class DeterminizationStrategies {
       }
 
       if (strategy != Strategy.SC) {
-        if (fa.isDFAO()) {
+        if (fa.isFAO()) {
           throw new WalnutException("DFAOs are not supported for non-SC strategies.");
         }
       }

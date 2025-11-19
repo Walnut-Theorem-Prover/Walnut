@@ -125,10 +125,7 @@ public class ParseMethods {
         return false;
     }
 
-    public static boolean parseTransition(
-            String s,
-            List<Integer> input,
-            List<Integer> dest) {
+    public static boolean parseTransition(String s, List<Integer> input, List<Integer> dest) {
         Matcher m = PATTERN_FOR_TRANSITION.matcher(s);
         if (m.find()) {
             parseList(m.group(TRANSITION_INPUT), input);
@@ -139,10 +136,7 @@ public class ParseMethods {
     }
 
     public static boolean parseTransducerTransition(
-            String s,
-            List<Integer> input,
-            List<Integer> dest,
-            List<Integer> output
+            String s, List<Integer> input, List<Integer> dest, List<Integer> output
     ) {
         Matcher m = PATTERN_FOR_TRANSDUCER_TRANSITION.matcher(s);
         if (m.find()) {
