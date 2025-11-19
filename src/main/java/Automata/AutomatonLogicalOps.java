@@ -616,9 +616,9 @@ public class AutomatonLogicalOps {
                                              boolean print, String prefix, StringBuilder log) {
         // Parse base and validate
         int base = A.getNS().get(0).parseBase();
-        double expected = Math.pow(root, exponent);
-        if (base != (int) expected) {
-            throw new WalnutException("Base mismatch: expected " + (int) expected + ", found " + base);
+        int expected = (int)Math.pow(root, exponent);
+        if (base != expected) {
+            throw new WalnutException("Base mismatch: expected " + expected + ", found " + base);
         }
         final String lsdUnderscore = NumberSystem.LSD_UNDERSCORE;
 
@@ -626,7 +626,7 @@ public class AutomatonLogicalOps {
         logMessage(
                 print,
                 prefix + "Converting: " + lsdUnderscore + base + " to " +
-                    lsdUnderscore + (int) expected +
+                    lsdUnderscore + expected +
                     ", " + A.fa.getQ() + " states",
                 log
         );
@@ -706,7 +706,7 @@ public class AutomatonLogicalOps {
         logMessage(
                 print,
                 prefix + "Converted: " + lsdUnderscore + base +
-                    " to " + lsdUnderscore + (int) expected +
+                    " to " + lsdUnderscore + expected +
                     ", " + A.fa.getQ() + " states - " + (System.currentTimeMillis() - timeBefore) + "ms",
                 log);
     }
@@ -730,7 +730,7 @@ public class AutomatonLogicalOps {
     private static int computeStringValue(List<Integer> digits, int root) {
         int value = 0;
         for (int i = 0; i < digits.size(); i++) {
-            value += (int) (digits.get(i) * Math.pow(root, i));
+            value = Math.addExact(value, Math.multiplyExact(digits.get(i), (int)Math.pow(root, i)));
         }
         return value;
     }

@@ -59,7 +59,7 @@ public class RichAlphabet {
   int determineAlphabetSize() {
     int alphabetSize = 1;
     for (List<Integer> x : A) {
-      alphabetSize *= x.size();
+      alphabetSize = Math.multiplyExact(alphabetSize, x.size());
     }
     return alphabetSize;
   }
@@ -95,7 +95,7 @@ public class RichAlphabet {
   public static int encode(List<Integer> l, List<List<Integer>> A, IntList encoder) {
     int encoding = 0;
     for (int i = 0; i < l.size(); i++) {
-      encoding += encoder.getInt(i) * A.get(i).indexOf(l.get(i));
+      encoding = Math.addExact(encoding, Math.multiplyExact(encoder.getInt(i), A.get(i).indexOf(l.get(i))));
     }
     return encoding;
   }
