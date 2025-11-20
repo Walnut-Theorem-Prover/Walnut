@@ -218,7 +218,7 @@ public class Automaton {
         Logging.logMessage(print, prefix + "star: " + fa.getQ() + " state automaton", log);
 
         Automaton N = clone();
-        FA.starStates(this.fa, N.fa);
+        FA.starStates(this.fa, N.fa); // NOTE: this may be an NFA
         N.normalizeNumberSystems(print, prefix, log);
         N.forceCanonize();
         N.determinizeAndMinimize(print, prefix, log);
@@ -259,7 +259,7 @@ public class Automaton {
 
         int originalQ = this.fa.getQ();
 
-        FA.concatStates(other.fa, N.fa, originalQ);
+        FA.concatStates(other.fa, N.fa, originalQ); // NOTE: this may be an NFA
 
         N.normalizeNumberSystems(print, prefix, log);
 

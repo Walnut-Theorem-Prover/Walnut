@@ -91,6 +91,7 @@ public class FA implements Cloneable {
     canonized = false;
   }
 
+  // NOTE: This will often create an NFA
   public static void starStates(FA automaton, FA N) {
     // N is a clone of automaton.
     // We add a new state which will be our new initial state.
@@ -100,6 +101,7 @@ public class FA implements Cloneable {
     N.mergeInTransitions(N.Q, automaton.t.getEntriesNfaD(automaton.q0));
   }
 
+  // NOTE: This will often create an NFA
   public static void concatStates(FA other, FA N, int originalQ) {
       // to access the other's states, just do q. To access the other's states in N, do originalQ + q.
       for (int q = 0; q < other.Q; q++) {
@@ -121,6 +123,7 @@ public class FA implements Cloneable {
 
   /**
    * Iterate through all of self's states. If they are final, add a transition to wherever the other's initial state goes.
+   * NOTE: this can create an NFA.
    */
   private void mergeInTransitions(int originalQ, Set<Int2ObjectMap.Entry<IntList>> sourceEntrySet) {
     for (int q = 0; q < originalQ; q++) {
@@ -137,7 +140,7 @@ public class FA implements Cloneable {
 
   /**
    * Sorts states based on their breadth-first order.
-   *  The method also removes states that are not reachable from the initial state.
+   * The method also removes states that are not reachable from the initial state.
    */
   public void canonizeInternal() {
     if (this.canonized || this.isTRUE_FALSE_AUTOMATON()) return;
