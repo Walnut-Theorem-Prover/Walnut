@@ -67,6 +67,7 @@ public class AutomatonReader {
                     setOfDestinationStates.addAll(dest);
                     List<List<Integer>> inputs = A.richAlphabet.expandWildcard(input);
                     for (List<Integer> i : inputs) {
+                        // usually this is DFA, so to save memory, we pre-size to be size 1
                         currentStateTransitions.computeIfAbsent(
                             A.richAlphabet.encode(i), (x -> new IntArrayList(1))).addAll(dest);
                     }

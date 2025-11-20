@@ -90,6 +90,7 @@ public class Trimmer {
                         newList.add(oldToNewMap[k]);
                     }
                 }
+                ((IntArrayList)newList).trim(); // save memory
             }
         }
         // q0 is already set
@@ -144,6 +145,7 @@ public class Trimmer {
             for(Int2ObjectMap.Entry<IntList> transEntry : iList.int2ObjectEntrySet()) {
                 for (int dest: transEntry.getValue()) {
                     newD.get(dest).computeIfAbsent(transEntry.getIntKey(), (x -> new IntArrayList())).add(q);
+                    ((IntArrayList)newD.get(dest).get(transEntry.getIntKey())).trim(); // save memory
                 }
             }
         }

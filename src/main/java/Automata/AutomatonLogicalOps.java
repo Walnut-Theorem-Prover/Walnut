@@ -453,7 +453,9 @@ public class AutomatonLogicalOps {
             for (Int2ObjectMap.Entry<IntList> entry : A.fa.getT().getEntriesNfaD(q)) {
                 int m = reducedDimensionMap.get(entry.getIntKey());
                 if (m != MISSING_REDUCED_DIMENSION_ELT) {
-                    currentStatesTransition.computeIfAbsent(m, key -> new IntArrayList()).addAll(entry.getValue());
+                    final int presize = entry.getValue().size();
+                    currentStatesTransition.computeIfAbsent(
+                        m, key -> new IntArrayList(presize)).addAll(entry.getValue());
                 }
             }
         }
