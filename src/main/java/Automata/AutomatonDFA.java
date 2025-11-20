@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Typesafe extension that requires determinism.
+ * Typesafe extension that requires determinism. DFA and DFAO are allowed.
  */
 // TODO - assert that this is deterministic
 // TODO - use with deterministic transitions

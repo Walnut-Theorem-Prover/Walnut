@@ -106,7 +106,19 @@ public class AutomatonReaderTest {
 
   @Test
   void testReadNFA() {
+    // 0 -> 0 1
     String address = Session.getAddressForUnitTestResources() + "nfaAutomaton.txt";
+    AutomatonReader.readAutomaton(A, address);
+    Assertions.assertTrue(A.getFa().getT().isDeterministic());
+    Assertions.assertEquals(3, A.getFa().getQ()); // after determinization
+  }
+
+  @Test
+  void testReadNFA2() {
+    // 0 -> 0
+    // 0 -> 1
+    // Bug in previous versions: "0->1" overwrote "0->0"
+    String address = Session.getAddressForUnitTestResources() + "nfaAutomaton2.txt";
     AutomatonReader.readAutomaton(A, address);
     Assertions.assertTrue(A.getFa().getT().isDeterministic());
     Assertions.assertEquals(3, A.getFa().getQ()); // after determinization

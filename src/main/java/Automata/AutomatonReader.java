@@ -67,7 +67,8 @@ public class AutomatonReader {
                     setOfDestinationStates.addAll(dest);
                     List<List<Integer>> inputs = A.richAlphabet.expandWildcard(input);
                     for (List<Integer> i : inputs) {
-                        currentStateTransitions.put(A.richAlphabet.encode(i), dest);
+                        currentStateTransitions.computeIfAbsent(
+                            A.richAlphabet.encode(i), (x -> new IntArrayList(1))).addAll(dest);
                     }
                     input = new ArrayList<>();
                     dest = new IntArrayList();
@@ -86,11 +87,12 @@ public class AutomatonReader {
             if (!A.fa.getT().isDeterministic()) {
                 if (!A.getFa().isFAO()) {
                     // if it's a non-word automaton, then we can determinize
+                    System.out.println("NFA input: determinizing.");
                     A.determinizeAndMinimize(false, "", null);
                 }
                 else {
-                    // unexpected case -- maybe we can handle this in the future
-                    throw WalnutException.nonDeterministic();
+                    // unexpected case -- NFAO
+                    throw WalnutException.nonDeterministicO();
                 }
             }
         } catch (IOException e) {

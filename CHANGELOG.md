@@ -16,7 +16,7 @@ All notable changes to Walnut will be documented here. Format is based on [Keep 
 - Fixed regression : free-variable validation became too strict
 - Fix old edge case in `reg` command
 - Fix old bug: silent integer overflows
-- Fix old bug: input automata were assumed to be deterministic
+- Fix old bug: NFA and NFAO inputs led to unexpected behavior
 
 ### Changed
 

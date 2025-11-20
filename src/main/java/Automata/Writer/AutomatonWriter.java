@@ -35,7 +35,7 @@ import net.automatalib.serialization.ba.BAWriter;
 public class AutomatonWriter {
     /**
      * Writes automaton to a file given by the address.
-     * This automaton can be NFA, NFAO, DFA, or DFAO. However, it cannot have epsilon transition.
+     * This automaton can be NFA, DFA, or DFAO. It cannot be NFAO, or have epsilon transitions.
      */
     public static void writeToTxtFormat(Automaton automaton, String address) {
         try (PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter((address))))) {

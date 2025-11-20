@@ -90,6 +90,7 @@ public class WalnutException extends RuntimeException {
     }
 
     public static WalnutException nonDeterministic() { return new WalnutException("NFA found when expecting a DFA."); }
+    public static WalnutException nonDeterministicO() { return new WalnutException("NFAOs are not supported.."); }
 
     public static WalnutException notFreeVariable(String s) {
         return new WalnutException("Variable " + s + " in the list of quantified variables is not a free variable.");

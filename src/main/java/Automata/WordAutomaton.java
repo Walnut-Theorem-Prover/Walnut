@@ -14,7 +14,7 @@ import java.util.*;
 import static Main.Logging.*;
 
 /**
- * This class handles various NFAO and DFAO operations.
+ * This class handles various DFAO operations.
  * Eventually this should be strong-typed.
  */
 public class WordAutomaton {

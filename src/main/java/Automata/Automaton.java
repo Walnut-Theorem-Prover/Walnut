@@ -37,7 +37,7 @@ import static Main.Logging.COMPUTING;
 import static Main.Prover.*;
 
 /**
- * This class can represent different NFA, NFAO, DFA, DFAO.
+ * This class can represent different NFA, DFA, DFAO. (NFAO is not supported.)
  * There are also two special automata: true automaton, which accepts everything, and false automaton, which accepts nothing.
  * To represent true/false automata we use the field members: TRUE_FALSE_AUTOMATON and TRUE_AUTOMATA. <br>
  * We use the RichAlphabet encoding in our representation of automaton to refer to a particular input.

@@ -1,0 +1,11 @@
+# Before, this would be overridden into a DFA. (bug)
+msd_2
+
+0 0
+0 -> 0
+0 -> 1
+1 -> 1
+
+1 1
+0 -> 1
+1 -> 0
