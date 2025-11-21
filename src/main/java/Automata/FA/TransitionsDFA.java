@@ -24,52 +24,45 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-public class TransitionsNFA implements Transitions {
-  /**
-   * TODO: finish splitting DFA and NFA transitions.
-   */
-  private List<Int2ObjectRBTreeMap<IntList>> nfaD; // transitions when this is an NFA -- null if this is a known DFA
-
+public class TransitionsDFA implements Transitions {
   private List<Int2IntMap> dfaD; // memory-efficient transitions when this is a known DFA -- usually null
 
-  TransitionsNFA() {
-    nfaD = new ArrayList<>();
+  TransitionsDFA() {
+    dfaD = new ArrayList<>();
   }
 
   public List<Int2ObjectRBTreeMap<IntList>> getNfaD(){
-    return nfaD;
+    throw WalnutException.nonDeterministic();
   }
 
   public Int2ObjectRBTreeMap<IntList> getNfaState(int q){
-    return nfaD.get(q);
+    throw WalnutException.nonDeterministic();
   }
   public IntSortedSet getNfaStateKeySet(int q){
-    return nfaD.get(q).keySet();
+    throw WalnutException.nonDeterministic();
   }
   public IntList getNfaStateDests(int q, int in){
-    return nfaD.get(q).get(in);
+    throw WalnutException.nonDeterministic();
   }
 
   public Set<Int2ObjectMap.Entry<IntList>> getEntriesNfaD(int state) {
-    return nfaD.get(state).int2ObjectEntrySet();
+    throw WalnutException.nonDeterministic();
   }
 
   public void setNfaD(List<Int2ObjectRBTreeMap<IntList>> nfaD) {
-    this.nfaD = nfaD;
+    throw WalnutException.nonDeterministic();
   }
   public void addToNfaD(Int2ObjectRBTreeMap<IntList> entry) {
-    nfaD.add(entry);
+    throw WalnutException.nonDeterministic();
   }
   public Int2ObjectRBTreeMap<IntList> addMapToNfaD() {
-    Int2ObjectRBTreeMap<IntList> entry = new Int2ObjectRBTreeMap<>();
-    nfaD.add(entry);
-    return entry;
+    throw WalnutException.nonDeterministic();
   }
   public void setNfaDTransition(int src, int inp, IntList destStates) {
-    nfaD.get(src).put(inp, destStates);
+    throw WalnutException.nonDeterministic();
   }
   public void clearNfaD() {
-    this.nfaD.clear();
+    throw WalnutException.nonDeterministic();
   }
 
   public List<Int2IntMap> getDfaD() {
@@ -89,55 +82,25 @@ public class TransitionsNFA implements Transitions {
    * Reduce memory by trimming all maps.
    */
   public void reduceMemory() {
-    if (this.dfaD != null) {
-      for (Int2IntMap int2IntMap : this.dfaD) {
-        ((Int2IntOpenHashMap) int2IntMap).trim();
-      }
-    }
-    if (this.nfaD != null) {
-      for (Int2ObjectRBTreeMap<IntList> iMap : nfaD) {
-        for(IntList iList: iMap.values()) {
-          ((IntArrayList)iList).trim();
-        }
-      }
+    for (Int2IntMap int2IntMap : this.dfaD) {
+      ((Int2IntOpenHashMap) int2IntMap).trim();
     }
   }
 
   public long determineTransitionCount() {
     long numTransitionsLong = 0;
-    if (nfaD == null) {
-      for (Int2IntMap int2IntMap : dfaD) {
-        numTransitionsLong += int2IntMap.keySet().size();
-      }
-    } else {
-      for (int q = 0; q < nfaD.size();q++) {
-        for (Int2ObjectMap.Entry<IntList> entry : this.getEntriesNfaD(q)) {
-          numTransitionsLong += entry.getValue().size();
-        }
-      }
+    for (Int2IntMap int2IntMap : dfaD) {
+      numTransitionsLong += int2IntMap.keySet().size();
     }
     return numTransitionsLong;
   }
 
   public boolean isDeterministic() {
-    if (nfaD == null && dfaD == null) {
-      throw new WalnutException("Unexpected null transitions.");
-    }
-    if (dfaD != null) {
-      return true; // trivially, if we're using DFA transitions, we're in a DFA
-    }
-    for (int q = 0; q < nfaD.size(); q++) {
-      for (Int2ObjectMap.Entry<IntList> entry : this.getEntriesNfaD(q)) {
-        if (entry.getValue().size() > 1) {
-          return false;
-        }
-      }
-    }
-    return true;
+    return true; // trivially, if we're using DFA transitions, we're in a DFA
   }
 
   @Override
   public String toString() {
-    return ", dfaD:" + dfaD + ", nfaD:" + nfaD;
+    return "dfaD:" + getDfaD();
   }
 }

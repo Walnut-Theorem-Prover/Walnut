@@ -82,7 +82,7 @@ public class FA implements Cloneable {
   public String toString() {
     return "T/F:(" + TRUE_FALSE_AUTOMATON + "," + TRUE_AUTOMATON + ")" +
             "Q:" + Q + ", q0:" + q0 + ", canon: " + canonized + ", O:" + O +
-            ", dfaD:" + t.getDfaD() + ", nfaD:" + t.getNfaD();
+            ", " + t;
   }
 
   public void clear() {
