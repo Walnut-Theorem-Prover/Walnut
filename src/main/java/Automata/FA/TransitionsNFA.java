@@ -24,7 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-public class Transitions {
+public class TransitionsNFA {
   /**
    * Transition function. For example, when d[0] = [(0,[1]),(1,[2,3]),(2,[2]),(3,[4]),(4,[1]),(5,[0])]
    * and alphabet A = [[0,1],[-1,2,3]]
@@ -46,7 +46,7 @@ public class Transitions {
 
   private List<Int2IntMap> dfaD; // memory-efficient transitions when this is a known DFA -- usually null
 
-  Transitions() {
+  TransitionsNFA() {
     nfaD = new ArrayList<>();
   }
 

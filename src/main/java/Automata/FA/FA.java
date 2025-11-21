@@ -44,7 +44,7 @@ public class FA implements Cloneable {
   // and a value of zero means a non-final state.
   private IntList O;
 
-  private Transitions t;
+  private TransitionsNFA t;
 
   private boolean canonized; // When true, states are sorted in breadth-first order
 
@@ -53,7 +53,7 @@ public class FA implements Cloneable {
 
   public FA() {
     O = new IntArrayList();
-    t = new Transitions();
+    t = new TransitionsNFA();
   }
 
   public boolean isAccepting(int state) {
@@ -400,7 +400,7 @@ public class FA implements Cloneable {
     fa.q0 = this.q0;
     fa.alphabetSize = this.alphabetSize;
     fa.O = new IntArrayList(this.O);
-    fa.t = new Transitions();
+    fa.t = new TransitionsNFA();
     fa.canonized = this.canonized;
     for (int q = 0; q < fa.Q; q++) {
       fa.t.addMapToNfaD();
@@ -728,11 +728,11 @@ public class FA implements Cloneable {
     return true;    // Never reached an accepting state
   }
 
-  public Transitions getT() {
+  public TransitionsNFA getT() {
     return t;
   }
 
-  public void setT(Transitions t) {
+  public void setT(TransitionsNFA t) {
     this.t = t;
   }
 }
