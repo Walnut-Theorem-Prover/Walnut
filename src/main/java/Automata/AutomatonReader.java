@@ -89,7 +89,7 @@ public class AutomatonReader {
                 if (!A.getFa().isFAO()) {
                     // if it's a non-word automaton, then we can determinize
                     System.out.println("NFA input: determinizing.");
-                    A.determinizeAndMinimize(false, "", null);
+                    A.determinizeAndMinimize(true, "", null);
                 }
                 else {
                     // unexpected case -- NFAO
