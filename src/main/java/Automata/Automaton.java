@@ -641,7 +641,7 @@ public class Automaton {
      * (I suspect as this is the inverse, it ends up not being an issue down the line.)
      * Also: behavior is undefined is permutation size != L.size
      */
-    public static <T> List<T> permute(List<T> L, int[] permutation) {
+    static <T> List<T> permute(List<T> L, int[] permutation) {
         List<T> R = new ArrayList<>(L);
         for (int i = 0; i < L.size(); i++) {
             R.set(permutation[i], L.get(i));

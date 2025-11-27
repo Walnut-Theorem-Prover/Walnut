@@ -41,9 +41,12 @@ import static Main.TestCase.DEFAULT_TESTFILE;
 public class Prover {
   static final String RE_FOR_THE_LIST_OF_CMDS = "(eval|def|macro|reg|load|ost|exit|quit|cls|clear|combine|morphism|promote|image|inf|split|rsplit|join|test|transduce|reverse|minimize|convert|fixleadzero|fixtrailzero|alphabet|union|intersect|star|concat|rightquo|leftquo|describe|export|help)";
   static final String RE_START = "^";
-  static final String RE_WORD_OF_CMD_NO_SPC = "([a-zA-Z]\\w*)";
-
+  // Basic identifier: used for free variables, combine, etc.
+  static final String RE_IDENTIFIER = "[a-zA-Z]\\w*";
+  static final String RE_WORD_OF_CMD_NO_SPC = "(" + RE_IDENTIFIER + ")";
   static final String RE_WORD_OF_CMD = "\\s+" + RE_WORD_OF_CMD_NO_SPC;
+  // Optional "=<int>"
+  static final String RE_EQ_INT_OPTIONAL = "(=-?\\d+)?";
 
   /**
    * the high-level scheme of a command is a name followed by some arguments and ending in either ; : or ::
@@ -89,7 +92,7 @@ public class Prover {
    */
   static int ED_NAME = 2, ED_FREE_VARIABLES = 3, ED_PREDICATE = 6;
   static final Pattern PAT_FOR_eval_def_CMDS = Pattern.compile(RE_FOR_eval_def_CMDS);
-  static final String REXEXP_FOR_A_FREE_VARIABLE_IN_eval_def_CMDS = "[a-zA-Z]\\w*";
+  static final String REXEXP_FOR_A_FREE_VARIABLE_IN_eval_def_CMDS = RE_IDENTIFIER;
   static final Pattern PAT_FOR_A_FREE_VARIABLE_IN_eval_def_CMDS = Pattern.compile(REXEXP_FOR_A_FREE_VARIABLE_IN_eval_def_CMDS);
 
   public static final String MACRO = "macro";
@@ -120,10 +123,11 @@ public class Prover {
   static final int GROUP_OST_NAME = 1, GROUP_OST_PREPERIOD = 2, GROUP_OST_PERIOD = 4;
 
   public static final String COMBINE = "combine";
-  static final String RE_FOR_combine_CMD = RE_START + COMBINE + RE_WORD_OF_CMD + "((\\s+([a-zA-Z]\\w*(=-?\\d+)?))*)";
+  static final String RE_FOR_combine_CMD =
+      RE_START + COMBINE + RE_WORD_OF_CMD + "((\\s+(" +RE_IDENTIFIER + RE_EQ_INT_OPTIONAL + "))*)";
   static final Pattern PAT_FOR_combine_CMD = Pattern.compile(RE_FOR_combine_CMD);
   static final int GROUP_COMBINE_NAME = 1, GROUP_COMBINE_AUTOMATA = 2;
-  static final String RE_FOR_AN_AUTOMATON_IN_combine_CMD = RE_WORD_OF_CMD_NO_SPC + "((=-?\\d+)?)";
+  static final String RE_FOR_AN_AUTOMATON_IN_combine_CMD = RE_WORD_OF_CMD_NO_SPC + "(" + RE_EQ_INT_OPTIONAL + ")";
   static final Pattern PAT_FOR_AN_AUTOMATON_IN_combine_CMD = Pattern.compile(RE_FOR_AN_AUTOMATON_IN_combine_CMD);
 
   public static final String MORPHISM = "morphism";
@@ -206,7 +210,8 @@ public class Prover {
   static final Pattern PAT_FOR_fixtrailzero_CMD = Pattern.compile(RE_FOR_fixtrailzero_CMD);
   static final int GROUP_FIXTRAILZERO_NEW_NAME = 1, GROUP_FIXTRAILZERO_OLD_NAME = 3;
 
-  static final String RE_FOR_alphabet_CMD = RE_START + "(" + ALPHABET + ")" + RE_WORD_OF_CMD +"\\s+((((((msd|lsd)_(\\d+|\\w+))|((msd|lsd)(\\d+|\\w+))|(msd|lsd)|(\\d+|\\w+))|(\\{(\\s*(\\+|\\-)?\\s*\\d+)(\\s*,\\s*(\\+|\\-)?\\s*\\d+)*\\s*\\}))\\s+)+)(\\$|\\s*)" + RE_WORD_OF_CMD_NO_SPC;
+  static final String RE_FOR_alphabet_CMD = RE_START + "(" + ALPHABET + ")" + RE_WORD_OF_CMD +
+      "\\s+((((((msd|lsd)_(\\d+|\\w+))|((msd|lsd)(\\d+|\\w+))|(msd|lsd)|(\\d+|\\w+))|(\\{(\\s*(\\+|\\-)?\\s*\\d+)(\\s*,\\s*(\\+|\\-)?\\s*\\d+)*\\s*\\}))\\s+)+)(\\$|\\s*)" + RE_WORD_OF_CMD_NO_SPC;
   static final Pattern PAT_FOR_alphabet_CMD = Pattern.compile(RE_FOR_alphabet_CMD);
   static final int GROUP_alphabet_NEW_NAME = 2, GROUP_alphabet_LIST_OF_ALPHABETS = 3, GROUP_alphabet_DOLLAR_SIGN = 20, GROUP_alphabet_OLD_NAME = 21;
 
