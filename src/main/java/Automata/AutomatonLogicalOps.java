@@ -28,7 +28,6 @@ import it.unimi.dsi.fastutil.ints.*;
 
 import java.util.*;
 
-import static Automata.RichAlphabet.MISSING_REDUCED_DIMENSION_ELT;
 import static Main.Logging.*;
 import static Main.UtilityMethods.NO_COMMON_ROOT;
 
@@ -416,54 +415,6 @@ public class AutomatonLogicalOps {
             reverse(M, print, prefix, log, false);
         }
         return M;
-    }
-
-
-    /**
-     * Checks if any input has the same label as input i. It then removes copies of input i appropriately.
-     * So for example an expression like f(a,a) becomes an automaton with one input.
-     * After we are done with input i, we call removeSameInputs(i+1)
-     */
-    static void removeSameInputs(Automaton A, int i) {
-        if (i >= A.richAlphabet.getA().size()) return;
-        List<Integer> I = new ArrayList<>();
-        I.add(i);
-        for (int j = i + 1; j < A.richAlphabet.getA().size(); j++) {
-            if (A.getLabel().get(i).equals(A.getLabel().get(j))) {
-                if (!UtilityMethods.areEqual(A.richAlphabet.getA().get(i), A.richAlphabet.getA().get(j))) {
-                    throw new WalnutException("Inputs " + i + " and " + j + " have the same label but different alphabets.");
-                }
-                I.add(j);
-            }
-        }
-        if (I.size() > 1) {
-            reduceDimension(A, I);
-        }
-        removeSameInputs(A, i + 1);
-    }
-
-    private static void reduceDimension(Automaton A, List<Integer> I) {
-        List<Integer> reducedDimensionMap = A.richAlphabet.determineReducedDimensionMap(A.getAlphabetSize(), I);
-
-        int Q = A.fa.getQ();
-        List<Int2ObjectRBTreeMap<IntList>> newD = new ArrayList<>(Q);
-        for (int q = 0; q < Q; q++) {
-            Int2ObjectRBTreeMap<IntList> currentStatesTransition = new Int2ObjectRBTreeMap<>();
-            newD.add(currentStatesTransition);
-            for (Int2ObjectMap.Entry<IntList> entry : A.fa.getT().getEntriesNfaD(q)) {
-                int m = reducedDimensionMap.get(entry.getIntKey());
-                if (m != MISSING_REDUCED_DIMENSION_ELT) {
-                    final int presize = entry.getValue().size();
-                    currentStatesTransition.computeIfAbsent(
-                        m, key -> new IntArrayList(presize)).addAll(entry.getValue());
-                }
-            }
-        }
-        A.fa.getT().setNfaD(newD);
-        I.remove(0);
-        UtilityMethods.removeIndices(A.getNS(), I);
-        A.determineAlphabetSize();
-        UtilityMethods.removeIndices(A.getLabel(), I);
     }
 
     /**
