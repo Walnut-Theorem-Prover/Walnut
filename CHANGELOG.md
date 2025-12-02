@@ -2,7 +2,7 @@
 
 All notable changes to Walnut will be documented here. Format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-## [Walnut 7.1] - IN PROGRESS
+## [Walnut 7.1] - 2025-12-02 - Author: John Nicol
 
 ### Added
 
@@ -14,9 +14,9 @@ All notable changes to Walnut will be documented here. Format is based on [Keep 
 - Fixed regression [#38 (load commands running twice)](https://github.com/Walnut-Theorem-Prover/Walnut/issues/38)
 - Fixed regression : `test` command not outputting all accepted strings
 - Fixed regression : free-variable validation became too strict
-- Fix old edge case in `reg` command
+- Fix old bug: `reg` command could result in corrupted regex in very rare case
 - Fix old bug: silent integer overflows
-- Fix old bug: NFA and NFAO inputs led to unexpected behavior
+- Fix old bug: NFA inputs led to unexpected behavior; also, NFAO (undefined) was allowed
 
 ### Changed
 
