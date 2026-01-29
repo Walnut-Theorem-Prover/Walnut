@@ -278,11 +278,11 @@ public class AutomatonLogicalOps {
         long timeBefore = System.currentTimeMillis();
         logMessage(print, prefix + FIXING + " leading zeros:" + A.fa.getQ() + " states", log);
         A.fa.setCanonized(false);
-        int zero = determineZero(A.richAlphabet);
+        int zero = A.richAlphabet.determineZero();
 
         // Subset Construction with different initial state
-        IntSet initial_state = zeroReachableStates(A.fa, zero);
-        A.determinizeAndMinimize(initial_state, print, prefix, log);
+        IntSet initialState = zeroReachableStates(A.fa, zero);
+        A.determinizeAndMinimize(initialState, print, prefix, log);
 
         long timeAfter = System.currentTimeMillis();
         logMessage(print, prefix + FIXED + " leading zeros:" + A.fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
@@ -320,21 +320,11 @@ public class AutomatonLogicalOps {
         return result;
     }
 
-    private static int determineZero(RichAlphabet richAlphabet) {
-        List<Integer> ZERO = new ArrayList<>(richAlphabet.getA().size());//all zero input
-        for (List<Integer> i : richAlphabet.getA()) {
-            int pos = i.indexOf(0);
-            if (pos < 0) throw new WalnutException("Alphabet has no zero digit: " + i);
-            ZERO.add(pos);
-        }
-        return richAlphabet.encode(ZERO);
-    }
-
     /**
      * Make automaton accept x0*, iff it used to accept x.
      */
     public static void fixTrailingZerosProblem(Automaton A, boolean print, String prefix, StringBuilder log) {
-        if (A.fa.setStatesReachableToFinalStatesByZeros(determineZero(A.richAlphabet))) {
+        if (A.fa.setStatesReachableToFinalStatesByZeros(A.richAlphabet.determineZero())) {
             long timeBefore = System.currentTimeMillis();
             logMessage(print, prefix + FIXING + " trailing zeros:" + A.fa.getQ() + " states", log);
             A.fa.setCanonized(false);

@@ -1,5 +1,6 @@
 package Automata;
 
+import Main.WalnutException;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 
@@ -62,6 +63,20 @@ public class RichAlphabet {
       alphabetSize = Math.multiplyExact(alphabetSize, x.size());
     }
     return alphabetSize;
+  }
+
+  /**
+   * Determine encoded value for [0,0,...,0]
+   * @return encoded value
+   */
+  public int determineZero() {
+    List<Integer> ZERO = new ArrayList<>(getA().size());//all zero input
+    for (List<Integer> i : getA()) {
+      int pos = i.indexOf(0);
+      if (pos < 0) throw new WalnutException("Alphabet has no zero digit: " + i);
+      ZERO.add(pos);
+    }
+    return encode(ZERO);
   }
 
   /**
