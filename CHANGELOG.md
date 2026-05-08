@@ -2,6 +2,8 @@
 
 All notable changes to Walnut will be documented here. Format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Walnut 8] - in progress
+
 ## [Walnut 7.1] - 2025-12-02 - Author: John Nicol
 
 ### Added

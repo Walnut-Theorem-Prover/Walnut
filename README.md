@@ -1,4 +1,4 @@
-# Walnut version 7.1
+# Walnut version 8.0-alpha
 Walnut is an automated theorem prover for automatic words.
 
 For full documentation, see the [Walnut wiki](https://github.com/Walnut-Theorem-Prover/Walnut/wiki).
