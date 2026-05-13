@@ -45,7 +45,7 @@ public class Session {
 
   static final String WALNUT_VERSION = "8.0-alpha";
   static final String PROMPT = "\n[Walnut]$ ";
-  private static final String FRIENDLY_DATE_TIME_PATTERN = "yyyy_MM_dd_HH_mm"; // TODO; what about localization?
+  private static final String FRIENDLY_DATE_TIME_PATTERN = "yyyy_MM_dd_HH_mm_ss"; // TODO; what about localization?
 
   private static final String GLOBAL_NAME = "Global";
   private static final String SESSION_NAME = "Session";
