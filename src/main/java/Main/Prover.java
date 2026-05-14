@@ -299,11 +299,10 @@ public class Prover {
       """;
 
   private static final String OTF_MESSAGE = """
-
-      If the CCL(S) or BRZ-CCL(S) algorithms are used in a result,
-      please cite the OTF paper by John Nicol and Markus Frohme.
-      The latest citation information is available at https://github.com/jn1z/OTF/blob/main/README.md
-      """;
+      ---------------------------
+      If the CCL(S) or BRZ-CCL(S) algorithms are used, please cite the paper:
+      Nicol, John, and Markus Frohme. "Deconstructing Subset Construction: Reducing While Determinizing." International Conference on Tools and Algorithms for the Construction and Analysis of Systems. Cham: Springer Nature Switzerland, 2026.
+      ---------------------------""";
 
   static final String homeDirArg = "--home-dir=";
   static final String sessionDirArg = "--session-dir=";

@@ -341,15 +341,6 @@ public class Automaton {
     }
 
     /**
-     * @param inputs A list of "+", "-" or null. Indicating how our input will be interpreted in the output automata.
-     *               Inputs must correspond to inputs of the current automaton
-     *               which can be compared to some corresponding negative base.
-     * @return The automaton which replaces inputs in negative base with an input in corresponding comparable positive base.
-     * For sake of example, suppose the input is [+,-,] and M is the current automata with inputs in base -2.
-     * On inputs (x,y,z), where x,y are inputs in base 2, the automaton gives as output M(x',y',z) where
-     * x' and y' are in the corresponding base -2 representations of x and -y.
-     */
-    /**
      * Generalized method to handle split and reverse split operations on the automaton.
      *
      * @param inputs A list of "+", "-" or null. Indicating how our input will be interpreted in the output automata.
