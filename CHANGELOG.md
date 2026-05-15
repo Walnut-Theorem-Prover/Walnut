@@ -6,10 +6,10 @@ All notable changes to Walnut will be documented here. Format is based on [Keep 
 
 ### Added
 ### Fixed
+- Fix `inf` and `test` performance [#33]((https://github.com/Walnut-Theorem-Prover/Walnut/issues/33)
 ### Changed
 - Morphism command now allows symbols outside of the range of 0-9 (for both domain and range).(https://github.com/Walnut-Theorem-Prover/Walnut/issues/43)
 - Switch to standard logging framework.(https://github.com/Walnut-Theorem-Prover/Walnut/issues/23)
-
 
 ## [Walnut 7.1] - 2025-12-02 - Author: John Nicol
 
