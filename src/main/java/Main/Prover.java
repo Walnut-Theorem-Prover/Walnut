@@ -27,6 +27,7 @@ import java.util.regex.Pattern;
 
 import Automata.*;
 import Automata.Numeration.Ostrowski;
+import Main.Commands.Test;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 
@@ -833,7 +834,7 @@ public class Prover {
 
   public static boolean testCommand(String s) {
     Matcher m = ProverHelper.matchOrFail(PAT_FOR_test_CMD, s, TEST);
-    return ProverHelper.testCommand(m.group(GROUP_TEST_NAME), Integer.parseInt(m.group(GROUP_TEST_NUM)));
+    return Test.testCommand(m.group(GROUP_TEST_NAME), Integer.parseInt(m.group(GROUP_TEST_NUM)));
   }
 
   public static TestCase ostCommand(String s) {
