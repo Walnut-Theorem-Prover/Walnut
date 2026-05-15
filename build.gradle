@@ -63,10 +63,16 @@ dependencies {
     implementation 'net.automatalib:automata-util:0.12.1'
     implementation 'com.github.ben-manes.caffeine:caffeine:3.2.2' // for OTF
     implementation(files("libs/OTF-1.1.0.jar")) // available at https://github.com/jn1z/OTF
+    implementation "org.slf4j:slf4j-api:2.0.13"
+    runtimeOnly  "org.slf4j:slf4j-simple:2.0.13"
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.11.4'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.11.4'
 //  compileOnly "com.github.spotbugs:spotbugs-annotations:${spotbugs.toolVersion.get()}"
 //  spotbugsPlugins 'com.h3xstream.findsecbugs:findsecbugs-plugin:1.13.0'
+}
+
+configurations.all {
+    exclude group: "org.slf4j", module: "slf4j-nop"
 }
 
 test {
@@ -88,8 +94,6 @@ test {
         showStandardStreams = true
     }
 }
-
-
 
 task customFatJar(type: Jar) {
     manifest {

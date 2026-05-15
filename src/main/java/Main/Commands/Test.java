@@ -3,7 +3,6 @@ package Main.Commands;
 import Automata.Automaton;
 import Automata.AutomatonLogicalOps;
 import Automata.Search.ProductBFS;
-import Main.ProverHelper;
 import Main.WalnutException;
 import it.unimi.dsi.fastutil.ints.IntList;
 import net.automatalib.word.Word;
@@ -21,7 +20,7 @@ public class Test {
    */
   public static boolean testCommand(String testName, int needed) {
     Automaton M = Automaton.readAutomatonFromFile(testName);
-    List<String> accepted = findAccepted(M, testName, needed);
+    List<String> accepted = findAccepted(M, needed);
     if (accepted.size() < needed) {
       System.out.println(testName + " only accepts " + accepted.size() + " inputs, which are as follows: ");
     }
@@ -31,7 +30,7 @@ public class Test {
     return accepted.size() >= needed;
   }
 
-  public static List<String> findAccepted(Automaton M, String testName, int needed) {
+  public static List<String> findAccepted(Automaton M, int needed) {
     if (needed <= 0) {
       return new ArrayList<>();
     }
@@ -41,9 +40,6 @@ public class Test {
     // (or [0,0], etc., for higher-arity numeric inputs).
     M.randomLabel();
     M = AutomatonLogicalOps.removeLeadingZeroes(M, M.getLabel(), false, null, null);
-
-    // Keep the existing side effect: test also reports whether the language is finite or infinite.
-    ProverHelper.infFromAutomaton(testName, M);
 
     List<String> accepted = new ArrayList<>(needed);
     Word<Integer> previous = null;
@@ -91,7 +87,7 @@ public class Test {
           }
           int oldLength = state[1];
           out[0] = destinations.getInt(0);
-          out[1] = previous == null ? oldLength + 1 : Math.min(oldLength + 1, previous.length() + 1);
+          out[1] = Math.min(oldLength + 1, previous == null ? 1 : previous.length() + 1);
           out[2] = updateComparison(previous, oldLength, state[2], symbol);
           return true;
         },
