@@ -46,7 +46,7 @@ public class ProductStrategies {
                 Logging.logMessage(statesSoFar == 1e2 || statesSoFar == 1e3 || statesSoFar == 1e4 || statesSoFar % 1e5 == 0,
                         prefix + "  Progress: Added " + statesSoFar + " states - "
                     + (statesList.size() - statesSoFar) + " states left in queue - "
-                    + statesList.size() + " reachable states - " + (timeAfter - timeBefore) + "ms", log);
+                    + statesList.size() + " reachable states - " + (timeAfter - timeBefore) + "ms");
             }
 
             IntIntPair s = statesList.get(currentState);
@@ -90,7 +90,7 @@ public class ProductStrategies {
         AxB.setQ(statesList.size());
         long timeAfter = System.currentTimeMillis();
         Logging.logMessage(print,
-                prefix + COMPUTED + " cross product:" + AxB.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
+                prefix + COMPUTED + " cross product:" + AxB.getQ() + " states - " + (timeAfter - timeBefore) + "ms");
     }
 
     /**
@@ -115,7 +115,7 @@ public class ProductStrategies {
                 Logging.logMessage(statesSoFar == 1e2 || statesSoFar == 1e3 || statesSoFar % 1e4 == 0,
                         prefix + "  Progress: Added " + statesSoFar + " states - "
                                 + (statesList.size() - statesSoFar) + " states left in queue - "
-                                + statesList.size() + " reachable states - " + (timeAfter - timeBefore) + "ms", log);
+                                + statesList.size() + " reachable states - " + (timeAfter - timeBefore) + "ms");
             }
 
             IntIntPair s = statesList.get(currentState);
@@ -159,7 +159,7 @@ public class ProductStrategies {
 
         long timeAfter = System.currentTimeMillis();
         Logging.logMessage(print,
-                prefix + COMPUTED + " cross product:" + AxB.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
+                prefix + COMPUTED + " cross product:" + AxB.getQ() + " states - " + (timeAfter - timeBefore) + "ms");
     }
 
     private static int determineOutput(int aP, int mQ, String op, int combineOut) {
@@ -237,7 +237,7 @@ public class ProductStrategies {
         if (print) {
             //FA.IncrementIndex();
             Logging.logMessage(print,
-                prefix + COMPUTING + " cross product:" + aQ + " states - " + bQ + " states", log);
+                prefix + COMPUTING + " cross product:" + aQ + " states - " + bQ + " states");
         }
     }
 

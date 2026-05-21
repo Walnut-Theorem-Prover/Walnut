@@ -54,7 +54,7 @@ public class AutomatonQuantification {
 
     validateLabels(A, labelsToQuantify);
     long timeBefore = System.currentTimeMillis();
-      Logging.logMessage(print, prefix + QUANTIFYING + ":" + A.fa.getQ() + " states", log);
+      Logging.logMessage(print, prefix + QUANTIFYING + ":" + A.fa.getQ() + " states");
 
       //If this is the case, then the quantified automaton is either the true or false automaton.
       //It is true if the language is not empty.
@@ -103,7 +103,7 @@ public class AutomatonQuantification {
       A.fa.getT().setNfaD(newD);
       A.determinizeAndMinimize(print, prefix + " ", log);
       long timeAfter = System.currentTimeMillis();
-      Logging.logMessage(print, prefix + QUANTIFIED + ":" + A.fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
+      Logging.logMessage(print, prefix + QUANTIFIED + ":" + A.fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms");
   }
 
   static void validateLabels(Automaton A, Collection<String> labelsToQuantify) {

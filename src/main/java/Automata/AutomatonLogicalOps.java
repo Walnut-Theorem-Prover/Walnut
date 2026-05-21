@@ -60,11 +60,11 @@ public class AutomatonLogicalOps {
         }
 
         long timeBefore = System.currentTimeMillis();
-        logMessage(print, prefix + COMPUTING + " " + friendlyOp + ":" + A.fa.getQ() + " states - " + B.fa.getQ() + " states", log);
+        logMessage(print, prefix + COMPUTING + " " + friendlyOp + ":" + A.fa.getQ() + " states - " + B.fa.getQ() + " states");
 
         Automaton N = ProductStrategies.crossProductAndMinimize(A, B, friendlyOp, print, prefix + " ", log);
         long timeAfter = System.currentTimeMillis();
-        logMessage(print, prefix + COMPUTED + " " + friendlyOp + ":" + N.fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
+        logMessage(print, prefix + COMPUTED + " " + friendlyOp + ":" + N.fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms");
 
         return N;
     }
@@ -119,7 +119,7 @@ public class AutomatonLogicalOps {
 
     private static Automaton totalizeCrossProduct(Automaton A, Automaton B, boolean print, String prefix, StringBuilder log, String friendlyOp) {
         long timeBefore = System.currentTimeMillis();
-        logMessage(print, prefix + COMPUTING + " " + friendlyOp + ":" + A.fa.getQ() + " states - " + B.fa.getQ() + " states", log);
+        logMessage(print, prefix + COMPUTING + " " + friendlyOp + ":" + A.fa.getQ() + " states - " + B.fa.getQ() + " states");
 
         A.fa.totalize(print, prefix + " ", log);
         B.fa.totalize(print, prefix + " ", log);
@@ -127,7 +127,7 @@ public class AutomatonLogicalOps {
         N.applyAllRepresentations();
 
         long timeAfter = System.currentTimeMillis();
-        logMessage(print, prefix + COMPUTED + " " + friendlyOp + ":" + N.fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
+        logMessage(print, prefix + COMPUTED + " " + friendlyOp + ":" + N.fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms");
         return N;
     }
 
@@ -163,7 +163,7 @@ public class AutomatonLogicalOps {
         // A.getFa().convertNFAtoDFA();
 
         long timeBefore = System.currentTimeMillis();
-        logMessage(print, prefix + COMPUTING + " " + Operator.NEGATE + ":" + A.fa.getQ() + " states", log);
+        logMessage(print, prefix + COMPUTING + " " + Operator.NEGATE + ":" + A.fa.getQ() + " states");
 
         A.getFa().totalize(print, prefix + " ", log);
         A.getFa().flipOutput();
@@ -173,7 +173,7 @@ public class AutomatonLogicalOps {
         A.applyAllRepresentations();
 
         long timeAfter = System.currentTimeMillis();
-        logMessage(print, prefix + COMPUTED + " " + Operator.NEGATE + ":" + A.fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
+        logMessage(print, prefix + COMPUTED + " " + Operator.NEGATE + ":" + A.fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms");
     }
 
     /**
@@ -183,7 +183,7 @@ public class AutomatonLogicalOps {
     public static Automaton rightQuotient(Automaton A, Automaton B, boolean skipSubsetCheck,
                                           boolean print, String prefix, StringBuilder log) {
         long timeBefore = System.currentTimeMillis();
-        logMessage(print, prefix + "right quotient: " + A.fa.getQ() + " state A with " + B.fa.getQ() + " state A", log);
+        logMessage(print, prefix + "right quotient: " + A.fa.getQ() + " state A with " + B.fa.getQ() + " state A");
 
         if (!skipSubsetCheck) {
             // check whether the alphabet of B is a subset of the alphabet of self. If not, throw an error.
@@ -237,14 +237,14 @@ public class AutomatonLogicalOps {
         M.forceCanonize();
 
         long timeAfter = System.currentTimeMillis();
-        logMessage(print, prefix + "right quotient complete: " + M.fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
+        logMessage(print, prefix + "right quotient complete: " + M.fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms");
 
         return M;
     }
 
     public static Automaton leftQuotient(Automaton A, Automaton B, boolean print, String prefix, StringBuilder log) {
         long timeBefore = System.currentTimeMillis();
-        logMessage(print, prefix + "left quotient: " + A.fa.getQ() + " state A with " + B.fa.getQ() + " state A", log);
+        logMessage(print, prefix + "left quotient: " + A.fa.getQ() + " state A with " + B.fa.getQ() + " state A");
 
         // check whether the alphabet of self is a subset of the alphabet of B. If not, throw an error.
         if (!RichAlphabet.isSubsetA(A.richAlphabet, B.richAlphabet)) {
@@ -258,7 +258,7 @@ public class AutomatonLogicalOps {
         reverse(M, print, prefix, log, true);
 
         long timeAfter = System.currentTimeMillis();
-        logMessage(print, prefix + "left quotient complete: " + M.fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
+        logMessage(print, prefix + "left quotient complete: " + M.fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms");
 
         return M;
     }
@@ -276,7 +276,7 @@ public class AutomatonLogicalOps {
     public static void fixLeadingZerosProblem(Automaton A, boolean print, String prefix, StringBuilder log) {
         if (A.fa.isTRUE_FALSE_AUTOMATON()) return;
         long timeBefore = System.currentTimeMillis();
-        logMessage(print, prefix + FIXING + " leading zeros:" + A.fa.getQ() + " states", log);
+        logMessage(print, prefix + FIXING + " leading zeros:" + A.fa.getQ() + " states");
         A.fa.setCanonized(false);
         int zero = A.richAlphabet.determineZero();
 
@@ -285,7 +285,7 @@ public class AutomatonLogicalOps {
         A.determinizeAndMinimize(initialState, print, prefix, log);
 
         long timeAfter = System.currentTimeMillis();
-        logMessage(print, prefix + FIXED + " leading zeros:" + A.fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
+        logMessage(print, prefix + FIXED + " leading zeros:" + A.fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms");
     }
 
     /**
@@ -326,14 +326,14 @@ public class AutomatonLogicalOps {
     public static void fixTrailingZerosProblem(Automaton A, boolean print, String prefix, StringBuilder log) {
         if (A.fa.setStatesReachableToFinalStatesByZeros(A.richAlphabet.determineZero())) {
             long timeBefore = System.currentTimeMillis();
-            logMessage(print, prefix + FIXING + " trailing zeros:" + A.fa.getQ() + " states", log);
+            logMessage(print, prefix + FIXING + " trailing zeros:" + A.fa.getQ() + " states");
             A.fa.setCanonized(false);
             // We don't have to determinize, since all that was altered was final states
             A.fa.justMinimize(print, prefix + " ", log);
             long timeAfter = System.currentTimeMillis();
-            logMessage(print, prefix + FIXED + " trailing zeros:" + A.fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
+            logMessage(print, prefix + FIXED + " trailing zeros:" + A.fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms");
         } else {
-            logMessage(print, prefix + FIXING + " trailing zeros: no change necessary.", log);
+            logMessage(print, prefix + FIXING + " trailing zeros: no change necessary.");
         }
     }
 
@@ -349,7 +349,7 @@ public class AutomatonLogicalOps {
             return A.clone();
         }
         long timeBefore = System.currentTimeMillis();
-        logMessage(print, prefix + REMOVING + " leading zeroes for:" + A.fa.getQ() + " states", log);
+        logMessage(print, prefix + REMOVING + " leading zeroes for:" + A.fa.getQ() + " states");
 
         List<Integer> listOfInputs = new ArrayList<>(listOfLabels.size());
         //extract the list of indices of inputs from the list of labels
@@ -364,7 +364,7 @@ public class AutomatonLogicalOps {
         M = and(A, M, print, prefix + " ", log);
 
         long timeAfter = System.currentTimeMillis();
-        logMessage(print, prefix + QUANTIFIED + ":" + A.fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
+        logMessage(print, prefix + QUANTIFIED + ":" + A.fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms");
         return M;
     }
 
@@ -419,7 +419,7 @@ public class AutomatonLogicalOps {
         if (A.fa.isTRUE_FALSE_AUTOMATON()) return;
 
         long timeBefore = System.currentTimeMillis();
-        logMessage(print, prefix + REVERSING + ":" + A.fa.getQ() + " states", log);
+        logMessage(print, prefix + REVERSING + ":" + A.fa.getQ() + " states");
 
         IntSet setOfFinalStates = A.fa.reverseToNFAInternal(IntSet.of(A.fa.getQ0()));
         A.determinizeAndMinimize(setOfFinalStates, print, prefix + " ", log);
@@ -429,7 +429,7 @@ public class AutomatonLogicalOps {
         }
 
         long timeAfter = System.currentTimeMillis();
-        logMessage(print, prefix + REVERSED + ":" + A.fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
+        logMessage(print, prefix + REVERSED + ":" + A.fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms");
     }
 
     /**
@@ -536,8 +536,7 @@ public class AutomatonLogicalOps {
                 print,
                 prefix + "Converting: " + msdUnderscore + base + " to " +
                     msdUnderscore + newBase +
-                    ", " + A.fa.getQ() + " states",
-                log
+                    ", " + A.fa.getQ() + " states"
         );
 
         updateTransitionsFromMorphism(A.fa, exponent);
@@ -548,7 +547,7 @@ public class AutomatonLogicalOps {
 
         logMessage(print, prefix + "Converted: " + msdUnderscore + base + " to " +
             msdUnderscore + newBase +
-            ", " + A.fa.getQ() + " states - " + (System.currentTimeMillis() - timeBefore) + "ms", log);
+            ", " + A.fa.getQ() + " states - " + (System.currentTimeMillis() - timeBefore) + "ms");
     }
 
     /**
@@ -570,8 +569,7 @@ public class AutomatonLogicalOps {
                 print,
                 prefix + "Converting: " + lsdUnderscore + base + " to " +
                     lsdUnderscore + expected +
-                    ", " + A.fa.getQ() + " states",
-                log
+                    ", " + A.fa.getQ() + " states"
         );
 
         IntList oldO = A.fa.getO();
@@ -650,8 +648,8 @@ public class AutomatonLogicalOps {
                 print,
                 prefix + "Converted: " + lsdUnderscore + base +
                     " to " + lsdUnderscore + expected +
-                    ", " + A.fa.getQ() + " states - " + (System.currentTimeMillis() - timeBefore) + "ms",
-                log);
+                    ", " + A.fa.getQ() + " states - " + (System.currentTimeMillis() - timeBefore) + "ms"
+        );
     }
 
     /**
@@ -694,7 +692,7 @@ public class AutomatonLogicalOps {
         while (!subautomata.isEmpty()) {
             Automaton next = subautomata.remove();
             long timeBefore = System.currentTimeMillis();
-            logMessage(print, prefix + COMPUTING + " =>:" + first.fa.getQ() + " states - " + next.fa.getQ() + " states", log);
+            logMessage(print, prefix + COMPUTING + " =>:" + first.fa.getQ() + " states - " + next.fa.getQ() + " states");
 
             // crossProduct requires labelling; make an arbitrary labelling and use it for both: this is valid since
             // input alphabets and arities are assumed to be identical for the combine method
@@ -709,7 +707,7 @@ public class AutomatonLogicalOps {
             first = product;
 
             long timeAfter = System.currentTimeMillis();
-            logMessage(print, prefix + COMPUTED + " =>:" + first.fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
+            logMessage(print, prefix + COMPUTED + " =>:" + first.fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms");
         }
 
         // totalize the resulting A

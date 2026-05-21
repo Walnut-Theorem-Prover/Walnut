@@ -454,7 +454,7 @@ public class Prover {
     }
 
     if (Prover.usingOTF) {
-      Logging.logAndPrint(true, OTF_MESSAGE);
+      Logging.logAndPrint(OTF_MESSAGE);
     }
     return exitVal;
   }

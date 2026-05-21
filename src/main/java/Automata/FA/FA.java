@@ -215,14 +215,14 @@ public class FA implements Cloneable {
    */
   public void totalize(boolean print, String prefix, StringBuilder log) {
     long timeBefore = System.currentTimeMillis();
-    logMessage(print, prefix + TOTALIZING + ":" + Q + " states", log);
+    logMessage(print, prefix + TOTALIZING + ":" + Q + " states");
     //we first check if the automaton is totalized
     int sinkState = Q; // potential new dead state
     if (!totalizeStates(sinkState)) {
       addSinkState(0, sinkState);
     }
     long timeAfter = System.currentTimeMillis();
-    logMessage(print, prefix + TOTALIZED + ":" + Q + " states - " + (timeAfter - timeBefore) + "ms", log);
+    logMessage(print, prefix + TOTALIZED + ":" + Q + " states - " + (timeAfter - timeBefore) + "ms");
   }
 
 
@@ -233,7 +233,7 @@ public class FA implements Cloneable {
    */
   public boolean addDistinguishedDeadState(boolean print, String prefix, StringBuilder log) {
     long timeBefore = System.currentTimeMillis();
-    logMessage(print, prefix + "Adding distinguished dead state: " + getQ() + " states", log);
+    logMessage(print, prefix + "Adding distinguished dead state: " + getQ() + " states");
     boolean totalized = this.totalizeStates(this.Q);
     int min;
     if (totalized) {
@@ -249,7 +249,7 @@ public class FA implements Cloneable {
       if (!totalized) {
         msg = prefix + "Added distinguished dead state with output of " + (min - 1) + ": " + getQ() + " states - " + (timeAfter - timeBefore) + "ms";
       }
-      logMessage(true, msg, log);
+      logMessage(true, msg);
     }
     return !totalized;
   }
@@ -531,7 +531,7 @@ public class FA implements Cloneable {
    */
   public void justMinimize(boolean print, String prefix, StringBuilder log) {
     long timeBefore = System.currentTimeMillis();
-    logMessage(print, prefix + MINIMIZING + ": " + Q + " states.", log);
+    logMessage(print, prefix + MINIMIZING + ": " + Q + " states.");
 
     this.convertNFAtoDFA();
     ValmariDFA v = new ValmariDFA(this, Q);
@@ -542,7 +542,7 @@ public class FA implements Cloneable {
 
     long timeAfter = System.currentTimeMillis();
     logMessage(
-            print, prefix + MINIMIZED + ":" + Q + " states - " + (timeAfter - timeBefore) + "ms.", log);
+            print, prefix + MINIMIZED + ":" + Q + " states - " + (timeAfter - timeBefore) + "ms.");
   }
 
   public void setCanonized(boolean canonized) {

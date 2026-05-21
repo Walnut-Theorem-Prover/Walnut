@@ -100,13 +100,6 @@ public class Logging {
     }
   }
 
-  /**
-   * Legacy overload. The StringBuilder is intentionally ignored; logging state now lives here.
-   */
-  public static void logMessage(boolean print, String msg, StringBuilder ignoredLog) {
-    logMessage(print, msg);
-  }
-
   public static void logAndPrint(String msg) {
     logAndPrint(printDetails.get(), msg);
   }

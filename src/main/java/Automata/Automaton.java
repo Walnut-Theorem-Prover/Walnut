@@ -182,7 +182,7 @@ public class Automaton {
             }
 
             long timeAfter = System.currentTimeMillis();
-            Logging.logMessage(print, prefix + COMPUTED + " =>:" + first.fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
+            Logging.logMessage(print, prefix + COMPUTED + " =>:" + first.fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms");
         }
         return first;
     }
@@ -210,13 +210,13 @@ public class Automaton {
             setAlphabet(false, numberSystems, richAlphabet.getA(), print, prefix, log);
             // always print this
             Logging.logMessage(true,
-                prefix + "WARN: The alphabet of the resulting automaton was changed. Use the alphabet command to change as desired.", log);
+                prefix + "WARN: The alphabet of the resulting automaton was changed. Use the alphabet command to change as desired.");
         }
     }
 
     public Automaton star(boolean print, String prefix, StringBuilder log) {
         long timeBefore = System.currentTimeMillis();
-        Logging.logMessage(print, prefix + "star: " + fa.getQ() + " state automaton", log);
+        Logging.logMessage(print, prefix + "star: " + fa.getQ() + " state automaton");
 
         Automaton N = clone();
         FA.starStates(this.fa, N.fa); // NOTE: this may be an NFA
@@ -226,7 +226,7 @@ public class Automaton {
         N.applyAllRepresentations();
 
         long timeAfter = System.currentTimeMillis();
-        Logging.logMessage(print, prefix + "star complete: " + N.fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
+        Logging.logMessage(print, prefix + "star complete: " + N.fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms");
 
         return N;
     }
@@ -242,14 +242,14 @@ public class Automaton {
             first = first.concat(N, print, prefix, log);
 
             long timeAfter = System.currentTimeMillis();
-            Logging.logMessage(print, prefix + "concatenated =>:" + first.fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
+            Logging.logMessage(print, prefix + "concatenated =>:" + first.fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms");
         }
         return first;
     }
 
     private Automaton concat(Automaton other, boolean print, String prefix, StringBuilder log) {
         long timeBefore = System.currentTimeMillis();
-        Logging.logMessage(print, prefix + "concat: " + this.fa.getQ() + " state automaton with " + other.fa.getQ() + " state automaton", log);
+        Logging.logMessage(print, prefix + "concat: " + this.fa.getQ() + " state automaton with " + other.fa.getQ() + " state automaton");
 
         // ensure that N has the same number system as first.
         if (NumberSystem.isNSDiffering(other.getNS(), this.getNS(), this.richAlphabet.getA(), other.richAlphabet.getA())) {
@@ -268,7 +268,7 @@ public class Automaton {
         N.applyAllRepresentations();
 
         long timeAfter = System.currentTimeMillis();
-        Logging.logMessage(print, prefix + "concat complete: " + N.fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
+        Logging.logMessage(print, prefix + "concat complete: " + N.fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms");
 
         return N;
     }
@@ -290,7 +290,7 @@ public class Automaton {
                 nsNames.add(ns == null ? alphabet.get(i).toString() : ns.toString());
             }
             String msg = prefix + "setting alphabet to " + nsNames;
-            Logging.logMessage(true, msg, log);
+            Logging.logMessage(true, msg);
         }
 
         Automaton M = clone();
@@ -313,7 +313,7 @@ public class Automaton {
         copy(M);
 
         long timeAfter = System.currentTimeMillis();
-        Logging.logMessage(print, prefix + "set alphabet complete:" + (timeAfter - timeBefore) + "ms", log);
+        Logging.logMessage(print, prefix + "set alphabet complete:" + (timeAfter - timeBefore) + "ms");
     }
 
     /**
@@ -412,7 +412,7 @@ public class Automaton {
         while (!subautomata.isEmpty()) {
             Automaton next = subautomata.remove();
             long timeBefore = System.currentTimeMillis();
-            Logging.logMessage(print, prefix + COMPUTING + " =>:" + first.fa.getQ() + " states - " + next.fa.getQ() + " states", log);
+            Logging.logMessage(print, prefix + COMPUTING + " =>:" + first.fa.getQ() + " states - " + next.fa.getQ() + " states");
 
             // crossProduct requires both automata to be totalized, otherwise it has no idea which cartesian states to transition to
             first.fa.totalize(print, prefix + " ", log);
@@ -421,7 +421,7 @@ public class Automaton {
             first = WordAutomaton.minimizeWithOutput(first, print, prefix + " ", log);
 
             long timeAfter = System.currentTimeMillis();
-            Logging.logMessage(print, prefix + COMPUTED + " =>:" + first.fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms", log);
+            Logging.logMessage(print, prefix + COMPUTED + " =>:" + first.fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms");
         }
         return first;
     }
@@ -606,7 +606,7 @@ public class Automaton {
             int oldQ = this.fa.getQ();
             Trimmer.trimAutomaton(this.fa);
             if (oldQ != this.fa.getQ()) {
-                Logging.logMessage(print, prefix + "Trimmed to: " + this.fa.getQ() + " states.", log);
+                Logging.logMessage(print, prefix + "Trimmed to: " + this.fa.getQ() + " states.");
             }
             IntSet qqq = new IntOpenHashSet();
             qqq.add(this.fa.getQ0());
