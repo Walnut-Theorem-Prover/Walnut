@@ -19,6 +19,8 @@
 package Main;
 
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.LinkedList;
@@ -731,7 +733,12 @@ public class Prover {
   public static TestCase promoteCommand(String s) throws IOException {
     Matcher m = ProverHelper.matchOrFail(PAT_FOR_promote_CMD, s, PROMOTE);
 
-    Morphism h = new Morphism(Session.getReadFileForMorphismLibrary(m.group(GROUP_PROMOTE_MORPHISM) + TXT_EXTENSION));
+    String morphismAddress =
+        Session.getReadFileForMorphismLibrary(m.group(GROUP_PROMOTE_MORPHISM) + TXT_EXTENSION);
+    String mapString =
+        Files.readString(Paths.get(UtilityMethods.validateFile(morphismAddress).toURI()));
+
+    Morphism h = new Morphism(mapString);
     Automaton P = h.toWordAutomaton();
 
     P.writeAutomata(s, Session.getWriteAddressForWordsLibrary(), m.group(GROUP_PROMOTE_NAME), true);
@@ -741,23 +748,33 @@ public class Prover {
   public TestCase imageCommand(String s) throws IOException {
     Matcher m = ProverHelper.matchOrFail(PAT_FOR_image_CMD, s, IMAGE);
 
-    Morphism h = new Morphism(Session.getReadFileForMorphismLibrary(m.group(GROUP_IMAGE_MORPHISM) + TXT_EXTENSION));
-    if (!h.isUniform()) {
+    String imageOldName = m.group(GROUP_IMAGE_OLD_NAME);
+    String imageNewName = m.group(GROUP_IMAGE_NEW_NAME);
+
+    String morphismAddress =
+        Session.getReadFileForMorphismLibrary(m.group(GROUP_PROMOTE_MORPHISM) + TXT_EXTENSION);
+    String mapString =
+        Files.readString(Paths.get(UtilityMethods.validateFile(morphismAddress).toURI()));
+    Morphism h = new Morphism(Session.getReadFileForMorphismLibrary(mapString));
+    if (h.length < 0) {
       throw new WalnutException("A morphism applied to a word automaton must be uniform.");
     }
-    StringBuilder combineString = new StringBuilder(Prover.COMBINE + " " + m.group(GROUP_IMAGE_NEW_NAME));
+    StringBuilder combineString = new StringBuilder(Prover.COMBINE + " " + imageNewName);
 
     // We need to know the number system of our old automaton: the new one should match, as should intermediary expressions
-    Automaton M = new Automaton(Session.getReadFileForWordsLibrary(m.group(GROUP_IMAGE_OLD_NAME) + TXT_EXTENSION));
+    Automaton M = new Automaton(Session.getReadFileForWordsLibrary(imageOldName + TXT_EXTENSION));
     String numSysName = "";
     if (!M.getNS().isEmpty()) {
       numSysName = M.getNS().get(0).toString();
+      if (!numSysName.isEmpty()) {
+        numSysName = "?" + numSysName;
+      }
     }
 
     // we construct a define command for a DFA for each x that accepts iff x appears at the nth position
-    for (Integer value : h.range) {
-      evalDefCommands(h.makeInterCommand(value, m.group(GROUP_IMAGE_OLD_NAME), numSysName));
-      combineString.append(" ").append(m.group(GROUP_IMAGE_OLD_NAME)).append("_").append(value).append("=").append(value);
+    for (int value : h.range) {
+      evalDefCommands(h.makeInterCommand(value, imageOldName, numSysName));
+      combineString.append(" ").append(imageOldName).append("_").append(value).append("=").append(value);
     }
     combineString.append(":");
 
@@ -767,7 +784,7 @@ public class Prover {
     }
     Automaton I = retrieval.getAutomatonPairs().get(0).automaton().clone();
 
-    I.writeAutomata(s, Session.getWriteAddressForWordsLibrary(), m.group(GROUP_IMAGE_NEW_NAME), true);
+    I.writeAutomata(s, Session.getWriteAddressForWordsLibrary(), imageNewName, true);
     return new TestCase(I);
   }
 

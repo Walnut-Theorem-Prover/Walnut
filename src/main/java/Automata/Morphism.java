@@ -18,18 +18,12 @@
 
 package Automata;
 
-import Main.UtilityMethods;
 import Main.WalnutException;
-import it.unimi.dsi.fastutil.ints.Int2ObjectRBTreeMap;
-import it.unimi.dsi.fastutil.ints.IntArrayList;
-import it.unimi.dsi.fastutil.ints.IntList;
+import it.unimi.dsi.fastutil.ints.*;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -47,32 +41,25 @@ import java.util.stream.IntStream;
  */
 public class Morphism {
     // The uniform length of the image of a letter, when applicable
-    private Integer length;
+    public final int length;
 
     // The mapping between each letter of the alphabet and its image under the morphism
-    public Map<Integer, List<Integer>> mapping;
+    public final Map<Integer, List<Integer>> mapping;
 
     // The set of values in the image of the morphism
-    public Set<Integer> range;
-
-    public Morphism() {}
+    public final IntSet range;
 
     /**
      * Create morphism from file.
      */
     @SuppressWarnings("this-escape")
-    public Morphism(String address) throws IOException {
-        File f = UtilityMethods.validateFile(address);
-        String mapString = Files.readString(Paths.get(f.toURI()));
-        parseMap(mapString);
-    }
-
-    public void parseMap(String mapString) {
+    public Morphism(String mapString) {
         this.mapping = ParseMethods.parseMorphism(mapString);
-        this.range = new HashSet<>();
+        this.range = new IntOpenHashSet();
         for(Map.Entry<Integer, List<Integer>> entry: mapping.entrySet()) {
             range.addAll(entry.getValue());
         }
+        length = determineUniformLength(mapping);
     }
 
     public void write(String address) throws IOException {
@@ -112,7 +99,7 @@ public class Morphism {
                 }
             }
         }
-        List<Int2ObjectRBTreeMap<IntList>> newD = new ArrayList<>();
+        List<Int2ObjectRBTreeMap<IntList>> newD = new ArrayList<>(mapping.size());
         for(Map.Entry<Integer, List<Integer>> entry: mapping.entrySet()) {
             Int2ObjectRBTreeMap<IntList> xmap = new Int2ObjectRBTreeMap<>();
             for (int i = 0; i < entry.getValue().size(); i++) {
@@ -140,9 +127,9 @@ public class Morphism {
      * - If mapping = {a -> "01", b -> "10", c -> "11"}, the morphism is uniform because all outputs have a length of 2.
      * - If mapping = {a -> "01", b -> "10", c -> "1"}, the morphism is not uniform because the output for 'c' has a different length.
      *
-     * @return true if the morphism is uniform; false otherwise.
+     * @return image length if uniform, -1 otherwise.
      */
-    public boolean isUniform() {
+    private static int determineUniformLength(Map<Integer, List<Integer>> mapping) {
         boolean firstElement = true;
         int imageLength = 0;
         for(Map.Entry<Integer, List<Integer>> entry: mapping.entrySet()) {
@@ -150,21 +137,17 @@ public class Morphism {
                 imageLength = entry.getValue().size();
                 firstElement = false;
             } else if (entry.getValue().size() != imageLength) {
-                return false;
+                return -1;
             }
         }
-        this.length = imageLength;
-        return true;
+        return imageLength;
     }
 
     // Generates a command to define an intermediary word automaton given an integer i that accepts iff an i appears in position n of a word
     // These can then be combined efficiently with a combine command as they have disjoint domains
     public String makeInterCommand(int i, String baseAutomatonName, String numSys) {
-        if (!numSys.isEmpty()) {
-            numSys = "?" + numSys;
-        }
         StringBuilder interCommand = new StringBuilder("def " + baseAutomatonName + "_" + i);
-        interCommand.append(" \"").append(numSys).append(" E q, r (n=").append(length.toString()).append("*q+r & r>=0 & r<").append(length);
+        interCommand.append(" \"").append(numSys).append(" E q, r (n=").append(length).append("*q+r & r>=0 & r<").append(length);
         for(Map.Entry<Integer, List<Integer>> entry: mapping.entrySet()) {
             boolean exists = false;
             StringBuilder clause = new StringBuilder(" & (" + baseAutomatonName + "[q]");

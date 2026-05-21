@@ -121,8 +121,7 @@ public class ProverHelper {
   }
 
   static void morphismCommand(String morphismDefinition, String name) throws IOException {
-    Morphism M = new Morphism();
-    M.parseMap(morphismDefinition);
+    Morphism M = new Morphism(morphismDefinition);
     System.out.print("Defined with domain ");
     System.out.print(M.mapping.keySet());
     System.out.print(" and range ");
