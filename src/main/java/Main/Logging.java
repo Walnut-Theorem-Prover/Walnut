@@ -1,5 +1,8 @@
 package Main;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.Arrays;
 
 public class Logging {
@@ -36,17 +39,19 @@ public class Logging {
   public static final String MINIMIZED = "Minimized";
   public static final String MINIMIZING = "Minimizing";
 
+  private static final Logger logger = LoggerFactory.getLogger(Logging.class);
+
   public static void logMessage(boolean print, String msg, StringBuilder log) {
     if (print) {
       if (log != null) { log.append(msg).append(System.lineSeparator()); }
-      System.out.println(msg);
+      logger.info(msg);
     }
   }
 
   public static void logAndPrint(boolean print, String msg, StringBuilder log) {
     if (log != null) { log.append(msg).append(System.lineSeparator()); }
     if (print) {
-      System.out.println(msg);
+      logger.info(msg);
     }
   }
 
