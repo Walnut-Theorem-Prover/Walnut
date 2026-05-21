@@ -80,6 +80,9 @@ public class WalnutException extends RuntimeException {
     public static WalnutException invalidDualOperators(String op, Expression a, Expression b) {
         return new WalnutException("operator " + op + " cannot be applied to operands " + a + " and " + b + " of types " + a.getClass().getName() + " and " + b.getClass().getName() + " respectively");
     }
+    public static WalnutException morphismNegative() { return new WalnutException("Cannot promote a morphism with negative values.");}
+
+    public static WalnutException morphismNotUniform() { return new WalnutException("A morphism applied to a word automaton must be uniform.");}
 
     public static WalnutException negativeConstant(int a) {
         return new WalnutException("negative constant " + a);

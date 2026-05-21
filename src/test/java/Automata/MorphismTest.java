@@ -29,4 +29,15 @@ public class MorphismTest {
         h = new Morphism("0->0123 1->21 2->03 3->23");
         Assertions.assertEquals(-1, h.length);
     }
+
+    @Test
+    void testBigAlphabet() {
+        Morphism h = new Morphism("0->01 [11]->012 [12]->02");
+        Assertions.assertEquals(-1, h.length); // not uniform
+        Assertions.assertEquals(3, h.range.size()); // [0,1,2]
+        Assertions.assertEquals(2, h.mapping.get(0).size()); // [0,1]
+        Assertions.assertNull(h.mapping.get(10));
+        Assertions.assertEquals(3, h.mapping.get(11).size()); // [0,1,2]
+        Assertions.assertEquals(2, h.mapping.get(12).size()); // [0,2]
+    }
 }

@@ -757,7 +757,7 @@ public class Prover {
         Files.readString(Paths.get(UtilityMethods.validateFile(morphismAddress).toURI()));
     Morphism h = new Morphism(Session.getReadFileForMorphismLibrary(mapString));
     if (h.length < 0) {
-      throw new WalnutException("A morphism applied to a word automaton must be uniform.");
+      throw WalnutException.morphismNotUniform();
     }
     StringBuilder combineString = new StringBuilder(Prover.COMBINE + " " + imageNewName);
 

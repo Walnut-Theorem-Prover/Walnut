@@ -26,6 +26,8 @@ import Main.Predicate;
 import Main.Prover;
 import Main.UtilityMethods;
 import Main.WalnutException;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.ints.IntList;
 
 public class ParseMethods {
     static final int ALPHABET_SET = 12;
@@ -52,10 +54,15 @@ public class ParseMethods {
     static final Pattern PATTERN_FOR_TRANSITION =
         Pattern.compile("^\\s*((((\\+|\\-)?\\s*\\d+\\s*)|(\\s*\\*\\s*))+)\\s*\\->\\s*((\\d+\\s*)+)\\s*$");
 
+    // e.g.. "01 -> [-3]0102[11]"
+    // or "[11] -> [-3]0102[11]"
+    private static final String MORPHISM_COMMON_SYMBOL = "\\[(?:[+\\-])?\\s*\\d+\\]|";
+    private static final String MORPHISM_IMAGE_SYMBOL = MORPHISM_COMMON_SYMBOL + "\\d";
+    private static final String MORPHISM_INPUT_SYMBOL = MORPHISM_COMMON_SYMBOL + "\\d+";
     static final Pattern PATTERN_FOR_MAPPING_IN_morphism_COMMAND =
-        Pattern.compile("(\\d+)\\s*\\-\\>\\s*((\\[(\\+|\\-)?\\s*\\d+\\]|\\d)*)");
+        Pattern.compile("(" + MORPHISM_INPUT_SYMBOL + ")\\s*\\-\\>\\s*((" + MORPHISM_IMAGE_SYMBOL + ")*)");
     static final Pattern PATTERN_FOR_MAPPING_IMAGE_IN_morphism_COMMAND =
-        Pattern.compile("\\[(\\+|\\-)?\\s*\\d+\\]|\\d");
+        Pattern.compile(MORPHISM_IMAGE_SYMBOL);
 
     static final Pattern PATTERN_FOR_TRANSDUCER_STATE_DECLARATION = Pattern.compile("^\\s*(\\d+)\\s*$");
 
@@ -159,15 +166,19 @@ public class ParseMethods {
         }
     }
 
-    public static Map<Integer, List<Integer>> parseMorphism(String mapString) {
-        Map<Integer, List<Integer>> mapping = new TreeMap<>();
+    public static Map<Integer, IntList> parseMorphism(String mapString) {
+        Map<Integer, IntList> mapping = new TreeMap<>();
 
         Matcher m1 = ParseMethods.PATTERN_FOR_MAPPING_IN_morphism_COMMAND.matcher(mapString);
         while (m1.find()) {
             String input = m1.group(1);
-            String imageString = m1.group(2);
-            List<Integer> image = new ArrayList<>();
+            if (input.charAt(0) == '[') {
+                // Strip off brackets from input
+                input = input.substring(1, input.length() - 1);
+            }
 
+            String imageString = m1.group(2);
+            IntList image = new IntArrayList();
             Matcher m2 = PATTERN_FOR_MAPPING_IMAGE_IN_morphism_COMMAND.matcher(imageString);
             while (m2.find()) {
                 String imagePiece = m2.group();
