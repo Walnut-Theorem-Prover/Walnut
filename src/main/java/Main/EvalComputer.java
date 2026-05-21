@@ -18,10 +18,7 @@
 
 package Main;
 
-import java.io.BufferedWriter;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
@@ -41,23 +38,15 @@ import Main.EvalComputations.Token.Token;
  */
 public class EvalComputer {
   Expression result;
-  private final StringBuilder log;
-  private final StringBuilder logDetails;
-  private final boolean printStepsOrDetails;
-  private final boolean printDetails;
-
   public EvalComputer(boolean printSteps, boolean printDetails) {
-    this.log = new StringBuilder();
-    this.logDetails = new StringBuilder();
-    this.printStepsOrDetails = printSteps || printDetails;
-    this.printDetails = printDetails;
+    Logging.configureForCommand(printSteps, printDetails);
   }
 
   public String toString() {
     return result.toString();
   }
 
-  public String getLogDetails() { return printDetails ? logDetails.toString() : ""; }
+  public String getLogDetails() { return Logging.getDetailedLog(); }
 
   void compute(Predicate predicate) {
     Stack<Expression> expressions = new Stack<>();
@@ -75,14 +64,14 @@ public class EvalComputer {
       try {
         long timeBefore = System.currentTimeMillis();
         if (!earlyTermination || i < postOrder.size() - 1) {
-          t.act(expressions, printDetails, prefix, logDetails);
+          t.act(expressions, prefix);
         } else {
           // Special-case: the last operand is "E" and we have an earlyExistTermination metacommand
           // return early without determinizing
           if (!(t instanceof LogicalOperator)) {
             throw WalnutException.unexpectedOperator(t.toString());
           }
-          ((LogicalOperator) t).actExistsSpecialCase(expressions, printDetails, prefix, logDetails);
+          ((LogicalOperator) t).actExistsSpecialCase(expressions, prefix);
           break;
         }
         long timeAfter = System.currentTimeMillis();
@@ -90,11 +79,7 @@ public class EvalComputer {
         if (t.isOperator() && nextExpression instanceof AutomatonExpression) {
           step = prefix + nextExpression + ":" +
               nextExpression.M.fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms";
-          log.append(step).append(System.lineSeparator());
-          logDetails.append(step).append(System.lineSeparator());
-          if (printStepsOrDetails) {
-            System.out.println(step);
-          }
+          Logging.logEvaluationStep(step);
           prefix += " ";
         }
       } catch (RuntimeException e) {
@@ -107,11 +92,7 @@ public class EvalComputer {
 
     long timeEnd = System.currentTimeMillis();
     step = "Total computation time: " + (timeEnd - timeBeginning) + "ms.";
-    log.append(step);
-    logDetails.append(step);
-    if (printStepsOrDetails) {
-      System.out.println(step);
-    }
+    Logging.logFinalEvaluationStep(step);
 
     if (expressions.size() > 1) {
       StringBuilder message =
@@ -150,8 +131,6 @@ public class EvalComputer {
       AutomatonMatrixWriter.writeAll(M, resultName, freeVariables);
     }
 
-    writeLogs(resultName);
-
     if (M.fa.isTRUE_FALSE_AUTOMATON()) {
       System.out.println("____\n" + M.fa.trueFalseString().toUpperCase());
     }
@@ -167,16 +146,6 @@ public class EvalComputer {
     return matrixAddresses;
   }
 
-  void writeLogs(String resultName) throws IOException {
-    try (PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(resultName + "_log.txt")))) {
-      out.write(log.toString());
-    }
-    if (printDetails) {
-      try (PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(resultName + "_detailed_log.txt")))) {
-        out.write(logDetails.toString());
-      }
-    }
-  }
 
   static List<String> determineFreeVariables(String freeVariablesStr) {
     List<String> freeVariables = new ArrayList<>();

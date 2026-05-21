@@ -273,7 +273,7 @@ public class Prover {
   static final int GROUP_describe_DOLLAR_SIGN = 1, GROUP_describe_NAME = 2;
 
   public static String prefix = ""; // Declare here instead of passing around everywhere
-  public static StringBuilder log = new StringBuilder(); // Declare here instead of passing around everywhere
+  public static StringBuilder log = new StringBuilder(); // legacy placeholder for old logging overloads
 
   public MetaCommands metaCommands = new MetaCommands();
 
@@ -454,7 +454,7 @@ public class Prover {
     }
 
     if (Prover.usingOTF) {
-      Logging.logAndPrint(true, OTF_MESSAGE, log);
+      Logging.logAndPrint(true, OTF_MESSAGE);
     }
     return exitVal;
   }
@@ -462,7 +462,7 @@ public class Prover {
   private String parseSetup(String s) {
     metaCommands = new MetaCommands();
     prefix = ""; // reset prefix
-    log = new StringBuilder(); // reset log
+    log = new StringBuilder(); // legacy logging overloads ignore this now
     printDetails = printFlag = false; // reset flags
 
     if (!s.endsWith(";") && !s.endsWith(":")) {
@@ -480,6 +480,7 @@ public class Prover {
     s = s.strip(); // remove end whitespace, Unicode-aware
 
     s = metaCommands.parseMetaCommands(s, printDetails);
+    Logging.configureForCommand(printFlag, printDetails);
 
     return s;
   }
@@ -635,18 +636,21 @@ public class Prover {
     // parse the predicates into an object
     Predicate predicate = new Predicate(predicateStr);
 
+    String resultName = Session.getAddressForResult() + evalName;
+
     // compute result based on predicate
     // if we wanted an "execution plan", it would be hooked in here
     EvalComputer c = new EvalComputer(printFlag, printDetails);
-    c.compute(predicate);
-    Automaton M = c.result.M;
-    String resultName = Session.getAddressForResult() + evalName;
+    try (Logging.CommandLogContext ignored = Logging.writeEvalLogsTo(resultName)) {
+      c.compute(predicate);
+      Automaton M = c.result.M;
 
-    List<String> matrixAddresses =
-        c.writeAutomata(predicateStr, evalName, m.group(Prover.ED_FREE_VARIABLES), resultName);
-    return new TestCase(
-        "", matrixAddresses, resultName + GV_EXTENSION, c.getLogDetails(),
-        List.of(new TestCase.AutomatonFilenamePair(M, DEFAULT_TESTFILE)));
+      List<String> matrixAddresses =
+          c.writeAutomata(predicateStr, evalName, m.group(Prover.ED_FREE_VARIABLES), resultName);
+      return new TestCase(
+          "", matrixAddresses, resultName + GV_EXTENSION, Logging.getDetailedLog(),
+          List.of(new TestCase.AutomatonFilenamePair(M, DEFAULT_TESTFILE)));
+    }
   }
 
   public static TestCase macroCommand(String s) {

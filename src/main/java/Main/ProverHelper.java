@@ -108,15 +108,15 @@ public class ProverHelper {
 
     Automaton M = new Automaton(inLibrary);
 
-    Logging.logMessage(true, "File location: " + inLibrary, Prover.log);
+    Logging.logMessage(true, "File location: " + inLibrary);
     String comments = AutomatonReader.readComments(inLibrary);
-    Logging.logMessage(true, "Comments: " + comments, Prover.log);
-    Logging.logMessage(true, "State count:" + M.fa.getQ(), Prover.log);
-    Logging.logMessage(true, "Transition count:" + M.fa.getT().determineTransitionCount(), Prover.log);
-    Logging.logMessage(true, "Alphabet size:" + M.fa.getAlphabetSize(), Prover.log);
-    Logging.logMessage(true, "Number systems:" + M.getNS(), Prover.log);
+    Logging.logMessage(true, "Comments: " + comments);
+    Logging.logMessage(true, "State count:" + M.fa.getQ());
+    Logging.logMessage(true, "Transition count:" + M.fa.getT().determineTransitionCount());
+    Logging.logMessage(true, "Alphabet size:" + M.fa.getAlphabetSize());
+    Logging.logMessage(true, "Number systems:" + M.getNS());
 
-    return new TestCase("", null, null, Prover.log.toString(),
+    return new TestCase("", null, null, Logging.getCommandLog(),
         List.of(new TestCase.AutomatonFilenamePair(M, DEFAULT_TESTFILE)));
   }
 

@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Stack;
 
 import Main.EvalComputations.Expressions.Expression;
+import Main.Logging;
 import Main.WalnutException;
 
 public abstract class Token {
@@ -40,6 +41,10 @@ public abstract class Token {
 
     public void put(List<Token> postOrder) {
         postOrder.add(this);
+    }
+
+    public void act(Stack<Expression> S, String prefix) {
+        act(S, Logging.shouldPrintDetails(), prefix, null);
     }
 
     public void act(Stack<Expression> S, boolean print, String prefix, StringBuilder log) {}

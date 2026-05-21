@@ -101,6 +101,10 @@ public class LogicalOperator extends Operator {
      * Special-case: if last operation is "E", and enabled with a metacommand,
      * we write the NFA without determinizing.
      */
+    public void actExistsSpecialCase(Stack<Expression> S, String prefix) {
+        actExistsSpecialCase(S, Logging.shouldPrintDetails(), prefix, null);
+    }
+
     public void actExistsSpecialCase(Stack<Expression> S, boolean print, String prefix, StringBuilder log) {
         super.validateArity(S);
         actQuantifier(S, true, print, prefix, log);

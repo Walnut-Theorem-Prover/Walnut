@@ -5,7 +5,15 @@
         </encoder>
     </appender>
 
-    <root level="INFO">
+    <logger name="Walnut.Console" level="INFO" additivity="false">
+        <appender-ref ref="STDOUT"/>
+    </logger>
+
+    <!-- File appenders for these loggers are installed per command by Main.Logging. -->
+    <logger name="Walnut.CommandLog" level="INFO" additivity="false"/>
+    <logger name="Walnut.DetailedLog" level="INFO" additivity="false"/>
+
+    <root level="WARN">
         <appender-ref ref="STDOUT"/>
     </root>
 </configuration>
