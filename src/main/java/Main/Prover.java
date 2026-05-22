@@ -757,9 +757,7 @@ public class Prover {
 
     String morphismAddress =
         Session.getReadFileForMorphismLibrary(m.group(GROUP_PROMOTE_MORPHISM) + TXT_EXTENSION);
-    String mapString =
-        Files.readString(Paths.get(UtilityMethods.validateFile(morphismAddress).toURI()));
-    Morphism h = new Morphism(Session.getReadFileForMorphismLibrary(mapString));
+    Morphism h = new Morphism(UtilityMethods.readFromFile(morphismAddress));
     if (h.length < 0) {
       throw WalnutException.morphismNotUniform();
     }
