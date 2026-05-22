@@ -99,10 +99,9 @@ public class ParseMethods {
 
             if (m.group(ALPHABET_NUMBER_SYSTEM) != null) {
                 String base = Prover.determineBase(m);
-                Map<String, NumberSystem> H = Predicate.getNumberSystemHash();
-                if (!H.containsKey(base)) { H.put(base, new NumberSystem(base)); }
-                A.add(H.get(base).getAlphabet());
-                bases.add(H.get(base));
+                NumberSystem ns = NumberSystem.getComputeIfAbsent(base);
+                A.add(ns.getAlphabet());
+                bases.add(ns);
             }
 
             index = m.end();

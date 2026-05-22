@@ -80,6 +80,7 @@ public class NumberSystem {
     public static final String UNDERSCORE_BASE_CHANGE_AUTOMATON = "_base_change" + Prover.TXT_EXTENSION;
 
     public static final String UNDERSCORE_LESS_THAN_AUTOMATON = "_less_than" + Prover.TXT_EXTENSION;
+    private static Map<String, NumberSystem> numberSystemHash = new HashMap<>();
     /**
      * Examples: msd_2, lsd_3, lsd_fib, msd_neg_fib...
      */
@@ -170,6 +171,10 @@ public class NumberSystem {
             flag = true;
         }
         return isMsd;
+    }
+
+    public static NumberSystem getComputeIfAbsent(String base) {
+      return numberSystemHash.computeIfAbsent(base, NumberSystem::new);
     }
 
     /**

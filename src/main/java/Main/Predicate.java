@@ -69,12 +69,6 @@ public class Predicate {
     private Matcher MATCHER_FOR_RIGHT_PARENTHESIS;
     private Matcher MATCHER_FOR_WHITESPACE;
 
-    static Map<String, NumberSystem> numberSystemHash = new HashMap<>();
-
-    public static Map<String, NumberSystem> getNumberSystemHash() {
-        return numberSystemHash;
-    }
-
     // Alphanumeric, but not starting with reserved letters A,E,I
     private static final String ALPHANUMERIC = "([a-zA-Z&&[^AEI]]\\w*)";
     private static final String ANCHOR = "\\G";
@@ -183,18 +177,15 @@ public class Predicate {
             } else if (MATCHER_FOR_RELATIONAL_OPERATORS.find(index)) {
                 lastTokenWasOperator = true;
                 Matcher matcher = MATCHER_FOR_RELATIONAL_OPERATORS;
-                if (!numberSystemHash.containsKey(currentNumberSystem)) {
-                    numberSystemHash.put(currentNumberSystem, new NumberSystem(currentNumberSystem));
-                }
-                op = new RelationalOperator(realStartingPosition + matcher.start(1), matcher.group(1), numberSystemHash.get(currentNumberSystem));
+                NumberSystem ns = NumberSystem.getComputeIfAbsent(currentNumberSystem);
+                op = new RelationalOperator(realStartingPosition + matcher.start(1), matcher.group(1), ns);
                 op.put(postOrder, operatorStack);
                 index = matcher.end();
             } else if (MATCHER_FOR_ARITHMETIC_OPERATORS.find(index)) {
                 lastTokenWasOperator = true;
                 Matcher matcher = MATCHER_FOR_ARITHMETIC_OPERATORS;
-                if (!numberSystemHash.containsKey(currentNumberSystem))
-                    numberSystemHash.put(currentNumberSystem, new NumberSystem(currentNumberSystem));
-                op = new ArithmeticOperator(realStartingPosition + matcher.start(1), matcher.group(1), numberSystemHash.get(currentNumberSystem));
+                NumberSystem ns = NumberSystem.getComputeIfAbsent(currentNumberSystem);
+                op = new ArithmeticOperator(realStartingPosition + matcher.start(1), matcher.group(1), ns);
                 op.put(postOrder, operatorStack);
                 index = matcher.end();
             } else if (MATCHER_FOR_WORD.find(index)) {
@@ -221,9 +212,8 @@ public class Predicate {
             } else if (MATCHER_FOR_NUMBER_LITERAL.find(index)) {
                 if (!lastTokenWasOperator) throw WalnutException.operatorMissing(realStartingPosition + index);
                 lastTokenWasOperator = false;
-                if (!numberSystemHash.containsKey(currentNumberSystem))
-                    numberSystemHash.put(currentNumberSystem, new NumberSystem(currentNumberSystem));
-                t = new NumberLiteral(realStartingPosition + MATCHER_FOR_NUMBER_LITERAL.start(1), UtilityMethods.parseInt(MATCHER_FOR_NUMBER_LITERAL.group(1)), numberSystemHash.get(currentNumberSystem));
+                NumberSystem ns = NumberSystem.getComputeIfAbsent(currentNumberSystem);
+                t = new NumberLiteral(realStartingPosition + MATCHER_FOR_NUMBER_LITERAL.start(1), UtilityMethods.parseInt(MATCHER_FOR_NUMBER_LITERAL.group(1)), ns);
                 t.put(postOrder);
                 index = MATCHER_FOR_NUMBER_LITERAL.end();
             } else if (MATCHER_FOR_ALPHABET_LETTER.find(index)) {

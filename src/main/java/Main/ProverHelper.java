@@ -25,10 +25,8 @@ import static Main.TestCase.DEFAULT_TESTFILE;
 public class ProverHelper {
   static NumberSystem getNumberSystem(String base, List<NumberSystem> numSys, int proverNumberSystem) {
     try {
-      if (!Predicate.numberSystemHash.containsKey(base))
-        Predicate.numberSystemHash.put(base, new NumberSystem(base));
-      NumberSystem ns = Predicate.numberSystemHash.get(base);
-      numSys.add(Predicate.numberSystemHash.get(base));
+      NumberSystem ns = NumberSystem.getComputeIfAbsent(base);
+      numSys.add(ns);
       return ns;
     } catch (RuntimeException e) {
       throw new WalnutException("number system " + base + " does not exist: char at " + proverNumberSystem + System.lineSeparator() + "\t:" + e.getMessage());
