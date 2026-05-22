@@ -29,9 +29,9 @@ public class ArithmeticExpression extends Expression {
     this.identifier = identifier;
   }
 
-  public Automaton act(boolean print, String prefix, StringBuilder log, List<String> identifiers, Automaton M, List<String> quantify) {
+  public Automaton act(boolean print, String prefix, List<String> identifiers, Automaton M, List<String> quantify) {
     identifiers.add(this.identifier);
-    M = AutomatonLogicalOps.and(M, this.M, print, prefix + " ", log);
+    M = AutomatonLogicalOps.and(M, this.M, print, prefix + " ");
     quantify.add(this.identifier);
     return M;
   }

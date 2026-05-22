@@ -57,11 +57,11 @@ public class Function extends Token {
         return name;
     }
 
-    public void act(Stack<Expression> S, boolean print, String prefix, StringBuilder log) {
+    public void act(Stack<Expression> S, boolean print, String prefix) {
         super.validateArity(S, "function ", " arguments");
         Stack<Expression> temp = reverseStack(S);
         String stringValue = this + "(";
-        Logging.logAndPrint(print, prefix + COMPUTING + " " + stringValue + "...)", log);
+        Logging.logAndPrint(prefix + COMPUTING + " " + stringValue + "...)");
         Automaton M = new Automaton(true);
         List<String> identifiers = new ArrayList<>();
         List<String> quantify = new ArrayList<>();
@@ -73,13 +73,13 @@ public class Function extends Token {
         for (int i = 0; i < arity; i++) {
             Expression expression = expressions.get(i);
             if (expression instanceof VariableExpression ve) {
-                M = ve.act(print, prefix, log, this, this.ns, identifiers, M, quantify);
+                M = ve.act(print, prefix, this, this.ns, identifiers, M, quantify);
             } else if (expression instanceof ArithmeticExpression ae) {
-                M = ae.act(print, prefix, log, identifiers, M, quantify);
+                M = ae.act(print, prefix, identifiers, M, quantify);
             } else if (expression instanceof NumberLiteralExpression ne) {
-                M = ne.act(print, prefix, log, this, identifiers, quantify, M);
+                M = ne.act(print, prefix, this, identifiers, quantify, M);
             } else if (expression instanceof AutomatonExpression ae) {
-                M = ae.act(print, prefix, name, log, i, M, identifiers);
+                M = ae.act(print, prefix, name, i, M, identifiers);
             } else if (expression == null) {
                 throw new IllegalArgumentException("Expression is null");
             } else {
@@ -87,10 +87,10 @@ public class Function extends Token {
             }
         }
         A.bind(identifiers);
-        A = AutomatonLogicalOps.and(A, M, print, prefix + " ", log);
-        AutomatonQuantification.quantify(A, quantify, print, prefix + " ", log);
+        A = AutomatonLogicalOps.and(A, M, print, prefix + " ");
+        AutomatonQuantification.quantify(A, quantify, print, prefix + " ");
 
         S.push(new AutomatonExpression(stringValue, A));
-        Logging.logAndPrint(print, prefix + COMPUTED + " " + stringValue, log);
+        Logging.logAndPrint(prefix + COMPUTED + " " + stringValue);
     }
 }

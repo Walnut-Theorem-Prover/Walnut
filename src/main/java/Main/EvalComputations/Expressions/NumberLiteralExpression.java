@@ -32,14 +32,14 @@ public class NumberLiteralExpression extends Expression {
     this.constant = value;
     this.base = base;
   }
-  public Automaton act(boolean print, String prefix, StringBuilder log, Token t,
+  public Automaton act(boolean print, String prefix, Token t,
                        List<String> identifiers, List<String> quantify, Automaton M) {
     Automaton constant = this.base.getConstant(this.constant);
     String id = t.getUniqueString();
     constant.bind(List.of(id));
     identifiers.add(id);
     quantify.add(id);
-    M = AutomatonLogicalOps.and(M, constant, print, prefix + " ", log);
+    M = AutomatonLogicalOps.and(M, constant, print, prefix + " ");
     return M;
   }
 }

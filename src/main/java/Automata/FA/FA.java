@@ -213,7 +213,7 @@ public class FA implements Cloneable {
   /**
    * This method adds a dead state to totalize the transition function
    */
-  public void totalize(boolean print, String prefix, StringBuilder log) {
+  public void totalize(boolean print, String prefix) {
     long timeBefore = System.currentTimeMillis();
     logMessage(print, prefix + TOTALIZING + ":" + Q + " states");
     //we first check if the automaton is totalized
@@ -231,7 +231,7 @@ public class FA implements Cloneable {
    * <p>
    * Return whether a dead state was even added.
    */
-  public boolean addDistinguishedDeadState(boolean print, String prefix, StringBuilder log) {
+  public boolean addDistinguishedDeadState(boolean print, String prefix) {
     long timeBefore = System.currentTimeMillis();
     logMessage(print, prefix + "Adding distinguished dead state: " + getQ() + " states");
     boolean totalized = this.totalizeStates(this.Q);
@@ -529,7 +529,7 @@ public class FA implements Cloneable {
   /**
    * We don't need to determinize here; just minimize.
    */
-  public void justMinimize(boolean print, String prefix, StringBuilder log) {
+  public void justMinimize(boolean print, String prefix) {
     long timeBefore = System.currentTimeMillis();
     logMessage(print, prefix + MINIMIZING + ": " + Q + " states.");
 

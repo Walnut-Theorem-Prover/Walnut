@@ -44,10 +44,10 @@ public abstract class Token {
     }
 
     public void act(Stack<Expression> S, String prefix) {
-        act(S, Logging.shouldPrintDetails(), prefix, null);
+        act(S, Logging.shouldPrintDetails(), prefix);
     }
 
-    public void act(Stack<Expression> S, boolean print, String prefix, StringBuilder log) {}
+    public void act(Stack<Expression> S, boolean print, String prefix) {}
 
     public boolean isOperator() {
         return false;

@@ -28,7 +28,7 @@ public class AutomatonExpression extends Expression {
     this.expressionInString = expressionInString;
     this.M = M;
   }
-  public Automaton act(boolean print, String prefix, String name, StringBuilder log, int i, Automaton M, List<String> identifiers) {
+  public Automaton act(boolean print, String prefix, String name, int i, Automaton M, List<String> identifiers) {
     if (this.M.getArity() != 1) {
       throw new WalnutException("argument " + (i + 1) + " of function " + name + " cannot be an automaton with != 1 inputs");
     }
@@ -36,7 +36,7 @@ public class AutomatonExpression extends Expression {
       throw new WalnutException("argument " + (i + 1) + " of function " + name + " cannot be an automaton with unlabeled input");
     }
     identifiers.add(this.M.getLabel().get(0));
-    M = AutomatonLogicalOps.and(M, this.M, print, prefix + " ", log);
+    M = AutomatonLogicalOps.and(M, this.M, print, prefix + " ");
     return M;
   }
 }

@@ -25,7 +25,7 @@ public class WordAutomaton {
    * To be used only when A is a DFAO (word).
    */
   public static void compareWordAutomaton(
-      Automaton wordA, int o, RelationalOperator.Ops operator, boolean print, String prefix, StringBuilder log) {
+      Automaton wordA, int o, RelationalOperator.Ops operator, boolean print, String prefix) {
       String opStr = operator.getSymbol();
       long timeBefore = System.currentTimeMillis();
       logMessage(print, prefix + COMPARING + " (" + opStr + ") against " + o + ":" + wordA.fa.getQ() + " states");
@@ -34,7 +34,7 @@ public class WordAutomaton {
           wordA.fa.setOutputIfEqual(p, RelationalOperator.compare(operator, wordAOutput.getInt(p), o));
       }
       // As of now, this is *not* a word automaton
-      wordA.determinizeAndMinimize(print, prefix + " ", log);
+      wordA.determinizeAndMinimize(print, prefix + " ");
       long timeAfter = System.currentTimeMillis();
       logMessage(print, prefix + COMPARED + " (" + opStr + ") against " + o + ":" + wordA.fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms");
   }
@@ -46,12 +46,12 @@ public class WordAutomaton {
      * To be used only when A and B are DFAOs (words).
      */
     public static Automaton compareWordAutomata(
-        Automaton wordA, Automaton wordB, String operator, boolean print, String prefix, StringBuilder log) {
+        Automaton wordA, Automaton wordB, String operator, boolean print, String prefix) {
         long timeBefore = System.currentTimeMillis();
         logMessage(print,
             prefix + COMPARING + " (" + operator + "):"
                 + wordA.fa.getQ() + " states - "+ wordB.fa.getQ() + " states");
-        Automaton M = ProductStrategies.crossProductAndMinimize(wordA, wordB, operator, print, prefix + " ", log);
+        Automaton M = ProductStrategies.crossProductAndMinimize(wordA, wordB, operator, print, prefix + " ");
         long timeAfter = System.currentTimeMillis();
         logMessage(print,
             prefix + COMPARED + " (" + operator + "):"
@@ -66,7 +66,7 @@ public class WordAutomaton {
      * To be used only when this automaton and M are DFAOs (words).
      */
     public static void applyWordArithOperator(Automaton wordA, int o, ArithmeticOperator.Ops op, boolean reverse,
-                                              boolean print, String prefix, StringBuilder log) {
+                                              boolean print, String prefix) {
         String opStr = op.getSymbol();
         long timeBefore = System.currentTimeMillis();
         logMessage(print, prefix + APPLYING + " operator (" + opStr + "):"
@@ -77,7 +77,7 @@ public class WordAutomaton {
             thisO.set(p,
                 reverse ? ArithmeticOperator.arith(op, thisP, o) : ArithmeticOperator.arith(op, o, thisP));
         }
-        minimizeSelfWithOutput(wordA, print, prefix + " ", log);
+        minimizeSelfWithOutput(wordA, print, prefix + " ");
         long timeAfter = System.currentTimeMillis();
         logMessage(print, prefix + APPLIED + " operator (" + opStr + "):"
             + wordA.fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms");
@@ -89,12 +89,12 @@ public class WordAutomaton {
      * To be used only when this A and M are DFAOs (words).
      */
     public static Automaton applyWordOperator(Automaton wordA, Automaton wordB, String operator,
-                                              boolean print, String prefix, StringBuilder log) {
+                                              boolean print, String prefix) {
         long timeBefore = System.currentTimeMillis();
         logMessage(print, prefix + APPLYING + " operator (" + operator + "):"
             + wordA.fa.getQ() + " states - " + wordB.fa.getQ() + " states");
-        Automaton N = ProductStrategies.crossProduct(wordA, wordB, operator, print, prefix + " ", log);
-        minimizeWithOutput(N, print, prefix + " ", log);
+        Automaton N = ProductStrategies.crossProduct(wordA, wordB, operator, print, prefix + " ");
+        minimizeWithOutput(N, print, prefix + " ");
         long timeAfter = System.currentTimeMillis();
         logMessage(print, prefix + APPLIED + " operator (" + operator + "):"
             + wordA.fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms");
@@ -106,7 +106,7 @@ public class WordAutomaton {
    * The returned object is deterministic.
    */
   public static void reverseWithOutput(Automaton wordA, boolean reverseMsd,
-                                       boolean print, String prefix, StringBuilder log) {
+                                       boolean print, String prefix) {
       if (wordA.fa.isTRUE_FALSE_AUTOMATON()) {
           return;
       }
@@ -114,7 +114,7 @@ public class WordAutomaton {
       long timeBefore = System.currentTimeMillis();
       logMessage(print, prefix + REVERSING + ": " + wordA.fa.getQ() + " states");
 
-      boolean addedDeadState = wordA.fa.addDistinguishedDeadState(print, prefix, log);
+      boolean addedDeadState = wordA.fa.addDistinguishedDeadState(print, prefix);
 
       int minOutput = 0;
       if (addedDeadState) {
@@ -178,7 +178,7 @@ public class WordAutomaton {
           NumberSystem.flipNS(wordA.getNS());
       }
 
-      minimizeSelfWithOutput(wordA, print, prefix + " ", log);
+      minimizeSelfWithOutput(wordA, print, prefix + " ");
 
       if (addedDeadState) {
           // note: wordA is deterministic
@@ -212,23 +212,23 @@ public class WordAutomaton {
    * We minimize a DFA with output by first uncombining into automata without output, minimizing the uncombined automata, and
    * then recombining. It follows that if the uncombined automata are minimal, then the combined automata is also minimal
    */
-  public static Automaton minimizeWithOutput(Automaton wordA, boolean print, String prefix, StringBuilder log) {
+  public static Automaton minimizeWithOutput(Automaton wordA, boolean print, String prefix) {
       IntList outputs = new IntArrayList(wordA.fa.getO());
       UtilityMethods.removeDuplicates(outputs);
       List<Automaton> subautomata = uncombine(wordA, outputs);
       for (Automaton subautomaton : subautomata) {
           // These are *not* word automata
-          subautomaton.determinizeAndMinimize(print, prefix, log);
+          subautomaton.determinizeAndMinimize(print, prefix);
       }
       Automaton N = subautomata.remove(0);
       List<String> label = new ArrayList<>(N.getLabel()); // We keep the old labels, since they are replaced in the combine
-      N = AutomatonLogicalOps.combine(N, new LinkedList<>(subautomata), outputs, print, prefix, log);
+      N = AutomatonLogicalOps.combine(N, new LinkedList<>(subautomata), outputs, print, prefix);
       N.setLabel(label);
       return N;
   }
 
-  public static void minimizeSelfWithOutput(Automaton wordA, boolean print, String prefix, StringBuilder log) {
-      Automaton N = minimizeWithOutput(wordA, print, prefix, log);
+  public static void minimizeSelfWithOutput(Automaton wordA, boolean print, String prefix) {
+      Automaton N = minimizeWithOutput(wordA, print, prefix);
       wordA.copy(N);
   }
 }

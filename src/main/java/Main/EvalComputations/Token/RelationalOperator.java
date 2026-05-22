@@ -83,7 +83,7 @@ public class RelationalOperator extends Operator {
         return op + "_" + ns;
     }
 
-    public void act(Stack<Expression> S, boolean print, String prefix, StringBuilder log) {
+    public void act(Stack<Expression> S, boolean print, String prefix) {
         super.validateArity(S);
         Expression b = S.pop();
         Expression a = S.pop();
@@ -92,7 +92,7 @@ public class RelationalOperator extends Operator {
             S.push(new AutomatonExpression(a + op + b, new Automaton(compare(opp, a.constant, b.constant))));
             return;
         }
-        Logging.logAndPrint(print, prefix + COMPUTING + " " + a + op + b, log);
+        Logging.logAndPrint(prefix + COMPUTING + " " + a + op + b);
         if ((a instanceof WordExpression && (b instanceof ArithmeticExpression || b instanceof VariableExpression)) ||
                 ((a instanceof ArithmeticExpression || a instanceof VariableExpression) && b instanceof WordExpression)) {
             /* We rewrite T[a] < b as
@@ -115,57 +115,57 @@ public class RelationalOperator extends Operator {
             Automaton M = new Automaton(true);
             for (int o : word.wordAutomaton.fa.getO()) {
                 Automaton N = word.wordAutomaton.clone();
-                WordAutomaton.compareWordAutomaton(N, o, Ops.EQUAL, print, prefix + " ", log);
+                WordAutomaton.compareWordAutomaton(N, o, Ops.EQUAL, print, prefix + " ");
                 Automaton C;
                 if (reverse) {
                     C = ns.comparison(arithmetic.identifier, o, opp);
                 } else {
                     C = ns.comparison(o, arithmetic.identifier, opp);
                 }
-                N = AutomatonLogicalOps.imply(N, C, print, prefix + " ", log, LogicalOperator.IMPLY);
-                M = AutomatonLogicalOps.and(M, N, print, prefix + " ", log);
+                N = AutomatonLogicalOps.imply(N, C, print, prefix + " ", LogicalOperator.IMPLY);
+                M = AutomatonLogicalOps.and(M, N, print, prefix + " ");
             }
-            M = AutomatonLogicalOps.and(M, word.M, print, prefix + " ", log);
-            AutomatonQuantification.quantify(M, word.identifiersToQuantify, print, prefix + " ", log);
-            M = andThenQuantifyIfArithmetic(print, prefix, log, arithmetic, M);
+            M = AutomatonLogicalOps.and(M, word.M, print, prefix + " ");
+            AutomatonQuantification.quantify(M, word.identifiersToQuantify, print, prefix + " ");
+            M = andThenQuantifyIfArithmetic(print, prefix, arithmetic, M);
             S.push(new AutomatonExpression(word.toString(), M));
         } else if ((a instanceof ArithmeticExpression || a instanceof VariableExpression)
                 && (b instanceof ArithmeticExpression || b instanceof VariableExpression)) {
             Automaton M = ns.comparison(a.identifier, b.identifier, opp);
-            M = andThenQuantifyIfArithmetic(print, prefix, log, a, M);
-            M = andThenQuantifyIfArithmetic(print, prefix, log, b, M);
+            M = andThenQuantifyIfArithmetic(print, prefix, a, M);
+            M = andThenQuantifyIfArithmetic(print, prefix, b, M);
             S.push(new AutomatonExpression(a + op + b, M));
         } else if ((a instanceof NumberLiteralExpression || a instanceof AlphabetLetterExpression) && (b instanceof ArithmeticExpression || b instanceof VariableExpression)) {
             Automaton M = ns.comparison(a.constant, b.identifier, opp);
-            M = andThenQuantifyIfArithmetic(print, prefix, log, b, M);
+            M = andThenQuantifyIfArithmetic(print, prefix, b, M);
             S.push(new AutomatonExpression(a + op + b, M));
         } else if ((a instanceof ArithmeticExpression || a instanceof VariableExpression) && (b instanceof NumberLiteralExpression || b instanceof AlphabetLetterExpression)) {
             Automaton M = ns.comparison(a.identifier, b.constant, opp);
-            M = andThenQuantifyIfArithmetic(print, prefix, log, a, M);
+            M = andThenQuantifyIfArithmetic(print, prefix, a, M);
             S.push(new AutomatonExpression(a + op + b, M));
         } else if (a instanceof WordExpression && b instanceof WordExpression) {
-            Automaton M = WordAutomaton.compareWordAutomata(a.wordAutomaton, b.wordAutomaton, op, print, prefix + " ", log);
-            M = AutomatonLogicalOps.and(M, a.M, print, prefix + " ", log);
-            M = AutomatonLogicalOps.and(M, b.M, print, prefix + " ", log);
-            AutomatonQuantification.quantify(M, ((WordExpression)a).identifiersToQuantify, print, prefix + " ", log);
-            AutomatonQuantification.quantify(M, ((WordExpression)b).identifiersToQuantify, print, prefix + " ", log);
+            Automaton M = WordAutomaton.compareWordAutomata(a.wordAutomaton, b.wordAutomaton, op, print, prefix + " ");
+            M = AutomatonLogicalOps.and(M, a.M, print, prefix + " ");
+            M = AutomatonLogicalOps.and(M, b.M, print, prefix + " ");
+            AutomatonQuantification.quantify(M, ((WordExpression)a).identifiersToQuantify, print, prefix + " ");
+            AutomatonQuantification.quantify(M, ((WordExpression)b).identifiersToQuantify, print, prefix + " ");
             S.push(new AutomatonExpression(a + op + b, M));
         } else if (a instanceof WordExpression && (b instanceof NumberLiteralExpression|| b instanceof AlphabetLetterExpression)) {
-            WordAutomaton.compareWordAutomaton(a.wordAutomaton, b.constant, opp, print, prefix + " ", log);
+            WordAutomaton.compareWordAutomaton(a.wordAutomaton, b.constant, opp, print, prefix + " ");
             Automaton M = a.wordAutomaton;
-            M = AutomatonLogicalOps.and(M, a.M, print, prefix + " ", log);
-            AutomatonQuantification.quantify(M, ((WordExpression)a).identifiersToQuantify, print, prefix + " ", log);
+            M = AutomatonLogicalOps.and(M, a.M, print, prefix + " ");
+            AutomatonQuantification.quantify(M, ((WordExpression)a).identifiersToQuantify, print, prefix + " ");
             S.push(new AutomatonExpression(a + op + b, M));
         } else if ((a instanceof NumberLiteralExpression || a instanceof AlphabetLetterExpression) && b instanceof WordExpression) {
-            WordAutomaton.compareWordAutomaton(b.wordAutomaton, a.constant, reverseOperator(opp), print, prefix + " ", log);
+            WordAutomaton.compareWordAutomaton(b.wordAutomaton, a.constant, reverseOperator(opp), print, prefix + " ");
             Automaton M = b.wordAutomaton;
-            M = AutomatonLogicalOps.and(M, b.M, print, prefix + " ", log);
-            AutomatonQuantification.quantify(M, ((WordExpression)b).identifiersToQuantify, print, prefix + " ", log);
+            M = AutomatonLogicalOps.and(M, b.M, print, prefix + " ");
+            AutomatonQuantification.quantify(M, ((WordExpression)b).identifiersToQuantify, print, prefix + " ");
             S.push(new AutomatonExpression(a + op + b, M));
         } else {
             throw WalnutException.invalidDualOperators(op, a, b);
         }
-        Logging.logAndPrint(print, prefix + COMPUTED + " " + a + op + b, log);
+        Logging.logAndPrint(prefix + COMPUTED + " " + a + op + b);
     }
 
     public static boolean compare(Ops op, int a, int b) {

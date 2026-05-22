@@ -30,7 +30,7 @@ public class VariableExpression extends Expression {
     this.expressionInString = identifier;
   }
 
-  public Automaton act(boolean print, String prefix, StringBuilder log, Token t,
+  public Automaton act(boolean print, String prefix, Token t,
                        NumberSystem ns, List<String> identifiers, Automaton M, List<String> quantify) {
     if (!identifiers.contains(this.identifier)) {
       identifiers.add(this.identifier);
@@ -40,7 +40,7 @@ public class VariableExpression extends Expression {
       eq.bind(List.of(this.identifier, new_identifier));
       quantify.add(new_identifier);
       identifiers.add(new_identifier);
-      M = AutomatonLogicalOps.and(M, eq, print, prefix + " ", log);
+      M = AutomatonLogicalOps.and(M, eq, print, prefix + " ");
     }
     return M;
   }

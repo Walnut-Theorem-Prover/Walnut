@@ -25,7 +25,7 @@ public class ProverHelperTest {
     Automaton M = new Automaton(testAddress);
     // we don't want to count multiple representations of the same value as distinct accepted values
     M.randomLabel();
-    M = AutomatonLogicalOps.removeLeadingZeroes(M, M.getLabel(), false, null, null);
+    M = AutomatonLogicalOps.removeLeadingZeroes(M, M.getLabel(), false, null);
     Assertions.assertTrue(ProverHelper.infFromAutomaton(testName, M));
   }
 
@@ -36,7 +36,7 @@ public class ProverHelperTest {
     Automaton M = new Automaton(testAddress);
     // we don't want to count multiple representations of the same value as distinct accepted values
     M.randomLabel();
-    M = AutomatonLogicalOps.removeLeadingZeroes(M, M.getLabel(), false, null, null);
+    M = AutomatonLogicalOps.removeLeadingZeroes(M, M.getLabel(), false, null);
     Assertions.assertTrue(ProverHelper.infFromAutomaton(testName, M));
   }
 }

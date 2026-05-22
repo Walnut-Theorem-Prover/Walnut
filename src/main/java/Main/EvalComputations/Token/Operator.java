@@ -146,11 +146,10 @@ public abstract class Operator extends Token {
         if (S.size() < arity) throw new WalnutException("operator " + op + " requires " + arity + " operands");
     }
 
-    static Automaton andThenQuantifyIfArithmetic(boolean print, String prefix, StringBuilder log,
-                                                                Expression a, Automaton M) {
+    static Automaton andThenQuantifyIfArithmetic(boolean print, String prefix, Expression a, Automaton M) {
         if (a instanceof ArithmeticExpression) {
-            M = AutomatonLogicalOps.and(M, a.M, print, prefix + " ", log);
-            AutomatonQuantification.quantify(M, a.identifier, print, prefix + " ", log);
+            M = AutomatonLogicalOps.and(M, a.M, print, prefix + " ");
+            AutomatonQuantification.quantify(M, a.identifier, print, prefix + " ");
         }
         return M;
     }

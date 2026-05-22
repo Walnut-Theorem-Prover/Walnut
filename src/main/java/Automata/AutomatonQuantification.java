@@ -14,12 +14,12 @@ import static Main.Logging.QUANTIFIED;
 import static Main.Logging.QUANTIFYING;
 
 public class AutomatonQuantification {
-  public static void quantify(Automaton A, String labelToQuantify, boolean print, String prefix, StringBuilder log) {
-      quantify(A, Set.of(labelToQuantify), print, prefix, log);
+  public static void quantify(Automaton A, String labelToQuantify, boolean print, String prefix) {
+      quantify(A, Set.of(labelToQuantify), print, prefix);
   }
 
-  public static void quantify(Automaton A, List<String> labelsToQuantify, boolean print, String prefix, StringBuilder log) {
-      quantify(A, new HashSet<>(labelsToQuantify), print, prefix, log);
+  public static void quantify(Automaton A, List<String> labelsToQuantify, boolean print, String prefix) {
+      quantify(A, new HashSet<>(labelsToQuantify), print, prefix);
   }
 
   /**
@@ -34,20 +34,20 @@ public class AutomatonQuantification {
    *
    * @param labelsToQuantify must contain at least one element, and must be a subset of this label.
    */
-  public static void quantify(Automaton A, Set<String> labelsToQuantify, boolean print, String prefix, StringBuilder log) {
-      quantifyHelper(A, labelsToQuantify, print, prefix, log);
+  public static void quantify(Automaton A, Set<String> labelsToQuantify, boolean print, String prefix) {
+      quantifyHelper(A, labelsToQuantify, print, prefix);
       if (A.fa.isTRUE_FALSE_AUTOMATON()) return;
 
       Boolean isMsd = NumberSystem.determineMsd(A.getNS());
       if (isMsd == null) return;
       if (isMsd)
-          AutomatonLogicalOps.fixLeadingZerosProblem(A, print, prefix, log);
+          AutomatonLogicalOps.fixLeadingZerosProblem(A, print, prefix);
       else
-          AutomatonLogicalOps.fixTrailingZerosProblem(A, print, prefix, log);
+          AutomatonLogicalOps.fixTrailingZerosProblem(A, print, prefix);
   }
 
   private static void quantifyHelper(
-      Automaton A, Set<String> labelsToQuantify, boolean print, String prefix, StringBuilder log) {
+      Automaton A, Set<String> labelsToQuantify, boolean print, String prefix) {
       if (labelsToQuantify.isEmpty() || A.getLabel() == null || A.getLabel().isEmpty()) {
           return;
       }
@@ -101,7 +101,7 @@ public class AutomatonQuantification {
           }
       }
       A.fa.getT().setNfaD(newD);
-      A.determinizeAndMinimize(print, prefix + " ", log);
+      A.determinizeAndMinimize(print, prefix + " ");
       long timeAfter = System.currentTimeMillis();
       Logging.logMessage(print, prefix + QUANTIFIED + ":" + A.fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms");
   }

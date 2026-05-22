@@ -88,7 +88,7 @@ public class DeterminizationStrategies {
      *   Brzozowski + (OTF-CCL, OTF-CCLS)
      */
     public static void determinize(
-        Automaton A, IntSet initialState, boolean print, String prefix, StringBuilder log) {
+        Automaton A, IntSet initialState, boolean print, String prefix) {
 
       FA fa = A.getFa();
       long timeBefore = System.currentTimeMillis();
@@ -121,9 +121,9 @@ public class DeterminizationStrategies {
       }
 
       switch (strategy) {
-        case SC -> SC(fa, initialState, print, prefix, log);
-        case BRZ, BRZ_CCL, BRZ_CCLS -> Brz(fa, initialState, strategy, print, prefix, log);
-        case CCL, CCLS -> OTF(fa, initialState, strategy.doSimulation, print, prefix, log);
+        case SC -> SC(fa, initialState, print, prefix);
+        case BRZ, BRZ_CCL, BRZ_CCLS -> Brz(fa, initialState, strategy, print, prefix);
+        case CCL, CCLS -> OTF(fa, initialState, strategy.doSimulation, print, prefix);
       }
 
       long timeAfter = System.currentTimeMillis();
@@ -139,27 +139,27 @@ public class DeterminizationStrategies {
    * @param strategy - BRZ or OTF_BRZ
    */
   private static void Brz(
-      FA fa, IntSet initialStates, Strategy strategy, boolean print, String prefix, StringBuilder log) {
+      FA fa, IntSet initialStates, Strategy strategy, boolean print, String prefix) {
     strategy = strategy.removeBrzozowski();
 
     // Reverse, determinize, minimize
-    brzStep(fa, initialStates, strategy, print, prefix, log, "Reverse");
-    fa.justMinimize(print, prefix, log); // also switches back to NFA representation
+    brzStep(fa, initialStates, strategy, print, prefix, "Reverse");
+    fa.justMinimize(print, prefix); // also switches back to NFA representation
 
     // Reverse and determinize again. Note that initial state is now q0
-    brzStep(fa, IntSet.of(fa.getQ0()), Strategy.SC, print, prefix, log, "Reverse of reverse");
+    brzStep(fa, IntSet.of(fa.getQ0()), Strategy.SC, print, prefix, "Reverse of reverse");
   }
 
   private static void brzStep(FA fa, IntSet initialStates, Strategy strategy,
-                              boolean print, String prefix, StringBuilder log, String message) {
+                              boolean print, String prefix, String message) {
     long timeBefore = System.currentTimeMillis();
     IntSet newInitialStates = fa.reverseToNFAInternal(initialStates);
     Logging.logMessage(
         print, prefix + message + " -- " + DETERMINIZING + " with strategy:" + strategy.name + ".");
     if (strategy.equals(Strategy.SC)) {
-      SC(fa, newInitialStates, print, prefix, log);
+      SC(fa, newInitialStates, print, prefix);
     } else {
-      OTF(fa, newInitialStates, strategy.doSimulation, print, prefix, log);
+      OTF(fa, newInitialStates, strategy.doSimulation, print, prefix);
     }
     long timeAfter = System.currentTimeMillis();
     Logging.logMessage(
@@ -167,7 +167,7 @@ public class DeterminizationStrategies {
   }
 
   private static void SC(
-      FA fa, IntSet initialState, boolean print, String prefix, StringBuilder log) {
+      FA fa, IntSet initialState, boolean print, String prefix) {
     long timeBefore = System.currentTimeMillis();
 
     int stateCount = 0, currentState = 0;
@@ -232,7 +232,7 @@ public class DeterminizationStrategies {
   }
 
   private static void OTF(
-      FA fa, IntSet initialState, boolean doSimulation, boolean print, String prefix, StringBuilder log) {
+      FA fa, IntSet initialState, boolean doSimulation, boolean print, String prefix) {
     long timeBefore = System.currentTimeMillis();
 
     CompactNFA<Integer> compactNFA = fa.FAtoCompactNFA(initialState);

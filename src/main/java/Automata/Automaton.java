@@ -156,7 +156,7 @@ public class Automaton {
      * @param op            - either "union" or "intersect"
      * @return The union/intersection of all automata in automataNames and this automaton
      */
-    public Automaton unionOrIntersect(List<String> automataNames, String op, boolean print, String prefix, StringBuilder log) {
+    public Automaton unionOrIntersect(List<String> automataNames, String op, boolean print, String prefix) {
         Automaton first = this.clone();
 
         for (String automataName : automataNames) {
@@ -174,9 +174,9 @@ public class Automaton {
             N.setLabel(first.getLabel());
 
             if (op.equals(UNION)) {
-                first = AutomatonLogicalOps.or(first, N, print, prefix, log, LogicalOperator.OR);
+                first = AutomatonLogicalOps.or(first, N, print, prefix, LogicalOperator.OR);
             } else if (op.equals(INTERSECT)) {
-                first = AutomatonLogicalOps.and(first, N, print, prefix, log);
+                first = AutomatonLogicalOps.and(first, N, print, prefix);
             } else {
                 throw new WalnutException("Internal union/intersect error");
             }
@@ -191,7 +191,7 @@ public class Automaton {
         return new Automaton(Session.getReadFileForAutomataLibrary(automataName + TXT_EXTENSION));
     }
 
-    private void normalizeNumberSystems(boolean print, String prefix, StringBuilder log) {
+    private void normalizeNumberSystems(boolean print, String prefix) {
         // set all the number systems to be null.
         boolean switchNS = false;
         List<NumberSystem> numberSystems = new ArrayList<>(getNS().size());
@@ -207,22 +207,22 @@ public class Automaton {
         }
 
         if (switchNS) {
-            setAlphabet(false, numberSystems, richAlphabet.getA(), print, prefix, log);
+            setAlphabet(false, numberSystems, richAlphabet.getA(), print, prefix);
             // always print this
             Logging.logMessage(true,
                 prefix + "WARN: The alphabet of the resulting automaton was changed. Use the alphabet command to change as desired.");
         }
     }
 
-    public Automaton star(boolean print, String prefix, StringBuilder log) {
+    public Automaton star(boolean print, String prefix) {
         long timeBefore = System.currentTimeMillis();
         Logging.logMessage(print, prefix + "star: " + fa.getQ() + " state automaton");
 
         Automaton N = clone();
         FA.starStates(this.fa, N.fa); // NOTE: this may be an NFA
-        N.normalizeNumberSystems(print, prefix, log);
+        N.normalizeNumberSystems(print, prefix);
         N.forceCanonize();
-        N.determinizeAndMinimize(print, prefix, log);
+        N.determinizeAndMinimize(print, prefix);
         N.applyAllRepresentations();
 
         long timeAfter = System.currentTimeMillis();
@@ -232,14 +232,14 @@ public class Automaton {
     }
 
     // concatenate
-    public Automaton concat(List<String> automataNames, boolean print, String prefix, StringBuilder log) {
+    public Automaton concat(List<String> automataNames, boolean print, String prefix) {
         Automaton first = this.clone();
 
         for (String automataName : automataNames) {
             long timeBefore = System.currentTimeMillis();
             Automaton N = readAutomatonFromFile(automataName);
 
-            first = first.concat(N, print, prefix, log);
+            first = first.concat(N, print, prefix);
 
             long timeAfter = System.currentTimeMillis();
             Logging.logMessage(print, prefix + "concatenated =>:" + first.fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms");
@@ -247,7 +247,7 @@ public class Automaton {
         return first;
     }
 
-    private Automaton concat(Automaton other, boolean print, String prefix, StringBuilder log) {
+    private Automaton concat(Automaton other, boolean print, String prefix) {
         long timeBefore = System.currentTimeMillis();
         Logging.logMessage(print, prefix + "concat: " + this.fa.getQ() + " state automaton with " + other.fa.getQ() + " state automaton");
 
@@ -262,9 +262,9 @@ public class Automaton {
 
         FA.concatStates(other.fa, N.fa, originalQ); // NOTE: this may be an NFA
 
-        N.normalizeNumberSystems(print, prefix, log);
+        N.normalizeNumberSystems(print, prefix);
 
-        N.determinizeAndMinimize(print, prefix, log);
+        N.determinizeAndMinimize(print, prefix);
         N.applyAllRepresentations();
 
         long timeAfter = System.currentTimeMillis();
@@ -274,7 +274,7 @@ public class Automaton {
     }
 
 
-    public void setAlphabet(boolean isDFAO, List<NumberSystem> numberSystems, List<List<Integer>> alphabet, boolean print, String prefix, StringBuilder log) {
+    public void setAlphabet(boolean isDFAO, List<NumberSystem> numberSystems, List<List<Integer>> alphabet, boolean print, String prefix) {
         if (alphabet.size() != richAlphabet.getA().size()) {
             throw new WalnutException("The number of alphabets must match the number of alphabets in the input automaton.");
         }
@@ -302,13 +302,13 @@ public class Automaton {
         rebuildTransitions(this.getFa(), this.richAlphabet, M);
 
         if (isDFAO) {
-            WordAutomaton.minimizeSelfWithOutput(M, print, prefix, log);
+            WordAutomaton.minimizeSelfWithOutput(M, print, prefix);
         } else {
-            M.determinizeAndMinimize(print, prefix, log);
+            M.determinizeAndMinimize(print, prefix);
         }
 
         M.forceCanonize();
-        M.applyAllRepresentationsWithOutput(print, prefix + " ", log);
+        M.applyAllRepresentationsWithOutput(print, prefix + " ");
 
         copy(M);
 
@@ -343,11 +343,11 @@ public class Automaton {
     /**
      * Generalized method to handle split and reverse split operations on the automaton.
      *
-     * @param inputs A list of "+", "-" or null. Indicating how our input will be interpreted in the output automata.
+     * @param inputs  A list of "+", "-" or null. Indicating how our input will be interpreted in the output automata.
      * @param reverse Whether to perform the reverse split operation.
      * @return The modified automaton after the split/reverse split operation.
      */
-    public Automaton processSplit(List<ArithmeticOperator.Ops> inputs, boolean reverse, boolean print, String prefix, StringBuilder log) {
+    public Automaton processSplit(List<ArithmeticOperator.Ops> inputs, boolean reverse, boolean print, String prefix) {
         if (getAlphabetSize() == 0) {
             throw new WalnutException("Cannot process split automaton with no inputs.");
         }
@@ -380,21 +380,21 @@ public class Automaton {
 
             if (input.equals(ArithmeticOperator.Ops.PLUS)) {
                 baseChange.bind(reverse ? List.of(b, a) : List.of(a, b)); // Use ternary for binding logic
-                M = AutomatonLogicalOps.and(M, baseChange, print, prefix, log);
+                M = AutomatonLogicalOps.and(M, baseChange, print, prefix);
                 quantifiers.add(b);
             } else { // inputs.get(i).equals(BasicOp.MINUS)
                 baseChange.bind(List.of(reverse ? b : a, c)); // Use ternary for binding logic
-                M = AutomatonLogicalOps.and(M, baseChange, print, prefix, log);
+                M = AutomatonLogicalOps.and(M, baseChange, print, prefix);
                 M = AutomatonLogicalOps.and(
                     M,
                     negativeNumberSystem.arithmetic(reverse ? a : b, c, 0, ArithmeticOperator.Ops.PLUS), // Use ternary for arithmetic logic
-                    print, prefix, log
+                    print, prefix
                 );
                 quantifiers.add(b);
                 quantifiers.add(c);
             }
         }
-        AutomatonQuantification.quantify(M, quantifiers, print, prefix, log);
+        AutomatonQuantification.quantify(M, quantifiers, print, prefix);
         M.sortLabel();
         M.randomLabel();
         return M;
@@ -406,7 +406,7 @@ public class Automaton {
      * For sake of example, the current Automaton is M1, and subautomata consists of M2 and M3.
      * Then on input x, returned automaton should output the first non-zero value of [ M1(x), M2(x), M3(x) ].
      */
-    public Automaton join(Queue<Automaton> subautomata, boolean print, String prefix, StringBuilder log) {
+    public Automaton join(Queue<Automaton> subautomata, boolean print, String prefix) {
         Automaton first = this.clone();
 
         while (!subautomata.isEmpty()) {
@@ -415,60 +415,15 @@ public class Automaton {
             Logging.logMessage(print, prefix + COMPUTING + " =>:" + first.fa.getQ() + " states - " + next.fa.getQ() + " states");
 
             // crossProduct requires both automata to be totalized, otherwise it has no idea which cartesian states to transition to
-            first.fa.totalize(print, prefix + " ", log);
-            next.fa.totalize(print, prefix + " ", log);
-            first = ProductStrategies.crossProduct(first, next, Prover.FIRST_OP, print, prefix + " ", log);
-            first = WordAutomaton.minimizeWithOutput(first, print, prefix + " ", log);
+            first.fa.totalize(print, prefix + " ");
+            next.fa.totalize(print, prefix + " ");
+            first = ProductStrategies.crossProduct(first, next, Prover.FIRST_OP, print, prefix + " ");
+            first = WordAutomaton.minimizeWithOutput(first, print, prefix + " ");
 
             long timeAfter = System.currentTimeMillis();
             Logging.logMessage(print, prefix + COMPUTED + " =>:" + first.fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms");
         }
         return first;
-    }
-
-    public List<String> findAccepted(int searchLength, int maxNeeded) {
-        List<String> accepted = new ArrayList<>(maxNeeded);
-        findAcceptedHelper(accepted, maxNeeded, searchLength, 0, new StringBuilder(), this.fa.getQ0());
-        return accepted;
-    }
-
-    /*
-    Find accepted inputs.
-     */
-    private boolean findAcceptedHelper(
-        List<String> accepted, int maxNeeded, int searchLength, int curLength, StringBuilder path, int state) {
-        if (curLength == searchLength) {
-            // if we reach an accepting state of desired length, we add the string we've formed to our subautomata list
-            if (getFa().isAccepting(state)) {
-                accepted.add(path.toString());
-                if (accepted.size() >= maxNeeded) {
-                    return true;
-                }
-            } else {
-                return false;
-            }
-        }
-        boolean singleArity = richAlphabet.getA().size() == 1;
-        for (Int2ObjectMap.Entry<IntList> entry : getFa().getT().getEntriesNfaD(state)) {
-            List<Integer> decodeAx = richAlphabet.decode(entry.getIntKey());
-            String input = decodeAx.toString();
-            // we remove brackets if we have a single arity input that is between 0 and 9 (and hence unambiguous)
-            if (singleArity) {
-                if (decodeAx.get(0) >= 0 && decodeAx.get(0) <= 9) {
-                    input = input.substring(1, input.length() - 1);
-                }
-            }
-            final int oldLen = path.length();
-            StringBuilder appendPath = path.append(input);
-            for (int y : entry.getValue()) {
-                // if we've already found as much as we need, then there's no need to search further; we propagate the signal
-                if (findAcceptedHelper(accepted, maxNeeded, searchLength, curLength + 1, appendPath, y)) {
-                    return true;
-                }
-            }
-            path.setLength(oldLen); // <-- backtrack
-        }
-        return false;
     }
 
     public void applyAllRepresentations() {
@@ -479,7 +434,7 @@ public class Automaton {
             if (ns != null && ns.useAllRepresentations()) {
                 Automaton N = ns.getAllRepresentations();
                 N.bind(List.of(getLabel().get(i)));
-                K = AutomatonLogicalOps.and(K, N, false, null, null);
+                K = AutomatonLogicalOps.and(K, N, false, null);
             }
         }
         if (flag)
@@ -487,7 +442,7 @@ public class Automaton {
         copy(K);
     }
 
-    void applyAllRepresentationsWithOutput(boolean print, String prefix, StringBuilder log) {
+    void applyAllRepresentationsWithOutput(boolean print, String prefix) {
         // this can be a word automaton
         boolean flag = determineRandomLabel();
         Automaton K = this;
@@ -498,7 +453,7 @@ public class Automaton {
                 N.bind(List.of(getLabel().get(i)));
                 // NOTE: unlike applyAllRepresentations(), the following combines with "this" automaton rather than K.
                 // This appears to be by design, and causes a bug in combine() otherwise.
-                K = ProductStrategies.crossProduct(this, N, Prover.IF_OTHER_OP, print, prefix, log);
+                K = ProductStrategies.crossProduct(this, N, Prover.IF_OTHER_OP, print, prefix);
             }
         }
         if (flag)
@@ -600,7 +555,7 @@ public class Automaton {
         this.fa.permuteNfaD(encodedInputPermutation);
     }
 
-    public void determinizeAndMinimize(boolean print, String prefix, StringBuilder log) {
+    public void determinizeAndMinimize(boolean print, String prefix) {
         if (!this.fa.getT().isDeterministic()) {
             // Working with NFA. Let's trim.
             int oldQ = this.fa.getQ();
@@ -610,17 +565,17 @@ public class Automaton {
             }
             IntSet qqq = new IntOpenHashSet();
             qqq.add(this.fa.getQ0());
-            DeterminizationStrategies.determinize(this, qqq, print, prefix + " ", log);
+            DeterminizationStrategies.determinize(this, qqq, print, prefix + " ");
         }
-        this.fa.justMinimize(print, prefix + " ", log);
+        this.fa.justMinimize(print, prefix + " ");
     }
 
     /**
      * Determinize and minimize. Technically, the logging is backwards.
      */
-    public void determinizeAndMinimize(IntSet qqq, boolean print, String prefix, StringBuilder log) {
-        DeterminizationStrategies.determinize(this, qqq, print, prefix + " ", log);
-        this.fa.justMinimize(print, prefix + " ", log);
+    public void determinizeAndMinimize(IntSet qqq, boolean print, String prefix) {
+        DeterminizationStrategies.determinize(this, qqq, print, prefix + " ");
+        this.fa.justMinimize(print, prefix + " ");
     }
 
     /**

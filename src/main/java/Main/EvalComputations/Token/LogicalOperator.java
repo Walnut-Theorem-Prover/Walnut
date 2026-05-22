@@ -59,15 +59,15 @@ public class LogicalOperator extends Operator {
         this.positionInPredicate = position;
     }
 
-    public void act(Stack<Expression> S, boolean print, String prefix, StringBuilder log) {
+    public void act(Stack<Expression> S, boolean print, String prefix) {
         super.validateArity(S);
 
         if (this.isNegation(op) || op.equals(Operator.REVERSE)) {
-            actNegationOrReverse(S, print, prefix, log);
+            actNegationOrReverse(S, print, prefix);
             return;
         }
         if (op.equals(Operator.EXISTS) || op.equals(Operator.FORALL) || op.equals(Operator.INFINITE)) {
-            actQuantifier(S, false, print, prefix, log);
+            actQuantifier(S, false, print, prefix);
             return;
         }
 
@@ -75,23 +75,23 @@ public class LogicalOperator extends Operator {
         Expression a = S.pop();
 
         if (a instanceof AutomatonExpression && b instanceof AutomatonExpression) {
-            Logging.logAndPrint(print, prefix + COMPUTING + " " + a + op + b, log);
+            Logging.logAndPrint(prefix + COMPUTING + " " + a + op + b);
             String opString = "(" + a + op + b + ")";
             AutomatonExpression ae = switch (op) {
               case AND ->
-                  new AutomatonExpression(opString, AutomatonLogicalOps.and(a.M, b.M, print, prefix + " ", log, op));
-              case OR -> new AutomatonExpression(opString, AutomatonLogicalOps.or(a.M, b.M, print, prefix + " ", log, op));
+                  new AutomatonExpression(opString, AutomatonLogicalOps.and(a.M, b.M, print, prefix + " ", op));
+              case OR -> new AutomatonExpression(opString, AutomatonLogicalOps.or(a.M, b.M, print, prefix + " ", op));
               case XOR ->
-                  new AutomatonExpression(opString, AutomatonLogicalOps.xor(a.M, b.M, print, prefix + " ", log, op));
+                  new AutomatonExpression(opString, AutomatonLogicalOps.xor(a.M, b.M, print, prefix + " ", op));
               case IMPLY ->
-                  new AutomatonExpression(opString, AutomatonLogicalOps.imply(a.M, b.M, print, prefix + " ", log, op));
+                  new AutomatonExpression(opString, AutomatonLogicalOps.imply(a.M, b.M, print, prefix + " ", op));
               case IFF ->
-                  new AutomatonExpression(opString, AutomatonLogicalOps.iff(a.M, b.M, print, prefix + " ", log, op));
+                  new AutomatonExpression(opString, AutomatonLogicalOps.iff(a.M, b.M, print, prefix + " ", op));
               default -> throw new WalnutException("Unexpected logical operator: " + op);
             };
             S.push(ae);
 
-            Logging.logAndPrint(print, prefix + COMPUTED + " " + a + op + b, log);
+            Logging.logAndPrint(prefix + COMPUTED + " " + a + op + b);
             return;
         }
         throw WalnutException.invalidDualOperators(op, a, b);
@@ -102,35 +102,35 @@ public class LogicalOperator extends Operator {
      * we write the NFA without determinizing.
      */
     public void actExistsSpecialCase(Stack<Expression> S, String prefix) {
-        actExistsSpecialCase(S, Logging.shouldPrintDetails(), prefix, null);
+        actExistsSpecialCase(S, Logging.shouldPrintDetails(), prefix);
     }
 
-    public void actExistsSpecialCase(Stack<Expression> S, boolean print, String prefix, StringBuilder log) {
+    public void actExistsSpecialCase(Stack<Expression> S, boolean print, String prefix) {
         super.validateArity(S);
-        actQuantifier(S, true, print, prefix, log);
+        actQuantifier(S, true, print, prefix);
     }
 
-    private void actNegationOrReverse(Stack<Expression> S, boolean print, String prefix, StringBuilder log) {
+    private void actNegationOrReverse(Stack<Expression> S, boolean print, String prefix) {
         Expression a = S.pop();
         if (a instanceof AutomatonExpression) {
-            Logging.logAndPrint(print, prefix + COMPUTING + " " + op + a, log);
+            Logging.logAndPrint(prefix + COMPUTING + " " + op + a);
             if (op.equals(Operator.REVERSE))
-                AutomatonLogicalOps.reverse(a.M, print, prefix + " ", log, true);
+                AutomatonLogicalOps.reverse(a.M, print, prefix + " ", true);
             if (this.isNegation(op))
-                AutomatonLogicalOps.not(a.M, print, prefix + " ", log);
+                AutomatonLogicalOps.not(a.M, print, prefix + " ");
             S.push(new AutomatonExpression(op + a, a.M));
-            Logging.logAndPrint(print, prefix + COMPUTED + " " + op + a, log);
+            Logging.logAndPrint(prefix + COMPUTED + " " + op + a);
             return;
         }
         throw WalnutException.invalidOperator(op, a);
     }
 
     private void actQuantifier(Stack<Expression> S, boolean existsEarlyTermination,
-                               boolean print, String prefix, StringBuilder log) {
+                               boolean print, String prefix) {
         StringBuilder stringValue = new StringBuilder("(" + op + " ");
         Stack<Expression> temp = reverseStack(S);
         Automaton M = null;
-        Logging.logAndPrint(print, prefix + COMPUTING + " quantifier " + op, log);
+        Logging.logAndPrint(prefix + COMPUTING + " quantifier " + op);
         List<String> identifiersToQuantify = new ArrayList<>();
         for (int i = 0; i < arity; i++) {
             Expression operand = temp.pop();
@@ -150,22 +150,22 @@ public class LogicalOperator extends Operator {
                 M = operand.M;
                 if (op.equals(Operator.EXISTS)) {
                     if (!existsEarlyTermination) {
-                        AutomatonQuantification.quantify(M, identifiersToQuantify, print, prefix + " ", log);
+                        AutomatonQuantification.quantify(M, identifiersToQuantify, print, prefix + " ");
                     } else {
                         String fileName = Prover.currentEvalName + "_special_case_E";
-                        Logging.logAndPrint(print,
-                            prefix + "special-case for final E, writing predicates: " + fileName, log);
+                        Logging.logAndPrint(
+                            prefix + "special-case for final E, writing predicates: " + fileName);
                         M.writeAutomata(Prover.currentEvalName,
                             Session.getWriteAddressForAutomataLibrary(), fileName, M.fa.isFAO());
                     }
                 } else if (op.equals(Operator.FORALL)) {
                     // A == ~ E ~
-                    AutomatonLogicalOps.not(M, print, prefix + " ", log);
-                    AutomatonQuantification.quantify(M, identifiersToQuantify, print, prefix + " ", log);
-                    AutomatonLogicalOps.not(M, print, prefix + " ", log);
+                    AutomatonLogicalOps.not(M, print, prefix + " ");
+                    AutomatonQuantification.quantify(M, identifiersToQuantify, print, prefix + " ");
+                    AutomatonLogicalOps.not(M, print, prefix + " ");
                 } else {
                     // op == I
-                    M = AutomatonLogicalOps.removeLeadingZeroes(M, identifiersToQuantify, print, prefix + " ", log);
+                    M = AutomatonLogicalOps.removeLeadingZeroes(M, identifiersToQuantify, print, prefix + " ");
                     String infReg = Infinite.infinite(M.fa, M.richAlphabet);
                     M = new Automaton(!infReg.isEmpty());
                 }
@@ -173,6 +173,6 @@ public class LogicalOperator extends Operator {
         }
         stringValue.append(")");
         S.push(new AutomatonExpression(stringValue.toString(), M));
-        Logging.logAndPrint(print, prefix + COMPUTED + " quantifier " + stringValue, log);
+        Logging.logAndPrint(prefix + COMPUTED + " quantifier " + stringValue);
     }
 }

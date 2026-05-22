@@ -134,7 +134,7 @@ public class ProverHelper {
     Automaton M = Automaton.readAutomatonFromFile(address);
     // we don't want to count multiple representations of the same value as distinct accepted values
     M.randomLabel();
-    M = AutomatonLogicalOps.removeLeadingZeroes(M, M.getLabel(), false, null, null);
+    M = AutomatonLogicalOps.removeLeadingZeroes(M, M.getLabel(), false, null);
     return infFromAutomaton(address, M);
   }
 
@@ -161,9 +161,9 @@ public class ProverHelper {
   static TestCase reverseCommand(String s, String inFileName, boolean isDFAO, String newName, boolean printFlag) {
     Automaton M = new Automaton(determineInLibrary(isDFAO, inFileName));
     if (isDFAO) {
-      WordAutomaton.reverseWithOutput(M, true, printFlag, Prover.prefix, Prover.log);
+      WordAutomaton.reverseWithOutput(M, true, printFlag, Prover.prefix);
     } else {
-      AutomatonLogicalOps.reverse(M, printFlag, Prover.prefix, Prover.log, true);
+      AutomatonLogicalOps.reverse(M, printFlag, Prover.prefix, true);
     }
     M.writeAutomata(s, determineOutLibrary(isDFAO), newName, true);
     return new TestCase(M);
@@ -211,10 +211,10 @@ public class ProverHelper {
     UtilityMethods.removeDuplicates(outputs);
     List<Automaton> subautomata = WordAutomaton.uncombine(M, outputs);
 
-    subautomata.replaceAll(automaton -> automaton.processSplit(plusMinusInputs, isReverse, printFlag, Prover.prefix, Prover.log));
+    subautomata.replaceAll(automaton -> automaton.processSplit(plusMinusInputs, isReverse, printFlag, Prover.prefix));
 
     Automaton N = subautomata.remove(0);
-    N = AutomatonLogicalOps.combine(N, new LinkedList<>(subautomata), outputs, printFlag, Prover.prefix, Prover.log);
+    N = AutomatonLogicalOps.combine(N, new LinkedList<>(subautomata), outputs, printFlag, Prover.prefix);
 
     N.writeAutomata(s, determineOutLibrary(isDFAO), name, isDFAO);
     return new TestCase(N);
@@ -244,7 +244,7 @@ public class ProverHelper {
       subautomata.add(M);
     }
 
-    Automaton C = AutomatonLogicalOps.combine(first, subautomata, outputs, print, Prover.prefix, Prover.log);
+    Automaton C = AutomatonLogicalOps.combine(first, subautomata, outputs, print, Prover.prefix);
 
     C.writeAutomata(s, Session.getWriteAddressForWordsLibrary(), m.group(Prover.GROUP_COMBINE_NAME), true);
     return new TestCase(C);

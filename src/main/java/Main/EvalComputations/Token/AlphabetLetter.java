@@ -36,7 +36,7 @@ public class AlphabetLetter extends Token {
         return Integer.toString(value);
     }
 
-    public void act(Stack<Expression> S, boolean print, String prefix, StringBuilder log) {
+    public void act(Stack<Expression> S, boolean print, String prefix) {
         S.push(new AlphabetLetterExpression("@" + value, value));
     }
 }

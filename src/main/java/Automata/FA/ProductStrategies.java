@@ -31,7 +31,7 @@ public class ProductStrategies {
      */
     public static void crossProductInternal(
             FA A, FA B, FA AxB, int combineOut, int[] allInputsOfAxB, String op,
-            boolean print, String prefix, StringBuilder log, long timeBefore) {
+            boolean print, String prefix, long timeBefore) {
         List<IntIntPair> statesList = new ArrayList<>();
         Object2IntMap<IntIntPair> statesHash = new Object2IntOpenHashMap<>();
         statesHash.defaultReturnValue(MISSING_ELT);
@@ -98,7 +98,7 @@ public class ProductStrategies {
      */
     public static void crossProductInternalDFA(
             FA A, FA B, FA AxB, int combineOut, int[] allInputsOfAxB, String op,
-            boolean print, String prefix, StringBuilder log, long timeBefore) {
+            boolean print, String prefix, long timeBefore) {
         List<IntIntPair> statesList = new ArrayList<>();
         Object2IntMap<IntIntPair> statesHash = new Object2IntOpenHashMap<>();
         statesHash.defaultReturnValue(MISSING_ELT);
@@ -201,15 +201,14 @@ public class ProductStrategies {
                                          Automaton B,
                                          String op,
                                          boolean print,
-                                         String prefix,
-                                         StringBuilder log) {
+                                         String prefix) {
         long timeBefore = System.currentTimeMillis();
         Automaton AxB = new Automaton();
         int[] allInputsOfN = createBasicAutomaton(A, B, AxB);
         int combineOut = A.determineCombineOutVal(op);
-        printAndUpdateIndex(A.fa.getQ(), B.fa.getQ(), print, prefix, log);
+        printAndUpdateIndex(A.fa.getQ(), B.fa.getQ(), print, prefix);
         crossProductInternal(
-            A.fa, B.fa, AxB.fa, combineOut, allInputsOfN, op, print, prefix, log, timeBefore);
+            A.fa, B.fa, AxB.fa, combineOut, allInputsOfN, op, print, prefix, timeBefore);
         return AxB;
     }
 
@@ -217,23 +216,22 @@ public class ProductStrategies {
                                                     Automaton B,
                                                     String op,
                                                     boolean print,
-                                                    String prefix,
-                                                    StringBuilder log) {
+                                                    String prefix) {
         long timeBefore = System.currentTimeMillis();
         Automaton AxB = new Automaton();
         int[] allInputsOfN = createBasicAutomaton(A, B, AxB);
         int combineOut = A.determineCombineOutVal(op);
-        printAndUpdateIndex(A.fa.getQ(), B.fa.getQ(), print, prefix, log);
+        printAndUpdateIndex(A.fa.getQ(), B.fa.getQ(), print, prefix);
         crossProductInternalDFA(
-                A.fa, B.fa, AxB.fa, combineOut, allInputsOfN, op, print, prefix, log, timeBefore);
-        AxB.fa.justMinimize(print, prefix, log);
+                A.fa, B.fa, AxB.fa, combineOut, allInputsOfN, op, print, prefix, timeBefore);
+        AxB.fa.justMinimize(print, prefix);
         if (AxB.fa.getT().getNfaD() == null) {
             throw new WalnutException("Unexpected null");
         }
         return AxB;
     }
 
-    private static void printAndUpdateIndex(int aQ, int bQ, boolean print, String prefix, StringBuilder log) {
+    private static void printAndUpdateIndex(int aQ, int bQ, boolean print, String prefix) {
         if (print) {
             //FA.IncrementIndex();
             Logging.logMessage(print,
