@@ -756,38 +756,56 @@ public class Prover {
     String imageNewName = m.group(GROUP_IMAGE_NEW_NAME);
 
     String morphismAddress =
-        Session.getReadFileForMorphismLibrary(m.group(GROUP_PROMOTE_MORPHISM) + TXT_EXTENSION);
+        Session.getReadFileForMorphismLibrary(m.group(GROUP_IMAGE_MORPHISM) + TXT_EXTENSION);
     Morphism h = new Morphism(UtilityMethods.readFromFile(morphismAddress));
     if (h.length < 0) {
       throw WalnutException.morphismNotUniform();
     }
-    StringBuilder combineString = new StringBuilder(Prover.COMBINE + " " + imageNewName);
+    h.validateImageMorphism();
 
-    // We need to know the number system of our old automaton: the new one should match, as should intermediary expressions
-    Automaton M = new Automaton(Session.getReadFileForWordsLibrary(imageOldName + TXT_EXTENSION));
-    String numSysName = "";
-    if (!M.getNS().isEmpty()) {
-      numSysName = M.getNS().get(0).toString();
-      if (!numSysName.isEmpty()) {
-        numSysName = "?" + numSysName;
+    Automaton oldWord = new Automaton(Session.getReadFileForWordsLibrary(imageOldName + TXT_EXTENSION));
+    String numSysName = determineImageNumberSystemPrefix(oldWord, imageOldName);
+
+    List<Integer> range = new ArrayList<>(h.range);
+    range.sort(Integer::compareTo);
+
+    Automaton first = null;
+    LinkedList<Automaton> subautomata = new LinkedList<>();
+    IntList outputs = new IntArrayList();
+    for (int value : range) {
+      // image is a final-result operation; do not preserve per-intermediate def logging.
+      EvalComputer c = new EvalComputer(printFlag, false);
+      c.compute(new Predicate(h.makeInterPredicate(value, imageOldName, numSysName)));
+      Automaton valueAutomaton = c.result.M;
+      if (first == null) {
+        first = valueAutomaton;
+      } else {
+        subautomata.add(valueAutomaton);
       }
+      outputs.add(value);
     }
 
-    // we construct a define command for a DFA for each x that accepts iff x appears at the nth position
-    for (int value : h.range) {
-      evalDefCommands(h.makeInterCommand(value, imageOldName, numSysName));
-      combineString.append(" ").append(imageOldName).append("_").append(value).append("=").append(value);
-    }
-    combineString.append(":");
+    Automaton image = AutomatonLogicalOps.combine(first, subautomata, outputs, printFlag, prefix);
+    image.writeAutomata(s, Session.getWriteAddressForWordsLibrary(), imageNewName, true);
+    return new TestCase(image);
+  }
 
-    TestCase retrieval = combineCommand(combineString.toString());
-    if (retrieval.getAutomatonPairs().size() != 1) {
-      throw new WalnutException("Unexpected combine output");
-    }
-    Automaton I = retrieval.getAutomatonPairs().get(0).automaton().clone();
+  private static Automaton computePredicateAutomaton(String predicateStr) {
+    // image is a final-result operation; do not preserve per-intermediate def logging.
+    EvalComputer c = new EvalComputer(false, false);
+    c.compute(new Predicate(predicateStr));
+    return c.result.M;
+  }
 
-    I.writeAutomata(s, Session.getWriteAddressForWordsLibrary(), imageNewName, true);
-    return new TestCase(I);
+  private static String determineImageNumberSystemPrefix(Automaton word, String wordName) {
+    if (word.getArity() != 1 || word.getNS().size() != 1) {
+      throw new WalnutException("Image requires a unary word automaton: " + wordName);
+    }
+    NumberSystem ns = word.getNS().get(0);
+    if (ns == null || ns.toString().isEmpty()) {
+      return "";
+    }
+    return "?" + ns;
   }
 
   public static boolean infCommand(String s) {

@@ -161,19 +161,20 @@ public class Morphism {
         return imageLength;
     }
 
-    // Generates a command to define an intermediary word automaton given an integer i that accepts iff an i appears in position n of a word
-    // These can then be combined efficiently with a combine command as they have disjoint domains
-    public String makeInterCommand(int i, String baseAutomatonName, String numSys) {
-        StringBuilder interCommand = new StringBuilder("def " + baseAutomatonName + "_" + i);
-        interCommand.append(" \"").append(numSys).append(" E q, r (n=").append(length).append("*q+r & r>=0 & r<").append(length);
-        for(Map.Entry<Integer, IntList> entry: mapping.entrySet()) {
+    // Generates the predicate for an intermediary automaton that accepts n iff value i appears at position n.
+    // These predicates can be combined efficiently because their domains are disjoint when the base word's
+    // output alphabet is covered by this morphism's domain.
+    public String makeInterPredicate(int i, String baseAutomatonName, String numSys) {
+        StringBuilder predicate = new StringBuilder(numSys);
+        predicate.append(" E q, r (n=").append(length).append("*q+r & r>=0 & r<").append(length);
+        for (Map.Entry<Integer, IntList> entry : mapping.entrySet()) {
             boolean exists = false;
             StringBuilder clause = new StringBuilder(" & (" + baseAutomatonName + "[q]");
             IntList symbolImage = entry.getValue();
             for (int j = 0; j < symbolImage.size(); j++) {
                 if (symbolImage.getInt(j) == i) {
                     if (!exists) {
-                        clause.append("= @").append(entry.getKey().toString()).append(" => (r=").append(j);
+                        clause.append("= @").append(entry.getKey()).append(" => (r=").append(j);
                         exists = true;
                     } else {
                         clause.append("|r=").append(j);
@@ -183,11 +184,20 @@ public class Morphism {
             if (exists) {
                 clause.append("))");
             } else {
-                clause.append("!= @").append(entry.getKey().toString()).append(")");
+                clause.append("!= @").append(entry.getKey()).append(")");
             }
-            interCommand.append(clause);
+            predicate.append(clause);
         }
-        interCommand.append(")\":");
-        return interCommand.toString();
+        predicate.append(")");
+        return predicate.toString();
+    }
+    
+    public void validateImageMorphism() {
+        if (length < 0) {
+            throw WalnutException.morphismNotUniform();
+        }
+        if (length == 0) {
+            throw new WalnutException("A morphism applied to a word automaton must have positive uniform length.");
+        }
     }
 }
