@@ -58,6 +58,8 @@ public class Logging {
   private static final ThreadLocal<Boolean> evalLogFilesActive = ThreadLocal.withInitial(() -> false);
   private static final ThreadLocal<StringBuilder> commandLog = ThreadLocal.withInitial(StringBuilder::new);
   private static final ThreadLocal<StringBuilder> detailedLog = ThreadLocal.withInitial(StringBuilder::new);
+  public static String prefix = ""; // Declare here instead of passing around everywhere
+  private static int indentCount = 0;
 
   public static void configureForCommand(boolean shouldPrintSteps, boolean shouldPrintDetails) {
     printSteps.set(shouldPrintSteps);
@@ -90,6 +92,13 @@ public class Logging {
         evalLogFilesActive.get());
   }
 
+  public static void indent() {
+    indentCount++;
+  }
+  public static void dedent() {
+    indentCount--;
+  }
+
   public static void logMessage(String msg) {
     logMessage(printDetails.get(), msg);
   }
@@ -108,48 +117,35 @@ public class Logging {
     logDetail(msg, print);
   }
 
-  /**
-   * Legacy overload. The StringBuilder is intentionally ignored; logging state now lives here.
-   */
-  public static void logAndPrint(boolean print, String msg, StringBuilder ignoredLog) {
-    logAndPrint(print, msg);
-  }
-
-  public static void logEvaluationStep(String msg) {
-    logEvaluationStep(msg, false);
-  }
-
-  public static void logFinalEvaluationStep(String msg) {
-    logEvaluationStep(msg, true);
-  }
-
-  private static void logEvaluationStep(String msg, boolean finalLine) {
-    append(commandLog.get(), msg, finalLine);
-    commandLogger.info(msg);
+  public static void logEvaluationStep(String msg, boolean finalLine) {
+    String msgWithIndent = " ".repeat(indentCount) + msg;
+    append(commandLog.get(), msgWithIndent, finalLine);
+    commandLogger.info(msgWithIndent);
 
     if (printDetails.get()) {
-      append(detailedLog.get(), msg, finalLine);
-      detailedLogger.info(msg);
+      append(detailedLog.get(), msgWithIndent, finalLine);
+      detailedLogger.info(msgWithIndent);
     }
 
     if (shouldPrintStepsOrDetails()) {
-      consoleLogger.info(msg);
+      consoleLogger.info(msgWithIndent);
     }
   }
 
   private static void logDetail(String msg, boolean print) {
+    String msgWithIndent = " ".repeat(indentCount) + msg;
     if (printDetails.get()) {
-      appendLine(detailedLog.get(), msg);
-      detailedLogger.info(msg);
+      appendLine(detailedLog.get(), msgWithIndent);
+      detailedLogger.info(msgWithIndent);
     }
 
     if (!evalLogFilesActive.get()) {
-      appendLine(commandLog.get(), msg);
-      commandLogger.info(msg);
+      appendLine(commandLog.get(), msgWithIndent);
+      commandLogger.info(msgWithIndent);
     }
 
     if (print) {
-      consoleLogger.info(msg);
+      consoleLogger.info(msgWithIndent);
     }
   }
 

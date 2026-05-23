@@ -107,9 +107,9 @@ public class ProverHelper {
   static TestCase reverseCommand(String s, String inFileName, boolean isDFAO, String newName, boolean printFlag) {
     Automaton M = new Automaton(determineInLibrary(isDFAO, inFileName));
     if (isDFAO) {
-      WordAutomaton.reverseWithOutput(M, true, printFlag, Prover.prefix);
+      WordAutomaton.reverseWithOutput(M, true, printFlag, Logging.prefix);
     } else {
-      AutomatonLogicalOps.reverse(M, printFlag, Prover.prefix, true);
+      AutomatonLogicalOps.reverse(M, printFlag, Logging.prefix, true);
     }
     M.writeAutomata(s, determineOutLibrary(isDFAO), newName, true);
     return new TestCase(M);
@@ -157,10 +157,10 @@ public class ProverHelper {
     UtilityMethods.removeDuplicates(outputs);
     List<Automaton> subautomata = WordAutomaton.uncombine(M, outputs);
 
-    subautomata.replaceAll(automaton -> automaton.processSplit(plusMinusInputs, isReverse, printFlag, Prover.prefix));
+    subautomata.replaceAll(automaton -> automaton.processSplit(plusMinusInputs, isReverse, printFlag, Logging.prefix));
 
     Automaton N = subautomata.remove(0);
-    N = AutomatonLogicalOps.combine(N, new LinkedList<>(subautomata), outputs, printFlag, Prover.prefix);
+    N = AutomatonLogicalOps.combine(N, new LinkedList<>(subautomata), outputs, printFlag, Logging.prefix);
 
     N.writeAutomata(s, determineOutLibrary(isDFAO), name, isDFAO);
     return new TestCase(N);
@@ -190,7 +190,7 @@ public class ProverHelper {
       subautomata.add(M);
     }
 
-    Automaton C = AutomatonLogicalOps.combine(first, subautomata, outputs, print, Prover.prefix);
+    Automaton C = AutomatonLogicalOps.combine(first, subautomata, outputs, print, Logging.prefix);
 
     C.writeAutomata(s, Session.getWriteAddressForWordsLibrary(), m.group(Prover.GROUP_COMBINE_NAME), true);
     return new TestCase(C);

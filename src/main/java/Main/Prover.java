@@ -273,8 +273,6 @@ public class Prover {
   static final Pattern PAT_FOR_describe_CMD = Pattern.compile(RE_FOR_describe_CMD);
   static final int GROUP_describe_DOLLAR_SIGN = 1, GROUP_describe_NAME = 2;
 
-  public static String prefix = ""; // Declare here instead of passing around everywhere
-
   public MetaCommands metaCommands = new MetaCommands();
 
   public static Prover mainProver = new Prover();
@@ -461,7 +459,7 @@ public class Prover {
 
   private String parseSetup(String s) {
     metaCommands = new MetaCommands();
-    prefix = ""; // reset prefix
+    Logging.prefix = ""; // reset prefix
     printDetails = printFlag = false; // reset flags
 
     if (!s.endsWith(";") && !s.endsWith(":")) {
@@ -785,7 +783,7 @@ public class Prover {
       outputs.add(value);
     }
 
-    Automaton image = AutomatonLogicalOps.combine(first, subautomata, outputs, printFlag, prefix);
+    Automaton image = AutomatonLogicalOps.combine(first, subautomata, outputs, printFlag, Logging.prefix);
     image.writeAutomata(s, Session.getWriteAddressForWordsLibrary(), imageNewName, true);
     return new TestCase(image);
   }
@@ -862,7 +860,7 @@ public class Prover {
       subautomata.add(M);
     }
     Automaton N = subautomata.remove(0);
-    N = N.join(new LinkedList<>(subautomata), printFlag, prefix);
+    N = N.join(new LinkedList<>(subautomata), printFlag, Logging.prefix);
 
     N.writeAutomata(s, ProverHelper.determineOutLibrary(isDFAO), m.group(GROUP_JOIN_NAME), isDFAO);
     return new TestCase(N);
@@ -887,7 +885,7 @@ public class Prover {
     boolean isDFAO = !(m.group(GROUP_TRANSDUCE_DOLLAR_SIGN).equals("$"));
     Automaton M = new Automaton(ProverHelper.determineInLibrary(isDFAO, inFileName));
 
-    Automaton C = T.transduceNonDeterministic(M, printFlag, prefix);
+    Automaton C = T.transduceNonDeterministic(M, printFlag, Logging.prefix);
     C.writeAutomata(s, Session.getWriteAddressForWordsLibrary(), m.group(GROUP_TRANSDUCE_NEW_NAME), true);
     return new TestCase(C);
   }
@@ -906,7 +904,7 @@ public class Prover {
     Automaton M = new Automaton(
         Session.getReadFileForWordsLibrary(m.group(GROUP_MINIMIZE_OLD_NAME) + TXT_EXTENSION));
 
-    WordAutomaton.minimizeSelfWithOutput(M, printFlag, prefix);
+    WordAutomaton.minimizeSelfWithOutput(M, printFlag, Logging.prefix);
 
     M.writeAutomata(s, Session.getWriteAddressForWordsLibrary(), m.group(GROUP_MINIMIZE_NEW_NAME), true);
     return new TestCase(M);
@@ -929,7 +927,7 @@ public class Prover {
 
     AutomatonLogicalOps.convertNS(M, m.group(GROUP_CONVERT_MSD_OR_LSD).equals(NumberSystem.MSD),
         Integer.parseInt(m.group(GROUP_CONVERT_BASE)), printFlag,
-        prefix);
+        Logging.prefix);
 
     M.writeAutomata(s, ProverHelper.determineOutLibrary(newIsDFAO), m.group(GROUP_CONVERT_NEW_NAME), true);
     return new TestCase(M);
@@ -938,7 +936,7 @@ public class Prover {
   public TestCase fixLeadZeroCommand(String s) {
     Matcher m = ProverHelper.matchOrFail(PAT_FOR_fixleadzero_CMD, s, FIXLEADZERO);
     Automaton M = Automaton.readAutomatonFromFile(m.group(GROUP_FIXLEADZERO_OLD_NAME));
-    AutomatonLogicalOps.fixLeadingZerosProblem(M, printFlag, prefix);
+    AutomatonLogicalOps.fixLeadingZerosProblem(M, printFlag, Logging.prefix);
     M.writeAutomata(s, Session.getWriteAddressForAutomataLibrary(), m.group(GROUP_FIXLEADZERO_NEW_NAME), false);
     return new TestCase(M);
   }
@@ -947,7 +945,7 @@ public class Prover {
   public TestCase fixTrailZeroCommand(String s) {
     Matcher m = ProverHelper.matchOrFail(PAT_FOR_fixtrailzero_CMD, s, FIXTRAILZERO);
     Automaton M = Automaton.readAutomatonFromFile(m.group(GROUP_FIXTRAILZERO_OLD_NAME));
-    AutomatonLogicalOps.fixTrailingZerosProblem(M, printFlag, prefix);
+    AutomatonLogicalOps.fixTrailingZerosProblem(M, printFlag, Logging.prefix);
     M.writeAutomata(s, Session.getWriteAddressForAutomataLibrary(), m.group(GROUP_FIXTRAILZERO_NEW_NAME), false);
     return new TestCase(M);
   }
@@ -992,7 +990,7 @@ public class Prover {
 
     automataNames.remove(0);
 
-    C = C.unionOrIntersect(automataNames, UNION, printFlag, prefix);
+    C = C.unionOrIntersect(automataNames, UNION, printFlag, Logging.prefix);
 
     C.writeAutomata(s, Session.getWriteAddressForAutomataLibrary(), m.group(GROUP_UNION_NAME), true);
     return new TestCase(C);
@@ -1015,7 +1013,7 @@ public class Prover {
 
     automataNames.remove(0);
 
-    C = C.unionOrIntersect(automataNames, INTERSECT, printFlag, prefix);
+    C = C.unionOrIntersect(automataNames, INTERSECT, printFlag, Logging.prefix);
 
     C.writeAutomata(s, Session.getWriteAddressForAutomataLibrary(), m.group(GROUP_INTERSECT_NAME), true);
     return new TestCase(C);
@@ -1028,7 +1026,7 @@ public class Prover {
     Automaton M = new Automaton(
         Session.getReadFileForAutomataLibrary(m.group(GROUP_STAR_OLD_NAME) + TXT_EXTENSION));
 
-    Automaton C = M.star(printFlag, prefix);
+    Automaton C = M.star(printFlag, Logging.prefix);
 
     C.writeAutomata(s, Session.getWriteAddressForAutomataLibrary(), m.group(GROUP_STAR_NEW_NAME), false);
     return new TestCase(C);
@@ -1051,7 +1049,7 @@ public class Prover {
 
     automataNames.remove(0);
 
-    C = C.concat(automataNames, printFlag, prefix);
+    C = C.concat(automataNames, printFlag, Logging.prefix);
 
     C.writeAutomata(s, Session.getWriteAddressForAutomataLibrary(), m.group(GROUP_CONCAT_NAME), true);
     return new TestCase(C);
@@ -1061,7 +1059,7 @@ public class Prover {
     Matcher m = ProverHelper.matchOrFail(PAT_FOR_rightquo_CMD, s, RIGHTQUO);
     Automaton M1 = Automaton.readAutomatonFromFile(m.group(GROUP_rightquo_OLD_NAME1));
     Automaton M2 = Automaton.readAutomatonFromFile(m.group(GROUP_rightquo_OLD_NAME2));
-    Automaton C = AutomatonLogicalOps.rightQuotient(M1, M2, false, printFlag, prefix);
+    Automaton C = AutomatonLogicalOps.rightQuotient(M1, M2, false, printFlag, Logging.prefix);
     C.writeAutomata(s, Session.getWriteAddressForAutomataLibrary(), m.group(GROUP_rightquo_NEW_NAME), false);
     return new TestCase(C);
   }
@@ -1070,7 +1068,7 @@ public class Prover {
     Matcher m = ProverHelper.matchOrFail(PAT_FOR_leftquo_CMD, s, LEFTQUO);
     Automaton M1 = Automaton.readAutomatonFromFile(m.group(GROUP_leftquo_OLD_NAME1));
     Automaton M2 = Automaton.readAutomatonFromFile(m.group(GROUP_leftquo_OLD_NAME2));
-    Automaton C = AutomatonLogicalOps.leftQuotient(M1, M2, printFlag, prefix);
+    Automaton C = AutomatonLogicalOps.leftQuotient(M1, M2, printFlag, Logging.prefix);
     C.writeAutomata(s, Session.getWriteAddressForAutomataLibrary(), m.group(GROUP_leftquo_NEW_NAME), false);
     return new TestCase(C);
   }

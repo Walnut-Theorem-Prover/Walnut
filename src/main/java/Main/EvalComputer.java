@@ -79,7 +79,7 @@ public class EvalComputer {
         if (t.isOperator() && nextExpression instanceof AutomatonExpression) {
           step = prefix + nextExpression + ":" +
               nextExpression.M.fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms";
-          Logging.logEvaluationStep(step);
+          Logging.logEvaluationStep(step, false);
           prefix += " ";
         }
       } catch (RuntimeException e) {
@@ -92,7 +92,7 @@ public class EvalComputer {
 
     long timeEnd = System.currentTimeMillis();
     step = "Total computation time: " + (timeEnd - timeBeginning) + "ms.";
-    Logging.logFinalEvaluationStep(step);
+    Logging.logEvaluationStep(step, true);
 
     if (expressions.size() > 1) {
       StringBuilder message =

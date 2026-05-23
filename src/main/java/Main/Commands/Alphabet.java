@@ -21,7 +21,7 @@ public class Alphabet {
     Automaton M = new Automaton(ProverHelper.determineInLibrary(isDFAO, inFileName));
 
     // here, call the function to set the number system.
-    M.setAlphabet(isDFAO, NS, alphabets, printFlag, Prover.prefix);
+    M.setAlphabet(isDFAO, NS, alphabets, printFlag, Logging.prefix);
 
     M.writeAutomata(s, ProverHelper.determineOutLibrary(isDFAO), newName, false);
     return new TestCase(M);
