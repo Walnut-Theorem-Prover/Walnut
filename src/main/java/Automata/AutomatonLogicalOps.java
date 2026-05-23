@@ -366,7 +366,7 @@ public class AutomatonLogicalOps {
 
         Logging.dedent();
         long timeAfter = System.currentTimeMillis();
-        logMessage(print, QUANTIFIED + ":" + A.fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms");
+        logMessage(print, REMOVED + ":" + A.fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms");
         return M;
     }
 
