@@ -28,10 +28,11 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import Automata.*;
-import Automata.Numeration.Ostrowski;
+import Main.Commands.Ost;
 import Main.Commands.Test;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
+import org.jspecify.annotations.NonNull;
 
 import static Automata.NumberSystem.MSD_2;
 import static Automata.NumberSystem.MSD_UNDERSCORE;
@@ -273,7 +274,6 @@ public class Prover {
   static final int GROUP_describe_DOLLAR_SIGN = 1, GROUP_describe_NAME = 2;
 
   public static String prefix = ""; // Declare here instead of passing around everywhere
-  public static StringBuilder log = new StringBuilder(); // legacy placeholder for old logging overloads
 
   public MetaCommands metaCommands = new MetaCommands();
 
@@ -462,7 +462,6 @@ public class Prover {
   private String parseSetup(String s) {
     metaCommands = new MetaCommands();
     prefix = ""; // reset prefix
-    log = new StringBuilder(); // legacy logging overloads ignore this now
     printDetails = printFlag = false; // reset flags
 
     if (!s.endsWith(";") && !s.endsWith(":")) {
@@ -876,18 +875,7 @@ public class Prover {
 
   public static TestCase ostCommand(String s) {
     Matcher m = ProverHelper.matchOrFail(PAT_FOR_ost_CMD, s, OST);
-
-    String name = m.group(GROUP_OST_NAME);
-    Ostrowski ostr = new Ostrowski(name, m.group(GROUP_OST_PREPERIOD), m.group(GROUP_OST_PERIOD));
-    Automaton repr = ostr.createRepresentationAutomaton();
-    String msdName = NumberSystem.MSD_UNDERSCORE + name;
-    Ostrowski.writeAutomaton(name, msdName + TXT_EXTENSION, repr);
-    Automaton adder = ostr.createAdderAutomaton();
-    Ostrowski.writeAutomaton(name, msdName + NumberSystem.UNDERSCORE_ADDITION_AUTOMATON, adder);
-
-    return new TestCase(
-        List.of(new TestCase.AutomatonFilenamePair(adder, DEFAULT_TESTFILE),
-            new TestCase.AutomatonFilenamePair(repr, TestCase.OST_REPR_TESTFILE)));
+    return Ost.ostCommand(m.group(GROUP_OST_NAME), m.group(GROUP_OST_PREPERIOD), m.group(GROUP_OST_PERIOD));
   }
 
   public TestCase transduceCommand(String s) {
@@ -973,7 +961,11 @@ public class Prover {
     boolean isDFAO = !m.group(GROUP_alphabet_DOLLAR_SIGN).equals("$");
 
     String inFileName = m.group(GROUP_alphabet_OLD_NAME) + TXT_EXTENSION;
+    String newName = m.group(GROUP_alphabet_NEW_NAME);
+    return alphabetCommand(s, m, isDFAO, inFileName, newName);
+  }
 
+  private TestCase alphabetCommand(String s, Matcher m, boolean isDFAO, String inFileName, String newName) {
     List<NumberSystem> NS = new ArrayList<>();
     List<List<Integer>> alphabets = new ArrayList<>();
     determineAlphabetsAndNS(m, NS, alphabets);
@@ -983,7 +975,7 @@ public class Prover {
     // here, call the function to set the number system.
     M.setAlphabet(isDFAO, NS, alphabets, printFlag, prefix);
 
-    M.writeAutomata(s, ProverHelper.determineOutLibrary(isDFAO), m.group(GROUP_alphabet_NEW_NAME), false);
+    M.writeAutomata(s, ProverHelper.determineOutLibrary(isDFAO), newName, false);
     return new TestCase(M);
   }
 
