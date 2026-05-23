@@ -28,11 +28,12 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import Automata.*;
+import Main.Commands.Alphabet;
+import Main.Commands.Describe;
 import Main.Commands.Ost;
 import Main.Commands.Test;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
-import org.jspecify.annotations.NonNull;
 
 import static Automata.NumberSystem.MSD_2;
 import static Automata.NumberSystem.MSD_UNDERSCORE;
@@ -112,10 +113,9 @@ public class Prover {
   static final int R_NAME = 2, R_LIST_OF_ALPHABETS = 3, R_REGEXP = 20;
   static final Pattern PAT_FOR_reg_CMD = Pattern.compile(RE_FOR_reg_CMD);
   static final String RE_FOR_A_SINGLE_ELEMENT_OF_A_SET = "(\\+|\\-)?\\s*\\d+";
-  static final Pattern PAT_FOR_A_SINGLE_ELEMENT_OF_A_SET = Pattern.compile(RE_FOR_A_SINGLE_ELEMENT_OF_A_SET);
-  static final String RE_FOR_AN_ALPHABET = "((((msd|lsd)_(\\d+|\\w+))|((msd|lsd)(\\d+|\\w+))|(msd|lsd)|(\\d+|\\w+))|(\\{(\\s*(\\+|\\-)?\\s*\\d+)(\\s*,\\s*(\\+|\\-)?\\s*\\d+)*\\s*\\}))\\s+";
-  static final Pattern PAT_FOR_AN_ALPHABET = Pattern.compile(RE_FOR_AN_ALPHABET);
-  static final int R_NUMBER_SYSTEM = 2, R_SET = 11;
+  public static final Pattern PAT_FOR_A_SINGLE_ELEMENT_OF_A_SET = Pattern.compile(RE_FOR_A_SINGLE_ELEMENT_OF_A_SET);
+
+  public static final int R_NUMBER_SYSTEM = 2, R_SET = 11;
 
   static final String RE_FOR_AN_ALPHABET_VECTOR = "(\\[(\\s*(\\+|\\-)?\\s*\\d+)(\\s*,\\s*(\\+|\\-)?\\s*\\d+)*\\s*\\])|(\\d)";
   static final Pattern PAT_FOR_AN_ALPHABET_VECTOR = Pattern.compile(RE_FOR_AN_ALPHABET_VECTOR);
@@ -665,14 +665,15 @@ public class Prover {
 
   public static TestCase regCommand(String s) {
     Matcher m = ProverHelper.matchOrFail(PAT_FOR_reg_CMD, s, REG);
-
+    int nsStart = m.start(Prover.R_NUMBER_SYSTEM);
+    String listOfAlphabets = m.group(R_LIST_OF_ALPHABETS);
     List<List<Integer>> alphabets = new ArrayList<>();
     List<NumberSystem> NS = new ArrayList<>();
-    if (m.group(R_LIST_OF_ALPHABETS) == null) {
-      NumberSystem ns = ProverHelper.getNumberSystem(MSD_2, NS, m.start(Prover.R_NUMBER_SYSTEM));
+    if (listOfAlphabets == null) {
+      NumberSystem ns = NumberSystem.getNumberSystem(MSD_2, NS, nsStart);
       alphabets.add(ns.getAlphabet());
     }
-    determineAlphabetsAndNS(m, NS, alphabets);
+    Alphabet.determineAlphabetsAndNS(listOfAlphabets, nsStart, NS, alphabets);
     // To support regular expressions with multiple arity (eg. "[1,0][0,1][0,0]*"), we must translate each of these vectors to an
     // encoding, which will then be turned into a unicode character that dk.brics can work with when constructing an automaton
     // from a regular expression. Since the encoding method is within the Automaton class, we create a dummy instance and load it
@@ -723,14 +724,14 @@ public class Prover {
     Matcher m = ProverHelper.matchOrFail(PAT_FOR_describe_CMD, s, DESCRIBE);
     String inFileName = m.group(GROUP_describe_NAME) + TXT_EXTENSION;
     boolean isDFAO = !m.group(GROUP_describe_DOLLAR_SIGN).equals("$");
-    return ProverHelper.describe(isDFAO, inFileName);
+    return Describe.describe(isDFAO, inFileName);
   }
 
   public static void morphismCommand(String s) throws IOException {
     Matcher m = ProverHelper.matchOrFail(PAT_FOR_morphism_CMD, s, MORPHISM);
     String name = m.group(GROUP_MORPHISM_NAME);
     String morphismDefinition = m.group(GROUP_MORPHISM_DEFINITION);
-    ProverHelper.morphismCommand(morphismDefinition, name);
+    Main.Commands.Morphism.morphismCommand(morphismDefinition, name);
   }
 
   public static TestCase promoteCommand(String s) throws IOException {
@@ -953,48 +954,15 @@ public class Prover {
 
   public TestCase alphabetCommand(String s) {
     Matcher m = ProverHelper.matchOrFail(PAT_FOR_alphabet_CMD, s, ALPHABET);
-
     if (m.group(GROUP_alphabet_LIST_OF_ALPHABETS) == null) {
       throw new WalnutException("List of alphabets for alphabet command must not be empty.");
     }
-    
-    boolean isDFAO = !m.group(GROUP_alphabet_DOLLAR_SIGN).equals("$");
-
-    String inFileName = m.group(GROUP_alphabet_OLD_NAME) + TXT_EXTENSION;
-    String newName = m.group(GROUP_alphabet_NEW_NAME);
-    return alphabetCommand(s, m, isDFAO, inFileName, newName);
-  }
-
-  private TestCase alphabetCommand(String s, Matcher m, boolean isDFAO, String inFileName, String newName) {
-    List<NumberSystem> NS = new ArrayList<>();
-    List<List<Integer>> alphabets = new ArrayList<>();
-    determineAlphabetsAndNS(m, NS, alphabets);
-
-    Automaton M = new Automaton(ProverHelper.determineInLibrary(isDFAO, inFileName));
-
-    // here, call the function to set the number system.
-    M.setAlphabet(isDFAO, NS, alphabets, printFlag, prefix);
-
-    M.writeAutomata(s, ProverHelper.determineOutLibrary(isDFAO), newName, false);
-    return new TestCase(M);
-  }
-
-  private static void determineAlphabetsAndNS(Matcher m, List<NumberSystem> NS, List<List<Integer>> alphabets) {
-    Matcher m1 = PAT_FOR_AN_ALPHABET.matcher(m.group(R_LIST_OF_ALPHABETS));
-    int counter = 1;
-    while (m1.find()) {
-      if ((m1.group(R_NUMBER_SYSTEM) != null)) {
-        String base = determineBase(m1);
-        NumberSystem ns = ProverHelper.getNumberSystem(base, NS, m.start(Prover.R_NUMBER_SYSTEM));
-        alphabets.add(ns.getAlphabet());
-      } else if (m1.group(R_SET) != null) {
-        alphabets.add(ProverHelper.determineAlphabet(m1.group(R_SET)));
-        NS.add(null);
-      } else {
-        throw new WalnutException("Alphabet at position " + counter + " not recognized in alphabet command");
-      }
-      counter += 1;
-    }
+    return Alphabet.alphabetCommand(
+        printFlag, s, m.group(R_LIST_OF_ALPHABETS),
+        m.start(Prover.R_NUMBER_SYSTEM),
+        !m.group(GROUP_alphabet_DOLLAR_SIGN).equals("$"),
+        m.group(GROUP_alphabet_OLD_NAME) + TXT_EXTENSION,
+        m.group(GROUP_alphabet_NEW_NAME));
   }
 
   // TODO: Essentially same as Predicate.deriveNumberSystem()

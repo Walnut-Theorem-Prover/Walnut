@@ -9,7 +9,6 @@ import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -17,22 +16,10 @@ import java.util.Queue;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static Main.TestCase.DEFAULT_TESTFILE;
-
 /**
  * Helper class for Prover.
  */
 public class ProverHelper {
-  static NumberSystem getNumberSystem(String base, List<NumberSystem> numSys, int proverNumberSystem) {
-    try {
-      NumberSystem ns = NumberSystem.getComputeIfAbsent(base);
-      numSys.add(ns);
-      return ns;
-    } catch (RuntimeException e) {
-      throw new WalnutException("number system " + base + " does not exist: char at " + proverNumberSystem + System.lineSeparator() + "\t:" + e.getMessage());
-    }
-  }
-
   /**
    * Export automata to any supported format.
    */
@@ -101,33 +88,6 @@ public class ProverHelper {
     return sb.toString().replaceAll("\\s", "");
   }
 
-  static TestCase describe(boolean isDFAO, String inFileName) {
-    String inLibrary = determineInLibrary(isDFAO, inFileName);
-
-    Automaton M = new Automaton(inLibrary);
-
-    Logging.logMessage(true, "File location: " + inLibrary);
-    String comments = AutomatonReader.readComments(inLibrary);
-    Logging.logMessage(true, "Comments: " + comments);
-    Logging.logMessage(true, "State count:" + M.fa.getQ());
-    Logging.logMessage(true, "Transition count:" + M.fa.getT().determineTransitionCount());
-    Logging.logMessage(true, "Alphabet size:" + M.fa.getAlphabetSize());
-    Logging.logMessage(true, "Number systems:" + M.getNS());
-
-    return new TestCase("", null, null, Logging.getCommandLog(),
-        List.of(new TestCase.AutomatonFilenamePair(M, DEFAULT_TESTFILE)));
-  }
-
-  static void morphismCommand(String morphismDefinition, String name) throws IOException {
-    Morphism M = new Morphism(morphismDefinition);
-    System.out.print("Defined with domain ");
-    System.out.print(M.mapping.keySet());
-    System.out.print(" and range ");
-    System.out.print(M.range);
-    M.write(Session.getAddressForResult() + name + Prover.TXT_EXTENSION);
-    M.write(Session.getWriteAddressForMorphismLibrary() + name + Prover.TXT_EXTENSION);
-  }
-
   static boolean infFromAddress(String address) {
     Automaton M = Automaton.readAutomatonFromFile(address);
     // we don't want to count multiple representations of the same value as distinct accepted values
@@ -142,18 +102,6 @@ public class ProverHelper {
         ("Automaton accepts infinite values, including regex:" + infReg) :
         "Automaton " + automatonName + " accepts finitely many values.");
     return !infReg.isEmpty();
-  }
-
-  static List<Integer> determineAlphabet(String s) {
-    List<Integer> L = new ArrayList<>();
-    s = s.substring(1, s.length() - 1); //truncation { and } from beginning and end
-    Matcher m = Prover.PAT_FOR_A_SINGLE_ELEMENT_OF_A_SET.matcher(s);
-    while (m.find()) {
-      L.add(UtilityMethods.parseInt(m.group()));
-    }
-    UtilityMethods.removeDuplicates(L);
-
-    return L;
   }
 
   static TestCase reverseCommand(String s, String inFileName, boolean isDFAO, String newName, boolean printFlag) {
@@ -218,12 +166,12 @@ public class ProverHelper {
     return new TestCase(N);
   }
 
-  static String determineInLibrary(boolean isDFAO, String inFileName) {
+  public static String determineInLibrary(boolean isDFAO, String inFileName) {
     return isDFAO ?
         Session.getReadFileForWordsLibrary(inFileName) : Session.getReadFileForAutomataLibrary(inFileName);
   }
 
-  static String determineOutLibrary(boolean isDFAO) {
+  public static String determineOutLibrary(boolean isDFAO) {
     return isDFAO ?
         Session.getWriteAddressForWordsLibrary() : Session.getWriteAddressForAutomataLibrary();
   }

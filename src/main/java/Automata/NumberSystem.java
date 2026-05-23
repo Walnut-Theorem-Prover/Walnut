@@ -177,6 +177,16 @@ public class NumberSystem {
       return numberSystemHash.computeIfAbsent(base, NumberSystem::new);
     }
 
+    public static NumberSystem getNumberSystem(String base, List<NumberSystem> numSys, int proverNumberSystem) {
+      try {
+        NumberSystem ns = getComputeIfAbsent(base);
+        numSys.add(ns);
+        return ns;
+      } catch (RuntimeException e) {
+        throw new WalnutException("number system " + base + " does not exist: char at " + proverNumberSystem + System.lineSeparator() + "\t:" + e.getMessage());
+      }
+    }
+
     /**
      * Determine negative number system.
      * Currently used ONLY in split command.
