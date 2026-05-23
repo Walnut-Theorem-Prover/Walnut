@@ -21,6 +21,7 @@ import Automata.FA.FA;
 import Automata.FA.ProductStrategies;
 import Main.EvalComputations.Token.LogicalOperator;
 import Main.EvalComputations.Token.Operator;
+import Main.Logging;
 import Main.Prover;
 import Main.UtilityMethods;
 import Main.WalnutException;
@@ -119,9 +120,11 @@ public class AutomatonLogicalOps {
         long timeBefore = System.currentTimeMillis();
         logMessage(print, prefix + COMPUTING + " " + friendlyOp + ":" + A.fa.getQ() + " states - " + B.fa.getQ() + " states");
 
-        A.fa.totalize(print, prefix + " ");
-        B.fa.totalize(print, prefix + " ");
-        Automaton N = ProductStrategies.crossProductAndMinimize(A, B, friendlyOp, print, prefix + " ");
+        Logging.indent();
+        A.fa.totalize(print, prefix);
+        B.fa.totalize(print, prefix);
+        Automaton N = ProductStrategies.crossProductAndMinimize(A, B, friendlyOp, print, prefix);
+        Logging.dedent();
         N.applyAllRepresentations();
 
         long timeAfter = System.currentTimeMillis();
@@ -163,13 +166,15 @@ public class AutomatonLogicalOps {
         long timeBefore = System.currentTimeMillis();
         logMessage(print, prefix + COMPUTING + " " + Operator.NEGATE + ":" + A.fa.getQ() + " states");
 
-        A.getFa().totalize(print, prefix + " ");
+        Logging.indent();
+        A.getFa().totalize(print, prefix);
         A.getFa().flipOutput();
 
         // TODO: Since we're already in a DFA, we don't need to determinize
-        A.determinizeAndMinimize(print, prefix + " ");
+        A.determinizeAndMinimize(print, prefix);
         A.applyAllRepresentations();
 
+        Logging.dedent();
         long timeAfter = System.currentTimeMillis();
         logMessage(print, prefix + COMPUTED + " " + Operator.NEGATE + ":" + A.fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms");
     }
@@ -325,9 +330,11 @@ public class AutomatonLogicalOps {
         if (A.fa.setStatesReachableToFinalStatesByZeros(A.richAlphabet.determineZero())) {
             long timeBefore = System.currentTimeMillis();
             logMessage(print, prefix + FIXING + " trailing zeros:" + A.fa.getQ() + " states");
+            Logging.indent();
             A.fa.setCanonized(false);
             // We don't have to determinize, since all that was altered was final states
-            A.fa.justMinimize(print, prefix + " ");
+            A.fa.justMinimize(print, prefix);
+            Logging.dedent();
             long timeAfter = System.currentTimeMillis();
             logMessage(print, prefix + FIXED + " trailing zeros:" + A.fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms");
         } else {
@@ -348,7 +355,7 @@ public class AutomatonLogicalOps {
         }
         long timeBefore = System.currentTimeMillis();
         logMessage(print, prefix + REMOVING + " leading zeroes for:" + A.fa.getQ() + " states");
-
+        Logging.indent();
         List<Integer> listOfInputs = new ArrayList<>(listOfLabels.size());
         //extract the list of indices of inputs from the list of labels
         for (String l : listOfLabels) {
@@ -356,11 +363,12 @@ public class AutomatonLogicalOps {
         }
         Automaton M = new Automaton(false);
         for (int n : listOfInputs) {
-            Automaton N = removeLeadingZeroesHelper(A, n, print, prefix + " ");
-            M = or(M, N, print, prefix + " ", LogicalOperator.OR);
+            Automaton N = removeLeadingZeroesHelper(A, n, print, prefix);
+            M = or(M, N, print, prefix, LogicalOperator.OR);
         }
-        M = and(A, M, print, prefix + " ");
+        M = and(A, M, print, prefix);
 
+        Logging.dedent();
         long timeAfter = System.currentTimeMillis();
         logMessage(print, prefix + QUANTIFIED + ":" + A.fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms");
         return M;
@@ -418,14 +426,15 @@ public class AutomatonLogicalOps {
 
         long timeBefore = System.currentTimeMillis();
         logMessage(print, prefix + REVERSING + ":" + A.fa.getQ() + " states");
-
+        Logging.indent();
         IntSet setOfFinalStates = A.fa.reverseToNFAInternal(IntSet.of(A.fa.getQ0()));
-        A.determinizeAndMinimize(setOfFinalStates, print, prefix + " ");
+        A.determinizeAndMinimize(setOfFinalStates, print, prefix);
 
         if (reverseMsd) {
             NumberSystem.flipNS(A.getNS());
         }
 
+        Logging.dedent();
         long timeAfter = System.currentTimeMillis();
         logMessage(print, prefix + REVERSED + ":" + A.fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms");
     }
