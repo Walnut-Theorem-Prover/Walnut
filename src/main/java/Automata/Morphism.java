@@ -18,6 +18,7 @@
 
 package Automata;
 
+import Main.UtilityMethods;
 import Main.WalnutException;
 import it.unimi.dsi.fastutil.ints.*;
 
@@ -78,11 +79,11 @@ public class Morphism {
         Automaton promotion = new Automaton();
 
         final int maxImageLength = determineMaxImageLength(mapping);
-        promotion.richAlphabet.getA().add(intRangeList(maxImageLength));
+        promotion.richAlphabet.getA().add(UtilityMethods.intRangeList(maxImageLength));
         final int maxEntry = determineMaxEntry(mapping);
         final List<Int2ObjectRBTreeMap<IntList>> newD = determineTransitions(mapping);
         promotion.getFa().setFields(
-            maxEntry + 1, new IntArrayList(intRangeList(maxEntry + 1)), newD);
+            maxEntry + 1, new IntArrayList(UtilityMethods.intRangeList(maxEntry + 1)), newD);
         // this word automaton is purely symbolic in input and we want it in the exact order given
         promotion.fa.setCanonized(true);
         // the base for the automata is the length of the longest image of any letter under the morphism
@@ -103,14 +104,6 @@ public class Morphism {
             newD.add(xmap);
         }
         return newD;
-    }
-
-    private static List<Integer> intRangeList(int endExclusive) {
-        List<Integer> result = new ArrayList<>(endExclusive);
-        for (int i = 0; i < endExclusive; i++) {
-            result.add(i);
-        }
-        return result;
     }
 
     private static int determineMaxEntry(Map<Integer, IntList> mapping) {
@@ -191,7 +184,7 @@ public class Morphism {
         predicate.append(")");
         return predicate.toString();
     }
-    
+
     public void validateImageMorphism() {
         if (length < 0) {
             throw WalnutException.morphismNotUniform();

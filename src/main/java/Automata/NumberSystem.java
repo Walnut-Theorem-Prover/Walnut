@@ -445,7 +445,7 @@ public class NumberSystem {
      * iff the third is the sum of the first two. So the input is ordered!
      */
     private Automaton baseNadditionAutomaton(int n) {
-        List<Integer> alphabet = buildAlphabet(n);
+        List<Integer> alphabet = UtilityMethods.intRangeList(n);
         Automaton addition = initBasicAutomaton(IntList.of(1,0), 3, alphabet);
         FA additionFA = addition.getFa();
         int l = 0;
@@ -469,18 +469,12 @@ public class NumberSystem {
         return addition;
     }
 
-    private static List<Integer> buildAlphabet(int n) {
-        List<Integer> alphabet = new ArrayList<>(n);
-        for (int i = 0; i < n; i++) alphabet.add(i);
-        return alphabet;
-    }
-
     /**
      * Initializes addition to base negative n addition. addition has three inputs, and it accepts
      * iff the third is the sum of the first two. So the input is ordered!
      */
     private Automaton baseNegNAddition(int n) {
-        List<Integer> alphabet = buildAlphabet(n);
+        List<Integer> alphabet = UtilityMethods.intRangeList(n);
         Automaton addition =  initBasicAutomaton(IntList.of(1,0,0), 3, alphabet);
         FA additionFA = addition.getFa();
         int l = 0;
@@ -518,7 +512,7 @@ public class NumberSystem {
      * @param n
      */
     private Automaton baseNegNLessThan(int n) {
-        List<Integer> alphabet = buildAlphabet(n);
+        List<Integer> alphabet = UtilityMethods.intRangeList(n);
         Automaton lessThan = initBasicAutomaton(IntList.of(0,1,0), 2, alphabet);
         FA lessThanFA = lessThan.getFa();
         int l = 0;
@@ -545,7 +539,7 @@ public class NumberSystem {
      * the same integer).
      */
     private Automaton baseNBaseChange(int n) {
-        List<Integer> alphabet = buildAlphabet(n);
+        List<Integer> alphabet = UtilityMethods.intRangeList(n);
         Automaton baseChange = initBasicAutomaton(IntList.of(1,1,0,0));
         String baseNameUnderScore = determineBaseNameUnderscore();
         baseChange.getNS().add(new NumberSystem(baseNameUnderScore + n));
@@ -980,7 +974,7 @@ public class NumberSystem {
     }
 
     private Automaton makeConstant(String regex, int constant) {
-        Automaton M = new AutomatonDFA(regex, buildAlphabet(2), this);
+        Automaton M = new AutomatonDFA(regex, UtilityMethods.intRangeList(2), this);
         M.richAlphabet.setA(new ArrayList<>());
         M.richAlphabet.getA().add(new ArrayList<>(getAlphabet()));
         M.determineAlphabetSize();

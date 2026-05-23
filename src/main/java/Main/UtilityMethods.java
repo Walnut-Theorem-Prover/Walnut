@@ -166,4 +166,12 @@ public class UtilityMethods {
         }
         return output.toString();
     }
+
+  public static List<Integer> intRangeList(int endExclusive) {
+      List<Integer> result = new ArrayList<>(endExclusive);
+      for (int i = 0; i < endExclusive; i++) {
+          result.add(i);
+      }
+      return result;
+  }
 }

@@ -654,11 +654,7 @@ public class AutomatonLogicalOps {
      * Updates the automaton's alphabet to [0..newBase-1] and sets alphabetSize accordingly.
      */
     private static void setAutomatonAlphabet(Automaton A, int newBase) {
-        List<Integer> ints = new ArrayList<>(newBase);
-        for (int i = 0; i < newBase; i++) {
-            ints.add(i);
-        }
-        A.richAlphabet.setA(List.of(ints));
+        A.richAlphabet.setA(List.of(UtilityMethods.intRangeList(newBase)));
         A.setAlphabetSize(newBase);
     }
 
