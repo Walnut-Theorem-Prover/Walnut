@@ -89,7 +89,7 @@ public class Ostrowski {
         ParseMethods.parseList(period, this.period);
 
         // Remove leading 0's in the preperiod.
-        removeLeadingZeroes(this.preperiod);
+        removeLeadingZeros(this.preperiod);
 
         if (this.preperiod.isEmpty()) {
             // Easier implementation.
@@ -129,7 +129,7 @@ public class Ostrowski {
         this.totalNodes = 0;
     }
 
-    private void removeLeadingZeroes(IntList iList) {
+    private void removeLeadingZeros(IntList iList) {
         Iterator<Integer> it = iList.iterator();
         int firstNonZero = 0;
         while (it.hasNext() && it.next() == 0) ++firstNonZero;
