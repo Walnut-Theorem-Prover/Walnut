@@ -39,7 +39,7 @@ public class NumberLiteral extends Token {
         return Integer.toString(value);
     }
 
-    public void act(Stack<Expression> S, boolean print, String prefix) {
+    public void act(Stack<Expression> S, boolean print) {
         S.push(new NumberLiteralExpression(Integer.toString(value), value, base));
     }
 }

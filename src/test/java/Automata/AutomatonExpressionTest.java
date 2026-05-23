@@ -30,7 +30,7 @@ class AutomatonExpressionTest {
             b = new AutomatonDFA(true);
             Assertions.assertTrue(EqualityUtils.faEqual(a.fa, b.fa), a.fa + " != " + b.fa);
             Assertions.assertTrue(EqualityUtils.faEqual(a.fa, b.clone().fa));
-            AutomatonLogicalOps.reverse(b, false, "", false);
+            AutomatonLogicalOps.reverse(b, false, false);
             Assertions.assertTrue(EqualityUtils.faEqual(a.fa, b.fa), a.fa + " != " + b.fa);
 
             b = new AutomatonDFA(false);
@@ -66,16 +66,16 @@ class AutomatonExpressionTest {
             Assertions.assertFalse(EqualityUtils.faEqual(a.fa, b.fa), a.fa + " == " + b.fa);
 
             b = a.clone();
-            AutomatonLogicalOps.reverse(b, false, "", false);
+            AutomatonLogicalOps.reverse(b, false, false);
             Assertions.assertFalse(EqualityUtils.faEqual(a.fa, b.fa), a.fa + " == " + b.fa);
             Assertions.assertEquals("[{0=>[1], 1=>[0]}, {}]", b.getFa().getT().getNfaD().toString());
-            AutomatonLogicalOps.reverse(b, false, "", false);
+            AutomatonLogicalOps.reverse(b, false, false);
             Assertions.assertTrue(EqualityUtils.faEqual(a.fa, b.fa), a.fa + " != " + b.fa);
 
             b = a.clone();
-            AutomatonLogicalOps.not(b, false, "");
+            AutomatonLogicalOps.not(b, false);
             Assertions.assertFalse(EqualityUtils.faEqual(a.fa, b.fa), a.fa + " == " + b.fa);
-            AutomatonLogicalOps.not(b, false, "");
+            AutomatonLogicalOps.not(b, false);
             Assertions.assertTrue(EqualityUtils.faEqual(a.fa, b.fa), a.fa + " != " + b.fa);
         }
         catch (RuntimeException ex) {

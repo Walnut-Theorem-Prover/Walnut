@@ -43,11 +43,11 @@ public abstract class Token {
         postOrder.add(this);
     }
 
-    public void act(Stack<Expression> S, String prefix) {
-        act(S, Logging.shouldPrintDetails(), prefix);
+    public void act(Stack<Expression> S) {
+        act(S, Logging.shouldPrintDetails());
     }
 
-    public void act(Stack<Expression> S, boolean print, String prefix) {}
+    public void act(Stack<Expression> S, boolean print) {}
 
     public boolean isOperator() {
         return false;

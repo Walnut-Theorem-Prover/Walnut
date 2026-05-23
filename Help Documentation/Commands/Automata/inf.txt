@@ -2,4 +2,4 @@ The "inf" command determines whether or not an automaton accepts infinitely many
 	
 	inf <name>
 	
-Leading/trailing zeroes are removed (depending on whether the automaton is msd or lsd). The function searches for a cycle, and if one is found, constructs a prefix from the initial state q0 to it, and from it to an accepting state, such that the prefix and suffix are minimal for the particular cycle. This works with multiple arity as well.
+Leading/trailing zeros are removed (depending on whether the automaton is msd or lsd). The function searches for a cycle, and if one is found, constructs a prefix from the initial state q0 to it, and from it to an accepting state, such that the prefix and suffix are minimal for the particular cycle. This works with multiple arity as well.

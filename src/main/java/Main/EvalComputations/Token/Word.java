@@ -47,11 +47,11 @@ public class Word extends Token {
         return name;
     }
 
-    public void act(Stack<Expression> S, boolean print, String prefix) {
+    public void act(Stack<Expression> S, boolean print) {
         super.validateArity(S, "word ", " indices");
         Stack<Expression> temp = reverseStack(S);
         StringBuilder stringValue = new StringBuilder(name);
-        Logging.logAndPrint(prefix + COMPUTING + " " + stringValue + "[...]");
+        Logging.logAndPrint(COMPUTING + " " + stringValue + "[...]");
         List<String> identifiers = new ArrayList<>();
         List<String> quantify = new ArrayList<>();
         Automaton M = new Automaton(true);
@@ -59,13 +59,13 @@ public class Word extends Token {
             Expression expression = temp.pop();
             stringValue.append("[").append(expression).append("]");
             if (expression instanceof VariableExpression ve) {
-                M = ve.act(print, prefix, this, wordAutomaton.getNS().get(i), identifiers, M, quantify);
+                M = ve.act(print, this, wordAutomaton.getNS().get(i), identifiers, M, quantify);
             } else if (expression instanceof ArithmeticExpression ae) {
-                M = ae.act(print, prefix, identifiers, M, quantify);
+                M = ae.act(print, identifiers, M, quantify);
             } else if (expression instanceof NumberLiteralExpression ne) {
-                M = ne.act(print, prefix, this, identifiers, quantify, M);
+                M = ne.act(print, this, identifiers, quantify, M);
             } else if (expression instanceof AutomatonExpression ae) {
-                M = ae.act(print, prefix, name, i, M, identifiers);
+                M = ae.act(print, name, i, M, identifiers);
             } else if (expression == null) {
                 throw new IllegalArgumentException("Expression is null");
             } else {
@@ -75,6 +75,6 @@ public class Word extends Token {
         }
         wordAutomaton.bind(identifiers);
         S.push(new WordExpression(stringValue.toString(), wordAutomaton, M, quantify));
-        Logging.logAndPrint(prefix + COMPUTED + " " + stringValue);
+        Logging.logAndPrint(COMPUTED + " " + stringValue);
     }
 }

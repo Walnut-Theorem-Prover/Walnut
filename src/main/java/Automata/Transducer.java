@@ -92,15 +92,14 @@ public class Transducer extends Automaton {
     /**
      * Transduce an msd-k Automaton M as in Dekking (1994).
      *
-     * @param M      - automaton to transduce
-     * @param print  - whether to print details
-     * @param prefix - prefix for printing details
+     * @param M     - automaton to transduce
+     * @param print - whether to print details
      * @return The transduced Automaton after applying this Transducer to M.
      * @throws Exception
      */
-    public Automaton transduceMsdDeterministic(Automaton M, boolean print, String prefix) {
+    public Automaton transduceMsdDeterministic(Automaton M, boolean print) {
         long timeBefore = System.currentTimeMillis();
-        Logging.logMessage(print, prefix + "transducing: " + M.fa.getQ() + " state automaton - " + fa.getQ() + " state transducer");
+        Logging.logMessage(print, "transducing: " + M.fa.getQ() + " state automaton - " + fa.getQ() + " state transducer");
         Logging.indent();
         // N will be the returned Automaton, just have to build it up.
         Automaton N = new Automaton();
@@ -232,11 +231,11 @@ public class Transducer extends Automaton {
         N.fa.setQ(states.size());
         N.setAlphabetSize(M.getAlphabetSize());
 
-        WordAutomaton.minimizeSelfWithOutput(N, print, prefix);
+        WordAutomaton.minimizeSelfWithOutput(N, print);
 
         long timeAfter = System.currentTimeMillis();
         Logging.dedent();
-        Logging.logMessage(print, prefix + "transduced: " + N.fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms");
+        Logging.logMessage(print, "transduced: " + N.fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms");
 
         return N;
     }
@@ -263,13 +262,12 @@ public class Transducer extends Automaton {
      * Transduce an automaton that may have undefined transitions as in Dekking (1994). The automaton may not have
      * more than one transition per input character per state.
      *
-     * @param M      - automaton to transduce
-     * @param print  - whether to print details
-     * @param prefix - prefix for printing details
+     * @param M     - automaton to transduce
+     * @param print - whether to print details
      * @return The transduced Automaton after applying this Transducer to M.
      * @throws Exception
      */
-    public Automaton transduceNonDeterministic(Automaton M, boolean print, String prefix) {
+    public Automaton transduceNonDeterministic(Automaton M, boolean print) {
         // check that the input automaton only has one input!
         if (M.getNS().size() != 1) {
             throw new WalnutException("Automata with only one input can be transduced.");
@@ -288,10 +286,10 @@ public class Transducer extends Automaton {
         boolean toLsd = false;
 
         if (!M.getNS().get(0).isMsd()) {
-            Logging.logMessage(print, prefix + "Automaton number system is lsd, reversing");
+            Logging.logMessage(print, "Automaton number system is lsd, reversing");
             toLsd = true;
             Logging.indent();
-            WordAutomaton.reverseWithOutput(M, true, print, prefix);
+            WordAutomaton.reverseWithOutput(M, true, print);
             Logging.dedent();
         }
 
@@ -302,11 +300,11 @@ public class Transducer extends Automaton {
         Automaton N;
         if (totalized) {
             // transduce normally
-            N = transduceMsdDeterministic(M, print, prefix);
+            N = transduceMsdDeterministic(M, print);
         }
         else {
             Automaton Mnew = M.clone();
-            Mnew.fa.addDistinguishedDeadState(print, prefix);
+            Mnew.fa.addDistinguishedDeadState(print);
 
             // after transducing, all states with this minimum output will be removed.
             int minOutput = Mnew.fa.determineMinOutput();
@@ -320,14 +318,14 @@ public class Transducer extends Automaton {
                 Tnew.sigma.get(q).put(minOutput, minOutput);
             }
 
-            N = Tnew.transduceMsdDeterministic(Mnew, print, prefix);
+            N = Tnew.transduceMsdDeterministic(Mnew, print);
 
             AutomatonLogicalOps.removeStatesWithOutputRebuild(N.fa, minOutput);
             N.forceCanonize();
         }
 
         if (toLsd) {
-            WordAutomaton.reverseWithOutput(N, true, print, prefix);
+            WordAutomaton.reverseWithOutput(N, true, print);
         }
 
         Logging.dedent();

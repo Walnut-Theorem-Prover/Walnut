@@ -278,7 +278,7 @@ public class NumberSystem {
             return new Automaton(mainName);
         } else if (fComplement.isFile()) {
             Automaton A = new Automaton(complementName);
-            AutomatonLogicalOps.reverse(A, false, null, false);
+            AutomatonLogicalOps.reverse(A, false, false);
             return A;
         }
         return null;
@@ -297,7 +297,7 @@ public class NumberSystem {
                 throw new WalnutException("Number system " + name + " is not defined.");
             }
             if (!isMsd) {
-                AutomatonLogicalOps.reverse(addition, false, null, false);
+                AutomatonLogicalOps.reverse(addition, false, false);
             }
         }
 
@@ -343,7 +343,7 @@ public class NumberSystem {
                 lessThan = lexicographicLessThan(getAlphabet());
             }
             if (!isMsd) {
-                AutomatonLogicalOps.reverse(lessThan, false, null, false);
+                AutomatonLogicalOps.reverse(lessThan, false, false);
             }
         }
 
@@ -434,7 +434,7 @@ public class NumberSystem {
             if (UtilityMethods.parseNegNumber(base) > 1) {
                 baseChange = baseNBaseChange(UtilityMethods.parseNegNumber(base));
                 if (isMsd) {
-                    AutomatonLogicalOps.reverse(baseChange, false, null, false);
+                    AutomatonLogicalOps.reverse(baseChange, false, false);
                 }
             }
             if (baseChange == null) {
@@ -627,7 +627,7 @@ public class NumberSystem {
     private Automaton applyComparison(Automaton base, String a, String b, boolean reverse, boolean negate) {
         Automaton result = base.clone();
         result.bind(reverse ? List.of(b,a) : List.of(a,b));
-        if (negate) AutomatonLogicalOps.not(result, false, null);
+        if (negate) AutomatonLogicalOps.not(result, false);
         return result;
     }
 
@@ -670,14 +670,14 @@ public class NumberSystem {
                 return N;
             } else if (comparisonOperator.equals(RelationalOperator.Ops.NOT_EQUAL)) {
                 N.bind(List.of(a));
-                AutomatonLogicalOps.not(N, false, null);
+                AutomatonLogicalOps.not(N, false);
                 return N;
             }
             N.bind(List.of(B));
             M = comparison(a, B, comparisonOperator);
         }
-        M = AutomatonLogicalOps.and(M, N, false, null);
-        AutomatonQuantification.quantify(M, B, false, null);
+        M = AutomatonLogicalOps.and(M, N, false);
+        AutomatonQuantification.quantify(M, B, false);
         return M;
     }
 
@@ -763,8 +763,8 @@ public class NumberSystem {
             N.bind(List.of(B));
             M = arithmetic(a, B, c, arithmeticOperator);
         }
-        M = AutomatonLogicalOps.and(M, N, false, null);
-        AutomatonQuantification.quantify(M, B, false, null);
+        M = AutomatonLogicalOps.and(M, N, false);
+        AutomatonQuantification.quantify(M, B, false);
         return M;
     }
 
@@ -806,8 +806,8 @@ public class NumberSystem {
             N.bind(List.of(A));
             M = arithmetic(A, b, c, arithmeticOperator);
         }
-        M = AutomatonLogicalOps.and(M, N, false, null);
-        AutomatonQuantification.quantify(M, A, false, null);
+        M = AutomatonLogicalOps.and(M, N, false);
+        AutomatonQuantification.quantify(M, A, false);
         return M;
     }
 
@@ -845,8 +845,8 @@ public class NumberSystem {
             N.bind(List.of(C));
             M = arithmetic(a, b, C, arithmeticOperator);
         }
-        M = AutomatonLogicalOps.and(M, N, false, null);
-        AutomatonQuantification.quantify(M, C, false, null);
+        M = AutomatonLogicalOps.and(M, N, false);
+        AutomatonQuantification.quantify(M, C, false);
         return M;
     }
 
@@ -871,8 +871,8 @@ public class NumberSystem {
             M.bind(List.of(b));
             // Eb, a + b = 0 & b = -n
             P = arithmetic(a, b, 0, ArithmeticOperator.Ops.PLUS);
-            P = AutomatonLogicalOps.and(P, M, false, null);
-            AutomatonQuantification.quantify(P, b, false, null);
+            P = AutomatonLogicalOps.and(P, M, false);
+            AutomatonQuantification.quantify(P, b, false);
         } else { // n > 0
             // a = floor(n/2)
             Automaton M = getConstant(n / 2);
@@ -882,9 +882,9 @@ public class NumberSystem {
             N.bind(List.of(b));
             // Ea,Eb, a + b = c & a = floor(n/2) & b = ceil(n/2)
             P = arithmetic(a, b, c, ArithmeticOperator.Ops.PLUS);
-            P = AutomatonLogicalOps.and(P, M, false, null);
-            P = AutomatonLogicalOps.and(P, N, false, null);
-            AutomatonQuantification.quantify(P, Set.of(a, b), false, null);
+            P = AutomatonLogicalOps.and(P, M, false);
+            P = AutomatonLogicalOps.and(P, N, false);
+            AutomatonQuantification.quantify(P, Set.of(a, b), false);
         }
         constantsDynamicTable.put(n, P);
         return P;
@@ -911,8 +911,8 @@ public class NumberSystem {
             M.bind(List.of(a, c));
             // Ec b + c = 0 & c = (-n)*a
             P = arithmetic(b, c, 0, ArithmeticOperator.Ops.PLUS);
-            P = AutomatonLogicalOps.and(P, M, false, null);
-            AutomatonQuantification.quantify(P, c, false, null);
+            P = AutomatonLogicalOps.and(P, M, false);
+            AutomatonQuantification.quantify(P, c, false);
             P.sortLabel();
         } else if (n == 2) {
             P = arithmetic(a, a, d, ArithmeticOperator.Ops.PLUS);
@@ -927,14 +927,14 @@ public class NumberSystem {
 
             if (n % 2 == 0) { // suppose n = 2k
                 D.bind(List.of(b, d));
-                P = AutomatonLogicalOps.and(M, D, false, null);
-                AutomatonQuantification.quantify(P, b, false, null);
+                P = AutomatonLogicalOps.and(M, D, false);
+                AutomatonQuantification.quantify(P, b, false);
             } else { // n = 2k+1
                 D.bind(List.of(b, c));
                 P = arithmetic(c, a, d, ArithmeticOperator.Ops.PLUS);
-                P = AutomatonLogicalOps.and(P, M, false, null);
-                P = AutomatonLogicalOps.and(P, D, false, null);
-                AutomatonQuantification.quantify(P, Set.of(b, c), false, null);
+                P = AutomatonLogicalOps.and(P, M, false);
+                P = AutomatonLogicalOps.and(P, D, false);
+                AutomatonQuantification.quantify(P, Set.of(b, c), false);
             }
 
             P.sortLabel();
@@ -966,10 +966,10 @@ public class NumberSystem {
         Automaton P1 = comparison(r, 0, n < 0 ? RelationalOperator.Ops.LESS_EQ_THAN : RelationalOperator.Ops.GREATER_EQ_THAN);
         Automaton P2 = comparison(r, n, n < 0 ? RelationalOperator.Ops.GREATER_THAN : RelationalOperator.Ops.LESS_THAN);
 
-        Automaton P = AutomatonLogicalOps.and(P1, P2, false, null);
-        Automaton R = AutomatonLogicalOps.and(M, N, false, null);
-        R = AutomatonLogicalOps.and(R, P, false, null);
-        AutomatonQuantification.quantify(R, Set.of(q, r), false, null);
+        Automaton P = AutomatonLogicalOps.and(P1, P2, false);
+        Automaton R = AutomatonLogicalOps.and(M, N, false);
+        R = AutomatonLogicalOps.and(R, P, false);
+        AutomatonQuantification.quantify(R, Set.of(q, r), false);
         R.sortLabel();
         divisionsDynamicTable.put(n, R);
         return R;

@@ -73,7 +73,7 @@ public class AutomataTest {
 
     Queue<Automaton> q = new LinkedList<>();
     q.add(A.clone());
-    Automaton c = AutomatonLogicalOps.combine(A, q, IntList.of(1,2), false, "");
+    Automaton c = AutomatonLogicalOps.combine(A, q, IntList.of(1,2), false);
 
     /*
     Combined:
@@ -108,7 +108,7 @@ public class AutomataTest {
 
     Queue<Automaton> q = new LinkedList<>();
     q.add(B.clone());
-    Automaton c = AutomatonLogicalOps.combine(A, q, IntList.of(1,2), false, "");
+    Automaton c = AutomatonLogicalOps.combine(A, q, IntList.of(1,2), false);
 
     /*
     Combined:
@@ -127,7 +127,7 @@ public class AutomataTest {
 
     q.clear();
     q.add(A.clone());
-    c = AutomatonLogicalOps.combine(B, q, IntList.of(1,2), false, "");
+    c = AutomatonLogicalOps.combine(B, q, IntList.of(1,2), false);
 
      /*
     Combined:
@@ -155,7 +155,7 @@ public class AutomataTest {
      */
     Queue<Automaton> q = new LinkedList<>();
     q.add(A.clone());
-    Automaton c = AutomatonLogicalOps.combine(A, q, IntList.of(1,2), false, "");
+    Automaton c = AutomatonLogicalOps.combine(A, q, IntList.of(1,2), false);
 
     Assertions.assertEquals(A.richAlphabet.getA(), c.richAlphabet.getA()); // languages are same
     Assertions.assertEquals(0, c.fa.getQ0());

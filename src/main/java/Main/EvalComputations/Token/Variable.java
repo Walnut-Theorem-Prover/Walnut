@@ -36,7 +36,7 @@ public class Variable extends Token {
         return name;
     }
 
-    public void act(Stack<Expression> S, boolean print, String prefix) {
+    public void act(Stack<Expression> S, boolean print) {
         S.push(new VariableExpression(name));
     }
 }

@@ -92,7 +92,7 @@ public class ProverHelper {
     Automaton M = Automaton.readAutomatonFromFile(address);
     // we don't want to count multiple representations of the same value as distinct accepted values
     M.randomLabel();
-    M = AutomatonLogicalOps.removeLeadingZeroes(M, M.getLabel(), false, null);
+    M = AutomatonLogicalOps.removeLeadingZeros(M, M.getLabel(), false);
     return infFromAutomaton(address, M);
   }
 
@@ -107,9 +107,9 @@ public class ProverHelper {
   static TestCase reverseCommand(String s, String inFileName, boolean isDFAO, String newName, boolean printFlag) {
     Automaton M = new Automaton(determineInLibrary(isDFAO, inFileName));
     if (isDFAO) {
-      WordAutomaton.reverseWithOutput(M, true, printFlag, Logging.prefix);
+      WordAutomaton.reverseWithOutput(M, true, printFlag);
     } else {
-      AutomatonLogicalOps.reverse(M, printFlag, Logging.prefix, true);
+      AutomatonLogicalOps.reverse(M, printFlag, true);
     }
     M.writeAutomata(s, determineOutLibrary(isDFAO), newName, true);
     return new TestCase(M);
@@ -157,10 +157,10 @@ public class ProverHelper {
     UtilityMethods.removeDuplicates(outputs);
     List<Automaton> subautomata = WordAutomaton.uncombine(M, outputs);
 
-    subautomata.replaceAll(automaton -> automaton.processSplit(plusMinusInputs, isReverse, printFlag, Logging.prefix));
+    subautomata.replaceAll(automaton -> automaton.processSplit(plusMinusInputs, isReverse, printFlag));
 
     Automaton N = subautomata.remove(0);
-    N = AutomatonLogicalOps.combine(N, new LinkedList<>(subautomata), outputs, printFlag, Logging.prefix);
+    N = AutomatonLogicalOps.combine(N, new LinkedList<>(subautomata), outputs, printFlag);
 
     N.writeAutomata(s, determineOutLibrary(isDFAO), name, isDFAO);
     return new TestCase(N);
@@ -190,7 +190,7 @@ public class ProverHelper {
       subautomata.add(M);
     }
 
-    Automaton C = AutomatonLogicalOps.combine(first, subautomata, outputs, print, Logging.prefix);
+    Automaton C = AutomatonLogicalOps.combine(first, subautomata, outputs, print);
 
     C.writeAutomata(s, Session.getWriteAddressForWordsLibrary(), m.group(Prover.GROUP_COMBINE_NAME), true);
     return new TestCase(C);

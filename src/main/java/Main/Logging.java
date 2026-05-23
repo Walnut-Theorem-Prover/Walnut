@@ -39,6 +39,9 @@ public class Logging {
 
   // note caps. This is historical, and just to avoid changing lots of code.
 
+  public static final String CONVERTED = "Converted";
+  public static final String CONVERTING = "Converting";
+
   public static final String DETERMINIZED = "Determinized";
   public static final String DETERMINIZING = "Determinizing";
 
@@ -58,7 +61,6 @@ public class Logging {
   private static final ThreadLocal<Boolean> evalLogFilesActive = ThreadLocal.withInitial(() -> false);
   private static final ThreadLocal<StringBuilder> commandLog = ThreadLocal.withInitial(StringBuilder::new);
   private static final ThreadLocal<StringBuilder> detailedLog = ThreadLocal.withInitial(StringBuilder::new);
-  public static String prefix = ""; // Declare here instead of passing around everywhere
   private static int indentCount = 0;
 
   public static void configureForCommand(boolean shouldPrintSteps, boolean shouldPrintDetails) {

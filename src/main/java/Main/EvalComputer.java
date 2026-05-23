@@ -18,7 +18,6 @@
 
 package Main;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
@@ -29,8 +28,6 @@ import Automata.Writer.AutomatonMatrixWriter;
 import Automata.Writer.MatrixEmitter;
 import Main.EvalComputations.Expressions.AutomatonExpression;
 import Main.EvalComputations.Expressions.Expression;
-import Main.EvalComputations.Token.LogicalOperator;
-import Main.EvalComputations.Token.Operator;
 import Main.EvalComputations.Token.Token;
 
 /**
@@ -46,41 +43,23 @@ public class EvalComputer {
     return result.toString();
   }
 
-  public String getLogDetails() { return Logging.getDetailedLog(); }
-
   void compute(Predicate predicate) {
     Stack<Expression> expressions = new Stack<>();
     List<Token> postOrder = predicate.getPostOrder();
-    String prefix = "";
     long timeBeginning = System.currentTimeMillis();
     String step;
 
-    // TODO: make this strongly-typed.
-    boolean earlyTermination =
-        Prover.earlyExistTermination && postOrder.get(postOrder.size() - 1).toString().equals(Operator.EXISTS);
-
-    for (int i = 0; i < postOrder.size(); i++) {
-      Token t = postOrder.get(i);
+    for (Token t : postOrder) {
       try {
         long timeBefore = System.currentTimeMillis();
-        if (!earlyTermination || i < postOrder.size() - 1) {
-          t.act(expressions, prefix);
-        } else {
-          // Special-case: the last operand is "E" and we have an earlyExistTermination metacommand
-          // return early without determinizing
-          if (!(t instanceof LogicalOperator)) {
-            throw WalnutException.unexpectedOperator(t.toString());
-          }
-          ((LogicalOperator) t).actExistsSpecialCase(expressions, prefix);
-          break;
-        }
+        t.act(expressions);
         long timeAfter = System.currentTimeMillis();
         Expression nextExpression = expressions.peek();
         if (t.isOperator() && nextExpression instanceof AutomatonExpression) {
-          step = prefix + nextExpression + ":" +
+          step = nextExpression + ":" +
               nextExpression.M.fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms";
           Logging.logEvaluationStep(step, false);
-          prefix += " ";
+          Logging.indent();
         }
       } catch (RuntimeException e) {
         Logging.printTruncatedStackTrace(e);
@@ -91,13 +70,12 @@ public class EvalComputer {
     }
 
     long timeEnd = System.currentTimeMillis();
-    step = "Total computation time: " + (timeEnd - timeBeginning) + "ms.";
-    Logging.logEvaluationStep(step, true);
+    Logging.resetIndent();
+    Logging.logEvaluationStep("Total computation time: " + (timeEnd - timeBeginning) + "ms.", true);
 
     if (expressions.size() > 1) {
       StringBuilder message =
-          new StringBuilder("Cannot evaluate the following into a single automaton:" +
-              System.lineSeparator());
+          new StringBuilder("Cannot evaluate the following into a single automaton:" + System.lineSeparator());
       Stack<Expression> tmp = new Stack<>();
 
       while (!expressions.isEmpty()) {
@@ -121,8 +99,7 @@ public class EvalComputer {
   }
 
   List<String> writeAutomata(
-      String predicateStr, String evalName, String freeVarStr, String resultName)
-      throws IOException {
+      String predicateStr, String evalName, String freeVarStr, String resultName) {
     Automaton M = result.M;
     M.writeAutomata(predicateStr, Session.getWriteAddressForAutomataLibrary(), evalName, false);
 

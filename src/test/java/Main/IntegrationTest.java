@@ -20,6 +20,8 @@ package Main;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -958,7 +960,7 @@ public class IntegrationTest {
 		}
 	}
 
-	private static void assertEqualMessages(String expected, String actual) {
+	private static void assertEqualMessages(String expected, String actual) throws IOException {
 		String expectedDetails = expected.trim();
 		expectedDetails = expectedDetails.replaceAll(" {2}"," ");
 		//		expectedDetails = expectedDetails.replaceAll(" ",""); if whitespace is confusing you
@@ -971,6 +973,9 @@ public class IntegrationTest {
 		actualDetails = actualDetails.replaceAll("\\s*Progress:.*", "");
 
 		if (!expectedDetails.equals(actualDetails)) {
+			// useful for one-off corrections of integration tests
+			Files.write(Paths.get("./example.txt"), actual.getBytes());
+			
 			int startIndex = findFirstDifferingIndex(expectedDetails, actualDetails);
 			String message = "Messages do not conform. \n ----- STARTING SECTION:\n" + expectedDetails.substring(0, startIndex);
 			message += "\n ----- EXPECTED SECTION:\n" + expectedDetails.substring(startIndex);

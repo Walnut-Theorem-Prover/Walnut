@@ -84,7 +84,7 @@ All notable changes to Walnut will be documented here. Format is based on [Keep 
 - Help documentation
 - Automata operations
 - alphabet command
-- Fixing leading and trailing zeroes
+- Fixing leading and trailing zeros
 - Delimiters for word automata
 - Drawing automata and word automata
 - Reversing automata

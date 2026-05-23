@@ -6,31 +6,31 @@ j<=i:2 states - 0ms
  computing j+n
  computed j+n
  computing (i+m)<=(j+n)
-  computing &:2 states - 2 states
-   computing cross product:2 states - 2 states
-   computed cross product:4 states - 0ms
-   Minimizing: 4 states.
-   Minimized:4 states - 0ms.
-  computed &:4 states - 0ms
-  quantifying:4 states
+   computing &:2 states - 2 states
+    computing cross product:2 states - 2 states
+    computed cross product:4 states - 1ms
     Minimizing: 4 states.
-    Minimized:3 states - 0ms.
-  quantified:3 states - 0ms
-  fixing trailing zeros: no change necessary.
-  computing &:3 states - 2 states
-   computing cross product:3 states - 2 states
-   computed cross product:6 states - 0ms
-   Minimizing: 6 states.
-   Minimized:6 states - 0ms.
-  computed &:6 states - 0ms
-  quantifying:6 states
+    Minimized:4 states - 0ms.
+   computed &:4 states - 1ms
+   quantifying:4 states
+     Minimizing: 4 states.
+     Minimized:3 states - 0ms.
+   quantified:3 states - 0ms
+   fixing trailing zeros: no change necessary.
+   computing &:3 states - 2 states
+    computing cross product:3 states - 2 states
+    computed cross product:6 states - 0ms
     Minimizing: 6 states.
     Minimized:6 states - 0ms.
-  quantified:6 states - 1ms
-  fixing trailing zeros:6 states
-   Minimizing: 6 states.
-   Minimized:4 states - 0ms.
-  fixed trailing zeros:4 states - 0ms
+   computed &:6 states - 0ms
+   quantifying:6 states
+     Minimizing: 6 states.
+     Minimized:6 states - 0ms.
+   quantified:6 states - 0ms
+   fixing trailing zeros:6 states
+    Minimizing: 6 states.
+    Minimized:4 states - 0ms.
+   fixed trailing zeros:4 states - 0ms
  computed (i+m)<=(j+n)
  (i+m)<=(j+n):4 states - 1ms
   computing j<=i&(i+m)<=(j+n)
@@ -38,8 +38,8 @@ j<=i:2 states - 0ms
     computing cross product:2 states - 4 states
     computed cross product:6 states - 0ms
     Minimizing: 6 states.
-    Minimized:6 states - 0ms.
-   computed &:6 states - 0ms
+    Minimized:6 states - 1ms.
+   computed &:6 states - 1ms
   computed j<=i&(i+m)<=(j+n)
-  (j<=i&(i+m)<=(j+n)):6 states - 0ms
-Total computation time: 1ms.
+  (j<=i&(i+m)<=(j+n)):6 states - 1ms
+Total computation time: 2ms.

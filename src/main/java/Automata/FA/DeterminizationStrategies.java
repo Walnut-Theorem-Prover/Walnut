@@ -87,9 +87,7 @@ public class DeterminizationStrategies {
      *   OTF-CCL, OTF-CCLS
      *   Brzozowski + (OTF-CCL, OTF-CCLS)
      */
-    public static void determinize(
-        Automaton A, IntSet initialState, boolean print, String prefix) {
-
+    public static void determinize(Automaton A, IntSet initialState, boolean print) {
       FA fa = A.getFa();
       long timeBefore = System.currentTimeMillis();
 
@@ -110,7 +108,7 @@ public class DeterminizationStrategies {
               exportFormat, A, fa.isFAO());
         }
 
-        Logging.logMessage(print, prefix + DETERMINIZING +
+        Logging.logMessage(print, DETERMINIZING +
             " " + strategy.outputName(automataIdx) + ": " + fa.getQ() + " states");
       }
 
@@ -121,53 +119,50 @@ public class DeterminizationStrategies {
       }
 
       switch (strategy) {
-        case SC -> SC(fa, initialState, print, prefix);
-        case BRZ, BRZ_CCL, BRZ_CCLS -> Brz(fa, initialState, strategy, print, prefix);
-        case CCL, CCLS -> OTF(fa, initialState, strategy.doSimulation, print, prefix);
+        case SC -> SC(fa, initialState);
+        case BRZ, BRZ_CCL, BRZ_CCLS -> Brz(fa, initialState, strategy, print);
+        case CCL, CCLS -> OTF(fa, initialState, strategy.doSimulation);
       }
 
       long timeAfter = System.currentTimeMillis();
 
       Logging.logMessage(
-          print, prefix + DETERMINIZED + ": " + fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms");
+          print, DETERMINIZED + ": " + fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms");
     }
 
   /**
    * Brzozowski's strategy for SC (or OTF).
-   * @param fa - finite automaton
+   *
+   * @param fa            - finite automaton
    * @param initialStates - original initial states
-   * @param strategy - BRZ or OTF_BRZ
+   * @param strategy      - BRZ or OTF_BRZ
    */
-  private static void Brz(
-      FA fa, IntSet initialStates, Strategy strategy, boolean print, String prefix) {
+  private static void Brz(FA fa, IntSet initialStates, Strategy strategy, boolean print) {
     strategy = strategy.removeBrzozowski();
 
     // Reverse, determinize, minimize
-    brzStep(fa, initialStates, strategy, print, prefix, "Reverse");
-    fa.justMinimize(print, prefix); // also switches back to NFA representation
+    brzStep(fa, initialStates, strategy, "Reverse");
+    fa.justMinimize(print); // also switches back to NFA representation
 
     // Reverse and determinize again. Note that initial state is now q0
-    brzStep(fa, IntSet.of(fa.getQ0()), Strategy.SC, print, prefix, "Reverse of reverse");
+    brzStep(fa, IntSet.of(fa.getQ0()), Strategy.SC, "Reverse of reverse");
   }
 
   private static void brzStep(FA fa, IntSet initialStates, Strategy strategy,
-                              boolean print, String prefix, String message) {
+                              String message) {
     long timeBefore = System.currentTimeMillis();
     IntSet newInitialStates = fa.reverseToNFAInternal(initialStates);
-    Logging.logMessage(
-        print, prefix + message + " -- " + DETERMINIZING + " with strategy:" + strategy.name + ".");
+    Logging.logMessage(message + " -- " + DETERMINIZING + " with strategy:" + strategy.name + ".");
     if (strategy.equals(Strategy.SC)) {
-      SC(fa, newInitialStates, print, prefix);
+      SC(fa, newInitialStates);
     } else {
-      OTF(fa, newInitialStates, strategy.doSimulation, print, prefix);
+      OTF(fa, newInitialStates, strategy.doSimulation);
     }
     long timeAfter = System.currentTimeMillis();
-    Logging.logMessage(
-        print, prefix + message + ": " + fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms");
+    Logging.logMessage(message + ": " + fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms");
   }
 
-  private static void SC(
-      FA fa, IntSet initialState, boolean print, String prefix) {
+  private static void SC(FA fa, IntSet initialState) {
     long timeBefore = System.currentTimeMillis();
 
     int stateCount = 0, currentState = 0;
@@ -186,11 +181,11 @@ public class DeterminizationStrategies {
 
     while (currentState < stateCount) {
 
-      if (print) {
+      if (Logging.shouldPrintDetails()) {
         int statesSoFar = currentState + 1;
         long timeAfter = System.currentTimeMillis();
         Logging.logMessage(statesSoFar == 1e2 || statesSoFar == 1e3 || statesSoFar % 1e4 == 0,
-            prefix + "  Progress: Added " + statesSoFar + " states - "
+            "  Progress: Added " + statesSoFar + " states - "
                 + (stateCount - statesSoFar) + " states left in queue - "
                 + stateCount + " reachable states - " + (timeAfter - timeBefore) + "ms");
       }
@@ -231,25 +226,21 @@ public class DeterminizationStrategies {
     fa.getT().setDfaD(dfaD);
   }
 
-  private static void OTF(
-      FA fa, IntSet initialState, boolean doSimulation, boolean print, String prefix) {
+  private static void OTF(FA fa, IntSet initialState, boolean doSimulation) {
     long timeBefore = System.currentTimeMillis();
 
     CompactNFA<Integer> compactNFA = fa.FAtoCompactNFA(initialState);
     CompactNFA<Integer> reduced = NFATrim.bisim(compactNFA);
     if (reduced.size() < fa.getQ()) {
-      Logging.logMessage(
-          print, prefix + "Bisimulation reduced to " + reduced.size() + " states");
+      Logging.logMessage("Bisimulation reduced to " + reduced.size() + " states");
     }
     ArrayList<BitSet> simRels = new ArrayList<>();
     if (doSimulation) {
-      Logging.logMessage(
-          print, prefix + "Calculating simulation relations; this can be resource-intensive");
+      Logging.logMessage("Calculating simulation relations; this can be resource-intensive");
       int prevSize = reduced.size();
       reduced = ParallelSimulation.fullyComputeRels(reduced, simRels, true);
       if (reduced.size() != prevSize) {
-        Logging.logMessage(
-            print, prefix + "Simulation altered to " + reduced.size() + " states");
+        Logging.logMessage("Simulation altered to " + reduced.size() + " states");
       }
       if (!simRels.isEmpty()) {
         int simCount = 0;
@@ -258,8 +249,7 @@ public class DeterminizationStrategies {
             simCount += b.cardinality();
           }
         }
-        Logging.logMessage(
-            print, prefix + "Found " + simCount + " simulation relations");
+        Logging.logMessage("Found " + simCount + " simulation relations");
       }
     }
     final Threshold threshold = Threshold.adaptiveSteps(4000);
@@ -285,13 +275,13 @@ public class DeterminizationStrategies {
     long statesExplored = 0;
 
     while (!stack.isEmpty()) {
-      if (print) {
+      if (Logging.shouldPrintDetails()) {
         if (statesExplored == 1e2 || statesExplored == 1e3 || statesExplored % 1e4 == 0) {
           int statesSoFar = out.size() - stateBuffer.size();
           int queueSize = stack.size();
           long timeAfter = System.currentTimeMillis();
           Logging.logMessage(true,
-              prefix + "  Progress: Explored " + statesExplored + " states - "
+              "  Progress: Explored " + statesExplored + " states - "
                   + queueSize + " states left in queue - " + statesSoFar + " states added - "
                   + (timeAfter - timeBefore) + "ms");
         }
@@ -328,8 +318,8 @@ public class DeterminizationStrategies {
         int statesSoFar = out.size() - stateBuffer.size();
         threshold.update(statesSoFar);
         long timeAfter = System.currentTimeMillis();
-        Logging.logMessage(print,
-            prefix + "  Progress: Periodic minimization: " + oldStatesSoFar + " -> " + statesSoFar + " states added - " + (timeAfter - timeBefore) + "ms");
+        Logging.logMessage(
+            "  Progress: Periodic minimization: " + oldStatesSoFar + " -> " + statesSoFar + " states added - " + (timeAfter - timeBefore) + "ms");
       }
     }
     fa.setFromCompactDFA(out);

@@ -30,8 +30,8 @@ public class ProductStrategies {
      * Cross-product of two DFAs. Output is an NFA (for now).
      */
     public static void crossProductInternal(
-            FA A, FA B, FA AxB, int combineOut, int[] allInputsOfAxB, String op,
-            boolean print, String prefix, long timeBefore) {
+        FA A, FA B, FA AxB, int combineOut, int[] allInputsOfAxB, String op,
+        boolean print, long timeBefore) {
         List<IntIntPair> statesList = new ArrayList<>();
         Object2IntMap<IntIntPair> statesHash = new Object2IntOpenHashMap<>();
         statesHash.defaultReturnValue(MISSING_ELT);
@@ -44,7 +44,7 @@ public class ProductStrategies {
                 int statesSoFar = currentState + 1;
                 long timeAfter = System.currentTimeMillis();
                 Logging.logMessage(statesSoFar == 1e2 || statesSoFar == 1e3 || statesSoFar == 1e4 || statesSoFar % 1e5 == 0,
-                        prefix + "  Progress: Added " + statesSoFar + " states - "
+                        "  Progress: Added " + statesSoFar + " states - "
                     + (statesList.size() - statesSoFar) + " states left in queue - "
                     + statesList.size() + " reachable states - " + (timeAfter - timeBefore) + "ms");
             }
@@ -90,15 +90,15 @@ public class ProductStrategies {
         AxB.setQ(statesList.size());
         long timeAfter = System.currentTimeMillis();
         Logging.logMessage(print,
-                prefix + COMPUTED + " cross product:" + AxB.getQ() + " states - " + (timeAfter - timeBefore) + "ms");
+                COMPUTED + " cross product:" + AxB.getQ() + " states - " + (timeAfter - timeBefore) + "ms");
     }
 
     /**
      * Cross-product of two DFAs. Output is a DFA.
      */
     public static void crossProductInternalDFA(
-            FA A, FA B, FA AxB, int combineOut, int[] allInputsOfAxB, String op,
-            boolean print, String prefix, long timeBefore) {
+        FA A, FA B, FA AxB, int combineOut, int[] allInputsOfAxB, String op,
+        boolean print, long timeBefore) {
         List<IntIntPair> statesList = new ArrayList<>();
         Object2IntMap<IntIntPair> statesHash = new Object2IntOpenHashMap<>();
         statesHash.defaultReturnValue(MISSING_ELT);
@@ -113,7 +113,7 @@ public class ProductStrategies {
                 int statesSoFar = currentState + 1;
                 long timeAfter = System.currentTimeMillis();
                 Logging.logMessage(statesSoFar == 1e2 || statesSoFar == 1e3 || statesSoFar % 1e4 == 0,
-                        prefix + "  Progress: Added " + statesSoFar + " states - "
+                        "  Progress: Added " + statesSoFar + " states - "
                                 + (statesList.size() - statesSoFar) + " states left in queue - "
                                 + statesList.size() + " reachable states - " + (timeAfter - timeBefore) + "ms");
             }
@@ -159,7 +159,7 @@ public class ProductStrategies {
 
         long timeAfter = System.currentTimeMillis();
         Logging.logMessage(print,
-                prefix + COMPUTED + " cross product:" + AxB.getQ() + " states - " + (timeAfter - timeBefore) + "ms");
+                COMPUTED + " cross product:" + AxB.getQ() + " states - " + (timeAfter - timeBefore) + "ms");
     }
 
     private static int determineOutput(int aP, int mQ, String op, int combineOut) {
@@ -200,42 +200,40 @@ public class ProductStrategies {
     public static Automaton crossProduct(Automaton A,
                                          Automaton B,
                                          String op,
-                                         boolean print,
-                                         String prefix) {
+                                         boolean print) {
         long timeBefore = System.currentTimeMillis();
         Automaton AxB = new Automaton();
         int[] allInputsOfN = createBasicAutomaton(A, B, AxB);
         int combineOut = A.determineCombineOutVal(op);
-        printAndUpdateIndex(A.fa.getQ(), B.fa.getQ(), print, prefix);
+        printAndUpdateIndex(A.fa.getQ(), B.fa.getQ(), print);
         crossProductInternal(
-            A.fa, B.fa, AxB.fa, combineOut, allInputsOfN, op, print, prefix, timeBefore);
+            A.fa, B.fa, AxB.fa, combineOut, allInputsOfN, op, print, timeBefore);
         return AxB;
     }
 
     public static Automaton crossProductAndMinimize(Automaton A,
                                                     Automaton B,
                                                     String op,
-                                                    boolean print,
-                                                    String prefix) {
+                                                    boolean print) {
         long timeBefore = System.currentTimeMillis();
         Automaton AxB = new Automaton();
         int[] allInputsOfN = createBasicAutomaton(A, B, AxB);
         int combineOut = A.determineCombineOutVal(op);
-        printAndUpdateIndex(A.fa.getQ(), B.fa.getQ(), print, prefix);
+        printAndUpdateIndex(A.fa.getQ(), B.fa.getQ(), print);
         crossProductInternalDFA(
-                A.fa, B.fa, AxB.fa, combineOut, allInputsOfN, op, print, prefix, timeBefore);
-        AxB.fa.justMinimize(print, prefix);
+                A.fa, B.fa, AxB.fa, combineOut, allInputsOfN, op, print, timeBefore);
+        AxB.fa.justMinimize(print);
         if (AxB.fa.getT().getNfaD() == null) {
             throw new WalnutException("Unexpected null");
         }
         return AxB;
     }
 
-    private static void printAndUpdateIndex(int aQ, int bQ, boolean print, String prefix) {
+    private static void printAndUpdateIndex(int aQ, int bQ, boolean print) {
         if (print) {
             //FA.IncrementIndex();
             Logging.logMessage(print,
-                prefix + COMPUTING + " cross product:" + aQ + " states - " + bQ + " states");
+                COMPUTING + " cross product:" + aQ + " states - " + bQ + " states");
         }
     }
 

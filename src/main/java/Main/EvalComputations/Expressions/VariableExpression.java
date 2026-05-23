@@ -31,8 +31,7 @@ public class VariableExpression extends Expression {
     this.expressionInString = identifier;
   }
 
-  public Automaton act(boolean print, String prefix, Token t,
-                       NumberSystem ns, List<String> identifiers, Automaton M, List<String> quantify) {
+  public Automaton act(boolean print, Token t, NumberSystem ns, List<String> identifiers, Automaton M, List<String> quantify) {
     if (!identifiers.contains(this.identifier)) {
       identifiers.add(this.identifier);
     } else {
@@ -42,7 +41,7 @@ public class VariableExpression extends Expression {
       quantify.add(new_identifier);
       identifiers.add(new_identifier);
       Logging.indent();
-      M = AutomatonLogicalOps.and(M, eq, print, prefix);
+      M = AutomatonLogicalOps.and(M, eq, print);
       Logging.dedent();
     }
     return M;

@@ -21,22 +21,22 @@ computing (x+y)+z
  fixed leading zeros:3 states - 0ms
 computed (x+y)+z
 computing n=((x+y)+z)
- computing &:1 states - 3 states
-  computing cross product:1 states - 3 states
-  computed cross product:3 states - 0ms
-  Minimizing: 3 states.
-  Minimized:3 states - 0ms.
- computed &:3 states - 0ms
- quantifying:3 states
+  computing &:1 states - 3 states
+   computing cross product:1 states - 3 states
+   computed cross product:3 states - 0ms
    Minimizing: 3 states.
    Minimized:3 states - 0ms.
- quantified:3 states - 0ms
- fixing leading zeros:3 states
-  Determinizing [#2, strategy: SC]: 3 states
-  Determinized: 3 states - 0ms
-  Minimizing: 3 states.
-  Minimized:3 states - 0ms.
- fixed leading zeros:3 states - 0ms
+  computed &:3 states - 0ms
+  quantifying:3 states
+   Minimizing: 3 states.
+   Minimized:3 states - 0ms.
+  quantified:3 states - 0ms
+  fixing leading zeros:3 states
+   Determinizing [#2, strategy: SC]: 3 states
+   Determinized: 3 states - 0ms
+   Minimizing: 3 states.
+   Minimized:3 states - 0ms.
+  fixed leading zeros:3 states - 0ms
 computed n=((x+y)+z)
 n=((x+y)+z):3 states - 0ms
  computing QQ[...]

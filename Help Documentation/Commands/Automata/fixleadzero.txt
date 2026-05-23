@@ -6,7 +6,7 @@ Results saved in: Result/, Automata Library/.
 
 The automaton <old> should be saved in "Automata Library/" and be a regular automaton (not a Word Automaton).
 
-The resulting automaton <new> accepts an input 0* x' if and only if <old> accepts an input x, where x' is x with its leading zeroes removed.
+The resulting automaton <new> accepts an input 0* x' if and only if <old> accepts an input x, where x' is x with its leading zeros removed.
 
 For example, if "aut" is saved in "Automata Library/", one writes
 	

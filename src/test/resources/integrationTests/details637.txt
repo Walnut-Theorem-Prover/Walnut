@@ -11,8 +11,8 @@ computing (x+y)+z
    Determinizing [#0, strategy: SC]: 4 states
    Determinized: 3 states - 0ms
    Minimizing: 3 states.
-   Minimized:3 states - 1ms.
- quantified:3 states - 1ms
+   Minimized:3 states - 0ms.
+ quantified:3 states - 0ms
  fixing leading zeros:3 states
   Determinizing [#1, strategy: SC]: 3 states
   Determinized: 3 states - 0ms
@@ -21,24 +21,24 @@ computing (x+y)+z
  fixed leading zeros:3 states - 0ms
 computed (x+y)+z
 computing n=((x+y)+z)
- computing &:1 states - 3 states
-  computing cross product:1 states - 3 states
-  computed cross product:3 states - 0ms
-  Minimizing: 3 states.
-  Minimized:3 states - 0ms.
- computed &:3 states - 0ms
- quantifying:3 states
+  computing &:1 states - 3 states
+   computing cross product:1 states - 3 states
+   computed cross product:3 states - 0ms
    Minimizing: 3 states.
    Minimized:3 states - 0ms.
- quantified:3 states - 0ms
- fixing leading zeros:3 states
-  Determinizing [#2, strategy: SC]: 3 states
-  Determinized: 3 states - 0ms
-  Minimizing: 3 states.
-  Minimized:3 states - 0ms.
- fixed leading zeros:3 states - 0ms
+  computed &:3 states - 1ms
+  quantifying:3 states
+    Minimizing: 3 states.
+    Minimized:3 states - 0ms.
+  quantified:3 states - 0ms
+  fixing leading zeros:3 states
+   Determinizing [#2, strategy: SC]: 3 states
+   Determinized: 3 states - 0ms
+   Minimizing: 3 states.
+   Minimized:3 states - 0ms.
+  fixed leading zeros:3 states - 0ms
 computed n=((x+y)+z)
-n=((x+y)+z):3 states - 0ms
+n=((x+y)+z):3 states - 1ms
  computing QQ[...]
  computed QQ[x]
  computing QQ[x]=@1
@@ -57,12 +57,12 @@ n=((x+y)+z):3 states - 0ms
   computing n=((x+y)+z)&QQ[x]=@1
    computing &:3 states - 15 states
     computing cross product:3 states - 15 states
-    computed cross product:45 states - 0ms
+    computed cross product:45 states - 1ms
     Minimizing: 45 states.
     Minimized:45 states - 0ms.
-   computed &:45 states - 0ms
+   computed &:45 states - 1ms
   computed n=((x+y)+z)&QQ[x]=@1
-  (n=((x+y)+z)&QQ[x]=@1):45 states - 0ms
+  (n=((x+y)+z)&QQ[x]=@1):45 states - 1ms
    computing QQ[...]
    computed QQ[y]
    computing QQ[y]=@1
@@ -81,10 +81,10 @@ n=((x+y)+z):3 states - 0ms
     computing (n=((x+y)+z)&QQ[x]=@1)&QQ[y]=@1
      computing &:45 states - 15 states
       computing cross product:45 states - 15 states
-        Progress: Added 100 states - 189 states left in queue - 289 reachable states - 0ms
-      computed cross product:675 states - 1ms
+        Progress: Added 100 states - 189 states left in queue - 289 reachable states - 1ms
+      computed cross product:675 states - 2ms
       Minimizing: 675 states.
-      Minimized:331 states - 1ms.
+      Minimized:331 states - 0ms.
      computed &:331 states - 2ms
     computed (n=((x+y)+z)&QQ[x]=@1)&QQ[y]=@1
     ((n=((x+y)+z)&QQ[x]=@1)&QQ[y]=@1):331 states - 2ms
@@ -102,31 +102,32 @@ n=((x+y)+z):3 states - 0ms
        Minimized:15 states - 0ms.
       fixed leading zeros:15 states - 0ms
      computed QQ[z]=@1
-     QQ[z]=@1:15 states - 0ms
+     QQ[z]=@1:15 states - 1ms
       computing ((n=((x+y)+z)&QQ[x]=@1)&QQ[y]=@1)&QQ[z]=@1
        computing &:331 states - 15 states
         computing cross product:331 states - 15 states
           Progress: Added 100 states - 415 states left in queue - 515 reachable states - 0ms
-          Progress: Added 1000 states - 1867 states left in queue - 2867 reachable states - 1ms
-        computed cross product:4965 states - 5ms
+          Progress: Added 1000 states - 1867 states left in queue - 2867 reachable states - 3ms
+        computed cross product:4965 states - 8ms
         Minimizing: 4965 states.
-        Minimized:1790 states - 2ms.
-       computed &:1790 states - 7ms
+        Minimized:1790 states - 3ms.
+       computed &:1790 states - 11ms
       computed ((n=((x+y)+z)&QQ[x]=@1)&QQ[y]=@1)&QQ[z]=@1
-      (((n=((x+y)+z)&QQ[x]=@1)&QQ[y]=@1)&QQ[z]=@1):1790 states - 7ms
+      (((n=((x+y)+z)&QQ[x]=@1)&QQ[y]=@1)&QQ[z]=@1):1790 states - 11ms
        computing quantifier E
         quantifying:1790 states
           Determinizing [#6, strategy: Brzozowski]: 1790 states
           Reverse -- Determinizing with strategy:SC.
-          Reverse: 496 states - 84ms
+            Progress: Added 100 states - 75 states left in queue - 175 reachable states - 18ms
+          Reverse: 496 states - 103ms
           Minimizing: 496 states.
-          Minimized:14 states - 0ms.
+          Minimized:14 states - 1ms.
           Reverse of reverse -- Determinizing with strategy:SC.
           Reverse of reverse: 12 states - 0ms
-          Determinized: 12 states - 84ms
+          Determinized: 12 states - 105ms
           Minimizing: 12 states.
           Minimized:12 states - 0ms.
-        quantified:12 states - 86ms
+        quantified:12 states - 113ms
         fixing leading zeros:12 states
          Determinizing [#7, strategy: SC]: 12 states
          Determinized: 12 states - 0ms
@@ -134,5 +135,5 @@ n=((x+y)+z):3 states - 0ms
          Minimized:12 states - 0ms.
         fixed leading zeros:12 states - 0ms
        computed quantifier (E x , y , z (((n=((x+y)+z)&QQ[x]=@1)&QQ[y]=@1)&QQ[z]=@1))
-       (E x , y , z (((n=((x+y)+z)&QQ[x]=@1)&QQ[y]=@1)&QQ[z]=@1)):12 states - 86ms
-Total computation time: 96ms.
+       (E x , y , z (((n=((x+y)+z)&QQ[x]=@1)&QQ[y]=@1)&QQ[z]=@1)):12 states - 114ms
+Total computation time: 130ms.
