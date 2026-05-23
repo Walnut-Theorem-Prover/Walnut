@@ -273,7 +273,7 @@ public class AutomatonLogicalOps {
     public static void fixLeadingZerosProblem(Automaton A, boolean print) {
         if (A.fa.isTRUE_FALSE_AUTOMATON()) return;
         long timeBefore = System.currentTimeMillis();
-        logMessage(print, FIXING + " leading zeros:" + A.fa.getQ() + " states");
+        logMessage(FIXING + " leading zeros:" + A.fa.getQ() + " states");
         Logging.indent();
         A.fa.setCanonized(false);
         int zero = A.richAlphabet.determineZero();
@@ -284,7 +284,7 @@ public class AutomatonLogicalOps {
 
         long timeAfter = System.currentTimeMillis();
         Logging.dedent();
-        logMessage(print, FIXED + " leading zeros:" + A.fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms");
+        logMessage(FIXED + " leading zeros:" + A.fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms");
     }
 
     /**

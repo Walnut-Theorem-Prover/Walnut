@@ -62,6 +62,7 @@ public class Logging {
   private static final ThreadLocal<StringBuilder> commandLog = ThreadLocal.withInitial(StringBuilder::new);
   private static final ThreadLocal<StringBuilder> detailedLog = ThreadLocal.withInitial(StringBuilder::new);
   private static int indentCount = 0;
+  private static boolean printEnabled = true;
 
   public static void configureForCommand(boolean shouldPrintSteps, boolean shouldPrintDetails) {
     printSteps.set(shouldPrintSteps);
@@ -76,7 +77,7 @@ public class Logging {
   }
 
   public static boolean shouldPrintStepsOrDetails() {
-    return printSteps.get() || printDetails.get();
+    return printEnabled && (printSteps.get() || printDetails.get());
   }
 
   public static String getCommandLog() {
@@ -102,12 +103,16 @@ public class Logging {
   }
   public static void resetIndent() { indentCount = 0;} // useful for integration tests
 
+  // temporarily disable print for helper calls
+  public static void disablePrint() { printEnabled = false; }
+  public static void enablePrint() { printEnabled = true; }
+
   public static void logMessage(String msg) {
     logMessage(printDetails.get(), msg);
   }
 
   public static void logMessage(boolean print, String msg) {
-    if (print) {
+    if (printEnabled && print) {
       logDetail(msg, true);
     }
   }
@@ -147,7 +152,7 @@ public class Logging {
       commandLogger.info(msgWithIndent);
     }
 
-    if (print) {
+    if (printEnabled && print) {
       consoleLogger.info(msgWithIndent);
     }
   }
