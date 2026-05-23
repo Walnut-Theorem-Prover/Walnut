@@ -19,6 +19,7 @@ package Main.EvalComputations.Expressions;
 
 import Automata.Automaton;
 import Automata.AutomatonLogicalOps;
+import Main.Logging;
 
 import java.util.List;
 
@@ -30,9 +31,11 @@ public class ArithmeticExpression extends Expression {
   }
 
   public Automaton act(boolean print, String prefix, List<String> identifiers, Automaton M, List<String> quantify) {
+    Logging.indent();
     identifiers.add(this.identifier);
-    M = AutomatonLogicalOps.and(M, this.M, print, prefix + " ");
+    M = AutomatonLogicalOps.and(M, this.M, print, prefix);
     quantify.add(this.identifier);
+    Logging.dedent();
     return M;
   }
 }

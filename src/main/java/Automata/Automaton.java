@@ -308,7 +308,10 @@ public class Automaton {
         }
 
         M.forceCanonize();
-        M.applyAllRepresentationsWithOutput(print, prefix + " ");
+
+        Logging.indent();
+        M.applyAllRepresentationsWithOutput(print, prefix);
+        Logging.dedent();
 
         copy(M);
 
@@ -413,13 +416,15 @@ public class Automaton {
             Automaton next = subautomata.remove();
             long timeBefore = System.currentTimeMillis();
             Logging.logMessage(print, prefix + COMPUTING + " =>:" + first.fa.getQ() + " states - " + next.fa.getQ() + " states");
+            Logging.indent();
 
             // crossProduct requires both automata to be totalized, otherwise it has no idea which cartesian states to transition to
-            first.fa.totalize(print, prefix + " ");
-            next.fa.totalize(print, prefix + " ");
-            first = ProductStrategies.crossProduct(first, next, Prover.FIRST_OP, print, prefix + " ");
-            first = WordAutomaton.minimizeWithOutput(first, print, prefix + " ");
+            first.fa.totalize(print, prefix);
+            next.fa.totalize(print, prefix);
+            first = ProductStrategies.crossProduct(first, next, Prover.FIRST_OP, print, prefix);
+            first = WordAutomaton.minimizeWithOutput(first, print, prefix);
 
+            Logging.dedent();
             long timeAfter = System.currentTimeMillis();
             Logging.logMessage(print, prefix + COMPUTED + " =>:" + first.fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms");
         }
@@ -556,6 +561,7 @@ public class Automaton {
     }
 
     public void determinizeAndMinimize(boolean print, String prefix) {
+        Logging.indent();
         if (!this.fa.getT().isDeterministic()) {
             // Working with NFA. Let's trim.
             int oldQ = this.fa.getQ();
@@ -565,17 +571,18 @@ public class Automaton {
             }
             IntSet qqq = new IntOpenHashSet();
             qqq.add(this.fa.getQ0());
-            DeterminizationStrategies.determinize(this, qqq, print, prefix + " ");
+            DeterminizationStrategies.determinize(this, qqq, print, prefix);
         }
-        this.fa.justMinimize(print, prefix + " ");
+        this.fa.justMinimize(print, prefix);
+        Logging.dedent();
     }
 
     /**
      * Determinize and minimize. Technically, the logging is backwards.
      */
     public void determinizeAndMinimize(IntSet qqq, boolean print, String prefix) {
-        DeterminizationStrategies.determinize(this, qqq, print, prefix + " ");
-        this.fa.justMinimize(print, prefix + " ");
+        DeterminizationStrategies.determinize(this, qqq, print, prefix);
+        this.fa.justMinimize(print, prefix);
     }
 
     /**

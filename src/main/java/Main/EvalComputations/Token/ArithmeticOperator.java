@@ -170,10 +170,12 @@ public class ArithmeticOperator extends Operator {
                 reverse = true;
             }
 
+            Logging.indent();
+
             M = new Automaton(true);
             for (int o : word.wordAutomaton.fa.getO()) {
                 Automaton N = word.wordAutomaton.clone();
-                WordAutomaton.compareWordAutomaton(N, o, RelationalOperator.Ops.EQUAL, print, prefix + " ");
+                WordAutomaton.compareWordAutomaton(N, o, RelationalOperator.Ops.EQUAL, print, prefix);
                 Automaton C;
                 if (o == 0 && opp.equals(Ops.MULT)) {
                     C = ns.getConstant(0);
@@ -183,12 +185,15 @@ public class ArithmeticOperator extends Operator {
                 } else {
                     C = ns.arithmetic(o, arithmetic.identifier, c, opp);
                 }
-                N = AutomatonLogicalOps.imply(N, C, print, prefix + " ", LogicalOperator.IMPLY);
-                M = AutomatonLogicalOps.and(M, N, print, prefix + " ");
+                N = AutomatonLogicalOps.imply(N, C, print, prefix, LogicalOperator.IMPLY);
+                M = AutomatonLogicalOps.and(M, N, print, prefix);
             }
-            M = AutomatonLogicalOps.and(M, word.M, print, prefix + " ");
-            AutomatonQuantification.quantify(M, word.identifiersToQuantify, print, prefix + " ");
+            M = AutomatonLogicalOps.and(M, word.M, print, prefix);
+            AutomatonQuantification.quantify(M, word.identifiersToQuantify, print, prefix);
             M = andThenQuantifyIfArithmetic(print, prefix, arithmetic, M);
+
+            Logging.dedent();
+
         } else {
             if (a instanceof NumberLiteralExpression) {
                 if (a.constant == 0 && opp.equals(Ops.MULT)) {

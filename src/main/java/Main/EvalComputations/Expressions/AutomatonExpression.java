@@ -19,6 +19,7 @@ package Main.EvalComputations.Expressions;
 
 import Automata.Automaton;
 import Automata.AutomatonLogicalOps;
+import Main.Logging;
 import Main.WalnutException;
 
 import java.util.List;
@@ -36,7 +37,9 @@ public class AutomatonExpression extends Expression {
       throw new WalnutException("argument " + (i + 1) + " of function " + name + " cannot be an automaton with unlabeled input");
     }
     identifiers.add(this.M.getLabel().get(0));
-    M = AutomatonLogicalOps.and(M, this.M, print, prefix + " ");
+    Logging.indent();
+    M = AutomatonLogicalOps.and(M, this.M, print, prefix);
+    Logging.dedent();
     return M;
   }
 }

@@ -915,6 +915,7 @@ public class IntegrationTest {
 		TestCase expected = testCases.get(i);
 		String command = L.get(i);
 		try{
+			Logging.resetIndent(); // reset indenting
 			Prover.mainProver = new Prover();
 			TestCase actual = Prover.mainProver.dispatchForIntegrationTest(command, String.valueOf(i));
 			if (actual == null) {

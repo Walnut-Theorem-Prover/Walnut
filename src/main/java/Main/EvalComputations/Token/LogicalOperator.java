@@ -114,11 +114,13 @@ public class LogicalOperator extends Operator {
         Expression a = S.pop();
         if (a instanceof AutomatonExpression) {
             Logging.logAndPrint(prefix + COMPUTING + " " + op + a);
+            Logging.indent();
             if (op.equals(Operator.REVERSE))
-                AutomatonLogicalOps.reverse(a.M, print, prefix + " ", true);
+                AutomatonLogicalOps.reverse(a.M, print, prefix, true);
             if (this.isNegation(op))
-                AutomatonLogicalOps.not(a.M, print, prefix + " ");
+                AutomatonLogicalOps.not(a.M, print, prefix);
             S.push(new AutomatonExpression(op + a, a.M));
+            Logging.dedent();
             Logging.logAndPrint(prefix + COMPUTED + " " + op + a);
             return;
         }
@@ -131,6 +133,7 @@ public class LogicalOperator extends Operator {
         Stack<Expression> temp = reverseStack(S);
         Automaton M = null;
         Logging.logAndPrint(prefix + COMPUTING + " quantifier " + op);
+        Logging.indent();
         List<String> identifiersToQuantify = new ArrayList<>();
         for (int i = 0; i < arity; i++) {
             Expression operand = temp.pop();
@@ -150,7 +153,7 @@ public class LogicalOperator extends Operator {
                 M = operand.M;
                 if (op.equals(Operator.EXISTS)) {
                     if (!existsEarlyTermination) {
-                        AutomatonQuantification.quantify(M, identifiersToQuantify, print, prefix + " ");
+                        AutomatonQuantification.quantify(M, identifiersToQuantify, print, prefix);
                     } else {
                         String fileName = Prover.currentEvalName + "_special_case_E";
                         Logging.logAndPrint(
@@ -160,12 +163,12 @@ public class LogicalOperator extends Operator {
                     }
                 } else if (op.equals(Operator.FORALL)) {
                     // A == ~ E ~
-                    AutomatonLogicalOps.not(M, print, prefix + " ");
-                    AutomatonQuantification.quantify(M, identifiersToQuantify, print, prefix + " ");
-                    AutomatonLogicalOps.not(M, print, prefix + " ");
+                    AutomatonLogicalOps.not(M, print, prefix);
+                    AutomatonQuantification.quantify(M, identifiersToQuantify, print, prefix);
+                    AutomatonLogicalOps.not(M, print, prefix);
                 } else {
                     // op == I
-                    M = AutomatonLogicalOps.removeLeadingZeroes(M, identifiersToQuantify, print, prefix + " ");
+                    M = AutomatonLogicalOps.removeLeadingZeroes(M, identifiersToQuantify, print, prefix);
                     String infReg = Infinite.infinite(M.fa, M.richAlphabet);
                     M = new Automaton(!infReg.isEmpty());
                 }
@@ -173,6 +176,7 @@ public class LogicalOperator extends Operator {
         }
         stringValue.append(")");
         S.push(new AutomatonExpression(stringValue.toString(), M));
+        Logging.dedent();
         Logging.logAndPrint(prefix + COMPUTED + " quantifier " + stringValue);
     }
 }

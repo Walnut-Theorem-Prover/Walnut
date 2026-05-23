@@ -101,7 +101,7 @@ public class Transducer extends Automaton {
     public Automaton transduceMsdDeterministic(Automaton M, boolean print, String prefix) {
         long timeBefore = System.currentTimeMillis();
         Logging.logMessage(print, prefix + "transducing: " + M.fa.getQ() + " state automaton - " + fa.getQ() + " state transducer");
-
+        Logging.indent();
         // N will be the returned Automaton, just have to build it up.
         Automaton N = new Automaton();
         M.clonePartialFields(N);
@@ -232,9 +232,10 @@ public class Transducer extends Automaton {
         N.fa.setQ(states.size());
         N.setAlphabetSize(M.getAlphabetSize());
 
-        WordAutomaton.minimizeSelfWithOutput(N, print, prefix + " ");
+        WordAutomaton.minimizeSelfWithOutput(N, print, prefix);
 
         long timeAfter = System.currentTimeMillis();
+        Logging.dedent();
         Logging.logMessage(print, prefix + "transduced: " + N.fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms");
 
         return N;
@@ -289,8 +290,12 @@ public class Transducer extends Automaton {
         if (!M.getNS().get(0).isMsd()) {
             Logging.logMessage(print, prefix + "Automaton number system is lsd, reversing");
             toLsd = true;
-            WordAutomaton.reverseWithOutput(M, true, print, prefix+" ");
+            Logging.indent();
+            WordAutomaton.reverseWithOutput(M, true, print, prefix);
+            Logging.dedent();
         }
+
+        Logging.indent();
 
         // verify that the automaton is indeed nondeterministic, i.e. it has undefined transitions. If it is not, transduce normally.
         boolean totalized = isTotalized(M.fa);
@@ -301,7 +306,7 @@ public class Transducer extends Automaton {
         }
         else {
             Automaton Mnew = M.clone();
-            Mnew.fa.addDistinguishedDeadState(print, prefix+" ");
+            Mnew.fa.addDistinguishedDeadState(print, prefix);
 
             // after transducing, all states with this minimum output will be removed.
             int minOutput = Mnew.fa.determineMinOutput();
@@ -315,15 +320,17 @@ public class Transducer extends Automaton {
                 Tnew.sigma.get(q).put(minOutput, minOutput);
             }
 
-            N = Tnew.transduceMsdDeterministic(Mnew, print, prefix+" ");
+            N = Tnew.transduceMsdDeterministic(Mnew, print, prefix);
 
             AutomatonLogicalOps.removeStatesWithOutputRebuild(N.fa, minOutput);
             N.forceCanonize();
         }
 
         if (toLsd) {
-            WordAutomaton.reverseWithOutput(N, true, print, prefix+" ");
+            WordAutomaton.reverseWithOutput(N, true, print, prefix);
         }
+
+        Logging.dedent();
 
         return N;
     }

@@ -98,6 +98,7 @@ public class Logging {
   public static void dedent() {
     indentCount--;
   }
+  public static void resetIndent() { indentCount = 0;} // useful for integration tests
 
   public static void logMessage(String msg) {
     logMessage(printDetails.get(), msg);

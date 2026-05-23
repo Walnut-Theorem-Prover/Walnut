@@ -101,7 +101,9 @@ public class AutomatonQuantification {
           }
       }
       A.fa.getT().setNfaD(newD);
-      A.determinizeAndMinimize(print, prefix + " ");
+      Logging.indent();
+      A.determinizeAndMinimize(print, prefix);
+      Logging.dedent();
       long timeAfter = System.currentTimeMillis();
       Logging.logMessage(print, prefix + QUANTIFIED + ":" + A.fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms");
   }

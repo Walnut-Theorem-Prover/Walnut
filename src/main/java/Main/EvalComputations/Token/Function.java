@@ -87,8 +87,11 @@ public class Function extends Token {
             }
         }
         A.bind(identifiers);
-        A = AutomatonLogicalOps.and(A, M, print, prefix + " ");
-        AutomatonQuantification.quantify(A, quantify, print, prefix + " ");
+        
+        Logging.indent();
+        A = AutomatonLogicalOps.and(A, M, print, prefix);
+        AutomatonQuantification.quantify(A, quantify, print, prefix);
+        Logging.dedent();
 
         S.push(new AutomatonExpression(stringValue, A));
         Logging.logAndPrint(prefix + COMPUTED + " " + stringValue);

@@ -21,6 +21,7 @@ import Automata.Automaton;
 import Automata.AutomatonLogicalOps;
 import Automata.NumberSystem;
 import Main.EvalComputations.Token.Token;
+import Main.Logging;
 
 import java.util.List;
 
@@ -39,7 +40,9 @@ public class NumberLiteralExpression extends Expression {
     constant.bind(List.of(id));
     identifiers.add(id);
     quantify.add(id);
-    M = AutomatonLogicalOps.and(M, constant, print, prefix + " ");
+    Logging.indent();
+    M = AutomatonLogicalOps.and(M, constant, print, prefix);
+    Logging.dedent();
     return M;
   }
 }

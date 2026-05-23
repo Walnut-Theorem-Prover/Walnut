@@ -111,6 +111,7 @@ public class Session {
         Logging.printTruncatedStackTrace(ex);
       }
     }
+    Logging.resetIndent(); // reset indenting
   }
 
   /**

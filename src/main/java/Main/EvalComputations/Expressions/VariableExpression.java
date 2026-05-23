@@ -21,6 +21,7 @@ import Automata.Automaton;
 import Automata.AutomatonLogicalOps;
 import Automata.NumberSystem;
 import Main.EvalComputations.Token.Token;
+import Main.Logging;
 
 import java.util.List;
 
@@ -40,7 +41,9 @@ public class VariableExpression extends Expression {
       eq.bind(List.of(this.identifier, new_identifier));
       quantify.add(new_identifier);
       identifiers.add(new_identifier);
-      M = AutomatonLogicalOps.and(M, eq, print, prefix + " ");
+      Logging.indent();
+      M = AutomatonLogicalOps.and(M, eq, print, prefix);
+      Logging.dedent();
     }
     return M;
   }

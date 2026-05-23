@@ -60,8 +60,10 @@ public class AutomatonLogicalOps {
 
         long timeBefore = System.currentTimeMillis();
         logMessage(print, prefix + COMPUTING + " " + friendlyOp + ":" + A.fa.getQ() + " states - " + B.fa.getQ() + " states");
+        Logging.indent();
+        Automaton N = ProductStrategies.crossProductAndMinimize(A, B, friendlyOp, print, prefix);
 
-        Automaton N = ProductStrategies.crossProductAndMinimize(A, B, friendlyOp, print, prefix + " ");
+        Logging.dedent();
         long timeAfter = System.currentTimeMillis();
         logMessage(print, prefix + COMPUTED + " " + friendlyOp + ":" + N.fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms");
 
@@ -280,6 +282,7 @@ public class AutomatonLogicalOps {
         if (A.fa.isTRUE_FALSE_AUTOMATON()) return;
         long timeBefore = System.currentTimeMillis();
         logMessage(print, prefix + FIXING + " leading zeros:" + A.fa.getQ() + " states");
+        Logging.indent();
         A.fa.setCanonized(false);
         int zero = A.richAlphabet.determineZero();
 
@@ -288,6 +291,7 @@ public class AutomatonLogicalOps {
         A.determinizeAndMinimize(initialState, print, prefix);
 
         long timeAfter = System.currentTimeMillis();
+        Logging.dedent();
         logMessage(print, prefix + FIXED + " leading zeros:" + A.fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms");
     }
 
@@ -476,7 +480,9 @@ public class AutomatonLogicalOps {
                 throw new WalnutException("New and old number systems are identical: " + ns.getName());
             } else {
                 // If only msd <-> lsd differs, just reverse A
-                WordAutomaton.reverseWithOutput(A, true, print, prefix + " ");
+                Logging.indent();
+                WordAutomaton.reverseWithOutput(A, true, print, prefix);
+                Logging.dedent();
                 return;
             }
         }
@@ -487,9 +493,10 @@ public class AutomatonLogicalOps {
             throw new WalnutException("New and old number systems must have bases k^i and k^j for some integer k.");
         }
 
+        Logging.indent();
         // If originally LSD, we need to reverse to treat it as MSD for the conversions
         if (!ns.isMsd()) {
-            WordAutomaton.reverseWithOutput(A, true, print, prefix + " ");
+            WordAutomaton.reverseWithOutput(A, true, print, prefix);
         }
 
         // We'll track if A is reversed relative to original
@@ -498,29 +505,30 @@ public class AutomatonLogicalOps {
         // 3) Convert from k^i -> k if needed
         if (fromBase != commonRoot) {
             int exponent = (int) (Math.log(fromBase) / Math.log(commonRoot));
-            WordAutomaton.reverseWithOutput(A, true, print, prefix + " ");
+            WordAutomaton.reverseWithOutput(A, true, print, prefix);
             currentlyReversed = true;
 
-            convertLsdBaseToRoot(A, commonRoot, exponent, print, prefix + " ");
-            WordAutomaton.minimizeSelfWithOutput(A, print, prefix + " ");
+            convertLsdBaseToRoot(A, commonRoot, exponent, print, prefix);
+            WordAutomaton.minimizeSelfWithOutput(A, print, prefix);
         }
 
         // 4) Convert from k -> k^j if needed
         if (toBase != commonRoot) {
             if (currentlyReversed) {
                 // Undo reversal from the previous step
-                WordAutomaton.reverseWithOutput(A, true, print, prefix + " ");
+                WordAutomaton.reverseWithOutput(A, true, print, prefix);
                 currentlyReversed = false;
             }
             int exponent = (int) (Math.log(toBase) / Math.log(commonRoot));
-            convertMsdBaseToExponent(A, exponent, print, prefix + " ");
-            WordAutomaton.minimizeSelfWithOutput(A, print, prefix + " ");
+            convertMsdBaseToExponent(A, exponent, print, prefix);
+            WordAutomaton.minimizeSelfWithOutput(A, print, prefix);
         }
 
         // 5) If final desired base is LSD but we are still in MSD form, reverse again
         if (toMsd == currentlyReversed) {
-            WordAutomaton.reverseWithOutput(A, true, print, prefix + " ");
+            WordAutomaton.reverseWithOutput(A, true, print, prefix);
         }
+        Logging.dedent();
     }
 
     /**
@@ -696,27 +704,31 @@ public class AutomatonLogicalOps {
             Automaton next = subautomata.remove();
             long timeBefore = System.currentTimeMillis();
             logMessage(print, prefix + COMPUTING + " =>:" + first.fa.getQ() + " states - " + next.fa.getQ() + " states");
+            Logging.indent();
 
             // crossProduct requires labelling; make an arbitrary labelling and use it for both: this is valid since
             // input alphabets and arities are assumed to be identical for the combine method
             first.randomLabel();
             next.setLabel(first.getLabel());
             // crossProduct requires both automata to be totalized, otherwise it has no idea which cartesian states to transition to
-            first.fa.totalize(print, prefix + " ");
-            next.fa.totalize(print, prefix + " ");
-            Automaton product = ProductStrategies.crossProduct(first, next, Prover.COMBINE, print, prefix + " ");
+            first.fa.totalize(print, prefix);
+            next.fa.totalize(print, prefix);
+            Automaton product = ProductStrategies.crossProduct(first, next, Prover.COMBINE, print, prefix);
             product.combineIndex = first.combineIndex + 1;
             product.combineOutputs = first.combineOutputs;
             first = product;
 
+            Logging.dedent();
             long timeAfter = System.currentTimeMillis();
             logMessage(print, prefix + COMPUTED + " =>:" + first.fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms");
         }
 
         // totalize the resulting A
-        first.fa.totalize(print, prefix + " ");
+        Logging.indent();
+        first.fa.totalize(print, prefix);
         first.forceCanonize();
-        first.applyAllRepresentationsWithOutput(print, prefix + " ");
+        first.applyAllRepresentationsWithOutput(print, prefix);
+        Logging.dedent();
 
         return first;
     }

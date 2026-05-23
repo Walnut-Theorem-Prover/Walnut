@@ -23,6 +23,7 @@ import Automata.AutomatonLogicalOps;
 import Automata.AutomatonQuantification;
 import Main.EvalComputations.Expressions.ArithmeticExpression;
 import Main.EvalComputations.Expressions.Expression;
+import Main.Logging;
 import Main.WalnutException;
 
 import java.util.List;
@@ -147,10 +148,12 @@ public abstract class Operator extends Token {
     }
 
     static Automaton andThenQuantifyIfArithmetic(boolean print, String prefix, Expression a, Automaton M) {
+        Logging.indent();
         if (a instanceof ArithmeticExpression) {
-            M = AutomatonLogicalOps.and(M, a.M, print, prefix + " ");
-            AutomatonQuantification.quantify(M, a.identifier, print, prefix + " ");
+            M = AutomatonLogicalOps.and(M, a.M, print, prefix);
+            AutomatonQuantification.quantify(M, a.identifier, print, prefix);
         }
+        Logging.dedent();
         return M;
     }
 }
