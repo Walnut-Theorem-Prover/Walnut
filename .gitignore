@@ -2,9 +2,11 @@
 classes/
 .project
 
-# Gradle build
-build/
-.gradle
+# Maven build
+target/
+.mvn
+mvnw
+mvnw.cmd
 
 # Avoid ignore Gradle wrappper properties
 !gradle-wrapper.properties
@@ -26,9 +28,6 @@ Walnut.iml
 *.jar
 *.war
 *.ear
-
-# Avoid ignoring Gradle wrapper jar file
-!gradle-wrapper.jar
 
 # Avoid ignoring OTF jar
 !OTF.jar
