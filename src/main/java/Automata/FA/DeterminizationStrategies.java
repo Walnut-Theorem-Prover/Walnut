@@ -87,12 +87,12 @@ public class DeterminizationStrategies {
      *   OTF-CCL, OTF-CCLS
      *   Brzozowski + (OTF-CCL, OTF-CCLS)
      */
-    public static void determinize(Automaton A, IntSet initialState, boolean print) {
+    public static void determinize(Automaton A, IntSet initialState) {
       FA fa = A.getFa();
       long timeBefore = System.currentTimeMillis();
 
       Strategy strategy = Strategy.SC;
-      if (print) {
+      if (Logging.shouldPrintDetails()) {
         // Increment our automata count for use in strategy calculations.
         // Note this is only done when print is true.
         // That's because there are several silent automata creations for NS, Ostrowski, and other caches.
@@ -108,7 +108,7 @@ public class DeterminizationStrategies {
               exportFormat, A, fa.isFAO());
         }
 
-        Logging.logMessage(print, DETERMINIZING +
+        Logging.logMessage(DETERMINIZING +
             " " + strategy.outputName(automataIdx) + ": " + fa.getQ() + " states");
       }
 
@@ -120,14 +120,14 @@ public class DeterminizationStrategies {
 
       switch (strategy) {
         case SC -> SC(fa, initialState);
-        case BRZ, BRZ_CCL, BRZ_CCLS -> Brz(fa, initialState, strategy, print);
+        case BRZ, BRZ_CCL, BRZ_CCLS -> Brz(fa, initialState, strategy);
         case CCL, CCLS -> OTF(fa, initialState, strategy.doSimulation);
       }
 
       long timeAfter = System.currentTimeMillis();
 
       Logging.logMessage(
-          print, DETERMINIZED + ": " + fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms");
+          DETERMINIZED + ": " + fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms");
     }
 
   /**
@@ -137,12 +137,12 @@ public class DeterminizationStrategies {
    * @param initialStates - original initial states
    * @param strategy      - BRZ or OTF_BRZ
    */
-  private static void Brz(FA fa, IntSet initialStates, Strategy strategy, boolean print) {
+  private static void Brz(FA fa, IntSet initialStates, Strategy strategy) {
     strategy = strategy.removeBrzozowski();
 
     // Reverse, determinize, minimize
     brzStep(fa, initialStates, strategy, "Reverse");
-    fa.justMinimize(print); // also switches back to NFA representation
+    fa.justMinimize(); // also switches back to NFA representation
 
     // Reverse and determinize again. Note that initial state is now q0
     brzStep(fa, IntSet.of(fa.getQ0()), Strategy.SC, "Reverse of reverse");

@@ -25,20 +25,20 @@ public class WordAutomaton {
    * to a DFA that accepts x iff this[x] < o lexicographically.
    * To be used only when A is a DFAO (word).
    */
-  public static void compareWordAutomaton(Automaton wordA, int o, RelationalOperator.Ops operator, boolean print) {
+  public static void compareWordAutomaton(Automaton wordA, int o, RelationalOperator.Ops operator) {
       String opStr = operator.getSymbol();
       long timeBefore = System.currentTimeMillis();
-      logMessage(print, COMPARING + " (" + opStr + ") against " + o + ":" + wordA.fa.getQ() + " states");
+      logMessage(COMPARING + " (" + opStr + ") against " + o + ":" + wordA.fa.getQ() + " states");
       Logging.indent();
       IntList wordAOutput = wordA.getFa().getO();
       for (int p = 0; p < wordA.fa.getQ(); p++) {
           wordA.fa.setOutputIfEqual(p, RelationalOperator.compare(operator, wordAOutput.getInt(p), o));
       }
       // As of now, this is *not* a word automaton
-      wordA.determinizeAndMinimize(print);
+      wordA.determinizeAndMinimize();
       long timeAfter = System.currentTimeMillis();
       Logging.dedent();
-      logMessage(print, COMPARED + " (" + opStr + ") against " + o + ":" + wordA.fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms");
+      logMessage(COMPARED + " (" + opStr + ") against " + o + ":" + wordA.fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms");
   }
 
     /**
@@ -47,15 +47,15 @@ public class WordAutomaton {
      * a DFA that accepts x iff this[x] < W[x] lexicographically.
      * To be used only when A and B are DFAOs (words).
      */
-    public static Automaton compareWordAutomata(Automaton wordA, Automaton wordB, String operator, boolean print) {
+    public static Automaton compareWordAutomata(Automaton wordA, Automaton wordB, String operator) {
         long timeBefore = System.currentTimeMillis();
-        logMessage(print, COMPARING + " (" + operator + "):"
+        logMessage(COMPARING + " (" + operator + "):"
                 + wordA.fa.getQ() + " states - "+ wordB.fa.getQ() + " states");
         Logging.indent();
-        Automaton M = ProductStrategies.crossProductAndMinimize(wordA, wordB, operator, print);
+        Automaton M = ProductStrategies.crossProductAndMinimize(wordA, wordB, operator);
         Logging.dedent();
         long timeAfter = System.currentTimeMillis();
-        logMessage(print, COMPARED + " (" + operator + "):"
+        logMessage(COMPARED + " (" + operator + "):"
                 + M.fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms");
         return M;
     }
@@ -66,11 +66,10 @@ public class WordAutomaton {
      * a DFAO that outputs o+this[x] (or this[x]+p) on input x.
      * To be used only when this automaton and M are DFAOs (words).
      */
-    public static void applyWordArithOperator(
-        Automaton wordA, int o, ArithmeticOperator.Ops op, boolean reverse, boolean print) {
+    public static void applyWordArithOperator(Automaton wordA, int o, ArithmeticOperator.Ops op, boolean reverse) {
         String opStr = op.getSymbol();
         long timeBefore = System.currentTimeMillis();
-        logMessage(print, APPLYING + " operator (" + opStr + "):" + wordA.fa.getQ() + " states");
+        logMessage(APPLYING + " operator (" + opStr + "):" + wordA.fa.getQ() + " states");
         Logging.indent();
         for (int p = 0; p < wordA.fa.getQ(); p++) {
             IntList thisO = wordA.fa.getO();
@@ -78,10 +77,10 @@ public class WordAutomaton {
             thisO.set(p,
                 reverse ? ArithmeticOperator.arith(op, thisP, o) : ArithmeticOperator.arith(op, o, thisP));
         }
-        minimizeSelfWithOutput(wordA, print);
+        minimizeSelfWithOutput(wordA);
         long timeAfter = System.currentTimeMillis();
         Logging.dedent();
-        logMessage(print, APPLIED + " operator (" + opStr + "):" + wordA.fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms");
+        logMessage(APPLIED + " operator (" + opStr + "):" + wordA.fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms");
     }
 
     /**
@@ -89,16 +88,16 @@ public class WordAutomaton {
      * For example if operator = "+" then this method returns a DFAO that outputs this[x] + B[x] on input x.
      * To be used only when this A and M are DFAOs (words).
      */
-    public static Automaton applyWordOperator(Automaton wordA, Automaton wordB, String operator, boolean print) {
+    public static Automaton applyWordOperator(Automaton wordA, Automaton wordB, String operator) {
         long timeBefore = System.currentTimeMillis();
-        logMessage(print, APPLYING + " operator (" + operator + "):"
+        logMessage(APPLYING + " operator (" + operator + "):"
             + wordA.fa.getQ() + " states - " + wordB.fa.getQ() + " states");
         Logging.indent();
-        Automaton N = ProductStrategies.crossProduct(wordA, wordB, operator, print);
-        minimizeWithOutput(N, print);
+        Automaton N = ProductStrategies.crossProduct(wordA, wordB, operator);
+        minimizeWithOutput(N);
         long timeAfter = System.currentTimeMillis();
         Logging.dedent();
-        logMessage(print, APPLIED + " operator (" + operator + "):"
+        logMessage(APPLIED + " operator (" + operator + "):"
             + wordA.fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms");
         return N;
     }
@@ -107,15 +106,15 @@ public class WordAutomaton {
    * Reverse a DFAO. Use Theorem 4.3.3 from Allouche & Shallit.
    * The returned object is deterministic.
    */
-  public static void reverseWithOutput(Automaton wordA, boolean reverseMsd, boolean print) {
+  public static void reverseWithOutput(Automaton wordA, boolean reverseMsd) {
       if (wordA.fa.isTRUE_FALSE_AUTOMATON()) {
           return;
       }
 
       long timeBefore = System.currentTimeMillis();
-      logMessage(print, REVERSING + ": " + wordA.fa.getQ() + " states");
+      logMessage(REVERSING + ": " + wordA.fa.getQ() + " states");
       Logging.indent();
-      boolean addedDeadState = wordA.fa.addDistinguishedDeadState(print);
+      boolean addedDeadState = wordA.fa.addDistinguishedDeadState();
 
       int minOutput = 0;
       if (addedDeadState) {
@@ -179,7 +178,7 @@ public class WordAutomaton {
           NumberSystem.flipNS(wordA.getNS());
       }
 
-      minimizeSelfWithOutput(wordA, print);
+      minimizeSelfWithOutput(wordA);
 
       if (addedDeadState) {
           // note: wordA is deterministic
@@ -189,7 +188,7 @@ public class WordAutomaton {
 
       long timeAfter = System.currentTimeMillis();
       Logging.dedent();
-      logMessage(print, REVERSED + ": " + wordA.fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms");
+      logMessage(REVERSED + ": " + wordA.fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms");
   }
 
   /**
@@ -214,23 +213,23 @@ public class WordAutomaton {
    * We minimize a DFA with output by first uncombining into automata without output, minimizing the uncombined automata, and
    * then recombining. It follows that if the uncombined automata are minimal, then the combined automata is also minimal
    */
-  public static Automaton minimizeWithOutput(Automaton wordA, boolean print) {
+  public static Automaton minimizeWithOutput(Automaton wordA) {
       IntList outputs = new IntArrayList(wordA.fa.getO());
       UtilityMethods.removeDuplicates(outputs);
       List<Automaton> subautomata = uncombine(wordA, outputs);
       for (Automaton subautomaton : subautomata) {
           // These are *not* word automata
-          subautomaton.determinizeAndMinimize(print);
+          subautomaton.determinizeAndMinimize();
       }
       Automaton N = subautomata.remove(0);
       List<String> label = new ArrayList<>(N.getLabel()); // We keep the old labels, since they are replaced in the combine
-      N = AutomatonLogicalOps.combine(N, new LinkedList<>(subautomata), outputs, print);
+      N = AutomatonLogicalOps.combine(N, new LinkedList<>(subautomata), outputs);
       N.setLabel(label);
       return N;
   }
 
-  public static void minimizeSelfWithOutput(Automaton wordA, boolean print) {
-      Automaton N = minimizeWithOutput(wordA, print);
+  public static void minimizeSelfWithOutput(Automaton wordA) {
+      Automaton N = minimizeWithOutput(wordA);
       wordA.copy(N);
   }
 }

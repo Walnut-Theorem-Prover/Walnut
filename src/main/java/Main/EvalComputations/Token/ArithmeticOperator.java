@@ -84,19 +84,19 @@ public class ArithmeticOperator extends Operator {
         return op + "_" + ns;
     }
 
-    public void act(Stack<Expression> S, boolean print) {
+    public void act(Stack<Expression> S) {
         super.validateArity(S);
         Expression b = S.pop();
         if (!isValidArithmeticOperator(b))
             throw WalnutException.invalidOperator(op, b);
         if (opp.equals(Ops.UNARY_NEGATIVE)) {
-            processUnaryOperator(b, S, print);
+            processUnaryOperator(b, S);
         } else {
-            processBinaryOperator(b, S, print);
+            processBinaryOperator(b, S);
         }
     }
 
-    private void processUnaryOperator(Expression b, Stack<Expression> S, boolean print) {
+    private void processUnaryOperator(Expression b, Stack<Expression> S) {
         if (b instanceof NumberLiteralExpression) {
             S.push(new NumberLiteralExpression(Integer.toString(-b.constant), -b.constant, ns));
             return;
@@ -106,7 +106,7 @@ public class ArithmeticOperator extends Operator {
             return;
         }
         if (b instanceof WordExpression) {
-            WordAutomaton.applyWordArithOperator(b.wordAutomaton, 0, Ops.MINUS, false, print);
+            WordAutomaton.applyWordArithOperator(b.wordAutomaton, 0, Ops.MINUS, false);
             S.push(b);
             return;
         }
@@ -115,32 +115,32 @@ public class ArithmeticOperator extends Operator {
         // b + c = 0
         Automaton M = ns.arithmetic(b.identifier, c, 0, Ops.PLUS);
         Logging.logAndPrint( COMPUTING + " " + op + b);
-        M = andThenQuantifyIfArithmetic(print, b, M);
+        M = andThenQuantifyIfArithmetic(b, M);
         S.push(new ArithmeticExpression("(" + op + b + ")", M, c));
         Logging.logAndPrint( COMPUTED + " " + op + b);
     }
 
-    private void processBinaryOperator(Expression b, Stack<Expression> S, boolean print) {
+    private void processBinaryOperator(Expression b, Stack<Expression> S) {
         Expression a = S.pop();
         if (!isValidArithmeticOperator(a))
             throw WalnutException.invalidOperator(op, a);
 
         if (a instanceof WordExpression && b instanceof WordExpression) {
-            a.wordAutomaton = WordAutomaton.applyWordOperator(a.wordAutomaton, b.wordAutomaton, op, print);
+            a.wordAutomaton = WordAutomaton.applyWordOperator(a.wordAutomaton, b.wordAutomaton, op);
             Logging.indent();
-            a.M = AutomatonLogicalOps.and(a.M, b.M, print);
+            a.M = AutomatonLogicalOps.and(a.M, b.M);
             Logging.dedent();
             ((WordExpression)a).identifiersToQuantify.addAll(((WordExpression)b).identifiersToQuantify);
             S.push(a);
             return;
         }
         if (a instanceof WordExpression && (b instanceof AlphabetLetterExpression || b instanceof NumberLiteralExpression)) {
-            WordAutomaton.applyWordArithOperator(a.wordAutomaton, b.constant, opp, true, print);
+            WordAutomaton.applyWordArithOperator(a.wordAutomaton, b.constant, opp, true);
             S.push(a);
             return;
         }
         if ((a instanceof AlphabetLetterExpression || a instanceof NumberLiteralExpression) && b instanceof WordExpression) {
-            WordAutomaton.applyWordArithOperator(b.wordAutomaton, a.constant, opp, false, print);
+            WordAutomaton.applyWordArithOperator(b.wordAutomaton, a.constant, opp, false);
             S.push(b);
             return;
         }
@@ -177,7 +177,7 @@ public class ArithmeticOperator extends Operator {
             M = new Automaton(true);
             for (int o : word.wordAutomaton.fa.getO()) {
                 Automaton N = word.wordAutomaton.clone();
-                WordAutomaton.compareWordAutomaton(N, o, RelationalOperator.Ops.EQUAL, print);
+                WordAutomaton.compareWordAutomaton(N, o, RelationalOperator.Ops.EQUAL);
                 Automaton C;
                 if (o == 0 && opp.equals(Ops.MULT)) {
                     C = ns.getConstant(0);
@@ -187,12 +187,12 @@ public class ArithmeticOperator extends Operator {
                 } else {
                     C = ns.arithmetic(o, arithmetic.identifier, c, opp);
                 }
-                N = AutomatonLogicalOps.imply(N, C, print, LogicalOperator.IMPLY);
-                M = AutomatonLogicalOps.and(M, N, print);
+                N = AutomatonLogicalOps.imply(N, C, LogicalOperator.IMPLY);
+                M = AutomatonLogicalOps.and(M, N);
             }
-            M = AutomatonLogicalOps.and(M, word.M, print);
-            AutomatonQuantification.quantify(M, word.identifiersToQuantify, print);
-            M = andThenQuantifyIfArithmetic(print, arithmetic, M);
+            M = AutomatonLogicalOps.and(M, word.M);
+            AutomatonQuantification.quantify(M, word.identifiersToQuantify);
+            M = andThenQuantifyIfArithmetic(arithmetic, M);
 
             Logging.dedent();
 
@@ -213,8 +213,8 @@ public class ArithmeticOperator extends Operator {
                 M = ns.arithmetic(a.identifier, b.identifier, c, opp);
             }
 
-            M = andThenQuantifyIfArithmetic(print, a, M);
-            M = andThenQuantifyIfArithmetic(print, b, M);
+            M = andThenQuantifyIfArithmetic(a, M);
+            M = andThenQuantifyIfArithmetic(b, M);
         }
         S.push(new ArithmeticExpression("(" + a + op + b + ")", M, c));
         Logging.logAndPrint( COMPUTED + " " + a + op + b);

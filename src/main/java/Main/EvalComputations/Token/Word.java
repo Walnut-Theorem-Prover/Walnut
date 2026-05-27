@@ -47,7 +47,7 @@ public class Word extends Token {
         return name;
     }
 
-    public void act(Stack<Expression> S, boolean print) {
+    public void act(Stack<Expression> S) {
         super.validateArity(S, "word ", " indices");
         Stack<Expression> temp = reverseStack(S);
         StringBuilder stringValue = new StringBuilder(name);
@@ -59,13 +59,13 @@ public class Word extends Token {
             Expression expression = temp.pop();
             stringValue.append("[").append(expression).append("]");
             if (expression instanceof VariableExpression ve) {
-                M = ve.act(print, this, wordAutomaton.getNS().get(i), identifiers, M, quantify);
+                M = ve.act(this, wordAutomaton.getNS().get(i), identifiers, M, quantify);
             } else if (expression instanceof ArithmeticExpression ae) {
-                M = ae.act(print, identifiers, M, quantify);
+                M = ae.act(identifiers, M, quantify);
             } else if (expression instanceof NumberLiteralExpression ne) {
-                M = ne.act(print, this, identifiers, quantify, M);
+                M = ne.act(this, identifiers, quantify, M);
             } else if (expression instanceof AutomatonExpression ae) {
-                M = ae.act(print, name, i, M, identifiers);
+                M = ae.act(name, i, M, identifiers);
             } else if (expression == null) {
                 throw new IllegalArgumentException("Expression is null");
             } else {

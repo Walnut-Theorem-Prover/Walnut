@@ -30,10 +30,10 @@ public class ArithmeticExpression extends Expression {
     this.identifier = identifier;
   }
 
-  public Automaton act(boolean print, List<String> identifiers, Automaton M, List<String> quantify) {
+  public Automaton act(List<String> identifiers, Automaton M, List<String> quantify) {
     Logging.indent();
     identifiers.add(this.identifier);
-    M = AutomatonLogicalOps.and(M, this.M, print);
+    M = AutomatonLogicalOps.and(M, this.M);
     quantify.add(this.identifier);
     Logging.dedent();
     return M;

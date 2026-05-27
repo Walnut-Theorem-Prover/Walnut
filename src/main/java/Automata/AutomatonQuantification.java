@@ -14,12 +14,12 @@ import static Main.Logging.QUANTIFIED;
 import static Main.Logging.QUANTIFYING;
 
 public class AutomatonQuantification {
-  public static void quantify(Automaton A, String labelToQuantify, boolean print) {
-      quantify(A, Set.of(labelToQuantify), print);
+  public static void quantify(Automaton A, String labelToQuantify) {
+      quantify(A, Set.of(labelToQuantify));
   }
 
-  public static void quantify(Automaton A, List<String> labelsToQuantify, boolean print) {
-      quantify(A, new HashSet<>(labelsToQuantify), print);
+  public static void quantify(Automaton A, List<String> labelsToQuantify) {
+      quantify(A, new HashSet<>(labelsToQuantify));
   }
 
   /**
@@ -34,26 +34,26 @@ public class AutomatonQuantification {
    *
    * @param labelsToQuantify must contain at least one element, and must be a subset of this label.
    */
-  public static void quantify(Automaton A, Set<String> labelsToQuantify, boolean print) {
-      quantifyHelper(A, labelsToQuantify, print);
+  public static void quantify(Automaton A, Set<String> labelsToQuantify) {
+      quantifyHelper(A, labelsToQuantify);
       if (A.fa.isTRUE_FALSE_AUTOMATON()) return;
 
       Boolean isMsd = NumberSystem.determineMsd(A.getNS());
       if (isMsd == null) return;
       if (isMsd)
-          AutomatonLogicalOps.fixLeadingZerosProblem(A, print);
+          AutomatonLogicalOps.fixLeadingZerosProblem(A);
       else
-          AutomatonLogicalOps.fixTrailingZerosProblem(A, print);
+          AutomatonLogicalOps.fixTrailingZerosProblem(A);
   }
 
-  private static void quantifyHelper(Automaton A, Set<String> labelsToQuantify, boolean print) {
+  private static void quantifyHelper(Automaton A, Set<String> labelsToQuantify) {
       if (labelsToQuantify.isEmpty() || A.getLabel() == null || A.getLabel().isEmpty()) {
           return;
       }
 
     validateLabels(A, labelsToQuantify);
     long timeBefore = System.currentTimeMillis();
-      Logging.logMessage(print, QUANTIFYING + ":" + A.fa.getQ() + " states");
+      Logging.logMessage(QUANTIFYING + ":" + A.fa.getQ() + " states");
 
       //If this is the case, then the quantified automaton is either the true or false automaton.
       //It is true if the language is not empty.
@@ -101,10 +101,10 @@ public class AutomatonQuantification {
       }
       A.fa.getT().setNfaD(newD);
       Logging.indent();
-      A.determinizeAndMinimize(print);
+      A.determinizeAndMinimize();
       Logging.dedent();
       long timeAfter = System.currentTimeMillis();
-      Logging.logMessage(print, QUANTIFIED + ":" + A.fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms");
+      Logging.logMessage(QUANTIFIED + ":" + A.fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms");
   }
 
   static void validateLabels(Automaton A, Collection<String> labelsToQuantify) {
