@@ -5,8 +5,6 @@ classes/
 # Maven build
 target/
 .mvn
-mvnw
-mvnw.cmd
 
 # Avoid ignore Gradle wrappper properties
 !gradle-wrapper.properties
