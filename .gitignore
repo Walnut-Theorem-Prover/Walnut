@@ -6,9 +6,6 @@ classes/
 target/
 .mvn
 
-# Avoid ignore Gradle wrappper properties
-!gradle-wrapper.properties
-
 # Mac-specific files
 .DS_Store
 
@@ -27,8 +24,8 @@ Walnut.iml
 *.war
 *.ear
 
-# Avoid ignoring OTF jar
-!OTF.jar
+# Avoid ignoring local dependencies
+!libs/
  
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
