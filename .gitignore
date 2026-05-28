@@ -4,7 +4,6 @@ classes/
 
 # Maven build
 target/
-.mvn
 
 # Mac-specific files
 .DS_Store
