@@ -630,13 +630,13 @@ public class NumberSystem {
     }
 
     private Automaton applyComparison(Automaton base, String a, String b, boolean reverse, boolean negate) {
-        Logging.disablePrint();
         Automaton result = base.clone();
         result.bind(reverse ? List.of(b,a) : List.of(a,b));
         if (negate) {
-          AutomatonLogicalOps.not(result, Logging.shouldPrintDetails());
+          Logging.disablePrint();
+          AutomatonLogicalOps.not(result);
+          Logging.enablePrint();
         }
-        Logging.enablePrint();
         return result;
     }
 
@@ -680,7 +680,7 @@ public class NumberSystem {
             } else if (comparisonOperator.equals(RelationalOperator.Ops.NOT_EQUAL)) {
                 N.bind(List.of(a));
                 Logging.disablePrint();
-                AutomatonLogicalOps.not(N, Logging.shouldPrintDetails());
+                AutomatonLogicalOps.not(N);
                 Logging.enablePrint();
                 return N;
             }
@@ -880,21 +880,26 @@ public class NumberSystem {
 
         Automaton P;
         String a = "a", b = "b", c = "c";
-        Logging.disablePrint();
         if (n == 0) {
             P = makeZero();
         } else if (n == 1) {
             P = makeOne();
         } else if (n < 0) {
             // b = -n
+            Logging.disablePrint();
+
             Automaton M = getConstant(-n);
             M.bind(List.of(b));
             // Eb, a + b = 0 & b = -n
             P = arithmetic(a, b, 0, ArithmeticOperator.Ops.PLUS);
             P = AutomatonLogicalOps.and(P, M);
             AutomatonQuantification.quantify(P, b);
+
+            Logging.enablePrint();
         } else { // n > 0
             // a = floor(n/2)
+            Logging.disablePrint();
+
             Automaton M = getConstant(n / 2);
             M.bind(List.of(a));
             // b = ceil(n/2)
@@ -905,8 +910,8 @@ public class NumberSystem {
             P = AutomatonLogicalOps.and(P, M);
             P = AutomatonLogicalOps.and(P, N);
             AutomatonQuantification.quantify(P, Set.of(a, b));
+            Logging.enablePrint();
         }
-        Logging.enablePrint();
         constantsDynamicTable.put(n, P);
         return P;
     }

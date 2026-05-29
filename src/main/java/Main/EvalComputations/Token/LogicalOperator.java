@@ -107,7 +107,7 @@ public class LogicalOperator extends Operator {
             if (op.equals(Operator.REVERSE))
                 AutomatonLogicalOps.reverse(a.M, true);
             if (this.isNegation(op))
-                AutomatonLogicalOps.not(a.M, Logging.shouldPrintDetails());
+                AutomatonLogicalOps.not(a.M);
             S.push(new AutomatonExpression(op + a, a.M));
             Logging.dedent();
             Logging.logAndPrint(COMPUTED + " " + op + a);
@@ -143,9 +143,9 @@ public class LogicalOperator extends Operator {
                     AutomatonQuantification.quantify(M, identifiersToQuantify);
                 } else if (op.equals(Operator.FORALL)) {
                     // A == ~ E ~
-                    AutomatonLogicalOps.not(M, Logging.shouldPrintDetails());
+                    AutomatonLogicalOps.not(M);
                     AutomatonQuantification.quantify(M, identifiersToQuantify);
-                    AutomatonLogicalOps.not(M, Logging.shouldPrintDetails());
+                    AutomatonLogicalOps.not(M);
                 } else {
                     // op == I
                     M = AutomatonLogicalOps.removeLeadingZeros(M, identifiersToQuantify);

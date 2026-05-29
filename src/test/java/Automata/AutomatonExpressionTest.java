@@ -73,9 +73,9 @@ class AutomatonExpressionTest {
             Assertions.assertTrue(EqualityUtils.faEqual(a.fa, b.fa), a.fa + " != " + b.fa);
 
             b = a.clone();
-            AutomatonLogicalOps.not(b, false);
+            AutomatonLogicalOps.not(b);
             Assertions.assertFalse(EqualityUtils.faEqual(a.fa, b.fa), a.fa + " == " + b.fa);
-            AutomatonLogicalOps.not(b, false);
+            AutomatonLogicalOps.not(b);
             Assertions.assertTrue(EqualityUtils.faEqual(a.fa, b.fa), a.fa + " != " + b.fa);
         }
         catch (RuntimeException ex) {

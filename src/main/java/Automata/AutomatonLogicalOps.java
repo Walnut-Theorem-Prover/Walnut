@@ -82,7 +82,7 @@ public class AutomatonLogicalOps {
         if (A.fa.isTRUE_FALSE_AUTOMATON() || B.fa.isTRUE_FALSE_AUTOMATON()) {
             if (A.fa.isTRUE_FALSE_AUTOMATON()) {
                 if (A.fa.isTRUE_AUTOMATON()) {
-                    not(B, Logging.shouldPrintDetails());
+                    not(B);
                 }
                 return B;
             }
@@ -103,7 +103,7 @@ public class AutomatonLogicalOps {
             if (B.fa.isTRUE_AUTOMATON()) {
                 return new Automaton(true);
             } else {
-                not(A, Logging.shouldPrintDetails());
+                not(A);
                 return A;
             }
         }
@@ -142,7 +142,8 @@ public class AutomatonLogicalOps {
     /**
      * Negate automaton. NOTE: A is deterministic.
      */
-    public static void not(Automaton A, boolean print) {
+    public static void not(Automaton A) {
+        boolean print = Logging.shouldPrintDetails();
         if (A.fa.isTRUE_FALSE_AUTOMATON()) {
             A.fa.setTRUE_AUTOMATON(!A.fa.isTRUE_AUTOMATON());
             return;
