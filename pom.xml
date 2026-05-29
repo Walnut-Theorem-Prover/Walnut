@@ -2,7 +2,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>ca.uwaterloo</groupId>
+    <groupId>io.github.walnut-theorem-prover</groupId>
     <artifactId>walnut</artifactId>
     <version>8.0-SNAPSHOT</version>
 
@@ -53,17 +53,12 @@
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
-            <version>1.5.6</version>
-        </dependency>
-        <dependency><!-- for OTF -->
-            <groupId>com.github.ben-manes.caffeine</groupId>
-            <artifactId>caffeine</artifactId>
-            <version>3.2.2</version>
+            <version>1.5.26</version>
         </dependency>
         <dependency>
-            <groupId>com.github.jn1z</groupId>
-            <artifactId>OTF</artifactId>
-            <version>1.1.0</version>
+            <groupId>io.github.jn1z</groupId>
+            <artifactId>otf</artifactId>
+            <version>1.1.1</version>
         </dependency>
         <dependency>
             <groupId>dk.brics</groupId>
@@ -102,8 +97,14 @@
 
     <repositories>
         <repository>
-            <id>local-maven-repo</id>
-            <url>file:///${project.basedir}/libs</url>
+            <!-- query central first -->
+            <id>central</id>
+            <url>https://repo1.maven.org/maven2/</url>
+        </repository>
+        <repository>
+            <!-- for OTF dependency -->
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
         </repository>
     </repositories>
 
@@ -149,11 +150,12 @@
                     <artifactId>maven-project-info-reports-plugin</artifactId>
                     <version>3.6.1</version>
                 </plugin>
-                <plugin>
-                    <artifactId>maven-assembly-plugin</artifactId>
-                    <version>3.8.0</version>
-                </plugin>
 
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>exec-maven-plugin</artifactId>
+                    <version>3.6.3</version>
+                </plugin>
                 <plugin>
                     <groupId>org.jacoco</groupId>
                     <artifactId>jacoco-maven-plugin</artifactId>
@@ -185,38 +187,6 @@
                                 <goals>
                                     <goal>report</goal>
                                 </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-        <profile>
-            <!-- build fat jar, including all its dependencies -->
-            <id>fat-jar</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <artifactId>maven-assembly-plugin</artifactId>
-                        <configuration>
-                            <descriptors>
-                                <descriptor>src/main/assembly/all.xml</descriptor>
-                            </descriptors>
-                            <appendAssemblyId>true</appendAssemblyId>
-                            <finalName>Walnut</finalName>
-                            <archive>
-                                <manifest>
-                                    <mainClass>Main.Prover</mainClass>
-                                </manifest>
-                            </archive>
-                        </configuration>
-                        <executions>
-                            <execution>
-                                <id>bundle</id>
-                                <goals>
-                                    <goal>single</goal>
-                                </goals>
-                                <phase>package</phase>
                             </execution>
                         </executions>
                     </plugin>
