@@ -4,5 +4,5 @@
 ./mvnw -q exec:java -Dexec.mainClass="Main.Prover" -Dexec.args="$*"
 
 #Invoked with 15GB of memory
-#MAVEN_OPTS="${MAVEN_OPTS} -Xmx15G" ./mvnw exec:java -Dexec.mainClass="Main.Prover" -Dexec.args="$*"
+#MAVEN_OPTS="${MAVEN_OPTS} -Xmx15G" ./mvnw -q exec:java -Dexec.mainClass="Main.Prover" -Dexec.args="$*"
 
