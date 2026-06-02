@@ -13,7 +13,7 @@ public class Alphabet {
   static final String RE_FOR_AN_ALPHABET = "((((msd|lsd)_(\\d+|\\w+))|((msd|lsd)(\\d+|\\w+))|(msd|lsd)|(\\d+|\\w+))|(\\{(\\s*(\\+|\\-)?\\s*\\d+)(\\s*,\\s*(\\+|\\-)?\\s*\\d+)*\\s*\\}))\\s+";
   static final Pattern PAT_FOR_AN_ALPHABET = Pattern.compile(RE_FOR_AN_ALPHABET);
 
-  public static TestCase alphabetCommand(boolean printFlag, String s, String listOfAlphabets, int nsStart, boolean isDFAO, String inFileName, String newName) {
+  public static TestCase alphabetCommand(String s, String listOfAlphabets, int nsStart, boolean isDFAO, String inFileName, String newName) {
     List<NumberSystem> NS = new ArrayList<>();
     List<List<Integer>> alphabets = new ArrayList<>();
     determineAlphabetsAndNS(listOfAlphabets, nsStart, NS, alphabets);
@@ -21,7 +21,7 @@ public class Alphabet {
     Automaton M = new Automaton(ProverHelper.determineInLibrary(isDFAO, inFileName));
 
     // here, call the function to set the number system.
-    M.setAlphabet(isDFAO, NS, alphabets, printFlag);
+    M.setAlphabet(isDFAO, NS, alphabets);
 
     M.writeAutomata(s, ProverHelper.determineOutLibrary(isDFAO), newName, false);
     return new TestCase(M);

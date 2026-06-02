@@ -57,7 +57,7 @@ public class Function extends Token {
         return name;
     }
 
-    public void act(Stack<Expression> S, boolean print) {
+    public void act(Stack<Expression> S) {
         super.validateArity(S, "function ", " arguments");
         Stack<Expression> temp = reverseStack(S);
         String stringValue = this + "(";
@@ -73,13 +73,13 @@ public class Function extends Token {
         for (int i = 0; i < arity; i++) {
             Expression expression = expressions.get(i);
             if (expression instanceof VariableExpression ve) {
-                M = ve.act(print, this, this.ns, identifiers, M, quantify);
+                M = ve.act(this, this.ns, identifiers, M, quantify);
             } else if (expression instanceof ArithmeticExpression ae) {
-                M = ae.act(print, identifiers, M, quantify);
+                M = ae.act(identifiers, M, quantify);
             } else if (expression instanceof NumberLiteralExpression ne) {
-                M = ne.act(print, this, identifiers, quantify, M);
+                M = ne.act(this, identifiers, quantify, M);
             } else if (expression instanceof AutomatonExpression ae) {
-                M = ae.act(print, name, i, M, identifiers);
+                M = ae.act(name, i, M, identifiers);
             } else if (expression == null) {
                 throw new IllegalArgumentException("Expression is null");
             } else {
@@ -89,8 +89,8 @@ public class Function extends Token {
         A.bind(identifiers);
         
         Logging.indent();
-        A = AutomatonLogicalOps.and(A, M, print);
-        AutomatonQuantification.quantify(A, quantify, print);
+        A = AutomatonLogicalOps.and(A, M);
+        AutomatonQuantification.quantify(A, quantify);
         Logging.dedent();
 
         S.push(new AutomatonExpression(stringValue, A));

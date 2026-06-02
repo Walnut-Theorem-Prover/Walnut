@@ -73,7 +73,7 @@ public class Logging {
   }
 
   public static boolean shouldPrintDetails() {
-    return printDetails.get();
+    return printEnabled && printDetails.get();
   }
 
   public static boolean shouldPrintStepsOrDetails() {

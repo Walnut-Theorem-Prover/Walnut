@@ -39,7 +39,7 @@ public class Test {
     // This preserves the existing behavior that skips representations beginning with 0
     // (or [0,0], etc., for higher-arity numeric inputs).
     M.randomLabel();
-    M = AutomatonLogicalOps.removeLeadingZeros(M, M.getLabel(), false);
+    M = AutomatonLogicalOps.removeLeadingZeros(M, M.getLabel());
 
     List<String> accepted = new ArrayList<>(needed);
     Word<Integer> previous = null;

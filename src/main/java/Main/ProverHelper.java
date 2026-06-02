@@ -92,7 +92,7 @@ public class ProverHelper {
     Automaton M = Automaton.readAutomatonFromFile(address);
     // we don't want to count multiple representations of the same value as distinct accepted values
     M.randomLabel();
-    M = AutomatonLogicalOps.removeLeadingZeros(M, M.getLabel(), false);
+    M = AutomatonLogicalOps.removeLeadingZeros(M, M.getLabel());
     return infFromAutomaton(address, M);
   }
 
@@ -104,20 +104,19 @@ public class ProverHelper {
     return !infReg.isEmpty();
   }
 
-  static TestCase reverseCommand(String s, String inFileName, boolean isDFAO, String newName, boolean printFlag) {
+  static TestCase reverseCommand(String s, String inFileName, boolean isDFAO, String newName) {
     Automaton M = new Automaton(determineInLibrary(isDFAO, inFileName));
     if (isDFAO) {
-      WordAutomaton.reverseWithOutput(M, true, printFlag);
+      WordAutomaton.reverseWithOutput(M, true);
     } else {
-      AutomatonLogicalOps.reverse(M, printFlag, true);
+      AutomatonLogicalOps.reverse(M, true);
     }
     M.writeAutomata(s, determineOutLibrary(isDFAO), newName, true);
     return new TestCase(M);
   }
 
   public static TestCase processSplitCommand(
-      String s, boolean isReverse, String automatonName,
-      String name, Matcher inputPattern, boolean printFlag) {
+      String s, boolean isReverse, String automatonName, String name, Matcher inputPattern) {
 
     String addressForWordAutomaton =
         Session.getReadFileForWordsLibrary(automatonName + Prover.TXT_EXTENSION);
@@ -157,10 +156,10 @@ public class ProverHelper {
     UtilityMethods.removeDuplicates(outputs);
     List<Automaton> subautomata = WordAutomaton.uncombine(M, outputs);
 
-    subautomata.replaceAll(automaton -> automaton.processSplit(plusMinusInputs, isReverse, printFlag));
+    subautomata.replaceAll(automaton -> automaton.processSplit(plusMinusInputs, isReverse));
 
     Automaton N = subautomata.remove(0);
-    N = AutomatonLogicalOps.combine(N, new LinkedList<>(subautomata), outputs, printFlag);
+    N = AutomatonLogicalOps.combine(N, new LinkedList<>(subautomata), outputs);
 
     N.writeAutomata(s, determineOutLibrary(isDFAO), name, isDFAO);
     return new TestCase(N);
@@ -176,7 +175,7 @@ public class ProverHelper {
         Session.getWriteAddressForWordsLibrary() : Session.getWriteAddressForAutomataLibrary();
   }
 
-  static TestCase combineCommand(boolean print, String s, List<String> automataNames, IntList outputs, Matcher m) {
+  static TestCase combineCommand(String s, List<String> automataNames, IntList outputs, Matcher m) {
     if (automataNames.isEmpty()) {
       throw new WalnutException("Combine requires at least one automaton as input.");
     }
@@ -190,7 +189,7 @@ public class ProverHelper {
       subautomata.add(M);
     }
 
-    Automaton C = AutomatonLogicalOps.combine(first, subautomata, outputs, print);
+    Automaton C = AutomatonLogicalOps.combine(first, subautomata, outputs);
 
     C.writeAutomata(s, Session.getWriteAddressForWordsLibrary(), m.group(Prover.GROUP_COMBINE_NAME), true);
     return new TestCase(C);

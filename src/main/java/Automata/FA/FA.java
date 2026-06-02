@@ -17,6 +17,7 @@
  */
 package Automata.FA;
 
+import Main.Logging;
 import Main.WalnutException;
 import it.unimi.dsi.fastutil.ints.*;
 import net.automatalib.alphabet.impl.Alphabets;
@@ -213,16 +214,16 @@ public class FA implements Cloneable {
   /**
    * This method adds a dead state to totalize the transition function
    */
-  public void totalize(boolean print) {
+  public void totalize() {
     long timeBefore = System.currentTimeMillis();
-    logMessage(print, TOTALIZING + ":" + Q + " states");
+    logMessage(TOTALIZING + ":" + Q + " states");
     //we first check if the automaton is totalized
     int sinkState = Q; // potential new dead state
     if (!totalizeStates(sinkState)) {
       addSinkState(0, sinkState);
     }
     long timeAfter = System.currentTimeMillis();
-    logMessage(print, TOTALIZED + ":" + Q + " states - " + (timeAfter - timeBefore) + "ms");
+    logMessage(TOTALIZED + ":" + Q + " states - " + (timeAfter - timeBefore) + "ms");
   }
 
 
@@ -231,9 +232,9 @@ public class FA implements Cloneable {
    * <p>
    * Return whether a dead state was even added.
    */
-  public boolean addDistinguishedDeadState(boolean print) {
+  public boolean addDistinguishedDeadState() {
     long timeBefore = System.currentTimeMillis();
-    logMessage(print, "Adding distinguished dead state: " + getQ() + " states");
+    logMessage("Adding distinguished dead state: " + getQ() + " states");
     boolean totalized = this.totalizeStates(this.Q);
     int min;
     if (totalized) {
@@ -244,12 +245,12 @@ public class FA implements Cloneable {
     }
 
     long timeAfter = System.currentTimeMillis();
-    if (print) {
+    if (Logging.shouldPrintDetails()) {
       String msg = "Already totalized, no distinguished state added: " + getQ() + " states - " + (timeAfter - timeBefore) + "ms";
       if (!totalized) {
         msg = "Added distinguished dead state with output of " + (min - 1) + ": " + getQ() + " states - " + (timeAfter - timeBefore) + "ms";
       }
-      logMessage(true, msg);
+      logMessage(msg);
     }
     return !totalized;
   }
@@ -529,9 +530,9 @@ public class FA implements Cloneable {
   /**
    * We don't need to determinize here; just minimize.
    */
-  public void justMinimize(boolean print) {
+  public void justMinimize() {
     long timeBefore = System.currentTimeMillis();
-    logMessage(print, MINIMIZING + ": " + Q + " states.");
+    logMessage(MINIMIZING + ": " + Q + " states.");
 
     this.convertNFAtoDFA();
     ValmariDFA v = new ValmariDFA(this, Q);
@@ -541,7 +542,7 @@ public class FA implements Cloneable {
     this.canonized = false;
 
     long timeAfter = System.currentTimeMillis();
-    logMessage(print, MINIMIZED + ":" + Q + " states - " + (timeAfter - timeBefore) + "ms.");
+    logMessage(MINIMIZED + ":" + Q + " states - " + (timeAfter - timeBefore) + "ms.");
   }
 
   public void setCanonized(boolean canonized) {

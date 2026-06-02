@@ -59,15 +59,15 @@ public class LogicalOperator extends Operator {
         this.positionInPredicate = position;
     }
 
-    public void act(Stack<Expression> S, boolean print) {
+    public void act(Stack<Expression> S) {
         super.validateArity(S);
 
         if (this.isNegation(op) || op.equals(Operator.REVERSE)) {
-            actNegationOrReverse(S, print);
+            actNegationOrReverse(S);
             return;
         }
         if (op.equals(Operator.EXISTS) || op.equals(Operator.FORALL) || op.equals(Operator.INFINITE)) {
-            actQuantifier(S, print);
+            actQuantifier(S);
             return;
         }
 
@@ -80,14 +80,14 @@ public class LogicalOperator extends Operator {
             String opString = "(" + a + op + b + ")";
             AutomatonExpression ae = switch (op) {
               case AND ->
-                  new AutomatonExpression(opString, AutomatonLogicalOps.and(a.M, b.M, print));
-              case OR -> new AutomatonExpression(opString, AutomatonLogicalOps.or(a.M, b.M, print, op));
+                  new AutomatonExpression(opString, AutomatonLogicalOps.and(a.M, b.M));
+              case OR -> new AutomatonExpression(opString, AutomatonLogicalOps.or(a.M, b.M, op));
               case XOR ->
-                  new AutomatonExpression(opString, AutomatonLogicalOps.xor(a.M, b.M, print, op));
+                  new AutomatonExpression(opString, AutomatonLogicalOps.xor(a.M, b.M, op));
               case IMPLY ->
-                  new AutomatonExpression(opString, AutomatonLogicalOps.imply(a.M, b.M, print, op));
+                  new AutomatonExpression(opString, AutomatonLogicalOps.imply(a.M, b.M, op));
               case IFF ->
-                  new AutomatonExpression(opString, AutomatonLogicalOps.iff(a.M, b.M, print, op));
+                  new AutomatonExpression(opString, AutomatonLogicalOps.iff(a.M, b.M, op));
               default -> throw new WalnutException("Unexpected logical operator: " + op);
             };
             S.push(ae);
@@ -99,15 +99,15 @@ public class LogicalOperator extends Operator {
         throw WalnutException.invalidDualOperators(op, a, b);
     }
 
-    private void actNegationOrReverse(Stack<Expression> S, boolean print) {
+    private void actNegationOrReverse(Stack<Expression> S) {
         Expression a = S.pop();
         if (a instanceof AutomatonExpression) {
             Logging.logAndPrint(COMPUTING + " " + op + a);
             Logging.indent();
             if (op.equals(Operator.REVERSE))
-                AutomatonLogicalOps.reverse(a.M, print, true);
+                AutomatonLogicalOps.reverse(a.M, true);
             if (this.isNegation(op))
-                AutomatonLogicalOps.not(a.M, print);
+                AutomatonLogicalOps.not(a.M);
             S.push(new AutomatonExpression(op + a, a.M));
             Logging.dedent();
             Logging.logAndPrint(COMPUTED + " " + op + a);
@@ -116,7 +116,7 @@ public class LogicalOperator extends Operator {
         throw WalnutException.invalidOperator(op, a);
     }
 
-    private void actQuantifier(Stack<Expression> S, boolean print) {
+    private void actQuantifier(Stack<Expression> S) {
         StringBuilder stringValue = new StringBuilder("(" + op + " ");
         Stack<Expression> temp = reverseStack(S);
         Automaton M = null;
@@ -140,15 +140,15 @@ public class LogicalOperator extends Operator {
                     throw new WalnutException("the last operand of " + op + " can only be of type automaton");
                 M = operand.M;
                 if (op.equals(Operator.EXISTS)) {
-                    AutomatonQuantification.quantify(M, identifiersToQuantify, print);
+                    AutomatonQuantification.quantify(M, identifiersToQuantify);
                 } else if (op.equals(Operator.FORALL)) {
                     // A == ~ E ~
-                    AutomatonLogicalOps.not(M, print);
-                    AutomatonQuantification.quantify(M, identifiersToQuantify, print);
-                    AutomatonLogicalOps.not(M, print);
+                    AutomatonLogicalOps.not(M);
+                    AutomatonQuantification.quantify(M, identifiersToQuantify);
+                    AutomatonLogicalOps.not(M);
                 } else {
                     // op == I
-                    M = AutomatonLogicalOps.removeLeadingZeros(M, identifiersToQuantify, print);
+                    M = AutomatonLogicalOps.removeLeadingZeros(M, identifiersToQuantify);
                     String infReg = Infinite.infinite(M.fa, M.richAlphabet);
                     M = new Automaton(!infReg.isEmpty());
                 }

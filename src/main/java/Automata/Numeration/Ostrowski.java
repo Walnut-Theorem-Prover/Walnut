@@ -193,7 +193,7 @@ public class Ostrowski {
             automaton.fa.getT().addToNfaD(this.stateTransitions.get(q));
         }
 
-        automaton.determinizeAndMinimize(false);
+        automaton.determinizeAndMinimize();
 
         // We need to canonize and remove the first state.
         // The automaton will work with this state as well, but it is useless. This happens
