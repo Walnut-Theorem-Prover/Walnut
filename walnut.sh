@@ -1,7 +1,8 @@
 #!/bin/bash
 
-java -jar build/libs/Walnut-all.jar "$@"
+# Invoked with 15GB memory. Change as you see fit.
+./mvnw -q exec:java -Dexec.mainClass="Main.Prover" -Dexec.args="$*"
 
 #Invoked with 15GB of memory
-#java -Xmx15000M -jar build/libs/Walnut-all.jar "$@"
+#MAVEN_OPTS="${MAVEN_OPTS} -Xmx15G" ./mvnw -q exec:java -Dexec.mainClass="Main.Prover" -Dexec.args="$*"
 
