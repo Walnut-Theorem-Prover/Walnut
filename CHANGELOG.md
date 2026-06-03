@@ -6,16 +6,18 @@ All notable changes to Walnut will be documented here. Format is based on [Keep 
 
 ### Added
 ### Fixed
-- Fix `inf` and `test` performance [#33]((https://github.com/Walnut-Theorem-Prover/Walnut/issues/33)
+- Fix `inf` and `test` performance [#33](https://github.com/Walnut-Theorem-Prover/Walnut/issues/33)
+
 ### Changed
-- Morphism command now allows symbols outside of the range of 0-9 (for both domain and range).(https://github.com/Walnut-Theorem-Prover/Walnut/issues/43)
-- Switch to standard logging framework.(https://github.com/Walnut-Theorem-Prover/Walnut/issues/23)
+- Build process now uses Maven, thanks to [Markus Frohme](https://github.com/mtf90)
+- Morphism command now allows symbols outside of the range of 0-9 (for both domain and range) [#43](https://github.com/Walnut-Theorem-Prover/Walnut/issues/43)
+- Switch to standard logging framework [#23](https://github.com/Walnut-Theorem-Prover/Walnut/issues/23)
 
 ## [Walnut 7.1] - 2025-12-02 - Author: John Nicol
 
 ### Added
 
-- Added --global-session arg, to support old (Walnut 6 and earlier) globsl session behavior.
+- Added --global-session arg, to support old (Walnut 6 and earlier) global session behavior.
 - Added Mathematica (.wl), Matlab/Octave (.m), and Sage (.sage) outputs for matrices [#35](https://github.com/Walnut-Theorem-Prover/Walnut/issues/35)
  
 ### Fixed
