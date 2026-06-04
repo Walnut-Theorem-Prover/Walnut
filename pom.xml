@@ -4,7 +4,7 @@
 
     <groupId>io.github.walnut-theorem-prover</groupId>
     <artifactId>walnut</artifactId>
-    <version>8.0-SNAPSHOT</version>
+    <version>8.0-alpha</version>
 
     <name>Walnut Theorem Prover</name>
     <url>https://walnut-theorem-prover.github.io/</url>
@@ -187,6 +187,38 @@
                                 <goals>
                                     <goal>report</goal>
                                 </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+	<profile>
+            <!-- build fat jar, including all its dependencies -->
+            <id>fat-jar</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <artifactId>maven-assembly-plugin</artifactId>
+                        <configuration>
+                            <descriptors>
+                                <descriptor>src/main/assembly/all.xml</descriptor>
+                            </descriptors>
+                            <appendAssemblyId>true</appendAssemblyId>
+                            <finalName>Walnut</finalName>
+                            <archive>
+                                <manifest>
+                                    <mainClass>Main.Prover</mainClass>
+                                </manifest>
+                            </archive>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>bundle</id>
+                                <goals>
+                                    <goal>single</goal>
+                                </goals>
+                                <phase>package</phase>
                             </execution>
                         </executions>
                     </plugin>
