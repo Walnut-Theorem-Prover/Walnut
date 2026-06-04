@@ -22,7 +22,6 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import Main.Predicate;
 import Main.Prover;
 import Main.UtilityMethods;
 import Main.WalnutException;

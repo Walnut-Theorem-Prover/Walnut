@@ -12,7 +12,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Queue;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -104,17 +103,6 @@ public class ProverHelper {
     return !infReg.isEmpty();
   }
 
-  static TestCase reverseCommand(String s, String inFileName, boolean isDFAO, String newName) {
-    Automaton M = new Automaton(determineInLibrary(isDFAO, inFileName));
-    if (isDFAO) {
-      WordAutomaton.reverseWithOutput(M, true);
-    } else {
-      AutomatonLogicalOps.reverse(M, true);
-    }
-    M.writeAutomata(s, determineOutLibrary(isDFAO), newName, true);
-    return new TestCase(M);
-  }
-
   public static TestCase processSplitCommand(
       String s, boolean isReverse, String automatonName, String name, Matcher inputPattern) {
 
@@ -175,23 +163,4 @@ public class ProverHelper {
         Session.getWriteAddressForWordsLibrary() : Session.getWriteAddressForAutomataLibrary();
   }
 
-  static TestCase combineCommand(String s, List<String> automataNames, IntList outputs, Matcher m) {
-    if (automataNames.isEmpty()) {
-      throw new WalnutException("Combine requires at least one automaton as input.");
-    }
-    Automaton first = Automaton.readAutomatonFromFile(automataNames.get(0));
-    automataNames.remove(0);
-
-    Queue<Automaton> subautomata = new LinkedList<>();
-
-    for (String name : automataNames) {
-      Automaton M = Automaton.readAutomatonFromFile(name);
-      subautomata.add(M);
-    }
-
-    Automaton C = AutomatonLogicalOps.combine(first, subautomata, outputs);
-
-    C.writeAutomata(s, Session.getWriteAddressForWordsLibrary(), m.group(Prover.GROUP_COMBINE_NAME), true);
-    return new TestCase(C);
-  }
 }

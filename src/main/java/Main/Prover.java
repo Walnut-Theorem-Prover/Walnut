@@ -28,10 +28,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import Automata.*;
-import Main.Commands.Alphabet;
-import Main.Commands.Describe;
-import Main.Commands.Ost;
-import Main.Commands.Test;
+import Automata.Morphism;
+import Main.Commands.*;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 
@@ -622,13 +620,19 @@ public class Prover {
     return true;
   }
 
-  public TestCase evalDefCommands(String s) throws IOException {
+  public TestCase evalDefCommands(String s) {
     Matcher m = ProverHelper.matchOrFail(PAT_FOR_eval_def_CMDS, s, "eval/def");
 
     String predicateStr = m.group(ED_PREDICATE);
     String evalName = m.group(ED_NAME);
     currentEvalName = evalName; // used for export metacommand
 
+    String freeVarStr = m.group(Prover.ED_FREE_VARIABLES);
+    return evalDefCommand(printFlag, printDetails, predicateStr, evalName, freeVarStr);
+  }
+
+  private static TestCase evalDefCommand(
+      boolean printFlag, boolean printDetails, String predicateStr, String evalName, String freeVarStr) {
     // parse the predicates into an object
     Predicate predicate = new Predicate(predicateStr);
 
@@ -641,8 +645,7 @@ public class Prover {
       c.compute(predicate);
       Automaton M = c.result.M;
 
-      List<String> matrixAddresses =
-          c.writeAutomata(predicateStr, evalName, m.group(Prover.ED_FREE_VARIABLES), resultName);
+      List<String> matrixAddresses = c.writeAutomata(predicateStr, evalName, freeVarStr, resultName);
       return new TestCase(
           "", matrixAddresses, resultName + GV_EXTENSION, Logging.getDetailedLog(),
           List.of(new TestCase.AutomatonFilenamePair(M, DEFAULT_TESTFILE)));
@@ -714,7 +717,7 @@ public class Prover {
       automataNames.add(t);
     }
 
-    return ProverHelper.combineCommand(s, automataNames, outputs, m);
+    return Combine.combineCommand(s, automataNames, outputs, m.group(Prover.GROUP_COMBINE_NAME));
   }
 
   public TestCase describeCommand(String s) {
@@ -785,13 +788,6 @@ public class Prover {
     Automaton image = AutomatonLogicalOps.combine(first, subautomata, outputs);
     image.writeAutomata(s, Session.getWriteAddressForWordsLibrary(), imageNewName, true);
     return new TestCase(image);
-  }
-
-  private static Automaton computePredicateAutomaton(String predicateStr) {
-    // image is a final-result operation; do not preserve per-intermediate def logging.
-    EvalComputer c = new EvalComputer(false, false);
-    c.compute(new Predicate(predicateStr));
-    return c.result.M;
   }
 
   private static String determineImageNumberSystemPrefix(Automaton word, String wordName) {
@@ -894,7 +890,7 @@ public class Prover {
     boolean isDFAO = !m.group(GROUP_REVERSE_DOLLAR_SIGN).equals("$");
     String inFileName = m.group(GROUP_REVERSE_OLD_NAME) + TXT_EXTENSION;
     String newName = m.group(GROUP_REVERSE_NEW_NAME);
-    return ProverHelper.reverseCommand(s, inFileName, isDFAO, newName);
+    return Reverse.reverseCommand(s, inFileName, isDFAO, newName);
   }
 
   public TestCase minimizeCommand(String s) {

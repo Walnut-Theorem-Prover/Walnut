@@ -5,12 +5,13 @@ All notable changes to Walnut will be documented here. Format is based on [Keep 
 ## [Walnut 8] - in progress
 
 ### Added
+- `morphism` command now allows symbols outside of the range of 0-9 (for both domain and range) [#43](https://github.com/Walnut-Theorem-Prover/Walnut/issues/43)
+
 ### Fixed
 - Fix `inf` and `test` performance [#33](https://github.com/Walnut-Theorem-Prover/Walnut/issues/33)
 
 ### Changed
 - Build process now uses Maven, thanks to [Markus Frohme](https://github.com/mtf90)
-- Morphism command now allows symbols outside of the range of 0-9 (for both domain and range) [#43](https://github.com/Walnut-Theorem-Prover/Walnut/issues/43)
 - Switch to standard logging framework [#23](https://github.com/Walnut-Theorem-Prover/Walnut/issues/23)
 
 ## [Walnut 7.1] - 2025-12-02 - Author: John Nicol
