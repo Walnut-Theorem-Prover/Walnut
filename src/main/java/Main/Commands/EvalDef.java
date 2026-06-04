@@ -16,34 +16,71 @@
  *   along with Walnut.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package Main;
+package Main.Commands;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
 import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import Automata.Automaton;
 import Automata.Writer.AutomatonMatrixWriter;
 import Automata.Writer.MatrixEmitter;
+import Main.*;
 import Main.EvalComputations.Expressions.AutomatonExpression;
 import Main.EvalComputations.Expressions.Expression;
 import Main.EvalComputations.Token.Token;
 
+import static Main.Prover.RE_IDENTIFIER;
+import static Main.TestCase.DEFAULT_TESTFILE;
+
 /**
  * This is used in eval/def commands to compute the predicate.
  */
-public class EvalComputer {
-  Expression result;
-  public EvalComputer(boolean printSteps, boolean printDetails) {
+public class EvalDef {
+  static final String REXEXP_FOR_A_FREE_VARIABLE_IN_eval_def_CMDS = RE_IDENTIFIER;
+  static final Pattern PAT_FOR_A_FREE_VARIABLE_IN_eval_def_CMDS = Pattern.compile(REXEXP_FOR_A_FREE_VARIABLE_IN_eval_def_CMDS);
+
+  public Expression result;
+  public EvalDef(boolean printSteps, boolean printDetails) {
     Logging.configureForCommand(printSteps, printDetails);
+  }
+
+  public static TestCase evalDefCommand(
+      boolean printFlag, boolean printDetails, String predicateStr, String evalName, String freeVarStr) {
+    // parse the predicates into an object
+    Predicate predicate = new Predicate(predicateStr);
+
+    String resultName = Session.getAddressForResult() + evalName;
+
+    // compute result based on predicate
+    // if we wanted an "execution plan", it would be hooked in here
+    EvalDef c = new EvalDef(printFlag, printDetails);
+    try (Logging.CommandLogContext ignored = Logging.writeEvalLogsTo(resultName)) {
+      c.compute(predicate);
+      Automaton M = c.result.M;
+
+      List<String> matrixAddresses = c.writeAutomata(predicateStr, evalName, freeVarStr, resultName);
+      return new TestCase(
+          "", matrixAddresses, resultName + Prover.GV_EXTENSION, Logging.getDetailedLog(),
+          List.of(new TestCase.AutomatonFilenamePair(M, DEFAULT_TESTFILE)));
+    }
+  }
+
+  public static Automaton getImageEval(String predicateStr, boolean printFlag) {
+    Predicate p = new Predicate(predicateStr);
+    // image is a final-result operation; do not preserve per-intermediate def logging.
+    EvalDef c = new EvalDef(printFlag, false);
+    c.compute(p);
+    return c.result.M;
   }
 
   public String toString() {
     return result.toString();
   }
 
-  void compute(Predicate predicate) {
+  private void compute(Predicate predicate) {
     Stack<Expression> expressions = new Stack<>();
     List<Token> postOrder = predicate.getPostOrder();
     long timeBeginning = System.currentTimeMillis();
@@ -98,7 +135,7 @@ public class EvalComputer {
     }
   }
 
-  List<String> writeAutomata(
+  private List<String> writeAutomata(
       String predicateStr, String evalName, String freeVarStr, String resultName) {
     Automaton M = result.M;
     M.writeAutomata(predicateStr, Session.getWriteAddressForAutomataLibrary(), evalName, false);
@@ -123,11 +160,10 @@ public class EvalComputer {
     return matrixAddresses;
   }
 
-
-  static List<String> determineFreeVariables(String freeVariablesStr) {
+  private static List<String> determineFreeVariables(String freeVariablesStr) {
     List<String> freeVariables = new ArrayList<>();
     if (freeVariablesStr != null) {
-      Matcher m1 = Prover.PAT_FOR_A_FREE_VARIABLE_IN_eval_def_CMDS.matcher(freeVariablesStr);
+      Matcher m1 = PAT_FOR_A_FREE_VARIABLE_IN_eval_def_CMDS.matcher(freeVariablesStr);
       while (m1.find()) {
         String t = m1.group();
         freeVariables.add(t);

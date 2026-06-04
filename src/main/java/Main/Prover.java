@@ -35,7 +35,6 @@ import it.unimi.dsi.fastutil.ints.IntList;
 
 import static Automata.NumberSystem.MSD_2;
 import static Automata.NumberSystem.MSD_UNDERSCORE;
-import static Main.TestCase.DEFAULT_TESTFILE;
 
 /**
  * This class contains the main method. It is responsible to get a command from user
@@ -45,7 +44,7 @@ public class Prover {
   static final String RE_FOR_THE_LIST_OF_CMDS = "(eval|def|macro|reg|load|ost|exit|quit|cls|clear|combine|morphism|promote|image|inf|split|rsplit|join|test|transduce|reverse|minimize|convert|fixleadzero|fixtrailzero|alphabet|union|intersect|star|concat|rightquo|leftquo|describe|export|help)";
   static final String RE_START = "^";
   // Basic identifier: used for free variables, combine, etc.
-  static final String RE_IDENTIFIER = "[a-zA-Z]\\w*";
+  public static final String RE_IDENTIFIER = "[a-zA-Z]\\w*";
   static final String RE_WORD_OF_CMD_NO_SPC = "(" + RE_IDENTIFIER + ")";
   static final String RE_WORD_OF_CMD = "\\s+" + RE_WORD_OF_CMD_NO_SPC;
   // Optional "=<int>"
@@ -95,8 +94,6 @@ public class Prover {
    */
   static int ED_NAME = 2, ED_FREE_VARIABLES = 3, ED_PREDICATE = 6;
   static final Pattern PAT_FOR_eval_def_CMDS = Pattern.compile(RE_FOR_eval_def_CMDS);
-  static final String REXEXP_FOR_A_FREE_VARIABLE_IN_eval_def_CMDS = RE_IDENTIFIER;
-  static final Pattern PAT_FOR_A_FREE_VARIABLE_IN_eval_def_CMDS = Pattern.compile(REXEXP_FOR_A_FREE_VARIABLE_IN_eval_def_CMDS);
 
   public static final String MACRO = "macro";
   static final String RE_FOR_macro_CMD = RE_START + MACRO + RE_WORD_OF_CMD + "\\s+\"(.*)\"";
@@ -622,34 +619,11 @@ public class Prover {
 
   public TestCase evalDefCommands(String s) {
     Matcher m = ProverHelper.matchOrFail(PAT_FOR_eval_def_CMDS, s, "eval/def");
-
     String predicateStr = m.group(ED_PREDICATE);
     String evalName = m.group(ED_NAME);
     currentEvalName = evalName; // used for export metacommand
-
     String freeVarStr = m.group(Prover.ED_FREE_VARIABLES);
-    return evalDefCommand(printFlag, printDetails, predicateStr, evalName, freeVarStr);
-  }
-
-  private static TestCase evalDefCommand(
-      boolean printFlag, boolean printDetails, String predicateStr, String evalName, String freeVarStr) {
-    // parse the predicates into an object
-    Predicate predicate = new Predicate(predicateStr);
-
-    String resultName = Session.getAddressForResult() + evalName;
-
-    // compute result based on predicate
-    // if we wanted an "execution plan", it would be hooked in here
-    EvalComputer c = new EvalComputer(printFlag, printDetails);
-    try (Logging.CommandLogContext ignored = Logging.writeEvalLogsTo(resultName)) {
-      c.compute(predicate);
-      Automaton M = c.result.M;
-
-      List<String> matrixAddresses = c.writeAutomata(predicateStr, evalName, freeVarStr, resultName);
-      return new TestCase(
-          "", matrixAddresses, resultName + GV_EXTENSION, Logging.getDetailedLog(),
-          List.of(new TestCase.AutomatonFilenamePair(M, DEFAULT_TESTFILE)));
-    }
+    return EvalDef.evalDefCommand(printFlag, printDetails, predicateStr, evalName, freeVarStr);
   }
 
   public static TestCase macroCommand(String s) {
@@ -773,10 +747,8 @@ public class Prover {
     LinkedList<Automaton> subautomata = new LinkedList<>();
     IntList outputs = new IntArrayList();
     for (int value : range) {
-      // image is a final-result operation; do not preserve per-intermediate def logging.
-      EvalComputer c = new EvalComputer(printFlag, false);
-      c.compute(new Predicate(h.makeInterPredicate(value, imageOldName, numSysName)));
-      Automaton valueAutomaton = c.result.M;
+      Automaton valueAutomaton =
+          EvalDef.getImageEval(h.makeInterPredicate(value, imageOldName, numSysName), printFlag);
       if (first == null) {
         first = valueAutomaton;
       } else {
