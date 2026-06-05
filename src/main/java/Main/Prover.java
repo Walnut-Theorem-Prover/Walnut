@@ -48,7 +48,7 @@ public class Prover {
   public static final String RE_WORD_OF_CMD_NO_SPC = "(" + RE_IDENTIFIER + ")";
   static final String RE_WORD_OF_CMD = "\\s+" + RE_WORD_OF_CMD_NO_SPC;
   // Optional "=<int>"
-  static final String RE_EQ_INT_OPTIONAL = "(=-?\\d+)?";
+  public static final String RE_EQ_INT_OPTIONAL = "(=-?\\d+)?";
 
   /**
    * the high-level scheme of a command is a name followed by some arguments and ending in either ; : or ::
@@ -122,8 +122,6 @@ public class Prover {
       RE_START + COMBINE + RE_WORD_OF_CMD + "((\\s+(" +RE_IDENTIFIER + RE_EQ_INT_OPTIONAL + "))*)";
   static final Pattern PAT_FOR_combine_CMD = Pattern.compile(RE_FOR_combine_CMD);
   static final int GROUP_COMBINE_NAME = 1, GROUP_COMBINE_AUTOMATA = 2;
-  static final String RE_FOR_AN_AUTOMATON_IN_combine_CMD = RE_WORD_OF_CMD_NO_SPC + "(" + RE_EQ_INT_OPTIONAL + ")";
-  static final Pattern PAT_FOR_AN_AUTOMATON_IN_combine_CMD = Pattern.compile(RE_FOR_AN_AUTOMATON_IN_combine_CMD);
 
   public static final String MORPHISM = "morphism";
   static final String RE_FOR_morphism_CMD = RE_START + MORPHISM + RE_WORD_OF_CMD + "\\s+\"(\\d+\\s*\\-\\>\\s*(.)*(,\\d+\\s*\\-\\>\\s*(.)*)*)\"";
@@ -629,35 +627,14 @@ public class Prover {
 
   public TestCase combineCommand(String s) {
     Matcher m = ProverHelper.matchOrFail(PAT_FOR_combine_CMD, s, COMBINE);
-    
-    List<String> automataNames = new ArrayList<>();
-    IntList outputs = new IntArrayList();
-    int argumentCounter = 0;
-
-    Matcher m1 = PAT_FOR_AN_AUTOMATON_IN_combine_CMD.matcher(m.group(GROUP_COMBINE_AUTOMATA));
-    while (m1.find()) {
-      argumentCounter++;
-      String t = m1.group(1);
-      String u = m1.group(2);
-      // if no output is specified for a subautomaton, the default output is the index of the subautomaton in the argument list
-      if (u.isEmpty()) {
-        outputs.add(argumentCounter);
-      } else {
-        u = u.substring(1);
-        // remove colon then convert string to integer
-        outputs.add(Integer.parseInt(u));
-      }
-      automataNames.add(t);
-    }
-
-    return Combine.combineCommand(s, automataNames, outputs, m.group(Prover.GROUP_COMBINE_NAME));
+    return Combine.combineCommand(s, m.group(GROUP_COMBINE_AUTOMATA),  m.group(Prover.GROUP_COMBINE_NAME));
   }
 
   public TestCase describeCommand(String s) {
     Matcher m = ProverHelper.matchOrFail(PAT_FOR_describe_CMD, s, DESCRIBE);
-    String inFileName = m.group(GROUP_describe_NAME) + TXT_EXTENSION;
-    boolean isDFAO = !m.group(GROUP_describe_DOLLAR_SIGN).equals("$");
-    return Describe.describe(isDFAO, inFileName);
+    return Describe.describe(
+        !m.group(GROUP_describe_DOLLAR_SIGN).equals("$"),
+        m.group(GROUP_describe_NAME) + TXT_EXTENSION);
   }
 
   public static void morphismCommand(String s) throws IOException {
@@ -829,9 +806,6 @@ public class Prover {
 
   public TestCase alphabetCommand(String s) {
     Matcher m = ProverHelper.matchOrFail(PAT_FOR_alphabet_CMD, s, ALPHABET);
-    if (m.group(GROUP_alphabet_LIST_OF_ALPHABETS) == null) {
-      throw new WalnutException("List of alphabets for alphabet command must not be empty.");
-    }
     return Alphabet.alphabetCommand(
         s, m.group(R_LIST_OF_ALPHABETS),
         m.start(Prover.R_NUMBER_SYSTEM),
@@ -862,14 +836,7 @@ public class Prover {
 
   public TestCase starCommand(String s) {
     Matcher m = ProverHelper.matchOrFail(PAT_FOR_star_CMD, s, STAR);
-
-    Automaton M = new Automaton(
-        Session.getReadFileForAutomataLibrary(m.group(GROUP_STAR_OLD_NAME) + TXT_EXTENSION));
-
-    Automaton C = M.star();
-
-    C.writeAutomata(s, Session.getWriteAddressForAutomataLibrary(), m.group(GROUP_STAR_NEW_NAME), false);
-    return new TestCase(C);
+    return Star.star(s, m.group(GROUP_STAR_OLD_NAME), m.group(GROUP_STAR_NEW_NAME));
   }
 
   public TestCase concatCommand(String s) {
