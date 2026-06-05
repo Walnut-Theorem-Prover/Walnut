@@ -81,6 +81,7 @@ public class Session {
       sessionWalnutDir = name = sessionDir;
     }
     createSubdirectories();
+    Logging.initializeGlobalLog(getAddressForResult() + Logging.GLOBAL_LOG_FILENAME);
   }
 
   public static void setPathsAndNamesIntegrationTests() {
@@ -94,6 +95,7 @@ public class Session {
     } catch (IOException ex) {
       Logging.printTruncatedStackTrace(ex);
     }
+    Logging.initializeGlobalLog(getAddressForResult() + Logging.GLOBAL_LOG_FILENAME);
   }
 
   // Clean the paths for integration tests, so that we don't re-use previously generated results.
@@ -111,6 +113,7 @@ public class Session {
         Logging.printTruncatedStackTrace(ex);
       }
     }
+    Logging.initializeGlobalLog(getAddressForResult() + Logging.GLOBAL_LOG_FILENAME);
     Logging.resetIndent(); // reset indenting
   }
 

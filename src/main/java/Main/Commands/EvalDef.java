@@ -49,11 +49,16 @@ public class EvalDef {
 
   public static TestCase evalDefCommand(
       boolean printFlag, boolean printDetails, String predicateStr, String evalName, String freeVarStr) {
-    String resultName = Session.getAddressForResult() + evalName;
+    boolean headless = evalName == null || evalName.isBlank();
 
     // compute result based on predicate
     // if we wanted an "execution plan", it would be hooked in here
     EvalDef c = new EvalDef(printFlag, printDetails);
+    if (headless) {
+      return computeHeadless(c, predicateStr);
+    }
+
+    String resultName = Session.getAddressForResult() + evalName;
     try (Logging.CommandLogContext ignored = Logging.writeEvalLogsTo(resultName)) {
       Predicate predicate = new Predicate(predicateStr); // parse the predicates into an object
       c.compute(predicate);
@@ -69,6 +74,20 @@ public class EvalDef {
           "", matrixAddresses, resultName + Prover.GV_EXTENSION, Logging.getDetailedLog(),
           List.of(new TestCase.AutomatonFilenamePair(M, DEFAULT_TESTFILE)));
     }
+  }
+
+  private static TestCase computeHeadless(EvalDef c, String predicateStr) {
+    Predicate predicate = new Predicate(predicateStr); // parse the predicates into an object
+    c.compute(predicate);
+    Automaton M = c.result.M;
+
+    if (M.fa.isTRUE_FALSE_AUTOMATON()) {
+      System.out.println("____\n" + M.fa.trueFalseString().toUpperCase());
+    }
+
+    return new TestCase(
+        "", List.of(), "", Logging.getDetailedLog(),
+        List.of(new TestCase.AutomatonFilenamePair(M, DEFAULT_TESTFILE)));
   }
 
   public static Automaton getImageEval(String predicateStr, boolean printFlag) {

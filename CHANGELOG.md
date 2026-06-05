@@ -6,6 +6,8 @@ All notable changes to Walnut will be documented here. Format is based on [Keep 
 
 ### Added
 - `morphism` command now allows symbols outside of the range of 0-9 (for both domain and range) [#43](https://github.com/Walnut-Theorem-Prover/Walnut/issues/43)
+- `def` and `eval` commands now allow an optional "headless" mode, if you don't wish to create the automaton
+- Global logging file that logs all commands in the session
 
 ### Fixed
 - Fix `inf` and `test` performance [#33](https://github.com/Walnut-Theorem-Prover/Walnut/issues/33)

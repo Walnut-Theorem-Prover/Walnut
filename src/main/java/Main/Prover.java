@@ -87,12 +87,13 @@ public class Prover {
   static final String RE_FOR_load_CMD = RE_START + LOAD + "\\s+(\\w+\\.txt)";
   static final Pattern PAT_FOR_load_CMD = Pattern.compile(RE_FOR_load_CMD);
 
-  // eval/def <name> [<space-separated variables for matrix>] "<predicate>"
-  static final String RE_FOR_eval_def_CMDS = RE_START + "(eval|def)" + RE_WORD_OF_CMD + "((" + RE_WORD_OF_CMD + ")*)\\s+\"(.*)\"";
+  // eval/def [<name> [<space-separated variables for matrix>]] "<predicate>"
+  static final String RE_FOR_eval_def_CMDS =
+      RE_START + "(eval|def)(?:\\s+(" + RE_IDENTIFIER + ")((?:\\s+" + RE_IDENTIFIER + ")*))?\\s+\"(.*)\"";
   /**
    * important groups in RE_FOR_eval_def_CMDS
    */
-  static int ED_NAME = 2, ED_FREE_VARIABLES = 3, ED_PREDICATE = 6;
+  static int ED_NAME = 2, ED_FREE_VARIABLES = 3, ED_PREDICATE = 4;
   static final Pattern PAT_FOR_eval_def_CMDS = Pattern.compile(RE_FOR_eval_def_CMDS);
 
   public static final String MACRO = "macro";
@@ -411,10 +412,12 @@ public class Prover {
   }
 
   public boolean dispatch(String s) throws IOException {
+    String originalCommand = s;
     s = parseSetup(s);
     if (s.isEmpty()) {
       return true;
     }
+    Logging.logCommand(originalCommand);
 
     Matcher matcher_for_command = PAT_FOR_CMD.matcher(s);
     if (!matcher_for_command.find()) {
@@ -465,11 +468,13 @@ public class Prover {
 
   public TestCase dispatchForIntegrationTest(String s, String msg) throws IOException {
     s = s.strip(); // remove start and end whitespace, Unicode-aware
+    String originalCommand = s;
     s = parseSetup(s);
 
     if (s.isEmpty() || s.startsWith("#")) {
       return null;
     }
+    Logging.logCommand(originalCommand);
 
     Matcher matcher_for_command = PAT_FOR_CMD.matcher(s);
     if (!matcher_for_command.find()) throw WalnutException.invalidCommand(s);
@@ -604,7 +609,7 @@ public class Prover {
 
   public TestCase evalDefCommands(String s) {
     Matcher m = ProverHelper.matchOrFail(PAT_FOR_eval_def_CMDS, s, "eval/def");
-    currentEvalName = m.group(ED_NAME); // used for export metacommand
+    currentEvalName = m.group(ED_NAME); // null in headless mode; used for export metacommand
     return EvalDef.evalDefCommand(printFlag, printDetails,
         m.group(ED_PREDICATE), currentEvalName, m.group(Prover.ED_FREE_VARIABLES));
   }

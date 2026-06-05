@@ -23,6 +23,7 @@ public class ProverHelper {
    */
   public static void exportAutomata(String s, String filename, String exportType, Automaton M, boolean isDFAO) {
     String exportTypeLower = exportType.toLowerCase();
+    String predicate = s == null ? "" : s;
     String resultFile = Session.getAddressForResult() + filename;
 
     // currently only a few types are supported
@@ -30,7 +31,7 @@ public class ProverHelper {
       case Prover.BA_STRING -> AutomatonWriter.exportToBA(M.fa, resultFile + Prover.BA_EXTENSION, isDFAO);
       case Prover.GV_STRING -> {
         System.out.println("Writing to " + resultFile + Prover.GV_EXTENSION);
-        AutomatonWriter.writeToGV(M, resultFile + Prover.GV_EXTENSION, s, isDFAO);
+        AutomatonWriter.writeToGV(M, resultFile + Prover.GV_EXTENSION, predicate, isDFAO);
       }
       case Prover.TXT_STRING ->
           throw new WalnutException("Exporting to " + Prover.TXT_EXTENSION + " is redundant; this is the input format");

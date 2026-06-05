@@ -9,6 +9,13 @@ import org.slf4j.ILoggerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.util.Arrays;
 
 public class Logging {
@@ -52,47 +59,101 @@ public class Logging {
   private static final String COMMAND_LOGGER_NAME = "Walnut.CommandLog";
   private static final String DETAILED_LOGGER_NAME = "Walnut.DetailedLog";
 
+  public static final String GLOBAL_LOG_FILENAME = "global_log.txt";
+
   private static final Logger consoleLogger = LoggerFactory.getLogger(CONSOLE_LOGGER_NAME);
   private static final Logger commandLogger = LoggerFactory.getLogger(COMMAND_LOGGER_NAME);
   private static final Logger detailedLogger = LoggerFactory.getLogger(DETAILED_LOGGER_NAME);
 
-  private static final ThreadLocal<Boolean> printSteps = ThreadLocal.withInitial(() -> false);
-  private static final ThreadLocal<Boolean> printDetails = ThreadLocal.withInitial(() -> false);
-  private static final ThreadLocal<Boolean> evalLogFilesActive = ThreadLocal.withInitial(() -> false);
-  private static final ThreadLocal<StringBuilder> commandLog = ThreadLocal.withInitial(StringBuilder::new);
-  private static final ThreadLocal<StringBuilder> detailedLog = ThreadLocal.withInitial(StringBuilder::new);
+  private static BufferedWriter globalLogWriter;
+  private static boolean globalLogHasContent = false;
+
+  private static boolean printSteps = false;
+  private static boolean printDetails = false;
+  private static boolean evalLogFilesActive = false;
+  private static StringBuilder commandLog = new StringBuilder();
+  private static StringBuilder detailedLog = new StringBuilder();
   private static int indentCount = 0;
   private static boolean printEnabled = true;
 
+  public static void initializeGlobalLog(String filename) {
+    closeGlobalLogWriter();
+    try {
+      Path path = Path.of(filename);
+      Path parent = path.getParent();
+      if (parent != null) {
+        Files.createDirectories(parent);
+      }
+      globalLogWriter = Files.newBufferedWriter(
+          path, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE);
+      globalLogHasContent = false;
+    } catch (IOException e) {
+      System.out.println("Could not create global log file " + filename);
+    }
+  }
+
+  private static void closeGlobalLogWriter() {
+    if (globalLogWriter == null) {
+      return;
+    }
+    try {
+      globalLogWriter.close();
+    } catch (IOException ignored) {
+      // There is nowhere useful to report this during shutdown.
+    } finally {
+      globalLogWriter = null;
+    }
+  }
+
+  public static void logCommand(String command) {
+    if (command == null) {
+      command = "";
+    }
+    if (globalLogWriter == null) {
+      return;
+    }
+    try {
+      if (globalLogHasContent) {
+        globalLogWriter.newLine();
+      }
+      globalLogWriter.write(">>> " + command);
+      globalLogWriter.newLine();
+      globalLogWriter.flush();
+      globalLogHasContent = true;
+    } catch (IOException ignored) {
+      // Do not let logging failures interfere with Walnut commands.
+    }
+  }
+
   public static void configureForCommand(boolean shouldPrintSteps, boolean shouldPrintDetails) {
-    printSteps.set(shouldPrintSteps);
-    printDetails.set(shouldPrintDetails);
-    evalLogFilesActive.set(false);
-    commandLog.set(new StringBuilder());
-    detailedLog.set(new StringBuilder());
+    printSteps = shouldPrintSteps;
+    printDetails = shouldPrintDetails;
+    evalLogFilesActive = false;
+    commandLog = new StringBuilder();
+    detailedLog = new StringBuilder();
   }
 
   public static boolean shouldPrintDetails() {
-    return printEnabled && printDetails.get();
+    return printEnabled && printDetails;
   }
 
   public static boolean shouldPrintStepsOrDetails() {
-    return printEnabled && (printSteps.get() || printDetails.get());
+    return printEnabled && (printSteps || printDetails);
   }
 
   public static String getCommandLog() {
-    return commandLog.get().toString();
+    return commandLog.toString();
   }
 
   public static String getDetailedLog() {
-    return printDetails.get() ? detailedLog.get().toString() : "";
+    return printDetails ? detailedLog.toString() : "";
   }
 
   public static CommandLogContext writeEvalLogsTo(String resultName) {
     return new CommandLogContext(
         addFileAppender(COMMAND_LOGGER_NAME, resultName + "_log.txt"),
-        printDetails.get() ? addFileAppender(DETAILED_LOGGER_NAME, resultName + "_detailed_log.txt") : null,
-        evalLogFilesActive.get());
+        printDetails ? addFileAppender(DETAILED_LOGGER_NAME, resultName + "_detailed_log.txt") : null,
+        evalLogFilesActive);
   }
 
   public static void indent() {
@@ -108,7 +169,7 @@ public class Logging {
   public static void enablePrint() { printEnabled = true; }
 
   public static void logMessage(String msg) {
-    logMessage(printDetails.get(), msg);
+    logMessage(printDetails, msg);
   }
 
   public static void logMessage(boolean print, String msg) {
@@ -118,7 +179,7 @@ public class Logging {
   }
 
   public static void logAndPrint(String msg) {
-    logAndPrint(printDetails.get(), msg);
+    logAndPrint(printDetails, msg);
   }
 
   public static void logAndPrint(boolean print, String msg) {
@@ -127,11 +188,12 @@ public class Logging {
 
   public static void logEvaluationStep(String msg, boolean finalLine) {
     String msgWithIndent = " ".repeat(indentCount) + msg;
-    append(commandLog.get(), msgWithIndent, finalLine);
+    append(commandLog, msgWithIndent, finalLine);
     commandLogger.info(msgWithIndent);
+    writeGlobalLogLine(msgWithIndent);
 
-    if (printDetails.get()) {
-      append(detailedLog.get(), msgWithIndent, finalLine);
+    if (printDetails) {
+      append(detailedLog, msgWithIndent, finalLine);
       detailedLogger.info(msgWithIndent);
     }
 
@@ -142,18 +204,37 @@ public class Logging {
 
   private static void logDetail(String msg, boolean print) {
     String msgWithIndent = " ".repeat(indentCount) + msg;
-    if (printDetails.get()) {
-      appendLine(detailedLog.get(), msgWithIndent);
+    writeGlobalLogLine(msgWithIndent);
+
+    if (printDetails) {
+      appendLine(detailedLog, msgWithIndent);
       detailedLogger.info(msgWithIndent);
     }
 
-    if (!evalLogFilesActive.get()) {
-      appendLine(commandLog.get(), msgWithIndent);
+    if (!evalLogFilesActive) {
+      appendLine(commandLog, msgWithIndent);
       commandLogger.info(msgWithIndent);
     }
 
     if (printEnabled && print) {
       consoleLogger.info(msgWithIndent);
+    }
+  }
+
+  private static void writeGlobalLogLine(String msg) {
+    if (msg == null) {
+      msg = "";
+    }
+    if (globalLogWriter == null) {
+      return;
+    }
+    try {
+      globalLogWriter.write(msg);
+      globalLogWriter.newLine();
+      globalLogWriter.flush();
+      globalLogHasContent = true;
+    } catch (IOException ignored) {
+      // Do not let logging failures interfere with Walnut commands.
     }
   }
 
@@ -209,7 +290,7 @@ public class Logging {
       this.commandAppender = commandAppender;
       this.detailedAppender = detailedAppender;
       this.previousEvalLogFilesActive = previousEvalLogFilesActive;
-      evalLogFilesActive.set(true);
+      evalLogFilesActive = true;
     }
 
     @Override
@@ -219,7 +300,7 @@ public class Logging {
       }
       closeAppender(detailedAppender);
       closeAppender(commandAppender);
-      evalLogFilesActive.set(previousEvalLogFilesActive);
+      evalLogFilesActive = previousEvalLogFilesActive;
       closed = true;
     }
 
@@ -248,11 +329,15 @@ public class Logging {
   public static void printTruncatedStackTrace(Exception e, int length) {
     if (e instanceof WalnutException) {
       System.out.println(e.getMessage());
+      writeGlobalLogLine(e.getMessage());
       // handled Walnut exception; only print message
     } else {
       // Create a truncated stack trace
       StackTraceElement[] fullStack = e.getStackTrace();
       e.setStackTrace(Arrays.copyOf(fullStack, Math.min(fullStack.length, length)));
+      StringWriter stackTrace = new StringWriter();
+      e.printStackTrace(new PrintWriter(stackTrace));
+      writeGlobalLogLine(stackTrace.toString().stripTrailing());
       e.printStackTrace();
     }
   }

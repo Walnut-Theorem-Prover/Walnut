@@ -1,6 +1,6 @@
 The "def" command is identical to the "eval" command. The syntax for the "def" command is as follows:
 
-	def <name> <predicate>
+	def [<name>] <predicate>
 	
 Results saved in: Result/, Automata Library/.
 	
@@ -11,5 +11,9 @@ For example, to create and save an automaton that accepts an input of "a" if and
 In previous versions of Walnut, word automata names in eval/def commands could not begin with A, E, or I. This restriction has now been lifted using a new delimiter for word automata: putting "." (without quotation marks) before the name of a word automaton now signals that the following string of characters is the name of the word automaton. If there is a word automaton named AUTOMATON, you can write ".AUTOMATON" (without quotation marks) to refer to it in eval/def commands. For example, the following is now valid:
 
 	def test ".AUTOMATON[n] = @1";
+
+There is also a "headless mode" option, if you don't wish to save the automaton.
+	def "E x x > x+1";
+will not create an automaton file, but will still build and evaluate.
 	
 Please refer to section 7 of "Manual.pdf" saved in "Help Directory/" for a more detailed description of the "def"/"eval" and "macro" commands and what one can do with them.
