@@ -49,19 +49,22 @@ public class EvalDef {
 
   public static TestCase evalDefCommand(
       boolean printFlag, boolean printDetails, String predicateStr, String evalName, String freeVarStr) {
-    // parse the predicates into an object
-    Predicate predicate = new Predicate(predicateStr);
-
     String resultName = Session.getAddressForResult() + evalName;
 
     // compute result based on predicate
     // if we wanted an "execution plan", it would be hooked in here
     EvalDef c = new EvalDef(printFlag, printDetails);
     try (Logging.CommandLogContext ignored = Logging.writeEvalLogsTo(resultName)) {
+      Predicate predicate = new Predicate(predicateStr); // parse the predicates into an object
       c.compute(predicate);
       Automaton M = c.result.M;
 
-      List<String> matrixAddresses = c.writeAutomata(predicateStr, evalName, freeVarStr, resultName);
+      M.writeAutomata(predicateStr, Session.getWriteAddressForAutomataLibrary(), evalName, false);
+      if (M.fa.isTRUE_FALSE_AUTOMATON()) {
+        System.out.println("____\n" + M.fa.trueFalseString().toUpperCase());
+      }
+
+      List<String> matrixAddresses = writeMatrices(M, freeVarStr, resultName);
       return new TestCase(
           "", matrixAddresses, resultName + Prover.GV_EXTENSION, Logging.getDetailedLog(),
           List.of(new TestCase.AutomatonFilenamePair(M, DEFAULT_TESTFILE)));
@@ -135,22 +138,11 @@ public class EvalDef {
     }
   }
 
-  private List<String> writeAutomata(
-      String predicateStr, String evalName, String freeVarStr, String resultName) {
-    Automaton M = result.M;
-    M.writeAutomata(predicateStr, Session.getWriteAddressForAutomataLibrary(), evalName, false);
-
+  private static List<String> writeMatrices(Automaton M, String freeVarStr, String resultName) {
+    List<String> matrixAddresses = new ArrayList<>();
     List<String> freeVariables = determineFreeVariables(freeVarStr);
     if (!freeVariables.isEmpty()) {
       AutomatonMatrixWriter.writeAll(M, resultName, freeVariables);
-    }
-
-    if (M.fa.isTRUE_FALSE_AUTOMATON()) {
-      System.out.println("____\n" + M.fa.trueFalseString().toUpperCase());
-    }
-
-    List<String> matrixAddresses = new ArrayList<>();
-    if (!freeVariables.isEmpty()) {
       System.out.println("Matrix files:");
       for (MatrixEmitter.EmitterSpec emitterSpec : AutomatonMatrixWriter.EMITTERS) {
         System.out.println("  " + emitterSpec.intro() + ": " + resultName + emitterSpec.extension());

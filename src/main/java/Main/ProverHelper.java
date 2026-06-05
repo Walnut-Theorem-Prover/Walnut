@@ -1,7 +1,6 @@
 package Main;
 
 import Automata.*;
-import Automata.FA.BricsConverter;
 import Automata.FA.Infinite;
 import Automata.Writer.AutomatonWriter;
 import Main.EvalComputations.Token.ArithmeticOperator;
@@ -50,41 +49,6 @@ public class ProverHelper {
   public static void clearScreen() {
     System.out.print("\033[H\033[2J");
     System.out.flush();
-  }
-
-  static String determineEncodedRegex(String baseexp, int inputLength, RichAlphabet r) {
-    Matcher m2 = Prover.PAT_FOR_AN_ALPHABET_VECTOR.matcher(baseexp);
-    // if we haven't had to replace any input vectors with unicode, we use the legacy method of constructing the automaton
-    StringBuilder sb = new StringBuilder();
-    while (m2.find()) {
-      String alphabetVector = m2.group();
-
-      // needed to replace this string with the unicode mapping
-      if (alphabetVector.charAt(0) == '[') {
-        alphabetVector = alphabetVector.substring(1, alphabetVector.length() - 1); // truncate brackets [ ]
-      }
-
-      List<Integer> L = new ArrayList<>();
-      Matcher m3 = Prover.PAT_FOR_A_SINGLE_ELEMENT_OF_A_SET.matcher(alphabetVector);
-      while (m3.find()) {
-        L.add(UtilityMethods.parseInt(m3.group()));
-      }
-      if (L.size() != inputLength) {
-        throw new WalnutException("Mismatch between vector length in regex and specified number of inputs to automaton");
-      }
-      String replacementStr = BricsConverter.convertEncodingForBrics(r.encode(L));
-
-      // replace exactly this match
-      m2.appendReplacement(sb, Matcher.quoteReplacement(replacementStr));
-    }
-    m2.appendTail(sb);
-
-    // We should always do this with replacement, since we may have regexes such as "...", which accepts any three characters
-    // in a row, on an alphabet containing bracketed characters. We don't make any replacements here, but they are implicitly made
-    // when we intersect with our alphabet(s).
-
-    // remove all whitespace from regular expression.
-    return sb.toString().replaceAll("\\s", "");
   }
 
   static boolean infFromAddress(String address) {

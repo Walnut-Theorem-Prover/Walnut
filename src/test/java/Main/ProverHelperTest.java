@@ -3,6 +3,7 @@ package Main;
 import Automata.Automaton;
 import Automata.AutomatonLogicalOps;
 import Automata.RichAlphabet;
+import Main.Commands.Reg;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -14,7 +15,7 @@ public class ProverHelperTest {
     new ProverHelper(); // just for coverage
     RichAlphabet r = new RichAlphabet();
     r.setA(List.of(List.of(0,1,2,3), List.of(0,1,2,3), List.of(0,1,2,3)));
-    String s = ProverHelper.determineEncodedRegex("([3,1,2]*)", 3, r);
+    String s = Reg.determineEncodedRegex("([3,1,2]*)", 3, r);
     Assertions.assertEquals("(§*)", s); // extended-ascii 167
   }
 

@@ -45,7 +45,7 @@ public class Prover {
   static final String RE_START = "^";
   // Basic identifier: used for free variables, combine, etc.
   public static final String RE_IDENTIFIER = "[a-zA-Z]\\w*";
-  static final String RE_WORD_OF_CMD_NO_SPC = "(" + RE_IDENTIFIER + ")";
+  public static final String RE_WORD_OF_CMD_NO_SPC = "(" + RE_IDENTIFIER + ")";
   static final String RE_WORD_OF_CMD = "\\s+" + RE_WORD_OF_CMD_NO_SPC;
   // Optional "=<int>"
   static final String RE_EQ_INT_OPTIONAL = "(=-?\\d+)?";
@@ -111,10 +111,6 @@ public class Prover {
   public static final Pattern PAT_FOR_A_SINGLE_ELEMENT_OF_A_SET = Pattern.compile(RE_FOR_A_SINGLE_ELEMENT_OF_A_SET);
 
   public static final int R_NUMBER_SYSTEM = 2, R_SET = 11;
-
-  static final String RE_FOR_AN_ALPHABET_VECTOR = "(\\[(\\s*(\\+|\\-)?\\s*\\d+)(\\s*,\\s*(\\+|\\-)?\\s*\\d+)*\\s*\\])|(\\d)";
-  static final Pattern PAT_FOR_AN_ALPHABET_VECTOR = Pattern.compile(RE_FOR_AN_ALPHABET_VECTOR);
-
 
   public static final String OST = "ost";
   static final String RE_FOR_ost_CMD = RE_START + OST + RE_WORD_OF_CMD + "\\s*\\[\\s*((\\d+\\s*)*)\\]\\s*\\[\\s*((\\d+\\s*)*)\\]$";
@@ -218,15 +214,11 @@ public class Prover {
   static final String RE_FOR_union_CMD = RE_START + UNION + RE_WORD_OF_CMD + "((" + RE_WORD_OF_CMD + ")*)";
   static final Pattern PAT_FOR_union_CMD = Pattern.compile(RE_FOR_union_CMD);
   static final int GROUP_UNION_NAME = 1, GROUP_UNION_AUTOMATA = 2;
-  static final String RE_FOR_AN_AUTOMATON_IN_union_CMD = RE_WORD_OF_CMD_NO_SPC;
-  static final Pattern PAT_FOR_AN_AUTOMATON_IN_union_CMD = Pattern.compile(RE_FOR_AN_AUTOMATON_IN_union_CMD);
 
   public static final String INTERSECT = "intersect";
   static final String RE_FOR_intersect_CMD = RE_START + INTERSECT + RE_WORD_OF_CMD + "((" + RE_WORD_OF_CMD + ")*)";
   static final Pattern PAT_FOR_intersect_CMD = Pattern.compile(RE_FOR_intersect_CMD);
   static final int GROUP_INTERSECT_NAME = 1, GROUP_INTERSECT_AUTOMATA = 2;
-  static final String RE_FOR_AN_AUTOMATON_IN_intersect_CMD = RE_WORD_OF_CMD_NO_SPC;
-  static final Pattern PAT_FOR_AN_AUTOMATON_IN_intersect_CMD = Pattern.compile(RE_FOR_AN_AUTOMATON_IN_intersect_CMD);
 
   public static final String STAR = "star";
   static final String RE_FOR_star_CMD = RE_START + STAR + RE_WORD_OF_CMD + RE_WORD_OF_CMD;
@@ -237,18 +229,15 @@ public class Prover {
   static final String RE_FOR_concat_CMD = RE_START + CONCAT + RE_WORD_OF_CMD + "((" + RE_WORD_OF_CMD + ")*)";
   static final Pattern PAT_FOR_concat_CMD = Pattern.compile(RE_FOR_concat_CMD);
   static final int GROUP_CONCAT_NAME = 1, GROUP_CONCAT_AUTOMATA = 2;
-  static final String RE_FOR_AN_AUTOMATON_IN_concat_CMD = RE_WORD_OF_CMD_NO_SPC;
-  static final Pattern PAT_FOR_AN_AUTOMATON_IN_concat_CMD = Pattern.compile(RE_FOR_AN_AUTOMATON_IN_concat_CMD);
 
   public static final String RIGHTQUO = "rightquo";
   static final String RE_FOR_rightquo_CMD = RE_START + RIGHTQUO + RE_WORD_OF_CMD + RE_WORD_OF_CMD + RE_WORD_OF_CMD;
   static final Pattern PAT_FOR_rightquo_CMD = Pattern.compile(RE_FOR_rightquo_CMD);
-  static final int GROUP_rightquo_NEW_NAME = 1, GROUP_rightquo_OLD_NAME1 = 2, GROUP_rightquo_OLD_NAME2 = 3;
+  static final int GROUP_quo_NEW_NAME = 1, GROUP_quo_OLD_NAME1 = 2, GROUP_quo_OLD_NAME2 = 3;
 
   public static final String LEFTQUO = "leftquo";
   static final String RE_FOR_leftquo_CMD = RE_START + LEFTQUO + RE_WORD_OF_CMD + RE_WORD_OF_CMD + RE_WORD_OF_CMD;
   static final Pattern PAT_FOR_leftquo_CMD = Pattern.compile(RE_FOR_leftquo_CMD);
-  static final int GROUP_leftquo_NEW_NAME = 1, GROUP_leftquo_OLD_NAME1 = 2, GROUP_leftquo_OLD_NAME2 = 3;
 
   // Meta-commands: [...] at the beginning of the command
   static final Pattern PAT_META_CMD = Pattern.compile("^\\[([^]]*)](.*)$");
@@ -604,9 +593,7 @@ public class Prover {
    */
   public boolean loadCommand(String s) {
     Matcher m = ProverHelper.matchOrFail(PAT_FOR_load_CMD, s, LOAD);
-
     File f = UtilityMethods.validateFile(Session.getReadAddressForCommandFiles(m.group(L_FILENAME)));
-
     try (BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(f)))) {
       if (!readBuffer(in, false)) {
         return false;
@@ -619,11 +606,9 @@ public class Prover {
 
   public TestCase evalDefCommands(String s) {
     Matcher m = ProverHelper.matchOrFail(PAT_FOR_eval_def_CMDS, s, "eval/def");
-    String predicateStr = m.group(ED_PREDICATE);
-    String evalName = m.group(ED_NAME);
-    currentEvalName = evalName; // used for export metacommand
-    String freeVarStr = m.group(Prover.ED_FREE_VARIABLES);
-    return EvalDef.evalDefCommand(printFlag, printDetails, predicateStr, evalName, freeVarStr);
+    currentEvalName = m.group(ED_NAME); // used for export metacommand
+    return EvalDef.evalDefCommand(printFlag, printDetails,
+        m.group(ED_PREDICATE), currentEvalName, m.group(Prover.ED_FREE_VARIABLES));
   }
 
   public static TestCase macroCommand(String s) {
@@ -639,33 +624,7 @@ public class Prover {
 
   public static TestCase regCommand(String s) {
     Matcher m = ProverHelper.matchOrFail(PAT_FOR_reg_CMD, s, REG);
-    int nsStart = m.start(Prover.R_NUMBER_SYSTEM);
-    String listOfAlphabets = m.group(R_LIST_OF_ALPHABETS);
-    List<List<Integer>> alphabets = new ArrayList<>();
-    List<NumberSystem> NS = new ArrayList<>();
-    if (listOfAlphabets == null) {
-      NumberSystem ns = NumberSystem.getNumberSystem(MSD_2, NS, nsStart);
-      alphabets.add(ns.getAlphabet());
-    }
-    Alphabet.determineAlphabetsAndNS(listOfAlphabets, nsStart, NS, alphabets);
-    // To support regular expressions with multiple arity (eg. "[1,0][0,1][0,0]*"), we must translate each of these vectors to an
-    // encoding, which will then be turned into a unicode character that dk.brics can work with when constructing an automaton
-    // from a regular expression. Since the encoding method is within the Automaton class, we create a dummy instance and load it
-    // with our sequence of number systems in order to access it. After the regex automaton is created, we set its alphabet to be the
-    // one requested, instead of the unicode alphabet that dk.brics uses.
-    AutomatonDFA M = new AutomatonDFA();
-    M.richAlphabet.setA(alphabets);
-    M.determineAlphabetSize();
-
-    String regex = ProverHelper.determineEncodedRegex(m.group(R_REGEXP), M.richAlphabet.getA().size(), M.richAlphabet);
-
-    AutomatonDFA R = new AutomatonDFA(regex, M.getAlphabetSize());
-    R.richAlphabet.setA(M.richAlphabet.getA());
-    R.determineAlphabetSize();
-    R.setNS(NS);
-
-    R.writeAutomata(m.group(R_REGEXP), Session.getWriteAddressForAutomataLibrary(), m.group(R_NAME), false);
-    return new TestCase(R);
+    return Reg.reg(m.group(R_LIST_OF_ALPHABETS), m.start(Prover.R_NUMBER_SYSTEM), m.group(R_REGEXP), m.group(R_NAME));
   }
 
   public TestCase combineCommand(String s) {
@@ -703,9 +662,7 @@ public class Prover {
 
   public static void morphismCommand(String s) throws IOException {
     Matcher m = ProverHelper.matchOrFail(PAT_FOR_morphism_CMD, s, MORPHISM);
-    String name = m.group(GROUP_MORPHISM_NAME);
-    String morphismDefinition = m.group(GROUP_MORPHISM_DEFINITION);
-    Main.Commands.Morphism.morphismCommand(morphismDefinition, name);
+    Main.Commands.Morphism.morphismCommand(m.group(GROUP_MORPHISM_DEFINITION),  m.group(GROUP_MORPHISM_NAME));
   }
 
   public static TestCase promoteCommand(String s) throws IOException {
@@ -725,58 +682,13 @@ public class Prover {
 
   public TestCase imageCommand(String s) throws IOException {
     Matcher m = ProverHelper.matchOrFail(PAT_FOR_image_CMD, s, IMAGE);
-
-    String imageOldName = m.group(GROUP_IMAGE_OLD_NAME);
-    String imageNewName = m.group(GROUP_IMAGE_NEW_NAME);
-
-    String morphismAddress =
-        Session.getReadFileForMorphismLibrary(m.group(GROUP_IMAGE_MORPHISM) + TXT_EXTENSION);
-    Morphism h = new Morphism(UtilityMethods.readFromFile(morphismAddress));
-    if (h.length < 0) {
-      throw WalnutException.morphismNotUniform();
-    }
-    h.validateImageMorphism();
-
-    Automaton oldWord = new Automaton(Session.getReadFileForWordsLibrary(imageOldName + TXT_EXTENSION));
-    String numSysName = determineImageNumberSystemPrefix(oldWord, imageOldName);
-
-    List<Integer> range = new ArrayList<>(h.range);
-    range.sort(Integer::compareTo);
-
-    Automaton first = null;
-    LinkedList<Automaton> subautomata = new LinkedList<>();
-    IntList outputs = new IntArrayList();
-    for (int value : range) {
-      Automaton valueAutomaton =
-          EvalDef.getImageEval(h.makeInterPredicate(value, imageOldName, numSysName), printFlag);
-      if (first == null) {
-        first = valueAutomaton;
-      } else {
-        subautomata.add(valueAutomaton);
-      }
-      outputs.add(value);
-    }
-
-    Automaton image = AutomatonLogicalOps.combine(first, subautomata, outputs);
-    image.writeAutomata(s, Session.getWriteAddressForWordsLibrary(), imageNewName, true);
-    return new TestCase(image);
-  }
-
-  private static String determineImageNumberSystemPrefix(Automaton word, String wordName) {
-    if (word.getArity() != 1 || word.getNS().size() != 1) {
-      throw new WalnutException("Image requires a unary word automaton: " + wordName);
-    }
-    NumberSystem ns = word.getNS().get(0);
-    if (ns == null || ns.toString().isEmpty()) {
-      return "";
-    }
-    return "?" + ns;
+    return Image.image(
+        s, m.group(GROUP_IMAGE_MORPHISM), m.group(GROUP_IMAGE_OLD_NAME), m.group(GROUP_IMAGE_NEW_NAME), printFlag);
   }
 
   public static boolean infCommand(String s) {
     Matcher m = ProverHelper.matchOrFail(PAT_FOR_inf_CMD, s, INF);
-    String address = m.group(GROUP_INF_NAME);
-    return ProverHelper.infFromAddress(address);
+    return ProverHelper.infFromAddress(m.group(GROUP_INF_NAME));
   }
 
   public TestCase splitCommand(String s) {
@@ -859,10 +771,8 @@ public class Prover {
 
   public TestCase reverseCommand(String s) {
     Matcher m = ProverHelper.matchOrFail(PAT_FOR_reverse_CMD, s, REVERSE);
-    boolean isDFAO = !m.group(GROUP_REVERSE_DOLLAR_SIGN).equals("$");
-    String inFileName = m.group(GROUP_REVERSE_OLD_NAME) + TXT_EXTENSION;
-    String newName = m.group(GROUP_REVERSE_NEW_NAME);
-    return Reverse.reverseCommand(s, inFileName, isDFAO, newName);
+    return Reverse.reverseCommand(s, m.group(GROUP_REVERSE_OLD_NAME) + TXT_EXTENSION,
+        !m.group(GROUP_REVERSE_DOLLAR_SIGN).equals("$"), m.group(GROUP_REVERSE_NEW_NAME));
   }
 
   public TestCase minimizeCommand(String s) {
@@ -942,50 +852,13 @@ public class Prover {
 
   public TestCase unionCommand(String s) {
     Matcher m = ProverHelper.matchOrFail(PAT_FOR_union_CMD, s, UNION);
-    
-    List<String> automataNames = new ArrayList<>();
-
-    Matcher m1 = PAT_FOR_AN_AUTOMATON_IN_union_CMD.matcher(m.group(GROUP_UNION_AUTOMATA));
-    while (m1.find()) {
-      automataNames.add(m1.group(1));
-    }
-
-    if (automataNames.isEmpty()) {
-      throw new WalnutException("Union requires at least one automaton as input.");
-    }
-    Automaton C = Automaton.readAutomatonFromFile(automataNames.get(0));
-
-    automataNames.remove(0);
-
-    C = C.unionOrIntersect(automataNames, UNION);
-
-    C.writeAutomata(s, Session.getWriteAddressForAutomataLibrary(), m.group(GROUP_UNION_NAME), true);
-    return new TestCase(C);
+    return Union.union(s, m.group(GROUP_UNION_AUTOMATA), m.group(GROUP_UNION_NAME));
   }
 
   public TestCase intersectCommand(String s) {
     Matcher m = ProverHelper.matchOrFail(PAT_FOR_intersect_CMD, s, INTERSECT);
-    
-    List<String> automataNames = new ArrayList<>();
-
-    Matcher m1 = PAT_FOR_AN_AUTOMATON_IN_intersect_CMD.matcher(m.group(GROUP_INTERSECT_AUTOMATA));
-    while (m1.find()) {
-      automataNames.add(m1.group(1));
-    }
-
-    if (automataNames.isEmpty()) {
-      throw new WalnutException("Intersect requires at least one automaton as input.");
-    }
-    Automaton C = Automaton.readAutomatonFromFile(automataNames.get(0));
-
-    automataNames.remove(0);
-
-    C = C.unionOrIntersect(automataNames, INTERSECT);
-
-    C.writeAutomata(s, Session.getWriteAddressForAutomataLibrary(), m.group(GROUP_INTERSECT_NAME), true);
-    return new TestCase(C);
+    return Intersect.intersect(s, m.group(GROUP_INTERSECT_AUTOMATA), m.group(GROUP_INTERSECT_NAME));
   }
-
 
   public TestCase starCommand(String s) {
     Matcher m = ProverHelper.matchOrFail(PAT_FOR_star_CMD, s, STAR);
@@ -1001,43 +874,19 @@ public class Prover {
 
   public TestCase concatCommand(String s) {
     Matcher m = ProverHelper.matchOrFail(PAT_FOR_concat_CMD, s, CONCAT);
-    
-    List<String> automataNames = new ArrayList<>();
-
-    Matcher m1 = PAT_FOR_AN_AUTOMATON_IN_concat_CMD.matcher(m.group(GROUP_CONCAT_AUTOMATA));
-    while (m1.find()) {
-      automataNames.add(m1.group(1));
-    }
-
-    if (automataNames.size() < 2) {
-      throw new WalnutException("Concatenation requires at least two automata as input.");
-    }
-    Automaton C = Automaton.readAutomatonFromFile(automataNames.get(0));
-
-    automataNames.remove(0);
-
-    C = C.concat(automataNames);
-
-    C.writeAutomata(s, Session.getWriteAddressForAutomataLibrary(), m.group(GROUP_CONCAT_NAME), true);
-    return new TestCase(C);
+    return Concat.concat(s, m.group(GROUP_CONCAT_AUTOMATA), m.group(GROUP_CONCAT_NAME));
   }
 
   public TestCase rightquoCommand(String s) {
     Matcher m = ProverHelper.matchOrFail(PAT_FOR_rightquo_CMD, s, RIGHTQUO);
-    Automaton M1 = Automaton.readAutomatonFromFile(m.group(GROUP_rightquo_OLD_NAME1));
-    Automaton M2 = Automaton.readAutomatonFromFile(m.group(GROUP_rightquo_OLD_NAME2));
-    Automaton C = AutomatonLogicalOps.rightQuotient(M1, M2, false);
-    C.writeAutomata(s, Session.getWriteAddressForAutomataLibrary(), m.group(GROUP_rightquo_NEW_NAME), false);
-    return new TestCase(C);
+    return Quotient.rightQuotient(
+        s, m.group(GROUP_quo_OLD_NAME1), m.group(GROUP_quo_OLD_NAME2), m.group(GROUP_quo_NEW_NAME));
   }
 
   public TestCase leftquoCommand(String s) {
     Matcher m = ProverHelper.matchOrFail(PAT_FOR_leftquo_CMD, s, LEFTQUO);
-    Automaton M1 = Automaton.readAutomatonFromFile(m.group(GROUP_leftquo_OLD_NAME1));
-    Automaton M2 = Automaton.readAutomatonFromFile(m.group(GROUP_leftquo_OLD_NAME2));
-    Automaton C = AutomatonLogicalOps.leftQuotient(M1, M2);
-    C.writeAutomata(s, Session.getWriteAddressForAutomataLibrary(), m.group(GROUP_leftquo_NEW_NAME), false);
-    return new TestCase(C);
+    return Quotient.leftQuotient(
+        s, m.group(GROUP_quo_OLD_NAME1), m.group(GROUP_quo_OLD_NAME2), m.group(GROUP_quo_NEW_NAME));
   }
 
   public static TestCase exportCommand(String s) {
