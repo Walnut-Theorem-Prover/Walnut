@@ -213,7 +213,7 @@ public class Predicate {
                 if (!lastTokenWasOperator) throw WalnutException.operatorMissing(realStartingPosition + index);
                 lastTokenWasOperator = false;
                 NumberSystem ns = NumberSystem.getComputeIfAbsent(currentNumberSystem);
-                t = new NumberLiteral(realStartingPosition + MATCHER_FOR_NUMBER_LITERAL.start(1), UtilityMethods.parseInt(MATCHER_FOR_NUMBER_LITERAL.group(1)), ns);
+                t = new NumberLiteral(realStartingPosition + MATCHER_FOR_NUMBER_LITERAL.start(1), UtilityMethods.parseBigInteger(MATCHER_FOR_NUMBER_LITERAL.group(1)), ns);
                 t.put(postOrder);
                 index = MATCHER_FOR_NUMBER_LITERAL.end();
             } else if (MATCHER_FOR_ALPHABET_LETTER.find(index)) {

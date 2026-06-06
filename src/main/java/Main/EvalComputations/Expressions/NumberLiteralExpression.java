@@ -22,19 +22,44 @@ import Automata.AutomatonLogicalOps;
 import Automata.NumberSystem;
 import Main.EvalComputations.Token.Token;
 import Main.Logging;
+import Main.WalnutException;
 
+import java.math.BigInteger;
 import java.util.List;
 
 public class NumberLiteralExpression extends Expression {
+  private final BigInteger value;
   private final NumberSystem base;
 
-  public NumberLiteralExpression(String expressionInString, int value, NumberSystem base) {
+  public NumberLiteralExpression(String expressionInString, BigInteger value, NumberSystem base) {
     this.expressionInString = expressionInString;
-    this.constant = value;
+    this.value = value;
     this.base = base;
+    try {
+      this.constant = value.intValueExact();
+    } catch (ArithmeticException e) {
+      this.constant = 0;
+    }
   }
+
+  public BigInteger value() {
+    return value;
+  }
+
+  public boolean isZero() {
+    return value.signum() == 0;
+  }
+
+  public int intValueExact(String context) {
+    try {
+      return value.intValueExact();
+    } catch (ArithmeticException e) {
+      throw new WalnutException(context + " must fit in a Java int, found: " + value, e);
+    }
+  }
+
   public Automaton act(Token t, List<String> identifiers, List<String> quantify, Automaton M) {
-    Automaton constant = this.base.getConstant(this.constant);
+    Automaton constant = this.base.getConstant(this.value);
     String id = t.getUniqueString();
     constant.bind(List.of(id));
     identifiers.add(id);

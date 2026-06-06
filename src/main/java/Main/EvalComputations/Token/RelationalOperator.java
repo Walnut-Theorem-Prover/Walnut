@@ -24,6 +24,7 @@ import Main.Logging;
 import Main.WalnutException;
 import Main.EvalComputations.Expressions.Expression;
 
+import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Stack;
@@ -88,8 +89,8 @@ public class RelationalOperator extends Operator {
         Expression b = S.pop();
         Expression a = S.pop();
 
-        if ((a instanceof NumberLiteralExpression || a instanceof AlphabetLetterExpression) && (b instanceof NumberLiteralExpression || b instanceof AlphabetLetterExpression)) {
-            S.push(new AutomatonExpression(a + op + b, new Automaton(compare(opp, a.constant, b.constant))));
+        if (isConstantExpression(a) && isConstantExpression(b)) {
+            S.push(new AutomatonExpression(a + op + b, new Automaton(compare(opp, getConstantValue(a), getConstantValue(b)))));
             return;
         }
         Logging.logAndPrint( COMPUTING + " " + a + op + b);
@@ -138,11 +139,15 @@ public class RelationalOperator extends Operator {
             M = andThenQuantifyIfArithmetic(b, M);
             S.push(new AutomatonExpression(a + op + b, M));
         } else if ((a instanceof NumberLiteralExpression || a instanceof AlphabetLetterExpression) && (b instanceof ArithmeticExpression || b instanceof VariableExpression)) {
-            Automaton M = ns.comparison(a.constant, b.identifier, opp);
+            Automaton M = a instanceof NumberLiteralExpression ne
+                ? ns.comparison(ne.value(), b.identifier, opp)
+                : ns.comparison(a.constant, b.identifier, opp);
             M = andThenQuantifyIfArithmetic(b, M);
             S.push(new AutomatonExpression(a + op + b, M));
         } else if ((a instanceof ArithmeticExpression || a instanceof VariableExpression) && (b instanceof NumberLiteralExpression || b instanceof AlphabetLetterExpression)) {
-            Automaton M = ns.comparison(a.identifier, b.constant, opp);
+            Automaton M = b instanceof NumberLiteralExpression ne
+                ? ns.comparison(a.identifier, ne.value(), opp)
+                : ns.comparison(a.identifier, b.constant, opp);
             M = andThenQuantifyIfArithmetic(a, M);
             S.push(new AutomatonExpression(a + op + b, M));
         } else if (a instanceof WordExpression && b instanceof WordExpression) {
@@ -153,13 +158,13 @@ public class RelationalOperator extends Operator {
             AutomatonQuantification.quantify(M, ((WordExpression)b).identifiersToQuantify);
             S.push(new AutomatonExpression(a + op + b, M));
         } else if (a instanceof WordExpression && (b instanceof NumberLiteralExpression|| b instanceof AlphabetLetterExpression)) {
-            WordAutomaton.compareWordAutomaton(a.wordAutomaton, b.constant, opp);
+            WordAutomaton.compareWordAutomaton(a.wordAutomaton, getIntConstantForWord(b), opp);
             Automaton M = a.wordAutomaton;
             M = AutomatonLogicalOps.and(M, a.M);
             AutomatonQuantification.quantify(M, ((WordExpression)a).identifiersToQuantify);
             S.push(new AutomatonExpression(a + op + b, M));
         } else if ((a instanceof NumberLiteralExpression || a instanceof AlphabetLetterExpression) && b instanceof WordExpression) {
-            WordAutomaton.compareWordAutomaton(b.wordAutomaton, a.constant, reverseOperator(opp));
+            WordAutomaton.compareWordAutomaton(b.wordAutomaton, getIntConstantForWord(a), reverseOperator(opp));
             Automaton M = b.wordAutomaton;
             M = AutomatonLogicalOps.and(M, b.M);
             AutomatonQuantification.quantify(M, ((WordExpression)b).identifiersToQuantify);
@@ -172,14 +177,37 @@ public class RelationalOperator extends Operator {
     }
 
     public static boolean compare(Ops op, int a, int b) {
+        return compare(op, BigInteger.valueOf(a), BigInteger.valueOf(b));
+    }
+
+    public static boolean compare(Ops op, BigInteger a, BigInteger b) {
+        int comparison = a.compareTo(b);
         return switch (op) {
-            case EQUAL -> a == b;
-            case NOT_EQUAL -> a != b;
-            case LESS_THAN -> a < b;
-            case GREATER_THAN -> a > b;
-            case LESS_EQ_THAN -> a <= b;
-            case GREATER_EQ_THAN -> a >= b;
+            case EQUAL -> comparison == 0;
+            case NOT_EQUAL -> comparison != 0;
+            case LESS_THAN -> comparison < 0;
+            case GREATER_THAN -> comparison > 0;
+            case LESS_EQ_THAN -> comparison <= 0;
+            case GREATER_EQ_THAN -> comparison >= 0;
         };
+    }
+
+    private static int getIntConstantForWord(Expression e) {
+        if (e instanceof NumberLiteralExpression ne) {
+            return ne.intValueExact("number literal " + ne + " used in word automaton output comparison");
+        }
+        return e.constant;
+    }
+
+    private static boolean isConstantExpression(Expression e) {
+        return e instanceof NumberLiteralExpression || e instanceof AlphabetLetterExpression;
+    }
+
+    private static BigInteger getConstantValue(Expression e) {
+        if (e instanceof NumberLiteralExpression ne) {
+            return ne.value();
+        }
+        return BigInteger.valueOf(e.constant);
     }
 
     public static Ops reverseOperator(Ops op) {

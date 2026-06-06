@@ -19,6 +19,7 @@
 package Main;
 
 import java.io.*;
+import java.math.BigInteger;
 import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -106,6 +107,13 @@ public class UtilityMethods {
      */
     public static int parseInt(String s) {
         return Integer.parseInt(PATTERN_WHITESPACE.matcher(s).replaceAll(""));
+    }
+
+    /**
+     * Parse an arbitrary-size integer from String. The string may have spaces, which are removed.
+     */
+    public static BigInteger parseBigInteger(String s) {
+        return new BigInteger(PATTERN_WHITESPACE.matcher(s).replaceAll(""));
     }
 
     /**

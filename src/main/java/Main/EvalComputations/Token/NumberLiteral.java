@@ -18,6 +18,7 @@
 
 package Main.EvalComputations.Token;
 
+import java.math.BigInteger;
 import java.util.Stack;
 
 import Automata.NumberSystem;
@@ -26,20 +27,20 @@ import Main.EvalComputations.Expressions.NumberLiteralExpression;
 
 
 public class NumberLiteral extends Token {
-    private final int value;
+    private final BigInteger value;
     private final NumberSystem base;
 
-    public NumberLiteral(int position, int value, NumberSystem base) {
+    public NumberLiteral(int position, BigInteger value, NumberSystem base) {
         this.positionInPredicate = position;
         this.value = value;
         this.base = base;
     }
 
     public String toString() {
-        return Integer.toString(value);
+        return value.toString();
     }
 
     public void act(Stack<Expression> S) {
-        S.push(new NumberLiteralExpression(Integer.toString(value), value, base));
+        S.push(new NumberLiteralExpression(value.toString(), value, base));
     }
 }

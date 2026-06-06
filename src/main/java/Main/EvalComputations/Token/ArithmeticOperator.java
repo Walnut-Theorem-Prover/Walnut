@@ -18,6 +18,7 @@
 
 package Main.EvalComputations.Token;
 
+import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -97,8 +98,9 @@ public class ArithmeticOperator extends Operator {
     }
 
     private void processUnaryOperator(Expression b, Stack<Expression> S) {
-        if (b instanceof NumberLiteralExpression) {
-            S.push(new NumberLiteralExpression(Integer.toString(-b.constant), -b.constant, ns));
+        if (b instanceof NumberLiteralExpression ne) {
+            BigInteger value = ne.value().negate();
+            S.push(new NumberLiteralExpression(value.toString(), value, ns));
             return;
         }
         if (b instanceof AlphabetLetterExpression) {
@@ -135,20 +137,19 @@ public class ArithmeticOperator extends Operator {
             return;
         }
         if (a instanceof WordExpression && (b instanceof AlphabetLetterExpression || b instanceof NumberLiteralExpression)) {
-            WordAutomaton.applyWordArithOperator(a.wordAutomaton, b.constant, opp, true);
+            WordAutomaton.applyWordArithOperator(a.wordAutomaton, getIntConstantForWord(b), opp, true);
             S.push(a);
             return;
         }
         if ((a instanceof AlphabetLetterExpression || a instanceof NumberLiteralExpression) && b instanceof WordExpression) {
-            WordAutomaton.applyWordArithOperator(b.wordAutomaton, a.constant, opp, false);
+            WordAutomaton.applyWordArithOperator(b.wordAutomaton, getIntConstantForWord(a), opp, false);
             S.push(b);
             return;
         }
 
-        if (
-            (a instanceof NumberLiteralExpression || a instanceof AlphabetLetterExpression) && (b instanceof NumberLiteralExpression)) {
-            int value = arith(opp, a.constant, b.constant);
-            S.push(new NumberLiteralExpression(Integer.toString(value), value, ns));
+        if (isConstantExpression(a) && isConstantExpression(b)) {
+            BigInteger value = arith(opp, getConstantValue(a), getConstantValue(b));
+            S.push(new NumberLiteralExpression(value.toString(), value, ns));
             return;
         }
         String c = getUniqueString();
@@ -197,15 +198,27 @@ public class ArithmeticOperator extends Operator {
             Logging.dedent();
 
         } else {
-            if (a instanceof NumberLiteralExpression) {
+            if (a instanceof NumberLiteralExpression ne) {
+                if (ne.isZero() && opp.equals(Ops.MULT)) {
+                    S.push(new NumberLiteralExpression("0", BigInteger.ZERO, ns));
+                    return;
+                }
+                M = ns.arithmetic(ne.value(), b.identifier, c, opp);
+            } else if (a instanceof AlphabetLetterExpression) {
                 if (a.constant == 0 && opp.equals(Ops.MULT)) {
-                    S.push(new NumberLiteralExpression("0", 0, ns));
+                    S.push(new NumberLiteralExpression("0", BigInteger.ZERO, ns));
                     return;
                 }
                 M = ns.arithmetic(a.constant, b.identifier, c, opp);
-            } else if (b instanceof NumberLiteralExpression) {
+            } else if (b instanceof NumberLiteralExpression ne) {
+                if (ne.isZero() && opp.equals(Ops.MULT)) {
+                    S.push(new NumberLiteralExpression("0", BigInteger.ZERO, ns));
+                    return;
+                }
+                M = ns.arithmetic(a.identifier, ne.value(), c, opp);
+            } else if (b instanceof AlphabetLetterExpression) {
                 if (b.constant == 0 && opp.equals(Ops.MULT)) {
-                    S.push(new NumberLiteralExpression("0", 0, ns));
+                    S.push(new NumberLiteralExpression("0", BigInteger.ZERO, ns));
                     return;
                 }
                 M = ns.arithmetic(a.identifier, b.constant, c, opp);
@@ -221,22 +234,45 @@ public class ArithmeticOperator extends Operator {
     }
 
     public static int arith(ArithmeticOperator.Ops op, int a, int b) {
+        return arith(op, BigInteger.valueOf(a), BigInteger.valueOf(b)).intValueExact();
+    }
+
+    public static BigInteger arith(ArithmeticOperator.Ops op, BigInteger a, BigInteger b) {
         switch (op) {
             case PLUS -> {
-                return Math.addExact(a, b);
+                return a.add(b);
             }
             case MINUS -> {
-                return Math.subtractExact(a, b);
+                return a.subtract(b);
             }
             case DIV -> {
-                if (b == 0) throw WalnutException.divisionByZero();
-                return Math.floorDiv(a, b);
+                if (b.signum() == 0) throw WalnutException.divisionByZero();
+                BigInteger[] qr = a.divideAndRemainder(b);
+                return qr[1].signum() != 0 && a.signum() != b.signum() ? qr[0].subtract(BigInteger.ONE) : qr[0];
             }
             case MULT -> {
-                return Math.multiplyExact(a, b);
+                return a.multiply(b);
             }
             default -> throw WalnutException.unexpectedOperator(op.getSymbol());
         }
+    }
+
+    private static int getIntConstantForWord(Expression e) {
+        if (e instanceof NumberLiteralExpression ne) {
+            return ne.intValueExact("number literal " + ne + " used in word automaton output arithmetic");
+        }
+        return e.constant;
+    }
+
+    private static boolean isConstantExpression(Expression e) {
+        return e instanceof NumberLiteralExpression || e instanceof AlphabetLetterExpression;
+    }
+
+    private static BigInteger getConstantValue(Expression e) {
+        if (e instanceof NumberLiteralExpression ne) {
+            return ne.value();
+        }
+        return BigInteger.valueOf(e.constant);
     }
 
     private static boolean isValidArithmeticOperator(Expression a) {

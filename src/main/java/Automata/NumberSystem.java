@@ -19,6 +19,7 @@
 package Automata;
 
 import java.io.File;
+import java.math.BigInteger;
 import java.util.*;
 
 import Automata.FA.FA;
@@ -63,6 +64,10 @@ import it.unimi.dsi.fastutil.ints.IntList;
  * MODIFICATION ON THE CLONE.
  */
 public class NumberSystem {
+    private static final BigInteger BIG_ZERO = BigInteger.ZERO;
+    private static final BigInteger BIG_ONE = BigInteger.ONE;
+    private static final BigInteger BIG_TWO = BigInteger.valueOf(2);
+
     public static final String MSD = "msd";
     public static final String MSD_UNDERSCORE = MSD + "_";
     public static final String MSD_2 = MSD_UNDERSCORE + "2";
@@ -118,9 +123,9 @@ public class NumberSystem {
      * multiplicationsDynamicTable(3) is the automaton that gets two inputs, and accepts if the second is 3 times the first. So the input is ordered!<br>
      * divisionsDynamicTable(5) is the automaton that gets two inputs, and accepts if the second is one-third of the first. So the input is ordered!<br>
      */
-    private final Map<Integer, Automaton> constantsDynamicTable;
-    private final Map<Integer, Automaton> multiplicationsDynamicTable;
-    private final Map<Integer, Automaton> divisionsDynamicTable;
+    private final Map<BigInteger, Automaton> constantsDynamicTable;
+    private final Map<BigInteger, Automaton> multiplicationsDynamicTable;
+    private final Map<BigInteger, Automaton> divisionsDynamicTable;
 
     private boolean flagUseAllRepresentations = true;
 
@@ -614,14 +619,26 @@ public class NumberSystem {
      * the false automata. So BE CAREFUL when calling on n < 0.
      */
     public Automaton getConstant(int n) {
+        return getConstant(BigInteger.valueOf(n));
+    }
+
+    public Automaton getConstant(BigInteger n) {
         return constant(n).clone();
     }
 
     private Automaton getDivision(int n) {
+        return getDivision(BigInteger.valueOf(n));
+    }
+
+    private Automaton getDivision(BigInteger n) {
         return division(n).clone();
     }
 
     private Automaton getMultiplication(int n) {
+        return getMultiplication(BigInteger.valueOf(n));
+    }
+
+    private Automaton getMultiplication(BigInteger n) {
         return multiplication(n).clone();
     }
 
@@ -666,12 +683,16 @@ public class NumberSystem {
      * @return an Automaton with single input, with label = [a]. It accepts iff a comparisonOperator b.
      */
     public Automaton comparison(String a, int b, RelationalOperator.Ops comparisonOperator) {
+        return comparison(a, BigInteger.valueOf(b), comparisonOperator);
+    }
+
+    public Automaton comparison(String a, BigInteger b, RelationalOperator.Ops comparisonOperator) {
         validateNeg(b);
         String B = "new " + a;//this way, we make sure B != a.
         Automaton N, M;
-        if (b < 0) {
-            M = arithmetic(a, -b, B, ArithmeticOperator.Ops.PLUS);
-            N = comparison(B, 0, comparisonOperator);
+        if (b.signum() < 0) {
+            M = arithmetic(a, b.negate(), B, ArithmeticOperator.Ops.PLUS);
+            N = comparison(B, BIG_ZERO, comparisonOperator);
         } else { // b >= 0
             N = getConstant(b);
             if (comparisonOperator.equals(RelationalOperator.Ops.EQUAL)) {
@@ -701,6 +722,10 @@ public class NumberSystem {
      * @return an Automaton with single input, with label = [b]. It accepts iff a comparisonOperator b.
      */
     public Automaton comparison(int a, String b, RelationalOperator.Ops comparisonOperator) {
+        return comparison(BigInteger.valueOf(a), b, comparisonOperator);
+    }
+
+    public Automaton comparison(BigInteger a, String b, RelationalOperator.Ops comparisonOperator) {
         validateNeg(a);
         return comparison(b, a, RelationalOperator.reverseOperator(comparisonOperator));
     }
@@ -751,6 +776,14 @@ public class NumberSystem {
             int b,
             String c,
             ArithmeticOperator.Ops arithmeticOperator) {
+        return arithmetic(a, BigInteger.valueOf(b), c, arithmeticOperator);
+    }
+
+    public Automaton arithmetic(
+            String a,
+            BigInteger b,
+            String c,
+            ArithmeticOperator.Ops arithmeticOperator) {
         validateNeg(b);
         Automaton N;
         if (arithmeticOperator.equals(ArithmeticOperator.Ops.MULT)) {
@@ -766,8 +799,8 @@ public class NumberSystem {
 
         Automaton M;
         String B = a + c; //this way we make sure that B is not equal to a or c
-        if (b < 0) { // We rewrite "a-b=c" as "a+(-b)=c" and "a+b=c" as "a-(-b)=c"
-            N = getConstant(-b);
+        if (b.signum() < 0) { // We rewrite "a-b=c" as "a+(-b)=c" and "a+b=c" as "a-(-b)=c"
+            N = getConstant(b.negate());
             N.bind(List.of(B));
             M = arithmetic(a, B, c, arithmeticOperator.equals(ArithmeticOperator.Ops.PLUS) ?
                 ArithmeticOperator.Ops.MINUS : ArithmeticOperator.Ops.PLUS);
@@ -798,6 +831,14 @@ public class NumberSystem {
             String b,
             String c,
             ArithmeticOperator.Ops arithmeticOperator) {
+        return arithmetic(BigInteger.valueOf(a), b, c, arithmeticOperator);
+    }
+
+    public Automaton arithmetic(
+            BigInteger a,
+            String b,
+            String c,
+            ArithmeticOperator.Ops arithmeticOperator) {
         validateNeg(a);
         Automaton N;
         if (arithmeticOperator.equals(ArithmeticOperator.Ops.MULT)) {
@@ -810,8 +851,8 @@ public class NumberSystem {
 
         Automaton M;
         String A = b + c; //this way we make sure that A is not equal to b or c
-        if (a < 0 && arithmeticOperator.equals(ArithmeticOperator.Ops.PLUS)) { // We rewrite "a+b=c" and "c+(-a)=b"
-            N = getConstant(-a);
+        if (a.signum() < 0 && arithmeticOperator.equals(ArithmeticOperator.Ops.PLUS)) { // We rewrite "a+b=c" and "c+(-a)=b"
+            N = getConstant(a.negate());
             N.bind(List.of(A));
             M = arithmetic(c, A, b, arithmeticOperator);
         } else {
@@ -843,6 +884,14 @@ public class NumberSystem {
             String b,
             int c,
             ArithmeticOperator.Ops arithmeticOperator) {
+        return arithmetic(a, b, BigInteger.valueOf(c), arithmeticOperator);
+    }
+
+    public Automaton arithmetic(
+            String a,
+            String b,
+            BigInteger c,
+            ArithmeticOperator.Ops arithmeticOperator) {
         validateNeg(c);
         if (arithmeticOperator.equals(ArithmeticOperator.Ops.MULT) || arithmeticOperator.equals(ArithmeticOperator.Ops.DIV)) {
             throw WalnutException.operatorTwoVariables(arithmeticOperator.getSymbol());
@@ -851,8 +900,8 @@ public class NumberSystem {
         Automaton N;
         Automaton M;
         String C = a + b; //this way we make sure that A is not equal to a or b
-        if (c < 0 && arithmeticOperator.equals(ArithmeticOperator.Ops.MINUS)) { // We rewrite "a-b=c" and "a+(-c)=b"
-            N = getConstant(-c);
+        if (c.signum() < 0 && arithmeticOperator.equals(ArithmeticOperator.Ops.MINUS)) { // We rewrite "a-b=c" and "a+(-c)=b"
+            N = getConstant(c.negate());
             N.bind(List.of(C));
             M = arithmetic(a, C, b, arithmeticOperator);
         } else {
@@ -872,7 +921,7 @@ public class NumberSystem {
     /**
      * @return an Automaton with one input. It accepts when the input equals n.
      */
-    private Automaton constant(int n) {
+    private Automaton constant(BigInteger n) {
         validateNeg(n);
         if (constantsDynamicTable.containsKey(n)) {
             return constantsDynamicTable.get(n);
@@ -880,18 +929,18 @@ public class NumberSystem {
 
         Automaton P;
         String a = "a", b = "b", c = "c";
-        if (n == 0) {
+        if (n.equals(BIG_ZERO)) {
             P = makeZero();
-        } else if (n == 1) {
+        } else if (n.equals(BIG_ONE)) {
             P = makeOne();
-        } else if (n < 0) {
+        } else if (n.signum() < 0) {
             // b = -n
             Logging.disablePrint();
 
-            Automaton M = getConstant(-n);
+            Automaton M = getConstant(n.negate());
             M.bind(List.of(b));
             // Eb, a + b = 0 & b = -n
-            P = arithmetic(a, b, 0, ArithmeticOperator.Ops.PLUS);
+            P = arithmetic(a, b, BIG_ZERO, ArithmeticOperator.Ops.PLUS);
             P = AutomatonLogicalOps.and(P, M);
             AutomatonQuantification.quantify(P, b);
 
@@ -900,10 +949,12 @@ public class NumberSystem {
             // a = floor(n/2)
             Logging.disablePrint();
 
-            Automaton M = getConstant(n / 2);
+            BigInteger[] halfAndRemainder = n.divideAndRemainder(BIG_TWO);
+            BigInteger floorHalf = halfAndRemainder[0];
+            BigInteger ceilHalf = floorHalf.add(halfAndRemainder[1]);
+            Automaton M = getConstant(floorHalf);
             M.bind(List.of(a));
-            // b = ceil(n/2)
-            Automaton N = getConstant(n / 2 + (n % 2 == 0 ? 0 : 1));
+            Automaton N = getConstant(ceilHalf);
             N.bind(List.of(b));
             // Ea,Eb, a + b = c & a = floor(n/2) & b = ceil(n/2)
             P = arithmetic(a, b, c, ArithmeticOperator.Ops.PLUS);
@@ -918,41 +969,39 @@ public class NumberSystem {
 
     /**
      * The returned automaton has two inputs, and it accepts iff the second is n times the first. So the input is ordered!
-     *
-     * @param n
-     * @return
      */
-    private Automaton multiplication(int n) {
+    private Automaton multiplication(BigInteger n) {
         validateNeg(n);
-        if (n == 0) throw new WalnutException("multiplication(0)");
+        if (n.equals(BIG_ZERO)) throw new WalnutException("multiplication(0)");
         if (multiplicationsDynamicTable.containsKey(n)) return multiplicationsDynamicTable.get(n);
         //note that the case of n==0 is handled in Computer class
         Automaton P;
         String a = "a", b = "b", c = "c", d = "d";
         Logging.disablePrint();
-        if (n == 1) {
+        if (n.equals(BIG_ONE)) {
             P = equality;
-        } else if (n < 0) {
+        } else if (n.signum() < 0) {
             // c = (-n)*a
-            Automaton M = getMultiplication(-n);
+            Automaton M = getMultiplication(n.negate());
             M.bind(List.of(a, c));
             // Ec b + c = 0 & c = (-n)*a
-            P = arithmetic(b, c, 0, ArithmeticOperator.Ops.PLUS);
+            P = arithmetic(b, c, BIG_ZERO, ArithmeticOperator.Ops.PLUS);
             P = AutomatonLogicalOps.and(P, M);
             AutomatonQuantification.quantify(P, c);
             P.sortLabel();
-        } else if (n == 2) {
+        } else if (n.equals(BIG_TWO)) {
             P = arithmetic(a, a, d, ArithmeticOperator.Ops.PLUS);
             P.sortLabel();
         } else { // n > 2
             // doubler
-            Automaton D = getMultiplication(2);
+            Automaton D = getMultiplication(BIG_TWO);
 
+            BigInteger k = n.divide(BIG_TWO);
             //b = k*a
-            Automaton M = getMultiplication(n / 2);
+            Automaton M = getMultiplication(k);
             M.bind(List.of(a, b));
 
-            if (n % 2 == 0) { // suppose n = 2k
+            if (n.mod(BIG_TWO).equals(BIG_ZERO)) { // suppose n = 2k
                 D.bind(List.of(b, d));
                 P = AutomatonLogicalOps.and(M, D);
                 AutomatonQuantification.quantify(P, b);
@@ -971,17 +1020,17 @@ public class NumberSystem {
         return P;
     }
 
-    private void validateNeg(int n) {
-        if (!isNeg && n < 0) throw WalnutException.negativeConstant(n);
+    private void validateNeg(BigInteger n) {
+        if (!isNeg && n.signum() < 0) throw WalnutException.negativeConstant(n.toString());
     }
 
     /**
      * The returned automaton has two inputs, and it accepts iff the second is one nth of the first. So the input is ordered!
      */
     // a / n = b <=> Er,q a = q + r & q = n*b & n < r <= 0 if n < 0
-    private Automaton division(int n) {
+    private Automaton division(BigInteger n) {
         validateNeg(n);
-        if (n == 0) throw WalnutException.divisionByZero();
+        if (n.equals(BIG_ZERO)) throw WalnutException.divisionByZero();
         if (divisionsDynamicTable.containsKey(n)) return divisionsDynamicTable.get(n);
         String a = "a", b = "b", r = "r", q = "q";
         Logging.disablePrint();
@@ -992,8 +1041,8 @@ public class NumberSystem {
         Automaton N = arithmetic(n, b, q, ArithmeticOperator.Ops.MULT);
 
         // n < 0: n < r <= 0, n > 0: 0 <= r < n
-        Automaton P1 = comparison(r, 0, n < 0 ? RelationalOperator.Ops.LESS_EQ_THAN : RelationalOperator.Ops.GREATER_EQ_THAN);
-        Automaton P2 = comparison(r, n, n < 0 ? RelationalOperator.Ops.GREATER_THAN : RelationalOperator.Ops.LESS_THAN);
+        Automaton P1 = comparison(r, BIG_ZERO, n.signum() < 0 ? RelationalOperator.Ops.LESS_EQ_THAN : RelationalOperator.Ops.GREATER_EQ_THAN);
+        Automaton P2 = comparison(r, n, n.signum() < 0 ? RelationalOperator.Ops.GREATER_THAN : RelationalOperator.Ops.LESS_THAN);
 
         Automaton P = AutomatonLogicalOps.and(P1, P2);
         Automaton R = AutomatonLogicalOps.and(M, N);
@@ -1021,7 +1070,7 @@ public class NumberSystem {
         M.richAlphabet.setEncoder(new IntArrayList());
         M.richAlphabet.getEncoder().add(1);
         M.canonize();
-        constantsDynamicTable.put(constant, M);
+        constantsDynamicTable.put(BigInteger.valueOf(constant), M);
         return M;
     }
 }

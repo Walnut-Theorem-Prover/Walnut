@@ -85,6 +85,10 @@ public class WalnutException extends RuntimeException {
     public static WalnutException morphismNotUniform() { return new WalnutException("A morphism applied to a word automaton must be uniform.");}
 
     public static WalnutException negativeConstant(int a) {
+        return negativeConstant(Integer.toString(a));
+    }
+
+    public static WalnutException negativeConstant(String a) {
         return new WalnutException("negative constant " + a);
     }
 
