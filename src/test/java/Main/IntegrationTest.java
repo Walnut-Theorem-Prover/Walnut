@@ -914,6 +914,7 @@ public class IntegrationTest {
 	}
 
 	private void runSpecificTest(int i) {
+		String testName = "Integration test #" + i;
 		TestCase expected = testCases.get(i);
 		String command = L.get(i);
 		try{
@@ -921,7 +922,7 @@ public class IntegrationTest {
 			Prover.mainProver = new Prover();
 			TestCase actual = Prover.mainProver.dispatchForIntegrationTest(command, String.valueOf(i));
 			if (actual == null) {
-				Assertions.assertNull(expected, "actual was null, but not expected");
+				Assertions.assertNull(expected, testName + ":actual was null, but not expected");
 				return;
 			}
 
@@ -940,23 +941,23 @@ public class IntegrationTest {
 			}
 			assertEqualMessages(expected.getDetails(), actual.getDetails());
 			Assertions.assertEquals(expected.getAutomatonPairs().size(), actual.getAutomatonPairs().size(),
-					"Expected and actual automaton pair lists differ");
+					testName + ":Expected and actual automaton pair lists differ");
 			for(int j=0;j<expected.getAutomatonPairs().size();j++) {
 				Automaton expectedA = expected.getAutomatonPairs().get(j).automaton();
 				Automaton actualA = actual.getAutomatonPairs().get(j).automaton();
 				if (expectedA == null) {
-					Assertions.assertNull(actualA, "expected automaton was null, but not actual");
+					Assertions.assertNull(actualA, testName +":expected automaton was null, but not actual");
 				} else if (actualA == null) {
-					Assertions.fail("actual automaton was null, but not expected");
+					Assertions.fail(testName +":actual automaton was null, but not expected");
 				} else {
 					// We don't use assertEquals here, since equals has been overridden in the FA class
 					Assertions.assertTrue(EqualityUtils.faEqual(actualA.fa, expectedA.fa),
-							"Actual result: " + actualA + " does not equal expected result: " + expectedA);
+							testName +":Actual result: " + actualA + " does not equal expected result: " + expectedA);
 				}
 			}
 		}
 		catch(Exception e){
-			Assertions.assertEquals(expected.getError(), e.getMessage(), "Error message does not match");
+			Assertions.assertEquals(expected.getError(), e.getMessage(), testName +":Error message does not match");
 		}
 	}
 
