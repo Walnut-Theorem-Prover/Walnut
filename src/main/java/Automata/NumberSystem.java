@@ -666,7 +666,7 @@ public class NumberSystem {
         result.bind(reverse ? List.of(b,a) : List.of(a,b));
         if (negate) {
           Logging.disablePrint();
-          AutomatonLogicalOps.not(result);
+          result = AutomatonLogicalOps.not(result.asDFA());
           Logging.enablePrint();
         }
         return result;
@@ -716,7 +716,7 @@ public class NumberSystem {
             } else if (comparisonOperator.equals(RelationalOperator.Ops.NOT_EQUAL)) {
                 N.bind(List.of(a));
                 Logging.disablePrint();
-                AutomatonLogicalOps.not(N);
+                N = AutomatonLogicalOps.not(N.asDFA());
                 Logging.enablePrint();
                 return N;
             }

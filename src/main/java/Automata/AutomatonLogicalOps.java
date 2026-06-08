@@ -80,10 +80,11 @@ public class AutomatonLogicalOps {
     public static AutomatonDFA xor(Automaton A, Automaton B, String friendlyOp) {
         if (A.fa.isTRUE_FALSE_AUTOMATON() || B.fa.isTRUE_FALSE_AUTOMATON()) {
             if (A.fa.isTRUE_FALSE_AUTOMATON()) {
+                AutomatonDFA result = B.asDFA();
                 if (A.fa.isTRUE_AUTOMATON()) {
-                    not(B);
+                    return not(result);
                 }
-                return B.asDFA();
+                return result;
             }
             return xor(B, A, friendlyOp); // xor is symmetric
         }
@@ -102,8 +103,7 @@ public class AutomatonLogicalOps {
             if (B.fa.isTRUE_AUTOMATON()) {
                 return new AutomatonDFA(true);
             } else {
-                not(A);
-                return A.asDFA();
+                return not(A.asDFA());
             }
         }
       return totalizeCrossProduct(A, B, friendlyOp);
@@ -139,23 +139,19 @@ public class AutomatonLogicalOps {
     }
 
     /**
-     * Negate automaton. NOTE: A is deterministic.
+     * Negate DFA. The automaton is mutated and returned.
      */
-    public static void not(Automaton A) {
+    public static AutomatonDFA not(AutomatonDFA A) {
         boolean print = Logging.shouldPrintDetails();
         if (A.fa.isTRUE_FALSE_AUTOMATON()) {
             A.fa.setTRUE_AUTOMATON(!A.fa.isTRUE_AUTOMATON());
-            return;
+            return A;
         }
 
-        // Automaton A *must* be deterministic, based on algorithm used. Assert this.
         if (!A.getFa().getT().isDeterministic()) {
             throw WalnutException.nonDeterministic();
         }
-
-        // TODO: convert to DFA before calling internal NOT (or pass a DFA into this method)
-        //   However, totalize needs to support this
-        // A.getFa().convertNFAtoDFA();
+        A.getFa().convertNFAtoDFA();
 
         long timeBefore = System.currentTimeMillis();
         logMessage(print, COMPUTING + " " + Operator.NEGATE + ":" + A.fa.getQ() + " states");
@@ -163,14 +159,14 @@ public class AutomatonLogicalOps {
         Logging.indent();
         A.getFa().totalize();
         A.getFa().flipOutput();
-
-        // TODO: Since we're already in a DFA, we don't need to determinize
-        A.determinizeAndMinimize();
+        A.getFa().justMinimize();
         A.applyAllRepresentations();
+        A.getFa().convertNFAtoDFA();
 
         Logging.dedent();
         long timeAfter = System.currentTimeMillis();
         logMessage(print, COMPUTED + " " + Operator.NEGATE + ":" + A.fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms");
+        return A;
     }
 
     /**

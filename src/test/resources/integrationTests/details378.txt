@@ -157,8 +157,8 @@ j>=1:3 states - 1ms
        computing ~:93 states
         totalizing:93 states
         totalized:94 states - 1ms
-         Minimizing: 94 states.
-         Minimized:94 states - 0ms.
+        Minimizing: 94 states.
+        Minimized:94 states - 0ms.
        computed ~:85 states - 3ms
        quantifying:85 states
          Determinizing [#10, strategy: SC]: 85 states
@@ -176,8 +176,8 @@ j>=1:3 states - 1ms
        computing ~:12 states
         totalizing:12 states
         totalized:13 states - 0ms
-         Minimizing: 13 states.
-         Minimized:13 states - 0ms.
+        Minimizing: 13 states.
+        Minimized:13 states - 0ms.
        computed ~:6 states - 0ms
       computed quantifier (A k (k<j=>F[(i+k)]=F[((i+j)+k)]))
       (A k (k<j=>F[(i+k)]=F[((i+j)+k)])):6 states - 6ms
