@@ -899,7 +899,11 @@ public class IntegrationTest {
 
 		L.add("split NONEXISTENT NONEXISTENT [+] [-] [];"); // 671: NONEXISTENT does not exist
 
-		L.add("def test672 \"50000 * 50000 > 100\";"); // Overflow exception. Pre-Walnut-7.1, this was false (bug!)
+		// BigInteger cases
+		// Some of these were overflows before Walnut 7.1 (bug), and were exceptions in Walnut 7.2
+		L.add("def test672 \"50000 * 50000 > 100\";");
+		L.add("def test673 \"T[2147483648]=@1\";");
+		L.add("def test674 \"T[2147483649]=@0\";");
 	}
 
 	@TestFactory
