@@ -217,13 +217,19 @@ public class FA implements Cloneable {
    * This method adds a dead state to totalize the transition function
    */
   public void totalize() {
-    ensureNfaTransitions();
     long timeBefore = System.currentTimeMillis();
     logMessage(TOTALIZING + ":" + Q + " states");
     //we first check if the automaton is totalized
     int sinkState = Q; // potential new dead state
-    if (!totalizeStates(sinkState)) {
-      addSinkState(0, sinkState);
+    if (t.hasDfaTransitions()) {
+      if (!totalizeDfaStates(sinkState)) {
+        addDfaSinkState(0, sinkState);
+      }
+    } else {
+      ensureNfaTransitions();
+      if (!totalizeStates(sinkState)) {
+        addSinkState(0, sinkState);
+      }
     }
     long timeAfter = System.currentTimeMillis();
     logMessage(TOTALIZED + ":" + Q + " states - " + (timeAfter - timeBefore) + "ms");
@@ -314,6 +320,14 @@ public class FA implements Cloneable {
     addMissingTransitionsForState(t.getNfaState(sinkState), sinkState);
   }
 
+  private void addDfaSinkState(int i, int sinkState) {
+    // Add new non-accepting state that points to itself
+    O.add(i);
+    Q++;
+    t.addDfaState();
+    addMissingDfaTransitionsForState(sinkState, sinkState);
+  }
+
   /**
    * Totalize states.
    * @param sinkState
@@ -329,6 +343,16 @@ public class FA implements Cloneable {
     return totalized;
   }
 
+  private boolean totalizeDfaStates(int sinkState) {
+    boolean totalized = true;
+    for (int q = 0; q < Q; q++) {
+      if (addMissingDfaTransitionsForState(q, sinkState)) {
+        totalized = false;
+      }
+    }
+    return totalized;
+  }
+
   private boolean addMissingTransitionsForState(Int2ObjectRBTreeMap<IntList> iMap, int sinkState) {
     boolean added = false;
     for (int x = 0; x < alphabetSize; x++) {
@@ -336,6 +360,17 @@ public class FA implements Cloneable {
         IntList pointToSink = new IntArrayList(1); // saves peak memory; often in fact, this is a DFA
         pointToSink.add(sinkState);
         iMap.put(x, pointToSink);
+        added = true;
+      }
+    }
+    return added;
+  }
+
+  private boolean addMissingDfaTransitionsForState(int state, int sinkState) {
+    boolean added = false;
+    for (int x = 0; x < alphabetSize; x++) {
+      if (!t.hasDfaDTransition(state, x)) {
+        t.setDfaDTransition(state, x, sinkState);
         added = true;
       }
     }
@@ -649,11 +684,11 @@ public class FA implements Cloneable {
     alphabetSize = myDFA.getInputAlphabet().size();
     setDfaTransitions(new ArrayList<>(Q));
     for(int i=0;i<Q;i++) {
-      Int2IntMap iMap = t.addMapToDfaD();
+      t.addDfaState();
       for(int in=0;in<alphabetSize;in++) {
         Integer dest = myDFA.getTransition(i, in);
         if (dest != null) {
-          iMap.put(in, (int)dest);
+          t.setDfaDTransition(i, in, (int)dest);
         }
       }
     }

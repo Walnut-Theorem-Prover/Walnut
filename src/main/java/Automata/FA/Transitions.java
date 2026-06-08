@@ -73,9 +73,11 @@ public interface Transitions {
    * Return the unique DFA destination from state q on input in.
    */
   int getDfaStateDest(int q, int in);
+  boolean hasDfaDTransition(int q, int in);
+  void setDfaDTransition(int q, int in, int dest);
 
   void setDfaD(List<Int2IntMap> dfaD);
-  Int2IntMap addMapToDfaD();
+  void addDfaState();
 
   void reduceMemory();
 

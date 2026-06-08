@@ -128,7 +128,7 @@ public class ProductStrategies {
             // state in the other Automaton.
             int p = s.leftInt();
             int q = s.rightInt();
-            Int2IntMap stateTransitions = AxB.getT().addMapToDfaD();
+            AxB.getT().addDfaState();
             AxB.getO().add(determineOutput(A.getO().getInt(p), B.getO().getInt(q), op, combineOut));
 
             IntSortedSet BInputs = BInputsByState.get(q);
@@ -147,7 +147,7 @@ public class ProductStrategies {
                         statesHash.put(dest3, statesHashVal);
                         statesList.add(dest3);
                     }
-                    stateTransitions.put(z, statesHashVal);
+                    AxB.getT().setDfaDTransition(currentState, z, statesHashVal);
                 }
             }
             currentState++;

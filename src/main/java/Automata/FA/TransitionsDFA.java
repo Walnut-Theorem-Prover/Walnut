@@ -116,16 +116,23 @@ public class TransitionsDFA implements Transitions {
     return row.get(in);
   }
 
+  public boolean hasDfaDTransition(int q, int in) {
+    return dfaD.get(q).containsKey(in);
+  }
+
+  public void setDfaDTransition(int q, int in, int dest) {
+    dfaD.get(q).put(in, dest);
+  }
+
   public void setDfaD(List<Int2IntMap> dfaD) {
     if (dfaD == null) {
       throw new WalnutException("DFA transitions cannot be null.");
     }
     this.dfaD = dfaD;
   }
-  public Int2IntMap addMapToDfaD() {
-    Int2IntMap iMap = new Int2IntOpenHashMap();
-    this.dfaD.add(iMap);
-    return iMap;
+
+  public void addDfaState() {
+    this.dfaD.add(new Int2IntOpenHashMap());
   }
 
   /**

@@ -93,10 +93,19 @@ public class TransitionsNFA implements Transitions {
     throw new WalnutException("DFA transition storage is not available.");
   }
 
+  public boolean hasDfaDTransition(int q, int in) {
+    throw new WalnutException("DFA transition storage is not available.");
+  }
+
+  public void setDfaDTransition(int q, int in, int dest) {
+    throw new WalnutException("DFA transition storage is not available.");
+  }
+
   public void setDfaD(List<Int2IntMap> dfaD) {
     throw new WalnutException("Cannot install DFA transitions on TransitionsNFA; use FA.setDfaTransitions instead.");
   }
-  public Int2IntMap addMapToDfaD() {
+
+  public void addDfaState() {
     throw new WalnutException("Cannot add DFA transitions to TransitionsNFA; use FA.setDfaTransitions first.");
   }
 
