@@ -32,20 +32,19 @@ import java.util.*;
 import static Main.Logging.*;
 import static Main.UtilityMethods.NO_COMMON_ROOT;
 
-// TODO: almost all logical operations are, in fact, operating on DFAs
-//   Using a DFA-specific object for those would be a significant savings
+// Most logical operations produce DFAs and return AutomatonDFA where the result is guaranteed deterministic.
 public class AutomatonLogicalOps {
 
     /**
      * @return A and B.
      */
-    public static Automaton and(Automaton A, Automaton B) {
+    public static AutomatonDFA and(Automaton A, Automaton B) {
         return and(A, B, LogicalOperator.AND);
     }
-    public static Automaton and(Automaton A, Automaton B, String friendlyOp) {
+    public static AutomatonDFA and(Automaton A, Automaton B, String friendlyOp) {
         if (A.fa.isTRUE_FALSE_AUTOMATON() || B.fa.isTRUE_FALSE_AUTOMATON()) {
             if (A.fa.isTRUE_FALSE_AUTOMATON()) {
-                return A.fa.isTRUE_AUTOMATON() ? B : new Automaton(false);
+                return A.fa.isTRUE_AUTOMATON() ? B.asDFA() : new AutomatonDFA(false);
             }
             return and(B, A); // and is symmetric
         }
@@ -53,7 +52,7 @@ public class AutomatonLogicalOps {
         long timeBefore = System.currentTimeMillis();
         logMessage(COMPUTING + " " + friendlyOp + ":" + A.fa.getQ() + " states - " + B.fa.getQ() + " states");
         Logging.indent();
-        Automaton N = ProductStrategies.crossProductAndMinimize(A, B, friendlyOp);
+        AutomatonDFA N = ProductStrategies.crossProductAndMinimize(A, B, friendlyOp).asDFA();
 
         Logging.dedent();
         long timeAfter = System.currentTimeMillis();
@@ -65,10 +64,10 @@ public class AutomatonLogicalOps {
     /**
      * @return this A or M
      */
-    public static Automaton or(Automaton A, Automaton B, String friendlyOp) {
+    public static AutomatonDFA or(Automaton A, Automaton B, String friendlyOp) {
         if (A.fa.isTRUE_FALSE_AUTOMATON() || B.fa.isTRUE_FALSE_AUTOMATON()) {
             if (A.fa.isTRUE_FALSE_AUTOMATON()) {
-                return A.fa.isTRUE_AUTOMATON() ? new Automaton(true): B;
+                return A.fa.isTRUE_AUTOMATON() ? new AutomatonDFA(true): B.asDFA();
             }
             return or(B, A, friendlyOp); // or is symmetric
         }
@@ -78,13 +77,13 @@ public class AutomatonLogicalOps {
     /**
      * @return A xor B
      */
-    public static Automaton xor(Automaton A, Automaton B, String friendlyOp) {
+    public static AutomatonDFA xor(Automaton A, Automaton B, String friendlyOp) {
         if (A.fa.isTRUE_FALSE_AUTOMATON() || B.fa.isTRUE_FALSE_AUTOMATON()) {
             if (A.fa.isTRUE_FALSE_AUTOMATON()) {
                 if (A.fa.isTRUE_AUTOMATON()) {
                     not(B);
                 }
-                return B;
+                return B.asDFA();
             }
             return xor(B, A, friendlyOp); // xor is symmetric
         }
@@ -94,30 +93,30 @@ public class AutomatonLogicalOps {
     /**
      * @return A imply B
      */
-    public static Automaton imply(Automaton A, Automaton B, String friendlyOp) {
+    public static AutomatonDFA imply(Automaton A, Automaton B, String friendlyOp) {
         if (A.fa.isTRUE_FALSE_AUTOMATON() || B.fa.isTRUE_FALSE_AUTOMATON()) {
             // not a or b
             if (A.fa.isTRUE_FALSE_AUTOMATON()) {
-                return A.fa.isTRUE_AUTOMATON() ? B : new Automaton(true);
+                return A.fa.isTRUE_AUTOMATON() ? B.asDFA() : new AutomatonDFA(true);
             }
             if (B.fa.isTRUE_AUTOMATON()) {
-                return new Automaton(true);
+                return new AutomatonDFA(true);
             } else {
                 not(A);
-                return A;
+                return A.asDFA();
             }
         }
       return totalizeCrossProduct(A, B, friendlyOp);
     }
 
-    private static Automaton totalizeCrossProduct(Automaton A, Automaton B, String friendlyOp) {
+    private static AutomatonDFA totalizeCrossProduct(Automaton A, Automaton B, String friendlyOp) {
         long timeBefore = System.currentTimeMillis();
         logMessage(COMPUTING + " " + friendlyOp + ":" + A.fa.getQ() + " states - " + B.fa.getQ() + " states");
 
         Logging.indent();
         A.fa.totalize();
         B.fa.totalize();
-        Automaton N = ProductStrategies.crossProductAndMinimize(A, B, friendlyOp);
+        AutomatonDFA N = ProductStrategies.crossProductAndMinimize(A, B, friendlyOp).asDFA();
         Logging.dedent();
         N.applyAllRepresentations();
 
@@ -129,7 +128,7 @@ public class AutomatonLogicalOps {
     /**
      * @return A iff B
      */
-    public static Automaton iff(Automaton A, Automaton B, String friendlyOp) {
+    public static AutomatonDFA iff(Automaton A, Automaton B, String friendlyOp) {
         if (A.fa.isTRUE_FALSE_AUTOMATON() || B.fa.isTRUE_FALSE_AUTOMATON()) {
             Automaton C = imply(A, B, LogicalOperator.IMPLY);
             Automaton D = imply(B, A, LogicalOperator.IMPLY);
@@ -384,7 +383,7 @@ public class AutomatonLogicalOps {
         }
 
         if (A.getNS().get(n) == null) {
-            return new Automaton(true);
+            return new AutomatonDFA(true);
         }
 
         Automaton M = new Automaton();
