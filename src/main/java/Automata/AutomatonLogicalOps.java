@@ -468,6 +468,10 @@ public class AutomatonLogicalOps {
             if (ns.isMsd() == toMsd) {
                 throw new WalnutException("New and old number systems are identical: " + ns.getName());
             } else {
+                // The conversion routines assume a complete transition function; totalize before reversal.
+                if (!A.fa.isDeterministicAndTotal()) {
+                    A.fa.totalize();
+                }
                 // If only msd <-> lsd differs, just reverse A
                 Logging.indent();
                 WordAutomaton.reverseWithOutput(A, true);
@@ -482,7 +486,13 @@ public class AutomatonLogicalOps {
             throw new WalnutException("New and old number systems must have bases k^i and k^j for some integer k.");
         }
 
+        // Base conversion groups or ungroups digits and assumes every grouped digit has a transition, so totalize.
+        if (!A.fa.isDeterministicAndTotal()) {
+            A.fa.totalize();
+        }
+
         Logging.indent();
+
         // If originally LSD, we need to reverse to treat it as MSD for the conversions
         if (!ns.isMsd()) {
             WordAutomaton.reverseWithOutput(A, true);
