@@ -142,7 +142,7 @@ public class DeterminizationStrategies {
 
     // Reverse, determinize, minimize
     brzStep(fa, initialStates, strategy, "Reverse");
-    fa.justMinimize(); // also switches back to NFA representation
+    fa.justMinimize();
 
     // Reverse and determinize again. Note that initial state is now q0
     brzStep(fa, IntSet.of(fa.getQ0()), Strategy.SC, "Reverse of reverse");

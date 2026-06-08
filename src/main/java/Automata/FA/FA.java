@@ -545,7 +545,7 @@ public class FA implements Cloneable {
     this.convertNFAtoDFA();
     ValmariDFA v = new ValmariDFA(this, Q);
     v.minValmari(O);
-    v.replaceFields(this); // TODO: we're using NFA representation, even though we know this is a DFA
+    v.replaceFields(this);
     this.canonized = false;
 
     long timeAfter = System.currentTimeMillis();

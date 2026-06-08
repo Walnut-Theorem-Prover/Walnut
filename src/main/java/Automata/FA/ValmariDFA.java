@@ -177,25 +177,28 @@ public class ValmariDFA {
         ValmariPartition.M = ValmariPartition.W = null; // this fixes an actual leak
         cords = null;
 
-        // TODO: when we fully strong-type, this should use a DFA representation
-        f.setNfaTransitions(determineNfaD()); // needs blocks.(L,F,S), L, T, H
+        f.setDfaTransitions(determineDfaD()); // needs blocks.(L,F,S), L, T, H
         f.getT().reduceMemory();
 
         L = T = H = blocks.L = blocks.S = null;
         determineO(f);
     }
 
-    private List<Int2ObjectRBTreeMap<IntList>> determineNfaD() {
-        List<Int2ObjectRBTreeMap<IntList>> d = new ArrayList<>(blocks.z);
+    private List<Int2IntMap> determineDfaD() {
+        List<Int2IntMap> d = new ArrayList<>(blocks.z);
         for(int q = 0; q < blocks.z; ++q){
-            d.add(new Int2ObjectRBTreeMap<>());
+            d.add(new Int2IntOpenHashMap());
         }
         for(int t = 0; t < numTransitions; ++t ){
             if( blocks.L[T[t]] == blocks.F[blocks.S[T[t]]] ){
                 int q = blocks.S[T[t]];
                 int l = L[t];
                 int p = blocks.S[H[t]];
-                d.get(q).computeIfAbsent(l, key -> new IntArrayList(1)).add(p);
+                Int2IntMap row = d.get(q);
+                if (row.containsKey(l) && row.get(l) != p) {
+                    throw new WalnutException("Valmari minimization produced conflicting DFA transitions.");
+                }
+                row.put(l, p);
             }
         }
         return d;
