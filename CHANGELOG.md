@@ -12,6 +12,7 @@ All notable changes to Walnut will be documented here. Format is based on [Keep 
 
 ### Fixed
 - Fix `inf` and `test` performance [#33](https://github.com/Walnut-Theorem-Prover/Walnut/issues/33)
+- Fix `convert` crash [#41](https://github.com/Walnut-Theorem-Prover/Walnut/issues/41)
 
 ### Changed
 - Build process now uses Maven, thanks to [Markus Frohme](https://github.com/mtf90)
