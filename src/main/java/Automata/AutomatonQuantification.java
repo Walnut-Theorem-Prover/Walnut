@@ -99,7 +99,7 @@ public class AutomatonQuantification {
               }
           }
       }
-      A.fa.getT().setNfaD(newD);
+      A.fa.setNfaTransitions(newD);
       Logging.indent();
       A.determinizeAndMinimize();
       Logging.dedent();

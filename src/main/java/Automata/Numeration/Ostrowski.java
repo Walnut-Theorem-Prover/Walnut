@@ -205,6 +205,7 @@ public class Ostrowski {
 
     // Note: this is a minimized and canonized DFA.
     private static void handleZeroState(FA fa) {
+        fa.ensureNfaTransitions();
         boolean zeroStateNeeded =
             fa.getT().getNfaD().stream().anyMatch(
                 tm -> tm.int2ObjectEntrySet().stream().anyMatch(

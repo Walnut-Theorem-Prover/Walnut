@@ -47,7 +47,7 @@ public class Trimmer {
             // special case to make Walnut happy
             a.getO().clear();
             a.getO().add(0);
-            a.getT().clearNfaD();
+            a.setNfaTransitions(new ArrayList<>());
             a.getT().addMapToNfaD();
             a.setQ0(0);
             a.setQ(1);
@@ -84,13 +84,19 @@ public class Trimmer {
             Int2ObjectRBTreeMap<IntList> iMap = oldD.get(i);
             Int2ObjectRBTreeMap<IntList> newMap = newD.get(oldToNewMap[i]);
             for (Int2ObjectMap.Entry<IntList> entry : iMap.int2ObjectEntrySet()) {
-                IntList newList = newMap.computeIfAbsent(entry.getIntKey(), (x -> new IntArrayList()));
+                IntList newList = null;
                 for (int k : entry.getValue()) {
                     if (oldToNewMap[k] != INVALID_VALUE) {
+                        if (newList == null) {
+                            newList = new IntArrayList();
+                            newMap.put(entry.getIntKey(), newList);
+                        }
                         newList.add(oldToNewMap[k]);
                     }
                 }
-                ((IntArrayList)newList).trim(); // save memory
+                if (newList instanceof IntArrayList intArrayList) {
+                    intArrayList.trim(); // save memory
+                }
             }
         }
         // q0 is already set

@@ -25,15 +25,17 @@ import java.util.List;
 import java.util.Set;
 
 public class TransitionsNFA implements Transitions {
-  /**
-   * TODO: finish splitting DFA and NFA transitions.
-   */
-  private List<Int2ObjectRBTreeMap<IntList>> nfaD; // transitions when this is an NFA -- null if this is a known DFA
+  private List<Int2ObjectRBTreeMap<IntList>> nfaD;
 
-  private List<Int2IntMap> dfaD; // memory-efficient transitions when this is a known DFA -- usually null
+  public TransitionsNFA() {
+    this(new ArrayList<>());
+  }
 
-  TransitionsNFA() {
-    nfaD = new ArrayList<>();
+  public TransitionsNFA(List<Int2ObjectRBTreeMap<IntList>> nfaD) {
+    if (nfaD == null) {
+      throw new WalnutException("NFA transitions cannot be null.");
+    }
+    this.nfaD = nfaD;
   }
 
   public List<Int2ObjectRBTreeMap<IntList>> getNfaD(){
@@ -55,6 +57,9 @@ public class TransitionsNFA implements Transitions {
   }
 
   public void setNfaD(List<Int2ObjectRBTreeMap<IntList>> nfaD) {
+    if (nfaD == null) {
+      throw new WalnutException("NFA transitions cannot be null.");
+    }
     this.nfaD = nfaD;
   }
   public void addToNfaD(Int2ObjectRBTreeMap<IntList> entry) {
@@ -73,31 +78,24 @@ public class TransitionsNFA implements Transitions {
   }
 
   public List<Int2IntMap> getDfaD() {
-    return dfaD;
+    return null;
   }
 
   public void setDfaD(List<Int2IntMap> dfaD) {
-    this.dfaD = dfaD;
+    throw new WalnutException("Cannot install DFA transitions on TransitionsNFA; use FA.setDfaTransitions instead.");
   }
   public Int2IntMap addMapToDfaD() {
-    Int2IntMap iMap = new Int2IntOpenHashMap();
-    this.dfaD.add(iMap);
-    return iMap;
+    throw new WalnutException("Cannot add DFA transitions to TransitionsNFA; use FA.setDfaTransitions first.");
   }
 
   /**
    * Reduce memory by trimming all maps.
    */
   public void reduceMemory() {
-    if (this.dfaD != null) {
-      for (Int2IntMap int2IntMap : this.dfaD) {
-        ((Int2IntOpenHashMap) int2IntMap).trim();
-      }
-    }
-    if (this.nfaD != null) {
-      for (Int2ObjectRBTreeMap<IntList> iMap : nfaD) {
-        for(IntList iList: iMap.values()) {
-          ((IntArrayList)iList).trim();
+    for (Int2ObjectRBTreeMap<IntList> iMap : nfaD) {
+      for(IntList iList: iMap.values()) {
+        if (iList instanceof IntArrayList intArrayList) {
+          intArrayList.trim();
         }
       }
     }
@@ -105,27 +103,15 @@ public class TransitionsNFA implements Transitions {
 
   public long determineTransitionCount() {
     long numTransitionsLong = 0;
-    if (nfaD == null) {
-      for (Int2IntMap int2IntMap : dfaD) {
-        numTransitionsLong += int2IntMap.keySet().size();
-      }
-    } else {
-      for (int q = 0; q < nfaD.size();q++) {
-        for (Int2ObjectMap.Entry<IntList> entry : this.getEntriesNfaD(q)) {
-          numTransitionsLong += entry.getValue().size();
-        }
+    for (int q = 0; q < nfaD.size(); q++) {
+      for (Int2ObjectMap.Entry<IntList> entry : this.getEntriesNfaD(q)) {
+        numTransitionsLong += entry.getValue().size();
       }
     }
     return numTransitionsLong;
   }
 
   public boolean isDeterministic() {
-    if (nfaD == null && dfaD == null) {
-      throw new WalnutException("Unexpected null transitions.");
-    }
-    if (dfaD != null) {
-      return true; // trivially, if we're using DFA transitions, we're in a DFA
-    }
     for (int q = 0; q < nfaD.size(); q++) {
       for (Int2ObjectMap.Entry<IntList> entry : this.getEntriesNfaD(q)) {
         if (entry.getValue().size() > 1) {
@@ -138,6 +124,6 @@ public class TransitionsNFA implements Transitions {
 
   @Override
   public String toString() {
-    return ", dfaD:" + dfaD + ", nfaD:" + nfaD;
+    return "nfaD:" + nfaD;
   }
 }

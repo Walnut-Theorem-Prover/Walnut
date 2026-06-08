@@ -101,8 +101,7 @@ public class ProductStrategies {
         Object2IntMap<IntIntPair> statesHash = new Object2IntOpenHashMap<>();
         statesHash.defaultReturnValue(MISSING_ELT);
         AxB.setQ0(0);
-        AxB.getT().setNfaD(null);
-        AxB.getT().setDfaD(new ArrayList<>());
+        AxB.setDfaTransitions(new ArrayList<>());
         statesList.add(new IntIntImmutablePair(A.getQ0(), B.getQ0()));
         statesHash.put(new IntIntImmutablePair(A.getQ0(), B.getQ0()), 0);
         int currentState = 0;
@@ -122,8 +121,7 @@ public class ProductStrategies {
             // state in the other Automaton.
             int p = s.leftInt();
             int q = s.rightInt();
-            Int2IntMap stateTransitions = new Int2IntOpenHashMap();
-            AxB.getT().getDfaD().add(stateTransitions);
+            Int2IntMap stateTransitions = AxB.getT().addMapToDfaD();
             AxB.getO().add(determineOutput(A.getO().getInt(p), B.getO().getInt(q), op, combineOut));
 
             Set<Int2ObjectMap.Entry<IntList>> Bset = B.getT().getEntriesNfaD(q);

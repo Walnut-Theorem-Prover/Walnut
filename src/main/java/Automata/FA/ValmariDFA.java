@@ -177,7 +177,7 @@ public class ValmariDFA {
         cords = null;
 
         // TODO: when we fully strong-type, this should use a DFA representation
-        f.getT().setNfaD(determineNfaD()); // needs blocks.(L,F,S), L, T, H
+        f.setNfaTransitions(determineNfaD()); // needs blocks.(L,F,S), L, T, H
         f.getT().reduceMemory();
 
         L = T = H = blocks.L = blocks.S = null;

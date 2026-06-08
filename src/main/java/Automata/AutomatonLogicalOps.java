@@ -205,7 +205,7 @@ public class AutomatonLogicalOps {
             }
             newOtherD.add(newMap);
         }
-        otherClone.fa.getT().setNfaD(newOtherD);
+        otherClone.fa.setNfaTransitions(newOtherD);
         otherClone.richAlphabet.setEncoder(A.richAlphabet.getEncoder());
         otherClone.richAlphabet.setA(A.richAlphabet.getA());
         otherClone.setAlphabetSize(A.getAlphabetSize());
@@ -292,6 +292,7 @@ public class AutomatonLogicalOps {
      * This can alter FA itself
      */
     private static IntSet zeroReachableStates(FA fa, int zero) {
+        fa.ensureNfaTransitions();
         // Ensure q0 is initialized in nfaD
         IntList dQ0 = fa.getT().getNfaState(fa.getQ0()).computeIfAbsent(zero, k -> new IntArrayList());
         if (!dQ0.contains(fa.getQ0())) {
@@ -438,6 +439,7 @@ public class AutomatonLogicalOps {
      * @param fa - deterministic FA
      */
     static void removeStatesWithOutputRebuild(FA fa, int minOutput) {
+        fa.ensureNfaTransitions();
         Set<Integer> statesToRemove = new HashSet<>();
         for (int q = 0; q < fa.getQ(); q++) {
             if (fa.getO().getInt(q) == minOutput) {
@@ -445,7 +447,8 @@ public class AutomatonLogicalOps {
             }
         }
         for (int q = 0; q < fa.getQ(); q++) {
-            fa.getT().getEntriesNfaD(q).removeIf(entry -> statesToRemove.contains(entry.getValue().getInt(0)));
+            fa.getT().getEntriesNfaD(q).removeIf(entry -> !entry.getValue().isEmpty()
+                && statesToRemove.contains(entry.getValue().getInt(0)));
         }
     }
 
@@ -763,7 +766,7 @@ public class AutomatonLogicalOps {
           prevMorphism = newMorphism;
         }
         // Create new transitions from the final morphism
-        fa.getT().setNfaD(buildTransitionsFromMorphism(fa, prevMorphism));
+        fa.setNfaTransitions(buildTransitionsFromMorphism(fa, prevMorphism));
     }
 
     /**

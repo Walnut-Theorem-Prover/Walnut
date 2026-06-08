@@ -25,44 +25,75 @@ import java.util.List;
 import java.util.Set;
 
 public class TransitionsDFA implements Transitions {
-  private List<Int2IntMap> dfaD; // memory-efficient transitions when this is a known DFA -- usually null
+  private List<Int2IntMap> dfaD;
 
-  TransitionsDFA() {
-    dfaD = new ArrayList<>();
+  public TransitionsDFA() {
+    this(new ArrayList<>());
   }
 
+  public TransitionsDFA(List<Int2IntMap> dfaD) {
+    if (dfaD == null) {
+      throw new WalnutException("DFA transitions cannot be null.");
+    }
+    this.dfaD = dfaD;
+  }
+
+  /**
+   * Return this DFA as an NFA transition table.  The result is a copy, because mutating
+   * an NFA view cannot safely update DFA storage.
+   */
   public List<Int2ObjectRBTreeMap<IntList>> getNfaD(){
-    throw WalnutException.nonDeterministic();
+    List<Int2ObjectRBTreeMap<IntList>> nfaD = new ArrayList<>(dfaD.size());
+    for (Int2IntMap row : dfaD) {
+      nfaD.add(convertRowToNfa(row));
+    }
+    return nfaD;
   }
 
   public Int2ObjectRBTreeMap<IntList> getNfaState(int q){
-    throw WalnutException.nonDeterministic();
+    return convertRowToNfa(dfaD.get(q));
   }
   public IntSortedSet getNfaStateKeySet(int q){
-    throw WalnutException.nonDeterministic();
+    return new IntRBTreeSet(dfaD.get(q).keySet());
   }
   public IntList getNfaStateDests(int q, int in){
-    throw WalnutException.nonDeterministic();
+    Int2IntMap row = dfaD.get(q);
+    if (!row.containsKey(in)) {
+      return null;
+    }
+    IntList result = new IntArrayList(1);
+    result.add(row.get(in));
+    return result;
   }
 
   public Set<Int2ObjectMap.Entry<IntList>> getEntriesNfaD(int state) {
-    throw WalnutException.nonDeterministic();
+    return getNfaState(state).int2ObjectEntrySet();
+  }
+
+  private static Int2ObjectRBTreeMap<IntList> convertRowToNfa(Int2IntMap row) {
+    Int2ObjectRBTreeMap<IntList> nfaRow = new Int2ObjectRBTreeMap<>();
+    for (Int2IntMap.Entry entry : row.int2IntEntrySet()) {
+      IntList dest = new IntArrayList(1);
+      dest.add(entry.getIntValue());
+      nfaRow.put(entry.getIntKey(), dest);
+    }
+    return nfaRow;
   }
 
   public void setNfaD(List<Int2ObjectRBTreeMap<IntList>> nfaD) {
-    throw WalnutException.nonDeterministic();
+    throw new WalnutException("Cannot install NFA transitions on TransitionsDFA; use FA.setNfaTransitions instead.");
   }
   public void addToNfaD(Int2ObjectRBTreeMap<IntList> entry) {
-    throw WalnutException.nonDeterministic();
+    throw new WalnutException("Cannot add NFA transitions to TransitionsDFA; use FA.ensureNfaTransitions first.");
   }
   public Int2ObjectRBTreeMap<IntList> addMapToNfaD() {
-    throw WalnutException.nonDeterministic();
+    throw new WalnutException("Cannot add NFA transitions to TransitionsDFA; use FA.ensureNfaTransitions first.");
   }
   public void setNfaDTransition(int src, int inp, IntList destStates) {
-    throw WalnutException.nonDeterministic();
+    throw new WalnutException("Cannot mutate the NFA view of TransitionsDFA; use FA.ensureNfaTransitions first.");
   }
   public void clearNfaD() {
-    throw WalnutException.nonDeterministic();
+    throw new WalnutException("Cannot clear the NFA view of TransitionsDFA; use FA.setNfaTransitions instead.");
   }
 
   public List<Int2IntMap> getDfaD() {
@@ -70,6 +101,9 @@ public class TransitionsDFA implements Transitions {
   }
 
   public void setDfaD(List<Int2IntMap> dfaD) {
+    if (dfaD == null) {
+      throw new WalnutException("DFA transitions cannot be null.");
+    }
     this.dfaD = dfaD;
   }
   public Int2IntMap addMapToDfaD() {
@@ -83,7 +117,9 @@ public class TransitionsDFA implements Transitions {
    */
   public void reduceMemory() {
     for (Int2IntMap int2IntMap : this.dfaD) {
-      ((Int2IntOpenHashMap) int2IntMap).trim();
+      if (int2IntMap instanceof Int2IntOpenHashMap openHashMap) {
+        openHashMap.trim();
+      }
     }
   }
 
@@ -96,7 +132,7 @@ public class TransitionsDFA implements Transitions {
   }
 
   public boolean isDeterministic() {
-    return true; // trivially, if we're using DFA transitions, we're in a DFA
+    return true;
   }
 
   @Override

@@ -37,6 +37,9 @@ import java.util.Set;
  * our program, so for more information on how we compute it read the information on List<Integer> encoder field.
  */
 public interface Transitions {
+  /**
+   * Return an NFA-shaped transition table.  DFA implementations may return a converted view/copy.
+   */
   List<Int2ObjectRBTreeMap<IntList>> getNfaD();
 
   Int2ObjectRBTreeMap<IntList> getNfaState(int q);
@@ -50,6 +53,14 @@ public interface Transitions {
   Int2ObjectRBTreeMap<IntList> addMapToNfaD();
   void setNfaDTransition(int src, int inp, IntList destStates);
   void clearNfaD();
+
+  /**
+   * Return DFA-shaped transitions, or null when this object is not backed by DFA storage.
+   */
+  List<Int2IntMap> getDfaD();
+
+  void setDfaD(List<Int2IntMap> dfaD);
+  Int2IntMap addMapToDfaD();
 
   void reduceMemory();
 

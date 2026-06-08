@@ -233,7 +233,7 @@ public class Automaton {
             }
             newD.add(newMap);
         }
-        M.getFa().getT().setNfaD(newD);
+        M.getFa().setNfaTransitions(newD);
     }
 
     // TODO: possibly this can just be determined when setA() is called.
@@ -473,7 +473,7 @@ public class Automaton {
                 }
             }
         }
-        A.fa.getT().setNfaD(newD);
+        A.fa.setNfaTransitions(newD);
         I.remove(0);
         UtilityMethods.removeIndices(A.getNS(), I);
         A.determineAlphabetSize();

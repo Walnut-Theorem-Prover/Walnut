@@ -73,7 +73,7 @@ public class BricsConverter {
 
     // We added 128 to the encoding of every input vector before to avoid reserved characters, now we subtract it again
     // to get back the standard encoding
-    fa.getT().setNfaD(addOffsetToInputs(fa, -128));
+    fa.setNfaTransitions(addOffsetToInputs(fa, -128));
 
     long timeAfter = System.currentTimeMillis();
     System.out.println("Set from brics:" + fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms");
@@ -98,7 +98,7 @@ public class BricsConverter {
     fa.setQ(Q);
     fa.setQ0(setOfStates.indexOf(M.getInitialState()));
     fa.initO(Q);
-    fa.getT().setNfaD(new ArrayList<>(Q));
+    fa.setNfaTransitions(new ArrayList<>(Q));
     for (int q = 0; q < Q; q++) {
       State state = setOfStates.get(q);
       fa.addOutput(state.isAccept());

@@ -222,8 +222,7 @@ public class DeterminizationStrategies {
     fa.setQ(stateCount);
     fa.setQ0(0);
     fa.calculateNewStateOutput(metastateList);
-    fa.getT().setNfaD(null);
-    fa.getT().setDfaD(dfaD);
+    fa.setDfaTransitions(dfaD);
   }
 
   private static void OTF(FA fa, IntSet initialState, boolean doSimulation) {

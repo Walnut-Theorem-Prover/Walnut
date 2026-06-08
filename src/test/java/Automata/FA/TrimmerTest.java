@@ -126,7 +126,7 @@ public class TrimmerTest {
 
         Trimmer.trimAutomaton(a);
         Assertions.assertEquals(1, a.getQ());
-        Assertions.assertTrue(a.getT().getNfaStateDests(0, 0).isEmpty());
+        Assertions.assertNull(a.getT().getNfaStateDests(0, 0));
     }
 
     @Test
