@@ -5,6 +5,7 @@ All notable changes to Walnut will be documented here. Format is based on [Keep 
 ## [Walnut 8] - in progress
 
 ### Added
+- BigInteger support for parameters [#2](https://github.com/Walnut-Theorem-Prover/Walnut/issues/2). Note: this does not allow arbitrarily-large Word Automaton outputs.
 - `morphism` command now allows symbols outside of the range of 0-9 (for both domain and range) [#43](https://github.com/Walnut-Theorem-Prover/Walnut/issues/43)
 - `def` and `eval` commands now allow an optional "headless" mode, if you don't wish to create the automaton
 - Global logging file that logs all commands in the session
