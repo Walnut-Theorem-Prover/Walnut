@@ -54,7 +54,7 @@ public class TransitionsDFA implements Transitions {
     return convertRowToNfa(dfaD.get(q));
   }
   public IntSortedSet getNfaStateKeySet(int q){
-    return new IntRBTreeSet(dfaD.get(q).keySet());
+    return getDfaStateKeySet(q);
   }
   public IntList getNfaStateDests(int q, int in){
     Int2IntMap row = dfaD.get(q);
@@ -96,8 +96,24 @@ public class TransitionsDFA implements Transitions {
     throw new WalnutException("Cannot clear the NFA view of TransitionsDFA; use FA.setNfaTransitions instead.");
   }
 
-  public List<Int2IntMap> getDfaD() {
-    return dfaD;
+  public boolean hasDfaTransitions() {
+    return true;
+  }
+
+  public int getDfaStateCount() {
+    return dfaD.size();
+  }
+
+  public IntSortedSet getDfaStateKeySet(int q) {
+    return new IntRBTreeSet(dfaD.get(q).keySet());
+  }
+
+  public int getDfaStateDest(int q, int in) {
+    Int2IntMap row = dfaD.get(q);
+    if (!row.containsKey(in)) {
+      throw new WalnutException("No DFA transition from state " + q + " on input " + in + ".");
+    }
+    return row.get(in);
   }
 
   public void setDfaD(List<Int2IntMap> dfaD) {
@@ -135,8 +151,16 @@ public class TransitionsDFA implements Transitions {
     return true;
   }
 
+  private List<Int2IntRBTreeMap> getSortedDfaD() {
+    List<Int2IntRBTreeMap> result = new ArrayList<>(dfaD.size());
+    for (Int2IntMap row : dfaD) {
+      result.add(new Int2IntRBTreeMap(row));
+    }
+    return result;
+  }
+
   @Override
   public String toString() {
-    return "dfaD:" + getDfaD();
+    return "dfaD:" + getSortedDfaD();
   }
 }

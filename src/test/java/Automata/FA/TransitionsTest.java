@@ -13,7 +13,6 @@ public class TransitionsTest {
     Assertions.assertEquals(0, tDFA.determineTransitionCount());
     tDFA.reduceMemory();
     Assertions.assertEquals("dfaD:[]", tDFA.toString());
-    tDFA.setDfaD(tDFA.getDfaD());
     Int2IntMap iMap = tDFA.addMapToDfaD();
     Assertions.assertNotNull(iMap);
   }

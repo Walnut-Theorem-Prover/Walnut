@@ -121,7 +121,7 @@ n=((x+y)+z):3 states - 0ms
           Bisimulation reduced to 369 states
           Calculating simulation relations; this can be resource-intensive
           Simulation altered to 337 states
-          Found 1019 simulation relations
+          Found 1017 simulation relations
             Progress: Explored 0 states - 1 states left in queue - 1 states added - 33ms
             Progress: Explored 100 states - 4 states left in queue - 104 states added - 34ms
           Reverse: 360 states - 38ms

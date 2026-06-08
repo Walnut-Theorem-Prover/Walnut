@@ -1,6 +1,7 @@
 package Automata.FA;
 
 import Automata.Automaton;
+import Automata.AutomatonDFA;
 import Automata.NumberSystem;
 import Automata.RichAlphabet;
 import Main.EvalComputations.Token.ArithmeticOperator;
@@ -97,6 +98,12 @@ public class ProductStrategies {
      */
     public static void crossProductInternalDFA(
         FA A, FA B, FA AxB, int combineOut, int[] allInputsOfAxB, String op, long timeBefore) {
+        if (!A.getT().hasDfaTransitions() || !B.getT().hasDfaTransitions()) {
+            throw new WalnutException("Expected DFA-backed transitions for DFA cross product.");
+        }
+        List<IntSortedSet> AInputsByState = sortedDfaInputKeys(A.getT());
+        List<IntSortedSet> BInputsByState = sortedDfaInputKeys(B.getT());
+
         List<IntIntPair> statesList = new ArrayList<>();
         Object2IntMap<IntIntPair> statesHash = new Object2IntOpenHashMap<>();
         statesHash.defaultReturnValue(MISSING_ELT);
@@ -124,27 +131,23 @@ public class ProductStrategies {
             Int2IntMap stateTransitions = AxB.getT().addMapToDfaD();
             AxB.getO().add(determineOutput(A.getO().getInt(p), B.getO().getInt(q), op, combineOut));
 
-            Set<Int2ObjectMap.Entry<IntList>> Bset = B.getT().getEntriesNfaD(q);
-            for (Int2ObjectMap.Entry<IntList> entryA : A.getT().getEntriesNfaD(p)) {
-                final int AxBalphabet = entryA.getIntKey() * B.getAlphabetSize();
-                for (Int2ObjectMap.Entry<IntList> entryB : Bset) {
-                    int z = allInputsOfAxB[AxBalphabet + entryB.getIntKey()];
+            IntSortedSet BInputs = BInputsByState.get(q);
+            for (int inputA : AInputsByState.get(p)) {
+                final int AxBalphabet = inputA * B.getAlphabetSize();
+                int destA = A.getT().getDfaStateDest(p, inputA);
+                for (int inputB : BInputs) {
+                    int z = allInputsOfAxB[AxBalphabet + inputB];
                     if (z == -1) {
                         continue;
                     }
-                    for (int destA : entryA.getValue()) {
-                        for (int destB : entryB.getValue()) {
-                            // Note: since A and B are DFAs, there's only one value ever here.
-                            IntIntPair dest3 = new IntIntImmutablePair(destA, destB);
-                            int statesHashVal = statesHash.getInt(dest3);
-                            if (statesHashVal == MISSING_ELT) {
-                                statesHashVal = statesList.size();
-                                statesHash.put(dest3, statesHashVal);
-                                statesList.add(dest3);
-                            }
-                            stateTransitions.put(z, statesHashVal);
-                        }
+                    IntIntPair dest3 = new IntIntImmutablePair(destA, B.getT().getDfaStateDest(q, inputB));
+                    int statesHashVal = statesHash.getInt(dest3);
+                    if (statesHashVal == MISSING_ELT) {
+                        statesHashVal = statesList.size();
+                        statesHash.put(dest3, statesHashVal);
+                        statesList.add(dest3);
                     }
+                    stateTransitions.put(z, statesHashVal);
                 }
             }
             currentState++;
@@ -156,6 +159,14 @@ public class ProductStrategies {
         long timeAfter = System.currentTimeMillis();
         Logging.logMessage(
             COMPUTED + " cross product:" + AxB.getQ() + " states - " + (timeAfter - timeBefore) + "ms");
+    }
+
+    private static List<IntSortedSet> sortedDfaInputKeys(Transitions transitions) {
+        List<IntSortedSet> result = new ArrayList<>(transitions.getDfaStateCount());
+        for (int q = 0; q < transitions.getDfaStateCount(); q++) {
+            result.add(transitions.getDfaStateKeySet(q));
+        }
+        return result;
     }
 
     private static int determineOutput(int aP, int mQ, String op, int combineOut) {
@@ -206,18 +217,22 @@ public class ProductStrategies {
         return AxB;
     }
 
-    public static Automaton crossProductAndMinimize(Automaton A, Automaton B, String op) {
+    public static AutomatonDFA crossProductAndMinimize(Automaton A, Automaton B, String op) {
+        return crossProductAndMinimize(A.asDFA(), B.asDFA(), op);
+    }
+
+    public static AutomatonDFA crossProductAndMinimize(AutomatonDFA A, AutomatonDFA B, String op) {
         long timeBefore = System.currentTimeMillis();
-        Automaton AxB = new Automaton();
+        AutomatonDFA AxB = new AutomatonDFA();
         int[] allInputsOfN = createBasicAutomaton(A, B, AxB);
         int combineOut = A.determineCombineOutVal(op);
         printAndUpdateIndex(A.fa.getQ(), B.fa.getQ());
+        A.fa.convertNFAtoDFA();
+        B.fa.convertNFAtoDFA();
         crossProductInternalDFA(
                 A.fa, B.fa, AxB.fa, combineOut, allInputsOfN, op, timeBefore);
         AxB.fa.justMinimize();
-        if (AxB.fa.getT().getNfaD() == null) {
-            throw new WalnutException("Unexpected null");
-        }
+        AxB.fa.convertNFAtoDFA();
         return AxB;
     }
 

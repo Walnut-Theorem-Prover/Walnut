@@ -77,8 +77,20 @@ public class TransitionsNFA implements Transitions {
     this.nfaD.clear();
   }
 
-  public List<Int2IntMap> getDfaD() {
-    return null;
+  public boolean hasDfaTransitions() {
+    return false;
+  }
+
+  public int getDfaStateCount() {
+    throw new WalnutException("DFA transition storage is not available.");
+  }
+
+  public IntSortedSet getDfaStateKeySet(int q) {
+    throw new WalnutException("DFA transition storage is not available.");
+  }
+
+  public int getDfaStateDest(int q, int in) {
+    throw new WalnutException("DFA transition storage is not available.");
   }
 
   public void setDfaD(List<Int2IntMap> dfaD) {

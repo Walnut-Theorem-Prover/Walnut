@@ -55,12 +55,13 @@ public class ValmariDFA {
         L = new int[numTransitions];
         H = new int[numTransitions];
 
+        Transitions transitions = fa.getT();
         int arrIndex = 0;
-        for(int q = 0; q != fa.getT().getDfaD().size(); ++q){
-            for(Int2IntMap.Entry entry: fa.getT().getDfaD().get(q).int2IntEntrySet()) {
-                H[arrIndex] = entry.getIntValue();
+        for(int q = 0; q != transitions.getDfaStateCount(); ++q){
+            for(int label : transitions.getDfaStateKeySet(q)) {
+                H[arrIndex] = transitions.getDfaStateDest(q, label);
                 T[arrIndex] = q;
-                L[arrIndex] = entry.getIntKey();
+                L[arrIndex] = label;
                 arrIndex++;
             }
         }

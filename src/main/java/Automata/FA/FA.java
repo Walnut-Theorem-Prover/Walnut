@@ -663,7 +663,7 @@ public class FA implements Cloneable {
    * Use DFA representation internally. Fails if not a DFA.
    */
   public void convertNFAtoDFA() {
-    if (t.getDfaD() != null) {
+    if (t.hasDfaTransitions()) {
       return; // nothing to do
     }
     if (!t.isDeterministic()) {
@@ -745,7 +745,7 @@ public class FA implements Cloneable {
    * Convert DFA storage to ordinary NFA storage before using mutating NFA operations.
    */
   public void ensureNfaTransitions() {
-    if (t.getDfaD() != null) {
+    if (t.hasDfaTransitions()) {
       setNfaTransitions(t.getNfaD());
     }
   }

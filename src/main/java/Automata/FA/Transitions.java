@@ -55,9 +55,24 @@ public interface Transitions {
   void clearNfaD();
 
   /**
-   * Return DFA-shaped transitions, or null when this object is not backed by DFA storage.
+   * Return true when this transition table is backed by DFA-shaped storage.
    */
-  List<Int2IntMap> getDfaD();
+  boolean hasDfaTransitions();
+
+  /**
+   * Return the number of DFA transition rows. Fails when DFA storage is unavailable.
+   */
+  int getDfaStateCount();
+
+  /**
+   * Return the available input labels from this DFA state in sorted order.
+   */
+  IntSortedSet getDfaStateKeySet(int q);
+
+  /**
+   * Return the unique DFA destination from state q on input in.
+   */
+  int getDfaStateDest(int q, int in);
 
   void setDfaD(List<Int2IntMap> dfaD);
   Int2IntMap addMapToDfaD();
