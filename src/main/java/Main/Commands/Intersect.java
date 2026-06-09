@@ -33,7 +33,7 @@ public class Intersect {
 
     automataNames.remove(0);
 
-    C = C.unionOrIntersect(automataNames, Prover.INTERSECT);
+    C = Union.unionOrIntersect(C, automataNames, Prover.INTERSECT);
 
     C.writeAutomata(s, Session.getWriteAddressForAutomataLibrary(), intersectName, true);
     return new TestCase(C);

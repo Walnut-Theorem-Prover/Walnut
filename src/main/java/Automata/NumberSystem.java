@@ -143,7 +143,7 @@ public class NumberSystem {
         }
     }
 
-    static boolean isNSDiffering(
+    public static boolean isNSDiffering(
         List<NumberSystem> NNS, List<NumberSystem> firstNS, List<List<Integer>> A1, List<List<Integer>> A2) {
         if (NNS.size() != firstNS.size() || !A1.equals(A2)) {
             return true;
@@ -193,7 +193,7 @@ public class NumberSystem {
      * Determine negative number system.
      * Currently used ONLY in split command.
      */
-    NumberSystem determineNegativeNS() {
+    public NumberSystem determineNegativeNS() {
         NumberSystem negativeNumberSystem;
         if (isNeg) {
             negativeNumberSystem = this;

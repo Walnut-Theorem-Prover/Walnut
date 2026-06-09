@@ -3,14 +3,7 @@ package Main;
 import Automata.*;
 import Automata.FA.Infinite;
 import Automata.Writer.AutomatonWriter;
-import Main.EvalComputations.Token.ArithmeticOperator;
-import it.unimi.dsi.fastutil.ints.IntArrayList;
-import it.unimi.dsi.fastutil.ints.IntList;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -66,56 +59,6 @@ public class ProverHelper {
         ("Automaton accepts infinite values, including regex:" + infReg) :
         "Automaton " + automatonName + " accepts finitely many values.");
     return !infReg.isEmpty();
-  }
-
-  public static TestCase processSplitCommand(
-      String s, boolean isReverse, String automatonName, String name, Matcher inputPattern) {
-
-    String addressForWordAutomaton =
-        Session.getReadFileForWordsLibrary(automatonName + Prover.TXT_EXTENSION);
-
-    Automaton M;
-    boolean isDFAO;
-    if ((new File(addressForWordAutomaton)).isFile()) {
-      M = new Automaton(addressForWordAutomaton);
-      isDFAO = true;
-    } else {
-      String addressForAutomaton =
-          Session.getReadFileForAutomataLibrary(automatonName + Prover.TXT_EXTENSION);
-      if ((new File(addressForAutomaton)).isFile()) {
-        M = new Automaton(addressForAutomaton);
-        isDFAO = false;
-      } else {
-        throw new WalnutException("Automaton " + automatonName + " does not exist.");
-      }
-    }
-
-    List<ArithmeticOperator.Ops> plusMinusInputs = new ArrayList<>();
-    boolean hasInput = false;
-    while (inputPattern.find()) {
-      String t = inputPattern.group(1);
-      ArithmeticOperator.Ops tOp = t.isEmpty() ? null : ArithmeticOperator.Ops.fromSymbol(t);
-      if (tOp != null && tOp != ArithmeticOperator.Ops.PLUS && tOp != ArithmeticOperator.Ops.MINUS) {
-        throw WalnutException.invalidCommand(t);
-      }
-      hasInput = hasInput || (tOp != null);
-      plusMinusInputs.add(tOp);
-    }
-    if (!hasInput || plusMinusInputs.isEmpty()) {
-      throw new WalnutException("Cannot split without inputs.");
-    }
-
-    IntList outputs = new IntArrayList(M.fa.getO());
-    UtilityMethods.removeDuplicates(outputs);
-    List<Automaton> subautomata = WordAutomaton.uncombine(M, outputs);
-
-    subautomata.replaceAll(automaton -> automaton.processSplit(plusMinusInputs, isReverse));
-
-    Automaton N = subautomata.remove(0);
-    N = AutomatonLogicalOps.combine(N, new LinkedList<>(subautomata), outputs);
-
-    N.writeAutomata(s, determineOutLibrary(isDFAO), name, isDFAO);
-    return new TestCase(N);
   }
 
   public static String determineInLibrary(boolean isDFAO, String inFileName) {

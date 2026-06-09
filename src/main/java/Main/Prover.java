@@ -21,17 +21,12 @@ package Main;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.LinkedList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import Automata.*;
 import Automata.Morphism;
 import Main.Commands.*;
-import it.unimi.dsi.fastutil.ints.IntArrayList;
-import it.unimi.dsi.fastutil.ints.IntList;
 
 import static Automata.NumberSystem.MSD_2;
 import static Automata.NumberSystem.MSD_UNDERSCORE;
@@ -160,11 +155,6 @@ public class Prover {
   static final String RE_FOR_join_CMD = RE_START + JOIN + RE_WORD_OF_CMD + "((" + RE_WORD_OF_CMD + "((\\s*\\[\\s*[a-zA-Z&&[^AE]]\\w*\\s*])+))*)";
   static final Pattern PAT_FOR_join_CMD = Pattern.compile(RE_FOR_join_CMD);
   static final int GROUP_JOIN_NAME = 1, GROUP_JOIN_AUTOMATA = 2;
-  static final String RE_FOR_AN_AUTOMATON_IN_join_CMD = RE_WORD_OF_CMD_NO_SPC + "((\\s*\\[\\s*[a-zA-Z&&[^AE]]\\w*\\s*])+)";
-  static final Pattern PAT_FOR_AN_AUTOMATON_IN_join_CMD = Pattern.compile(RE_FOR_AN_AUTOMATON_IN_join_CMD);
-  static final int GROUP_JOIN_AUTOMATON_NAME = 1, GROUP_JOIN_AUTOMATON_INPUT = 2;
-  static final String RE_FOR_AN_AUTOMATON_INPUT_IN_join_CMD = "\\[\\s*([a-zA-Z&&[^AE]]\\w*)\\s*]";
-  static final Pattern PAT_FOR_AN_AUTOMATON_INPUT_IN_join_CMD = Pattern.compile(RE_FOR_AN_AUTOMATON_INPUT_IN_join_CMD);
 
   public static final String TEST = "test";
   static final String RE_FOR_test_CMD = RE_START + TEST + RE_WORD_OF_CMD + "\\s*(\\d+)";
@@ -675,56 +665,21 @@ public class Prover {
 
   public TestCase splitCommand(String s) {
     Matcher m = ProverHelper.matchOrFail(PAT_FOR_split_CMD, s, SPLIT);
-    return ProverHelper.processSplitCommand(s, false,
+    return Split.processSplitCommand(s, false,
         m.group(GROUP_SPLIT_AUTOMATA), m.group(GROUP_SPLIT_NAME),
         PAT_FOR_INPUT_IN_split_CMD.matcher(m.group(GROUP_SPLIT_INPUT)));
   }
 
   public TestCase rsplitCommand(String s) {
     Matcher m = ProverHelper.matchOrFail(PAT_FOR_rsplit_CMD, s, REVERSE_SPLIT);
-    return ProverHelper.processSplitCommand(s, true,
+    return Split.processSplitCommand(s, true,
         m.group(GROUP_RSPLIT_AUTOMATA), m.group(GROUP_RSPLIT_NAME),
         PAT_FOR_INPUT_IN_split_CMD.matcher(m.group(GROUP_RSPLIT_INPUT)));
   }
 
   public TestCase joinCommand(String s) {
     Matcher m = ProverHelper.matchOrFail(PAT_FOR_join_CMD, s, JOIN);
-    
-    Matcher m1 = PAT_FOR_AN_AUTOMATON_IN_join_CMD.matcher(m.group(GROUP_JOIN_AUTOMATA));
-    List<Automaton> subautomata = new ArrayList<>();
-    boolean isDFAO = false;
-    while (m1.find()) {
-      String automatonName = m1.group(GROUP_JOIN_AUTOMATON_NAME);
-      String addressForWordAutomaton
-          = Session.getReadFileForWordsLibrary(automatonName + TXT_EXTENSION);
-      Automaton M;
-      if ((new File(addressForWordAutomaton)).isFile()) {
-        M = new Automaton(addressForWordAutomaton);
-        isDFAO = true;
-      } else {
-        String addressForAutomaton
-            = Session.getReadFileForAutomataLibrary(automatonName + TXT_EXTENSION);
-        M = new Automaton(addressForAutomaton);
-      }
-
-      String automatonInputs = m1.group(GROUP_JOIN_AUTOMATON_INPUT);
-      Matcher m2 = PAT_FOR_AN_AUTOMATON_INPUT_IN_join_CMD.matcher(automatonInputs);
-      List<String> label = new ArrayList<>();
-      while (m2.find()) {
-        String t = m2.group(1);
-        label.add(t);
-      }
-      if (label.size() != M.richAlphabet.getA().size()) {
-        throw new WalnutException("Number of inputs of word automata " + automatonName + " does not match number of inputs specified.");
-      }
-      M.setLabel(label);
-      subautomata.add(M);
-    }
-    Automaton N = subautomata.remove(0);
-    N = N.join(new LinkedList<>(subautomata));
-
-    N.writeAutomata(s, ProverHelper.determineOutLibrary(isDFAO), m.group(GROUP_JOIN_NAME), isDFAO);
-    return new TestCase(N);
+    return Join.joinCommand(s, m.group(GROUP_JOIN_AUTOMATA), m.group(GROUP_JOIN_NAME));
   }
 
 

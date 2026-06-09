@@ -21,8 +21,6 @@ package Automata;
 import Automata.FA.*;
 import Automata.Writer.AutomatonWriter;
 import Main.*;
-import Main.EvalComputations.Token.ArithmeticOperator;
-import Main.EvalComputations.Token.LogicalOperator;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -33,8 +31,6 @@ import java.util.*;
 import it.unimi.dsi.fastutil.ints.*;
 
 import static Automata.RichAlphabet.MISSING_REDUCED_DIMENSION_ELT;
-import static Main.Logging.COMPUTED;
-import static Main.Logging.COMPUTING;
 import static Main.Prover.*;
 
 /**
@@ -149,48 +145,11 @@ public class Automaton {
         }
     }
 
-    /**
-     * Either perform the union or intersection of a list of automata.
-     *
-     * @param automataNames - list of automata names, saved in Automata Library
-     * @param op            - either "union" or "intersect"
-     * @return The union/intersection of all automata in automataNames and this automaton
-     */
-    public Automaton unionOrIntersect(List<String> automataNames, String op) {
-        Automaton first = this.clone();
-        for (String automataName : automataNames) {
-            long timeBefore = System.currentTimeMillis();
-            Automaton N = readAutomatonFromFile(automataName);
-
-            // ensure that N has the same number system as first.
-            if (NumberSystem.isNSDiffering(N.getNS(), first.getNS(), N.richAlphabet.getA(), first.richAlphabet.getA())) {
-                throw new WalnutException("Automata to be unioned must have the same number system(s).");
-            }
-
-            // crossProduct requires labeling; make an arbitrary labeling and use it for both: this is valid since
-            // input alphabets and arities are assumed to be identical for the combine method
-            first.randomLabel();
-            N.setLabel(first.getLabel());
-
-            if (op.equals(UNION)) {
-                first = AutomatonLogicalOps.or(first, N, LogicalOperator.OR);
-            } else if (op.equals(INTERSECT)) {
-                first = AutomatonLogicalOps.and(first, N);
-            } else {
-                throw new WalnutException("Internal union/intersect error");
-            }
-
-            long timeAfter = System.currentTimeMillis();
-            Logging.logMessage(COMPUTED + " =>:" + first.fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms");
-        }
-        return first;
-    }
-    
     public static Automaton readAutomatonFromFile(String automataName) {
         return new Automaton(Session.getReadFileForAutomataLibrary(automataName + TXT_EXTENSION));
     }
 
-    private void normalizeNumberSystems() {
+    public void normalizeNumberSystems() {
         // set all the number systems to be null.
         boolean switchNS = false;
         List<NumberSystem> numberSystems = new ArrayList<>(getNS().size());
@@ -211,65 +170,6 @@ public class Automaton {
             Logging.logMessage(true,
                 "WARN: The alphabet of the resulting automaton was changed. Use the alphabet command to change as desired.");
         }
-    }
-
-    public Automaton star() {
-        long timeBefore = System.currentTimeMillis();
-        Logging.logMessage("star: " + fa.getQ() + " state automaton");
-
-        Automaton N = clone();
-        FA.starStates(this.fa, N.fa); // NOTE: this may be an NFA
-        N.normalizeNumberSystems();
-        N.forceCanonize();
-        N.determinizeAndMinimize();
-        N.applyAllRepresentations();
-
-        long timeAfter = System.currentTimeMillis();
-        Logging.logMessage("star complete: " + N.fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms");
-
-        return N;
-    }
-
-    // concatenate
-    public Automaton concat(List<String> automataNames) {
-        Automaton first = this.clone();
-
-        for (String automataName : automataNames) {
-            long timeBefore = System.currentTimeMillis();
-            Automaton N = readAutomatonFromFile(automataName);
-
-            first = first.concat(N);
-
-            long timeAfter = System.currentTimeMillis();
-            Logging.logMessage("concatenated =>:" + first.fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms");
-        }
-        return first;
-    }
-
-    private Automaton concat(Automaton other) {
-        long timeBefore = System.currentTimeMillis();
-        Logging.logMessage("concat: " + this.fa.getQ() + " state automaton with " + other.fa.getQ() + " state automaton");
-
-        // ensure that N has the same number system as first.
-        if (NumberSystem.isNSDiffering(other.getNS(), this.getNS(), this.richAlphabet.getA(), other.richAlphabet.getA())) {
-            throw new WalnutException("Automata to be concatenated must have the same number system(s).");
-        }
-
-        Automaton N = this.clone();
-
-        int originalQ = this.fa.getQ();
-
-        FA.concatStates(other.fa, N.fa, originalQ); // NOTE: this may be an NFA
-
-        N.normalizeNumberSystems();
-
-        N.determinizeAndMinimize();
-        N.applyAllRepresentations();
-
-        long timeAfter = System.currentTimeMillis();
-        Logging.logMessage("concat complete: " + N.fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms");
-
-        return N;
     }
 
 
@@ -339,93 +239,6 @@ public class Automaton {
     // TODO: possibly this can just be determined when setA() is called.
     public void determineAlphabetSize() {
         this.fa.setAlphabetSize(richAlphabet.determineAlphabetSize());
-    }
-
-    /**
-     * Generalized method to handle split and reverse split operations on the automaton.
-     *
-     * @param inputs  A list of "+", "-" or null. Indicating how our input will be interpreted in the output automata.
-     * @param reverse Whether to perform the reverse split operation.
-     * @return The modified automaton after the split/reverse split operation.
-     */
-    public Automaton processSplit(List<ArithmeticOperator.Ops> inputs, boolean reverse) {
-        if (getAlphabetSize() == 0) {
-            throw new WalnutException("Cannot process split automaton with no inputs.");
-        }
-        if (inputs.size() != richAlphabet.getA().size()) {
-            throw new WalnutException("Split automaton has incorrect number of inputs.");
-        }
-
-        Automaton M = clone();
-        Set<String> quantifiers = new HashSet<>();
-        // Label M with [b0, b1, ..., b(A.size() - 1)]
-        List<String> names = new ArrayList<>(richAlphabet.getA().size());
-        for (int i = 0; i < richAlphabet.getA().size(); i++) {
-            names.add("b" + i);
-        }
-        M.setLabel(names);
-
-        for (int i = 0; i < inputs.size(); i++) {
-            // input is "", "+", or "-"
-            ArithmeticOperator.Ops input = inputs.get(i);
-            if (input == null) {
-                continue;
-            }
-            NumberSystem ns = getNS().get(i);
-            if (ns == null)
-                throw new WalnutException("Number system for input " + i + " must be defined.");
-            NumberSystem negativeNumberSystem = ns.determineNegativeNS();
-
-            Automaton baseChange = negativeNumberSystem.baseChange.clone();
-            String a = "a" + i, b = "b" + i, c = "c" + i;
-
-            if (input.equals(ArithmeticOperator.Ops.PLUS)) {
-                baseChange.bind(reverse ? List.of(b, a) : List.of(a, b)); // Use ternary for binding logic
-                M = AutomatonLogicalOps.and(M, baseChange);
-                quantifiers.add(b);
-            } else { // inputs.get(i).equals(BasicOp.MINUS)
-                baseChange.bind(List.of(reverse ? b : a, c)); // Use ternary for binding logic
-                M = AutomatonLogicalOps.and(M, baseChange);
-                M = AutomatonLogicalOps.and(
-                    M,
-                    negativeNumberSystem.arithmetic(reverse ? a : b, c, 0, ArithmeticOperator.Ops.PLUS) // Use ternary for arithmetic logic
-                );
-                quantifiers.add(b);
-                quantifiers.add(c);
-            }
-        }
-        AutomatonQuantification.quantify(M, quantifiers);
-        M.sortLabel();
-        M.randomLabel();
-        return M;
-    }
-
-    /**
-     * @param subautomata A queue of automaton which we will "join" with the current automaton.
-     * @return The cross product of the current automaton and automaton in subautomata, using the operation "first" on the outputs.
-     * For sake of example, the current Automaton is M1, and subautomata consists of M2 and M3.
-     * Then on input x, returned automaton should output the first non-zero value of [ M1(x), M2(x), M3(x) ].
-     */
-    public Automaton join(Queue<Automaton> subautomata) {
-        Automaton first = this.clone();
-
-        while (!subautomata.isEmpty()) {
-            Automaton next = subautomata.remove();
-            long timeBefore = System.currentTimeMillis();
-            Logging.logMessage(COMPUTING + " =>:" + first.fa.getQ() + " states - " + next.fa.getQ() + " states");
-            Logging.indent();
-
-            // crossProduct requires both automata to be totalized, otherwise it has no idea which cartesian states to transition to
-            first.fa.totalize();
-            next.fa.totalize();
-            first = ProductStrategies.crossProduct(first, next, Prover.FIRST_OP);
-            first = WordAutomaton.minimizeWithOutput(first);
-
-            Logging.dedent();
-            long timeAfter = System.currentTimeMillis();
-            Logging.logMessage(COMPUTED + " =>:" + first.fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms");
-        }
-        return first;
     }
 
     public void applyAllRepresentations() {
@@ -508,7 +321,7 @@ public class Automaton {
         sortLabel();
         this.fa.canonizeInternal();
     }
-    void forceCanonize() {
+    public void forceCanonize() {
         this.fa.setCanonized(false);
         this.canonize();
     }
@@ -524,7 +337,7 @@ public class Automaton {
      * Note that before we try to sort, we check if the label is already sorted.
      * The label cannot have repeated element.
      */
-    protected void sortLabel() {
+    public void sortLabel() {
         if (labelSorted) return;
         labelSorted = true;
         if (fa.isTRUE_FALSE_AUTOMATON()) return;
@@ -701,16 +514,6 @@ public class Automaton {
         this.label = label;
     }
 
-    /**
-     * Types of the inputs to this automaton.
-     * There are two possible types for inputs for an automaton:Type.arithmetic or Type.alphabetLetter.
-     * In other words, type of inputs to an automaton is either arithmetic or non-arithmetic.
-     * For example, we might have A = [[1,-1],[0,1,2],[0,-1]] and T = [Type.alphabetLetter, Type.arithmetic, Type.alphabetLetter]. So
-     * the first and third inputs are non-arithmetic (and should not be treated as arithmetic).
-     * This type is useful in type checking. So for example, we might have f(a,b+1,c+1), where f is the example automaton. Then this
-     * is a type error, because the third input to f is non-arithmetic, and hence we cannot have c+1 as our third argument.
-     * It is very important to note that, an input of type arithmetic must always contain 0 and 1 in its alphabet.
-     */
     public List<NumberSystem> getNS() {
         return NS;
     }
