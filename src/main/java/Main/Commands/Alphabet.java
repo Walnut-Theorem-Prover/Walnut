@@ -14,13 +14,13 @@ public class Alphabet {
   static final Pattern PAT_FOR_AN_ALPHABET = Pattern.compile(RE_FOR_AN_ALPHABET);
 
   public static TestCase alphabetCommand(
-      String s, String listOfAlphabets, int nsStart, boolean isDFAO, String inFileName, String newName) {
+      String s, String listOfAlphabets, boolean isDFAO, String inFileName, String newName) {
     if (listOfAlphabets == null) {
       throw new WalnutException("List of alphabets for alphabet command must not be empty.");
     }
     List<NumberSystem> NS = new ArrayList<>();
     List<List<Integer>> alphabets = new ArrayList<>();
-    determineAlphabetsAndNS(listOfAlphabets, nsStart, NS, alphabets);
+    determineAlphabetsAndNS(listOfAlphabets, NS, alphabets);
 
     Automaton M = new Automaton(ProverHelper.determineInLibrary(isDFAO, inFileName));
 
@@ -32,13 +32,14 @@ public class Alphabet {
   }
 
   public static void determineAlphabetsAndNS(
-      String listOfAlphabets, int nsStart, List<NumberSystem> NS, List<List<Integer>> alphabets) {
+      String listOfAlphabets, List<NumberSystem> NS, List<List<Integer>> alphabets) {
     Matcher m1 = PAT_FOR_AN_ALPHABET.matcher(listOfAlphabets);
     int counter = 1;
     while (m1.find()) {
       if ((m1.group(Prover.R_NUMBER_SYSTEM) != null)) {
-        String base = Prover.determineBase(m1);
-        NumberSystem ns = NumberSystem.getNumberSystem(base, NS, nsStart);
+        String base = NumberSystem.normalizeNumberSystemToken(m1.group(Prover.R_NUMBER_SYSTEM));
+        NumberSystem ns = NumberSystem.getComputeIfAbsent(base);
+        NS.add(ns);
         alphabets.add(ns.getAlphabet());
       } else if (m1.group(Prover.R_SET) != null) {
         alphabets.add(determineAlphabet(m1.group(Prover.R_SET)));

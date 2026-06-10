@@ -197,16 +197,6 @@ public class NumberSystem {
       return numberSystemHash.computeIfAbsent(base, NumberSystem::new);
     }
 
-    public static NumberSystem getNumberSystem(String base, List<NumberSystem> numSys, int proverNumberSystem) {
-      try {
-        NumberSystem ns = getComputeIfAbsent(base);
-        numSys.add(ns);
-        return ns;
-      } catch (RuntimeException e) {
-        throw new WalnutException("number system " + base + " does not exist: char at " + proverNumberSystem + System.lineSeparator() + "\t:" + e.getMessage());
-      }
-    }
-
     /**
      * Determine negative number system.
      * Currently used ONLY in split command.
@@ -264,6 +254,33 @@ public class NumberSystem {
         return name.substring(0, name.indexOf("_"));
     }
 
+    // Normalize various cases currently allowed, like null, "msd5", "fib", etc.
+    public static String normalizeNumberSystemToken(String token) {
+      if (token == null) {
+        return MSD_2;
+      }
+      token = token.trim();
+      if (token.isEmpty()) {
+        return MSD_2;
+      }
+      if (token.startsWith("?")) {
+        token = token.substring(1);
+      }
+      if (MSD.equals(token) || LSD.equals(token)) {
+        return token + "_2";
+      }
+      if (token.startsWith(MSD_UNDERSCORE) || token.startsWith(LSD_UNDERSCORE)) {
+        return token;
+      }
+      if (token.startsWith(MSD)) {
+        return MSD_UNDERSCORE + token.substring(MSD.length());
+      }
+      if (token.startsWith(LSD)) {
+        return LSD_UNDERSCORE + token.substring(LSD.length());
+      }
+      return MSD_UNDERSCORE + token;
+    }
+
     /**
      * Tries to create an Automaton from the main file path.
      * If it does not exist, tries the complement file path and reverses.
@@ -289,8 +306,7 @@ public class NumberSystem {
     }
 
     @SuppressWarnings("this-escape")
-    private void setAdditionAutomaton(
-        String name, String base) {
+    private void setAdditionAutomaton(String name, String base) {
         addition = loadAutomatonOrNull(name, UNDERSCORE_ADDITION_AUTOMATON, base);
         if (addition == null) {
             if (UtilityMethods.isNumber(base) && Integer.parseInt(base) > 1) {
@@ -339,8 +355,7 @@ public class NumberSystem {
         }
     }
 
-    private void setLessThanAutomaton(
-        String name, String base) {
+    private void setLessThanAutomaton(String name, String base) {
         lessThan = loadAutomatonOrNull(name, UNDERSCORE_LESS_THAN_AUTOMATON, base);
         if (lessThan == null) {
             if (UtilityMethods.parseNegNumber(base) > 1) {

@@ -11,16 +11,14 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static Automata.NumberSystem.MSD_2;
-
 public class Reg {
   private static final String RE_FOR_AN_ALPHABET_VECTOR = "(\\[(\\s*(\\+|\\-)?\\s*\\d+)(\\s*,\\s*(\\+|\\-)?\\s*\\d+)*\\s*\\])|(\\d)";
   private static final Pattern PAT_FOR_AN_ALPHABET_VECTOR = Pattern.compile(RE_FOR_AN_ALPHABET_VECTOR);
 
-  public static TestCase reg(String listOfAlphabets, int nsStart, String baseexp, String regName) {
+  public static TestCase reg(String listOfAlphabets, String baseexp, String regName) {
     List<List<Integer>> alphabets = new ArrayList<>();
     List<NumberSystem> NS = new ArrayList<>();
-    Alphabet.determineAlphabetsAndNS(listOfAlphabets, nsStart, NS, alphabets);
+    Alphabet.determineAlphabetsAndNS(listOfAlphabets, NS, alphabets);
     // To support regular expressions with multiple arity (eg. "[1,0][0,1][0,0]*"), we must translate each of these vectors to an
     // encoding, which will then be turned into a unicode character that dk.brics can work with when constructing an automaton
     // from a regular expression. Since the encoding method is within the Automaton class, we create a dummy instance and load it
@@ -30,7 +28,7 @@ public class Reg {
     M.richAlphabet.setA(alphabets);
     M.determineAlphabetSize();
 
-    String regex = determineEncodedRegex(baseexp, M.richAlphabet.getA().size(), M.richAlphabet);
+    String regex = determineEncodedRegex(baseexp, M.richAlphabet);
 
     AutomatonDFA R = new AutomatonDFA(regex, M.getAlphabetSize());
     R.richAlphabet.setA(M.richAlphabet.getA());
@@ -41,7 +39,8 @@ public class Reg {
     return new TestCase(R);
   }
 
-  public static String determineEncodedRegex(String baseexp, int inputLength, RichAlphabet r) {
+  public static String determineEncodedRegex(String baseexp, RichAlphabet r) {
+    int inputLength = r.getA().size();
     Matcher m2 = PAT_FOR_AN_ALPHABET_VECTOR.matcher(baseexp);
     // if we haven't had to replace any input vectors with unicode, we use the legacy method of constructing the automaton
     StringBuilder sb = new StringBuilder();

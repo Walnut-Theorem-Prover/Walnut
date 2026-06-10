@@ -43,7 +43,6 @@ import Main.EvalComputations.Token.Variable;
 import Main.EvalComputations.Token.Word;
 
 import static Automata.NumberSystem.MSD_2;
-import static Automata.NumberSystem.MSD_UNDERSCORE;
 import static Automata.ParseMethods.PATTERN_WHITESPACE;
 import static Main.Prover.TXT_EXTENSION;
 
@@ -95,8 +94,7 @@ public class Predicate {
     static Pattern PATTERN_FOR_ARITHMETIC_OPERATORS = Pattern.compile(ANCHOR + WHITESPACE  + ARITHMETIC_OPERATORS);
 
     static Pattern PATTERN_FOR_NUMBER_SYSTEM = Pattern.compile(ANCHOR + WHITESPACE + NUMBER_SYSTEM);
-    // 2, 5, 8, 9
-    static int R_NS_AND_BASE = 2, R_BASE_ONLY = 5, R_NS_ONLY = 8, R_BASE_ONLY_2 = 9;
+    private static final int R_NUMBER_SYSTEM_TOKEN = 1;
 
     static Pattern PATTERN_FOR_WORD = Pattern.compile(ANCHOR + WHITESPACE + ALPHANUMERIC + WHITESPACE + LEFT_BRACKET);
     static Pattern PATTERN_FOR_WORD_WITH_DELIMITER = Pattern.compile(ANCHOR + WHITESPACE + "\\.([a-zA-Z]\\w*)" + WHITESPACE + LEFT_BRACKET);
@@ -223,7 +221,7 @@ public class Predicate {
                 t.put(postOrder);
                 index = MATCHER_FOR_ALPHABET_LETTER.end();
             } else if (MATCHER_FOR_NUMBER_SYSTEM.find(index)) {
-                String tmp = deriveNumberSystem(MATCHER_FOR_NUMBER_SYSTEM);
+                String tmp = NumberSystem.normalizeNumberSystemToken(MATCHER_FOR_NUMBER_SYSTEM.group(R_NUMBER_SYSTEM_TOKEN));
                 numberSystems.push(tmp);
                 currentNumberSystem = tmp;
                 index = MATCHER_FOR_NUMBER_SYSTEM.end();
@@ -284,15 +282,6 @@ public class Predicate {
             t.put(postOrder);
         }
         return MATCHER_FOR_LIST_OF_QUANTIFIED_VARIABLES.end();
-    }
-
-    // TODO: Essentially same as Prover.determineBase()
-    private static String deriveNumberSystem(Matcher m1) {
-        if (m1.group(R_NS_AND_BASE) != null) return m1.group(R_NS_AND_BASE);
-        if (m1.group(R_BASE_ONLY) != null) return MSD_UNDERSCORE + m1.group(R_BASE_ONLY);
-        if (m1.group(R_NS_ONLY) != null) return m1.group(R_NS_ONLY) + "_2";
-        if (m1.group(R_BASE_ONLY_2) != null) return MSD_UNDERSCORE + m1.group(R_BASE_ONLY_2);
-        return MSD_2;
     }
 
     private int putWord(String defaultNumberSystem, boolean withDelimiter) {

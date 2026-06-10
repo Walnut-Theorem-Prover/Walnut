@@ -22,7 +22,6 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import Main.Prover;
 import Main.UtilityMethods;
 import Main.WalnutException;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
@@ -97,7 +96,7 @@ public class ParseMethods {
             }
 
             if (m.group(ALPHABET_NUMBER_SYSTEM) != null) {
-                String base = Prover.determineBase(m);
+                String base = NumberSystem.normalizeNumberSystemToken(m.group(ALPHABET_NUMBER_SYSTEM));
                 NumberSystem ns = NumberSystem.getComputeIfAbsent(base);
                 A.add(ns.getAlphabet());
                 bases.add(ns);

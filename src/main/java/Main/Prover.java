@@ -28,9 +28,6 @@ import Automata.*;
 import Automata.Morphism;
 import Main.Commands.*;
 
-import static Automata.NumberSystem.MSD_2;
-import static Automata.NumberSystem.MSD_UNDERSCORE;
-
 /**
  * This class contains the main method. It is responsible to get a command from user
  * and parse and dispatch the command appropriately.
@@ -197,7 +194,7 @@ public class Prover {
   static final String RE_FOR_alphabet_CMD = RE_START + "(" + ALPHABET + ")" + RE_WORD_OF_CMD +
       "\\s+((((((msd|lsd)_(\\d+|\\w+))|((msd|lsd)(\\d+|\\w+))|(msd|lsd)|(\\d+|\\w+))|(\\{(\\s*(\\+|\\-)?\\s*\\d+)(\\s*,\\s*(\\+|\\-)?\\s*\\d+)*\\s*\\}))\\s+)+)(\\$|\\s*)" + RE_WORD_OF_CMD_NO_SPC;
   static final Pattern PAT_FOR_alphabet_CMD = Pattern.compile(RE_FOR_alphabet_CMD);
-  static final int GROUP_alphabet_NEW_NAME = 2, GROUP_alphabet_LIST_OF_ALPHABETS = 3, GROUP_alphabet_DOLLAR_SIGN = 20, GROUP_alphabet_OLD_NAME = 21;
+  static final int GROUP_alphabet_NEW_NAME = 2, GROUP_alphabet_DOLLAR_SIGN = 20, GROUP_alphabet_OLD_NAME = 21;
 
   public static final String UNION = "union";
   static final String RE_FOR_union_CMD = RE_START + UNION + RE_WORD_OF_CMD + "((" + RE_WORD_OF_CMD + ")*)";
@@ -617,7 +614,7 @@ public class Prover {
 
   public static TestCase regCommand(String s) {
     Matcher m = ProverHelper.matchOrFail(PAT_FOR_reg_CMD, s, REG);
-    return Reg.reg(m.group(R_LIST_OF_ALPHABETS), m.start(Prover.R_NUMBER_SYSTEM), m.group(R_REGEXP), m.group(R_NAME));
+    return Reg.reg(m.group(R_LIST_OF_ALPHABETS), m.group(R_REGEXP), m.group(R_NAME));
   }
 
   public TestCase combineCommand(String s) {
@@ -768,20 +765,9 @@ public class Prover {
     Matcher m = ProverHelper.matchOrFail(PAT_FOR_alphabet_CMD, s, ALPHABET);
     return Alphabet.alphabetCommand(
         s, m.group(R_LIST_OF_ALPHABETS),
-        m.start(Prover.R_NUMBER_SYSTEM),
         !m.group(GROUP_alphabet_DOLLAR_SIGN).equals("$"),
         m.group(GROUP_alphabet_OLD_NAME) + TXT_EXTENSION,
         m.group(GROUP_alphabet_NEW_NAME));
-  }
-
-  // TODO: Essentially same as Predicate.deriveNumberSystem()
-  public static String determineBase(Matcher m1) {
-    String base = MSD_2;
-    if (m1.group(3) != null) base = m1.group(3);
-    if (m1.group(6) != null) base = m1.group(7) + "_" + m1.group(8);
-    if (m1.group(9) != null) base = m1.group(9) + "_2";
-    if (m1.group(10) != null) base = MSD_UNDERSCORE + m1.group(10);
-    return base;
   }
 
   public TestCase unionCommand(String s) {

@@ -15,7 +15,7 @@ public class ProverHelperTest {
     new ProverHelper(); // just for coverage
     RichAlphabet r = new RichAlphabet();
     r.setA(List.of(List.of(0,1,2,3), List.of(0,1,2,3), List.of(0,1,2,3)));
-    String s = Reg.determineEncodedRegex("([3,1,2]*)", 3, r);
+    String s = Reg.determineEncodedRegex("([3,1,2]*)", r);
     Assertions.assertEquals("(§*)", s); // extended-ascii 167
   }
 
