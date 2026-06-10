@@ -300,8 +300,6 @@ public class Automaton {
     }
 
     void copy(Automaton M) {
-        fa.setTRUE_FALSE_AUTOMATON(M.fa.isTRUE_FALSE_AUTOMATON());
-        fa.setTRUE_AUTOMATON(M.fa.isTRUE_AUTOMATON());
         fa = M.fa.clone();
         richAlphabet = M.richAlphabet.clone();
         setNS(M.getNS());

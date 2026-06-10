@@ -129,7 +129,25 @@ public class NumberSystem {
 
     private boolean flagUseAllRepresentations = true;
 
-    // flip the number system from msd to lsd and vice versa.
+  @SuppressWarnings("this-escape")
+  public NumberSystem(String name) {
+    this.name = name;
+    String msdOrLsd = determineMsdOrLsd(name);
+    isMsd = msdOrLsd.equals(MSD);
+    isNeg = name.contains(UNDERSCORE_NEG_UNDERSCORE); // fix: msd_neg_fib... but not msd_renege
+    String base = determineBase(name);
+
+    setAdditionAutomaton(name, base);
+    setLessThanAutomaton(name, base);
+    setEqualityAutomaton(getAlphabet());
+    setAllRepAutomaton(name, base);
+
+    constantsDynamicTable = new HashMap<>();
+    multiplicationsDynamicTable = new HashMap<>();
+    divisionsDynamicTable = new HashMap<>();
+  }
+
+  // flip the number system from msd to lsd and vice versa.
     static void flipNS(List<NumberSystem> numberSystems) {
         for (int i = 0; i < numberSystems.size(); i++) {
             NumberSystem NS = numberSystems.get(i);
@@ -237,24 +255,6 @@ public class NumberSystem {
 
     public Automaton getAllRepresentations() {
         return allRepresentations;
-    }
-
-    @SuppressWarnings("this-escape")
-    public NumberSystem(String name) {
-        this.name = name;
-        String msdOrLsd = determineMsdOrLsd(name);
-        isMsd = msdOrLsd.equals(MSD);
-        isNeg = name.contains(UNDERSCORE_NEG_UNDERSCORE); // fix: msd_neg_fib... but not msd_renege
-        String base = determineBase(name);
-
-        setAdditionAutomaton(name, base);
-        setLessThanAutomaton(name, base);
-        setEqualityAutomaton(getAlphabet());
-        setAllRepAutomaton(name, base);
-
-        constantsDynamicTable = new HashMap<>();
-        multiplicationsDynamicTable = new HashMap<>();
-        divisionsDynamicTable = new HashMap<>();
     }
 
     private static String determineBase(String name) {

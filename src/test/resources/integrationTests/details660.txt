@@ -113,7 +113,7 @@ applying operator (+):6 states - 6 states
  computed =>:36 states - 
  totalizing:36 states
  totalized:36 states - 
-applied operator (+):6 states - 
+applied operator (+):36 states - 
  computing &:2 states - 2 states
  computing cross product:2 states - 2 states
  computed cross product:4 states - 

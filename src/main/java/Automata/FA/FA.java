@@ -409,6 +409,8 @@ public class FA implements Cloneable {
         fa.t.setNfaDTransition(q, entry.getIntKey(), new IntArrayList(entry.getValue()));
       }
     }
+    fa.setTRUE_FALSE_AUTOMATON(this.isTRUE_FALSE_AUTOMATON());
+    fa.setTRUE_AUTOMATON(this.isTRUE_AUTOMATON());
     return fa;
   }
 

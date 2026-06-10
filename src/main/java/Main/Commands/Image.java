@@ -18,10 +18,7 @@ public class Image {
     String morphismAddress =
         Session.getReadFileForMorphismLibrary(morphismFileName + Prover.TXT_EXTENSION);
     Automata.Morphism h = new Morphism(UtilityMethods.readFromFile(morphismAddress));
-    if (h.length < 0) {
-      throw WalnutException.morphismNotUniform();
-    }
-    h.validateImageMorphism();
+    h.requirePositiveUniformLength();
 
     Automaton oldWord = new Automaton(Session.getReadFileForWordsLibrary(imageOldName + Prover.TXT_EXTENSION));
     String numSysName = determineImageNumberSystemPrefix(oldWord, imageOldName);

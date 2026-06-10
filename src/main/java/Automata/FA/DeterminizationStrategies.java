@@ -35,9 +35,9 @@ public class DeterminizationStrategies {
     SC("SC", false, List.of("SC")),
     BRZ("Brzozowski", false, List.of("Brz")),
     CCLS("CCLS", true, List.of("CCLS")),
-    BRZ_CCLS("Brzozowski-CCLS", true, List.of("BRZCCLS", "BRZCCLS")),
+    BRZ_CCLS("Brzozowski-CCLS", true, List.of("BRZCCLS")),
     CCL("CCL", false, List.of("CCL")),
-    BRZ_CCL("Brzozowski-CCL", false, List.of( "BRZCCL", "BTZCCL"));
+    BRZ_CCL("Brzozowski-CCL", false, List.of( "BRZCCL"));
     private final String name;
     private final boolean doSimulation;
     private final List<String> aliases;

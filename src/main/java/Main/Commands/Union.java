@@ -56,7 +56,7 @@ public class Union {
 
           // ensure that N has the same number system as first.
           if (NumberSystem.isNSDiffering(N.getNS(), first.getNS(), N.richAlphabet.getA(), first.richAlphabet.getA())) {
-              throw new WalnutException("Automata to be unioned must have the same number system(s).");
+              throw new WalnutException("Automata must have the same number system(s).");
           }
 
           // crossProduct requires labeling; make an arbitrary labeling and use it for both: this is valid since

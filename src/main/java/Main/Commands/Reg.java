@@ -20,10 +20,6 @@ public class Reg {
   public static TestCase reg(String listOfAlphabets, int nsStart, String baseexp, String regName) {
     List<List<Integer>> alphabets = new ArrayList<>();
     List<NumberSystem> NS = new ArrayList<>();
-    if (listOfAlphabets == null) {
-      NumberSystem ns = NumberSystem.getNumberSystem(MSD_2, NS, nsStart);
-      alphabets.add(ns.getAlphabet());
-    }
     Alphabet.determineAlphabetsAndNS(listOfAlphabets, nsStart, NS, alphabets);
     // To support regular expressions with multiple arity (eg. "[1,0][0,1][0,0]*"), we must translate each of these vectors to an
     // encoding, which will then be turned into a unicode character that dk.brics can work with when constructing an automaton

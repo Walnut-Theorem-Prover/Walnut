@@ -94,11 +94,11 @@ public class WordAutomaton {
             + wordA.fa.getQ() + " states - " + wordB.fa.getQ() + " states");
         Logging.indent();
         Automaton N = ProductStrategies.crossProduct(wordA, wordB, operator);
-        minimizeWithOutput(N);
+        N = minimizeWithOutput(N);
         long timeAfter = System.currentTimeMillis();
         Logging.dedent();
         logMessage(APPLIED + " operator (" + operator + "):"
-            + wordA.fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms");
+            + N.fa.getQ() + " states - " + (timeAfter - timeBefore) + "ms");
         return N;
     }
 

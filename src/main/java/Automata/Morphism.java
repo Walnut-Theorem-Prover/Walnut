@@ -185,7 +185,7 @@ public class Morphism {
         return predicate.toString();
     }
 
-    public void validateImageMorphism() {
+    public void requirePositiveUniformLength() {
         if (length < 0) {
             throw WalnutException.morphismNotUniform();
         }
