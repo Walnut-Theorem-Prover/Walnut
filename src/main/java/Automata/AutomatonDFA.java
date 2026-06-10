@@ -1,11 +1,14 @@
 package Automata;
 
 import Automata.FA.BricsConverter;
+import Main.Session;
 import Main.UtilityMethods;
 import Main.WalnutException;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static Main.Prover.TXT_EXTENSION;
 
 /**
  * Typesafe extension that requires determinism. DFA and DFAO are allowed.
@@ -64,8 +67,8 @@ public class AutomatonDFA extends Automaton {
     requireDfaStorage();
   }
 
-  public static AutomatonDFA readFromFile(String address) {
-    return new AutomatonDFA(address);
+  public static AutomatonDFA readAutomatonDFAFromFile(String automataName) {
+    return new AutomatonDFA(Session.getReadFileForAutomataLibrary(automataName + TXT_EXTENSION));
   }
 
   public static AutomatonDFA from(Automaton automaton) {

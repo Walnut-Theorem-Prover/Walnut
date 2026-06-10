@@ -1,6 +1,7 @@
 package Main.Commands;
 
 import Automata.Automaton;
+import Automata.AutomatonDFA;
 import Automata.AutomatonLogicalOps;
 import Automata.Search.ProductBFS;
 import Main.WalnutException;
@@ -19,7 +20,7 @@ public class Test {
    * @return - whether the automaton accepts at least needed inputs
    */
   public static boolean testCommand(String testName, int needed) {
-    Automaton M = Automaton.readAutomatonFromFile(testName);
+    AutomatonDFA M = AutomatonDFA.readAutomatonDFAFromFile(testName);
     List<String> accepted = findAccepted(M, needed);
     if (accepted.size() < needed) {
       System.out.println(testName + " only accepts " + accepted.size() + " inputs, which are as follows: ");

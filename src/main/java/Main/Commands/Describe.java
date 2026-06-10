@@ -1,6 +1,7 @@
 package Main.Commands;
 
 import Automata.Automaton;
+import Automata.AutomatonDFA;
 import Automata.AutomatonReader;
 import Main.Logging;
 import Main.ProverHelper;
@@ -14,7 +15,7 @@ public class Describe {
   public static TestCase describe(boolean isDFAO, String inFileName) {
     String inLibrary = ProverHelper.determineInLibrary(isDFAO, inFileName);
 
-    Automaton M = new Automaton(inLibrary);
+    AutomatonDFA M = new AutomatonDFA(inLibrary);
 
     Logging.logMessage(true, "File location: " + inLibrary);
     String comments = AutomatonReader.readComments(inLibrary);
