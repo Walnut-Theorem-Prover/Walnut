@@ -149,7 +149,15 @@ public class Automaton {
         return new Automaton(Session.getReadFileForAutomataLibrary(automataName + TXT_EXTENSION));
     }
 
-    public void normalizeNumberSystems() {
+    /**
+     * Return a DFA-typed version of this automaton. If this object is not already an AutomatonDFA,
+     * the returned value is a DFA copy; the original object is not retyped.
+     */
+    public AutomatonDFA asDFA() {
+        return AutomatonDFA.from(this);
+    }
+
+        public void normalizeNumberSystems() {
         // set all the number systems to be null.
         boolean switchNS = false;
         List<NumberSystem> numberSystems = new ArrayList<>(getNS().size());

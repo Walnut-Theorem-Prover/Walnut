@@ -10,9 +10,6 @@ import java.util.List;
 /**
  * Typesafe extension that requires determinism. DFA and DFAO are allowed.
  */
-// TODO - assert that this is deterministic
-// TODO - use with deterministic transitions
-// TODO - propagate throughout codebase
 public class AutomatonDFA extends Automaton {
   public AutomatonDFA() {
     super();
@@ -22,6 +19,16 @@ public class AutomatonDFA extends Automaton {
     super();
     fa.setTRUE_FALSE_AUTOMATON(true);
     this.fa.setTRUE_AUTOMATON(truthValue);
+  }
+
+  /**
+   * Takes an address and constructs the DFA/DFAO represented by the file referred to by the address.
+   * NFA input is determinized when Walnut can determinize it.
+   */
+  public AutomatonDFA(String address) {
+    super();
+    AutomatonReader.readAutomaton(this, address);
+    requireDfaStorage();
   }
 
   /**
@@ -46,9 +53,37 @@ public class AutomatonDFA extends Automaton {
 
     BricsConverter.convertFromBrics(this.fa, alphabet, regularExpression);
     getNS().add(numSys);
-    if (!this.getFa().getT().isDeterministic()) {
-      throw WalnutException.nonDeterministic();
+    requireDfaStorage();
+  }
+
+  public static AutomatonDFA readFromFile(String address) {
+    return new AutomatonDFA(address);
+  }
+
+  public static AutomatonDFA from(Automaton automaton) {
+    if (automaton instanceof AutomatonDFA dfa) {
+      dfa.requireDfaStorage();
+      return dfa;
     }
+    if (automaton.fa.isTRUE_FALSE_AUTOMATON()) {
+      return new AutomatonDFA(automaton.fa.isTRUE_AUTOMATON());
+    }
+    AutomatonDFA dfa = (AutomatonDFA) automaton.cloneFields(new AutomatonDFA());
+    dfa.requireDfaStorage();
+    return dfa;
+  }
+
+  private void requireDfaStorage() {
+    if (this.fa.isTRUE_FALSE_AUTOMATON()) {
+      return;
+    }
+    if (!this.getFa().getT().isDeterministic()) {
+      if (this.getFa().isFAO()) {
+        throw WalnutException.nonDeterministicO();
+      }
+      determinizeAndMinimize();
+    }
+    this.getFa().convertNFAtoDFA();
   }
 
   // This handles the generalised case of vectors such as "[0,1]*[0,0][0,1]"
@@ -57,19 +92,15 @@ public class AutomatonDFA extends Automaton {
   public AutomatonDFA(String regularExpression, Integer alphabetSize) {
     super();
     BricsConverter.setFromBricsAutomaton(this.fa, alphabetSize, regularExpression);
-    if (!this.getFa().getT().isDeterministic()) {
-      throw WalnutException.nonDeterministic();
-    }
+    requireDfaStorage();
   }
 
   @Override
   public AutomatonDFA clone() {
-    if (!this.getFa().getT().isDeterministic()) {
-      throw WalnutException.nonDeterministic();
-    }
     if (fa.isTRUE_FALSE_AUTOMATON()) {
       return new AutomatonDFA(fa.isTRUE_AUTOMATON());
     }
+    requireDfaStorage();
     return (AutomatonDFA) cloneFields(new AutomatonDFA());
   }
 }
