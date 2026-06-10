@@ -148,6 +148,9 @@ public class Automaton {
     public static Automaton readAutomatonFromFile(String automataName) {
         return new Automaton(Session.getReadFileForAutomataLibrary(automataName + TXT_EXTENSION));
     }
+    public static Automaton readAutomatonDFAFromFile(String automataName) {
+        return new AutomatonDFA(Session.getReadFileForAutomataLibrary(automataName + TXT_EXTENSION));
+    }
 
     /**
      * Return a DFA-typed version of this automaton. If this object is not already an AutomatonDFA,

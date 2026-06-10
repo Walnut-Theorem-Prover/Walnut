@@ -16,7 +16,7 @@ public class AutomatonDFA extends Automaton {
   }
 
   public AutomatonDFA(boolean truthValue) {
-    super();
+    this();
     fa.setTRUE_FALSE_AUTOMATON(true);
     this.fa.setTRUE_AUTOMATON(truthValue);
   }
@@ -26,7 +26,7 @@ public class AutomatonDFA extends Automaton {
    * NFA input is determinized when Walnut can determinize it.
    */
   public AutomatonDFA(String address) {
-    super();
+    this();
     AutomatonReader.readAutomaton(this, address);
     requireDfaStorage();
   }
@@ -43,7 +43,7 @@ public class AutomatonDFA extends Automaton {
    */
   @SuppressWarnings("this-escape")
   public AutomatonDFA(String regularExpression, List<Integer> alphabet, NumberSystem numSys) {
-    super();
+    this();
     if (alphabet == null || alphabet.isEmpty()) throw new WalnutException("empty alphabet is not accepted");
     alphabet = new ArrayList<>(alphabet);
     //The alphabet is a set and does not allow repeated elements. However, the user might enter the command
@@ -53,6 +53,14 @@ public class AutomatonDFA extends Automaton {
 
     BricsConverter.convertFromBrics(this.fa, alphabet, regularExpression);
     getNS().add(numSys);
+    requireDfaStorage();
+  }
+
+  // This handles the generalised case of vectors such as "[0,1]*[0,0][0,1]"
+  // TODO - maybe exactly the same as above
+  public AutomatonDFA(String regularExpression, Integer alphabetSize) {
+    this();
+    BricsConverter.setFromBricsAutomaton(this.fa, alphabetSize, regularExpression);
     requireDfaStorage();
   }
 
@@ -74,7 +82,7 @@ public class AutomatonDFA extends Automaton {
   }
 
   private void requireDfaStorage() {
-    if (this.fa.isTRUE_FALSE_AUTOMATON()) {
+    if (this.getFa().isTRUE_FALSE_AUTOMATON()) {
       return;
     }
     if (!this.getFa().getT().isDeterministic()) {
@@ -86,21 +94,13 @@ public class AutomatonDFA extends Automaton {
     this.getFa().convertNFAtoDFA();
   }
 
-  // This handles the generalised case of vectors such as "[0,1]*[0,0][0,1]"
-  // TODO - maybe exactly the same as above
-  @SuppressWarnings("this-escape")
-  public AutomatonDFA(String regularExpression, Integer alphabetSize) {
-    super();
-    BricsConverter.setFromBricsAutomaton(this.fa, alphabetSize, regularExpression);
-    requireDfaStorage();
-  }
-
   @Override
   public AutomatonDFA clone() {
     if (fa.isTRUE_FALSE_AUTOMATON()) {
       return new AutomatonDFA(fa.isTRUE_AUTOMATON());
     }
-    requireDfaStorage();
-    return (AutomatonDFA) cloneFields(new AutomatonDFA());
+    AutomatonDFA copy = (AutomatonDFA) cloneFields(new AutomatonDFA());
+    copy.requireDfaStorage();
+    return copy;
   }
 }
