@@ -29,6 +29,13 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.release>17</maven.compiler.release>
+
+        <moditect.path>${project.build.directory}/moditect-modules</moditect.path>
+        <jpackage.path>${project.build.directory}/maven-jpackage</jpackage.path>
+        <jpackage-res.path>${project.build.directory}/jpackage-resources</jpackage-res.path>
+        <!-- variable is set by the kr.motd.maven:os-maven-plugin extension -->
+        <dist.path>${project.build.directory}/Walnut-${project.version}-${os.detected.classifier}.zip</dist.path>
+        <dist-res.path>${project.basedir}/src/main/jpackage</dist-res.path>
     </properties>
 
     <dependencyManagement>
@@ -150,6 +157,14 @@
                     <artifactId>maven-project-info-reports-plugin</artifactId>
                     <version>3.6.1</version>
                 </plugin>
+                <plugin>
+                    <artifactId>maven-jlink-plugin</artifactId>
+                    <version>3.3.0</version>
+                </plugin>
+                <plugin>
+                    <artifactId>maven-antrun-plugin</artifactId>
+                    <version>3.2.0</version>
+                </plugin>
 
                 <plugin>
                     <groupId>org.codehaus.mojo</groupId>
@@ -161,8 +176,26 @@
                     <artifactId>jacoco-maven-plugin</artifactId>
                     <version>0.8.14</version>
                 </plugin>
+                <plugin>
+                    <groupId>org.moditect</groupId>
+                    <artifactId>moditect-maven-plugin</artifactId>
+                    <version>1.3.0.Final</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.panteleyev</groupId>
+                    <artifactId>jpackage-maven-plugin</artifactId>
+                    <version>1.7.2</version>
+                </plugin>
             </plugins>
         </pluginManagement>
+        <extensions>
+            <!-- used for normalized os.name / os.arch values when building distributions  -->
+            <extension>
+                <groupId>kr.motd.maven</groupId>
+                <artifactId>os-maven-plugin</artifactId>
+                <version>1.7.0</version>
+            </extension>
+        </extensions>
     </build>
 
     <profiles>
@@ -193,7 +226,42 @@
                 </plugins>
             </build>
         </profile>
-	<profile>
+        <!-- the following profiles set platform specific properties used in the build process -->
+        <profile>
+            <id>linux-platform</id>
+            <activation>
+                <os>
+                    <family>unix</family>
+                </os>
+            </activation>
+            <properties>
+                <icon.path>${dist-res.path}/Walnut.png</icon.path>
+            </properties>
+        </profile>
+        <profile>
+            <id>mac-platform</id>
+            <activation>
+                <os>
+                    <family>mac</family>
+                </os>
+            </activation>
+            <properties>
+                <icon.path>${dist-res.path}/Walnut.icns</icon.path>
+            </properties>
+        </profile>
+        <profile>
+            <id>windows-platform</id>
+            <activation>
+                <os>
+                    <family>windows</family>
+                </os>
+            </activation>
+            <properties>
+                <icon.path>${dist-res.path}/Walnut.ico</icon.path>
+            </properties>
+        </profile>
+        <!-- profile for building distributions -->
+        <profile>
             <!-- build fat jar, including all its dependencies -->
             <id>fat-jar</id>
             <build>
@@ -201,9 +269,9 @@
                     <plugin>
                         <artifactId>maven-assembly-plugin</artifactId>
                         <configuration>
-				<descriptorRefs>
-					<descriptorRef>jar-with-dependencies</descriptorRef>
-				</descriptorRefs>
+                            <descriptorRefs>
+                                <descriptorRef>jar-with-dependencies</descriptorRef>
+                            </descriptorRefs>
                             <appendAssemblyId>false</appendAssemblyId>
                             <finalName>Walnut-all</finalName>
                             <archive>
@@ -219,6 +287,252 @@
                                     <goal>single</goal>
                                 </goals>
                                 <phase>package</phase>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>dist</id>
+            <build>
+                <plugins>
+                    <!-- "patch" non-modular dependencies -->
+                    <plugin>
+                        <groupId>org.moditect</groupId>
+                        <artifactId>moditect-maven-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>add-module-info</goal>
+                                </goals>
+                                <configuration>
+                                    <outputDirectory>${moditect.path}</outputDirectory>
+                                    <modules>
+                                        <!-- repeat this block for each non-modular dependency -->
+                                        <module>
+                                            <artifact>
+                                                <groupId>dk.brics</groupId>
+                                                <artifactId>automaton</artifactId>
+                                            </artifact>
+                                            <moduleInfo>
+                                                <name>automaton</name>
+                                            </moduleInfo>
+                                        </module>
+                                        <module>
+                                            <artifact>
+                                                <groupId>it.unimi.dsi</groupId>
+                                                <artifactId>fastutil</artifactId>
+                                            </artifact>
+                                            <moduleInfo>
+                                                <name>it.unimi.dsi.fastutil</name>
+                                            </moduleInfo>
+                                        </module>
+                                    </modules>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <!-- build runtime image via jlink -->
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-jlink-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>jlink</goal>
+                                </goals>
+                                <configuration>
+                                    <attach>false</attach>
+                                    <noHeaderFiles>true</noHeaderFiles>
+                                    <noManPages>true</noManPages>
+                                    <stripDebug>true</stripDebug>
+                                    <modulePaths>
+                                        <modulePath>${moditect.path}</modulePath>
+                                    </modulePaths>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <!-- aggregate additional resources in temporary directory -->
+                    <plugin>
+                        <artifactId>maven-resources-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>copy-resources</goal>
+                                </goals>
+                                <configuration>
+                                    <outputDirectory>${jpackage-res.path}</outputDirectory>
+                                    <resources>
+                                        <resource>
+                                            <directory>${project.basedir}</directory>
+                                            <includes>
+                                                <include>LICENSE</include>
+                                                <include>README.md</include>
+                                            </includes>
+                                        </resource>
+                                        <resource>
+                                            <directory>Automata Library</directory>
+                                            <targetPath>Automata Library</targetPath>
+                                        </resource>
+                                        <resource>
+                                            <directory>Command Files</directory>
+                                            <targetPath>Command Files</targetPath>
+                                        </resource>
+                                        <resource>
+                                            <directory>Custom Bases</directory>
+                                            <targetPath>Custom Bases</targetPath>
+                                        </resource>
+                                        <resource>
+                                            <directory>Help Documentation</directory>
+                                            <targetPath>Help Documentation</targetPath>
+                                        </resource>
+                                        <resource>
+                                            <directory>Macro Library</directory>
+                                            <targetPath>Macro Library</targetPath>
+                                        </resource>
+                                        <resource>
+                                            <directory>Morphism Library</directory>
+                                            <targetPath>Morphism Library</targetPath>
+                                        </resource>
+                                        <resource>
+                                            <directory>Transducer Library</directory>
+                                            <targetPath>Transducer Library</targetPath>
+                                        </resource>
+                                        <resource>
+                                            <directory>Word Automata Library</directory>
+                                            <targetPath>Word Automata Library</targetPath>
+                                        </resource>
+                                    </resources>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <!-- build distributable package -->
+                    <plugin>
+                        <groupId>org.panteleyev</groupId>
+                        <artifactId>jpackage-maven-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>jpackage</goal>
+                                </goals>
+                                <configuration>
+                                    <name>Walnut</name>
+                                    <type>APP_IMAGE</type>
+                                    <input>${jpackage-res.path}</input>
+                                    <module>io.github.walnut_theorem_prover.walnut/Main.Prover</module>
+                                    <runtimeImage>${project.build.directory}/maven-jlink/default</runtimeImage>
+                                    <destination>${jpackage.path}</destination>
+                                    <arguments>
+                                        <argument>--home-dir=$APPDIR</argument>
+                                    </arguments>
+                                    <icon>${icon.path}</icon>
+                                    <winConsole>true</winConsole>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <!-- cleanup / zip everything up -->
+                    <plugin>
+                        <artifactId>maven-antrun-plugin</artifactId>
+                        <dependencies>
+                            <dependency>
+                                <groupId>ant-contrib</groupId>
+                                <artifactId>ant-contrib</artifactId>
+                                <version>1.0b3</version>
+                                <exclusions>
+                                    <exclusion>
+                                        <groupId>ant</groupId>
+                                        <artifactId>ant</artifactId>
+                                    </exclusion>
+                                </exclusions>
+                            </dependency>
+                        </dependencies>
+                        <executions>
+                            <execution>
+                                <!-- cleanup old jlink artifact to prevet confusion -->
+                                <id>delete-jlink-artifact</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>run</goal>
+                                </goals>
+                                <configuration>
+                                    <target>
+                                        <delete file="${project.build.directory}/walnut-${project.version}.zip"/>
+                                    </target>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <!-- macOS .app distributables expect a GUI to launch -->
+                                <!-- therefore, add a small utility script that launches Terminal -->
+                                <id>add-macos-launchers</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>run</goal>
+                                </goals>
+                                <configuration>
+                                    <target>
+                                        <taskdef resource="net/sf/antcontrib/antcontrib.properties"
+                                                 classpathref="maven.plugin.classpath"/>
+                                        <if>
+                                            <!-- only run on macOS -->
+                                            <os family="mac"/>
+                                            <then>
+                                                <copy file="${dist-res.path}/WalnutLauncher"
+                                                      tofile="${jpackage.path}/Walnut.app/Contents/MacOS/WalnutLauncher"/>
+                                                <chmod file="${jpackage.path}/Walnut.app/Contents/MacOS/WalnutLauncher"
+                                                       perm="+x"/>
+                                                <replaceregexp file="${jpackage.path}/Walnut.app/Contents/Info.plist/"
+                                                               match="&lt;key&gt;CFBundleExecutable&lt;/key&gt;\s*&lt;string&gt;Walnut&lt;/string&gt;"
+                                                               replace="&lt;key&gt;CFBundleExecutable&lt;/key&gt;&lt;string&gt;WalnutLauncher&lt;/string&gt;"
+                                                               failOnError="true"
+                                                />
+                                            </then>
+                                        </if>
+                                    </target>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <!-- build the final artifact and keep relevant file permissions -->
+                                <id>zip-jpackage-artifact</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>run</goal>
+                                </goals>
+                                <configuration>
+                                    <target>
+                                        <taskdef resource="net/sf/antcontrib/antcontrib.properties"
+                                                 classpathref="maven.plugin.classpath"/>
+                                        <if>
+                                            <!-- on unix-like systems, the main binaries should be executable -->
+                                            <os family="unix"/>
+                                            <then>
+                                                <zip destfile="${dist.path}">
+                                                    <zipfileset dir="${jpackage.path}"
+                                                                filemode="755"
+                                                                dirmode="755"
+                                                                includes="Walnut/bin/Walnut, Walnut.app/Contents/MacOS/Walnut, Walnut.app/Contents/MacOS/WalnutLauncher">
+                                                    </zipfileset>
+                                                    <zipfileset dir="${jpackage.path}"
+                                                                filemode="644"
+                                                                dirmode="755"
+                                                                excludes="Walnut/bin/Walnut, Walnut.app/Contents/MacOS/Walnut, Walnut.app/Contents/MacOS/WalnutLauncher">
+                                                    </zipfileset>
+                                                </zip>
+                                            </then>
+                                            <else>
+                                                <zip destfile="${dist.path}"
+                                                     basedir="${jpackage.path}"/>
+                                            </else>
+                                        </if>
+                                    </target>
+                                </configuration>
                             </execution>
                         </executions>
                     </plugin>

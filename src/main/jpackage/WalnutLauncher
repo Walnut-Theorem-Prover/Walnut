@@ -1,0 +1,4 @@
+#!/bin/bash
+
+DIR=$(cd "$(dirname "${BASH_SOURCE}" )" && pwd)
+osascript -e "tell Application \"Terminal\" to do script \"$DIR/Walnut\""
