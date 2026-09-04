@@ -648,6 +648,28 @@ public class FA implements Cloneable {
       return nfa;
   }
 
+  /** Converts this deterministic FA to an AutomataLib compact DFA. */
+  public CompactDFA<Integer> FAtoCompactDFA() {
+    if (!t.isDeterministic()) {
+      throw new WalnutException("Unexpected NFA:" + this);
+    }
+
+    CompactDFA<Integer> dfa =
+        new CompactDFA<>(Alphabets.integers(0, alphabetSize - 1), Q);
+    for (int state = 0; state < Q; state++) {
+      dfa.addState(isAccepting(state));
+    }
+    dfa.setInitial(q0, true);
+    for (int state = 0; state < Q; state++) {
+      for (Int2ObjectMap.Entry<IntList> entry : t.getEntriesNfaD(state)) {
+        if (!entry.getValue().isEmpty()) {
+          dfa.setTransition(state, entry.getIntKey(), entry.getValue().getInt(0));
+        }
+      }
+    }
+    return dfa;
+  }
+
   public static FA compactNFAToFA(CompactNFA<Integer> cNFA) {
     Set<Integer> initialStates = cNFA.getInitialStates();
     if (initialStates.size() > 1) {

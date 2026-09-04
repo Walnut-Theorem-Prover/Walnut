@@ -158,7 +158,7 @@ public final class ProductBFS {
    * If any component of a newly-generated product state is already "hopeless", the whole
    * product state can be discarded immediately.
    */
-  static Word<Integer> shortestWitnessWordProduct(
+  public static Word<Integer> shortestWitnessWordProduct(
       int[] start,
       int alphabetSize,
       CompactDFA<Integer>[] dfas,

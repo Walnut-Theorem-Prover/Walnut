@@ -43,6 +43,8 @@ public class EvalDef {
   static final Pattern PAT_FOR_A_FREE_VARIABLE_IN_eval_def_CMDS = Pattern.compile(REXEXP_FOR_A_FREE_VARIABLE_IN_eval_def_CMDS);
 
   public Expression result;
+  private EvalDef() {}
+
   public EvalDef(boolean printSteps, boolean printDetails) {
     Logging.configureForCommand(printSteps, printDetails);
   }
@@ -88,6 +90,14 @@ public class EvalDef {
     return new TestCase(
         "", List.of(), "", Logging.getDetailedLog(),
         List.of(new TestCase.AutomatonFilenamePair(M, DEFAULT_TESTFILE)));
+  }
+
+  /** Evaluates a predicate using the current command logging configuration. */
+  static Automaton evaluatePredicate(String predicateStr) {
+    Predicate predicate = new Predicate(predicateStr);
+    EvalDef evaluator = new EvalDef();
+    evaluator.compute(predicate);
+    return evaluator.result.M;
   }
 
   public static Automaton getImageEval(String predicateStr, boolean printFlag) {

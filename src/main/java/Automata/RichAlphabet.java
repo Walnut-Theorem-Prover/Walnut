@@ -57,7 +57,8 @@ public class RichAlphabet {
     return true;
   }
 
-  int determineAlphabetSize() {
+  /** Returns the encoded alphabet size. */
+  public int determineAlphabetSize() {
     int alphabetSize = 1;
     for (List<Integer> x : A) {
       alphabetSize = Math.multiplyExact(alphabetSize, x.size());
