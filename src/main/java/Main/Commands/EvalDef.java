@@ -30,6 +30,7 @@ import Automata.Writer.MatrixEmitter;
 import Main.*;
 import Main.EvalComputations.Expressions.AutomatonExpression;
 import Main.EvalComputations.Expressions.Expression;
+import Main.EvalComputations.Expressions.WordExpression;
 import Main.EvalComputations.Token.Token;
 
 import static Main.Prover.RE_IDENTIFIER;
@@ -80,9 +81,13 @@ public class EvalDef {
 
   private static TestCase computeHeadless(EvalDef c, String predicateStr) {
     Predicate predicate = new Predicate(predicateStr); // parse the predicates into an object
-    c.compute(predicate);
-    Automaton M = c.result.M;
+    c.compute(predicate, true);
+    if (c.result instanceof WordExpression word) {
+      Logging.logResult(EvalOutput.output(word, List.of()));
+      return new TestCase("", List.of(), "", Logging.getDetailedLog(), List.of());
+    }
 
+    Automaton M = c.result.M;
     if (M.fa.isTRUE_FALSE_AUTOMATON()) {
       System.out.println("____\n" + M.fa.trueFalseString().toUpperCase());
     }
@@ -90,6 +95,21 @@ public class EvalDef {
     return new TestCase(
         "", List.of(), "", Logging.getDetailedLog(),
         List.of(new TestCase.AutomatonFilenamePair(M, DEFAULT_TESTFILE)));
+  }
+
+  /** Evaluates and prints an expression over finite variable bindings. */
+  public static TestCase evalOutputCommand(
+      boolean printFlag, boolean printDetails, String predicateStr, String bindingStr) {
+    EvalDef evaluator = new EvalDef(printFlag, printDetails);
+    evaluator.compute(new Predicate(predicateStr), true);
+    Logging.logResult(EvalOutput.output(evaluator.result, EvalOutput.parseBindings(bindingStr)));
+
+    if (evaluator.result instanceof AutomatonExpression automatonExpression) {
+      return new TestCase(
+          "", List.of(), "", Logging.getDetailedLog(),
+          List.of(new TestCase.AutomatonFilenamePair(automatonExpression.M, DEFAULT_TESTFILE)));
+    }
+    return new TestCase("", List.of(), "", Logging.getDetailedLog(), List.of());
   }
 
   /** Evaluates a predicate using the current command logging configuration. */
@@ -113,6 +133,10 @@ public class EvalDef {
   }
 
   private void compute(Predicate predicate) {
+    compute(predicate, false);
+  }
+
+  private void compute(Predicate predicate, boolean allowWordResult) {
     Stack<Expression> expressions = new Stack<>();
     List<Token> postOrder = predicate.getPostOrder();
     long timeBeginning = System.currentTimeMillis();
@@ -161,7 +185,7 @@ public class EvalDef {
       throw new WalnutException("Evaluation ended in no result.");
     } else {
       result = expressions.pop();
-      if (!(result instanceof AutomatonExpression)) {
+      if (!allowWordResult && !(result instanceof AutomatonExpression)) {
         throw new WalnutException("The final result of the evaluation is not of type automaton");
       }
     }

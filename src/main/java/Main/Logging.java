@@ -186,6 +186,13 @@ public class Logging {
     logDetail(msg, print);
   }
 
+  /** Logs a user-visible result after the final evaluation-step line. */
+  public static void logResult(String msg) {
+    commandLog.append(System.lineSeparator());
+    if (printDetails) detailedLog.append(System.lineSeparator());
+    logDetail(msg, true);
+  }
+
   public static void logEvaluationStep(String msg, boolean finalLine) {
     String msgWithIndent = " ".repeat(indentCount) + msg;
     append(commandLog, msgWithIndent, finalLine);

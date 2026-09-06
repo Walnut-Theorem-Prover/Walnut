@@ -220,6 +220,29 @@ public class RichAlphabet {
     return map;
   }
 
+  /** Projects encoded symbols to a subset/reordering of labeled tracks. */
+  public int[] compileSymbolMap(
+      List<String> labels, RichAlphabet projectedAlphabet, List<String> projectedLabels) {
+    if (labels.size() != A.size() || projectedLabels.size() != projectedAlphabet.A.size()) {
+      throw new WalnutException("Labels do not match alphabet dimensions.");
+    }
+    List<Integer> indices = new ArrayList<>(projectedLabels.size());
+    for (int i = 0; i < projectedLabels.size(); i++) {
+      int index = labels.indexOf(projectedLabels.get(i));
+      if (index < 0 || !A.get(index).equals(projectedAlphabet.A.get(i))) {
+        throw new WalnutException("Incompatible alphabet for label " + projectedLabels.get(i));
+      }
+      indices.add(index);
+    }
+
+    int[] map = new int[determineAlphabetSize()];
+    for (int symbol = 0; symbol < map.length; symbol++) {
+      List<Integer> decoded = decode(symbol);
+      map[symbol] = projectedAlphabet.encode(indices.stream().map(decoded::get).toList());
+    }
+    return map;
+  }
+
   public RichAlphabet clone() {
     RichAlphabet r = new RichAlphabet();
     r.A.addAll(A);

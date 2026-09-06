@@ -8,12 +8,36 @@ For example, to create and save an automaton that accepts an input of "a" if and
 
 	def four "a=4";
 	
+
+If one or more free-variable names are given after the result name, Walnut also writes incidence-matrix representations using those variables. Matrix files are produced for Maple, MATLAB/Octave, Mathematica, and Sage. For example:
+
+def less x y "x<y";
+
+writes the automaton "less" and its matrix representations with respect to the free variables x and y.
+
 In previous versions of Walnut, word automata names in eval/def commands could not begin with A, E, or I. This restriction has now been lifted using a new delimiter for word automata: putting "." (without quotation marks) before the name of a word automaton now signals that the following string of characters is the name of the word automaton. If there is a word automaton named AUTOMATON, you can write ".AUTOMATON" (without quotation marks) to refer to it in eval/def commands. For example, the following is now valid:
 
 	def test ".AUTOMATON[n] = @1";
 
-There is also a "headless mode" option, if you don't wish to save the automaton.
-	def "E x x > x+1";
-will not create an automaton file, but will still build and evaluate.
+There is also a "headless mode" option, if you don't wish to save the automaton. For example,
+
+def "E x x > x+1";
+
+will not create an automaton file, but will still build and evaluate. Headless eval/def can also print the output of a word automaton or word expression directly. For example:
+
+def "F[1]";
+
+prints the value F[1].
+
+To print an expression over a finite range of values, place one or more variable bindings before the quoted expression. Ranges are inclusive. For example:
+
+def n=1..10 "F[n]";
+def n=1..10 "F[2*n+5]";
+
+For an ordinary automaton, the corresponding Boolean values are printed as 0 and 1. All free variables of the expression must be bound. Multiple bindings give multidimensional output, which is displayed as indented slices. For example:
+
+def i=1..10 j=2..5 k=1..4 "multi_example[i][j][k]";
+
+A binding may also specify a single value, for example n=5.
 	
 Please refer to section 7 of "Manual.pdf" saved in "Help Directory/" for a more detailed description of the "def"/"eval" and "macro" commands and what one can do with them.

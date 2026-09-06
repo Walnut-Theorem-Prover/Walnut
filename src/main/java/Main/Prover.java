@@ -88,6 +88,12 @@ public class Prover {
   static int ED_NAME = 2, ED_FREE_VARIABLES = 3, ED_PREDICATE = 4;
   static final Pattern PAT_FOR_eval_def_CMDS = Pattern.compile(RE_FOR_eval_def_CMDS);
 
+  public static final String RE_EVAL_BINDING = RE_IDENTIFIER + "=-?\\d+(?:\\.\\.-?\\d+)?";
+  static final String RE_FOR_eval_def_output_CMD =
+      RE_START + "(eval|def)((?:\\s+" + RE_EVAL_BINDING + ")+)\\s+\"(.*)\"";
+  static final int EDO_BINDINGS = 2, EDO_PREDICATE = 3;
+  static final Pattern PAT_FOR_eval_def_output_CMD = Pattern.compile(RE_FOR_eval_def_output_CMD);
+
   public static final String MACRO = "macro";
   static final String RE_FOR_macro_CMD = RE_START + MACRO + RE_WORD_OF_CMD + "\\s+\"(.*)\"";
   static int M_NAME = 1, M_DEFINITION = 2;
@@ -595,6 +601,13 @@ public class Prover {
   }
 
   public TestCase evalDefCommands(String s) {
+    Matcher outputMatcher = PAT_FOR_eval_def_output_CMD.matcher(s);
+    if (outputMatcher.matches()) {
+      currentEvalName = null;
+      return EvalDef.evalOutputCommand(
+          printFlag, printDetails, outputMatcher.group(EDO_PREDICATE), outputMatcher.group(EDO_BINDINGS));
+    }
+
     Matcher m = ProverHelper.matchOrFail(PAT_FOR_eval_def_CMDS, s, "eval/def");
     currentEvalName = m.group(ED_NAME); // null in headless mode; used for export metacommand
     return EvalDef.evalDefCommand(printFlag, printDetails,

@@ -287,6 +287,27 @@ public class ProductStrategies {
         return sameInputsInMAndThis;
     }
 
+    /** Maps each encoded source symbol to the corresponding projected symbol. */
+    public static int[] projectAlphabet(
+        List<String> labels, RichAlphabet alphabet,
+        List<String> projectedLabels, RichAlphabet projectedAlphabet) {
+        int[] indices = computeSameInputs(
+            labels, alphabet.getA(), projectedLabels, projectedAlphabet.getA());
+        int[] map = new int[alphabet.determineAlphabetSize()];
+        for (int symbol = 0; symbol < map.length; symbol++) {
+            List<Integer> decoded = alphabet.decode(symbol);
+            List<Integer> projected = new ArrayList<>(indices.length);
+            for (int index : indices) {
+                if (index == NOT_SAME_INPUT_IN_BOTH) {
+                    throw new WalnutException("Missing projected input label");
+                }
+                projected.add(decoded.get(index));
+            }
+            map[symbol] = projectedAlphabet.encode(projected);
+        }
+        return map;
+    }
+
     private static void updateAxBFields(
         List<String> aLabel, List<List<Integer>> aA, List<NumberSystem> aNS,
         List<String> bLabel, List<List<Integer>> bA, List<NumberSystem> bNS,
