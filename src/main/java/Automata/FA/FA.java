@@ -20,7 +20,10 @@ package Automata.FA;
 import Main.Logging;
 import Main.WalnutException;
 import it.unimi.dsi.fastutil.ints.*;
+import net.automatalib.alphabet.Alphabet;
 import net.automatalib.alphabet.impl.Alphabets;
+import net.automatalib.automaton.concept.StateIDs;
+import net.automatalib.automaton.fsa.DFA;
 import net.automatalib.automaton.fsa.impl.CompactDFA;
 import net.automatalib.automaton.fsa.impl.CompactNFA;
 
@@ -696,21 +699,22 @@ public class FA implements Cloneable {
     return fa;
   }
 
-  public void setFromCompactDFA(CompactDFA<Integer> myDFA) {
+  public <S> void setFromAutomataLibDFA(DFA<S, Integer> myDFA, Alphabet<Integer> alphabet) {
+    StateIDs<S> stateIDs = myDFA.stateIDs();
     Q = myDFA.size();
-    q0 = myDFA.getInitialState();
+    q0 = stateIDs.getStateId(myDFA.getInitialState());
     O.clear();
     for(int i=0;i<Q;i++) {
-      this.addOutput(myDFA.isAccepting(i));
+      this.addOutput(myDFA.isAccepting(stateIDs.getState(i)));
     }
-    alphabetSize = myDFA.getInputAlphabet().size();
+    alphabetSize = alphabet.size();
     setDfaTransitions(new ArrayList<>(Q));
     for(int i=0;i<Q;i++) {
       t.addDfaState();
       for(int in=0;in<alphabetSize;in++) {
-        Integer dest = myDFA.getTransition(i, in);
+        S dest = myDFA.getTransition(stateIDs.getState(i), in);
         if (dest != null) {
-          t.setDfaDTransition(i, in, (int)dest);
+          t.setDfaDTransition(i, in, stateIDs.getStateId(dest));
         }
       }
     }

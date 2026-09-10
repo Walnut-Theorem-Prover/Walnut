@@ -75,7 +75,7 @@ public class RichAlphabet {
     for (List<Integer> i : getA()) {
       int pos = i.indexOf(0);
       if (pos < 0) throw new WalnutException("Alphabet has no zero digit: " + i);
-      ZERO.add(pos);
+      ZERO.add(0); // encode expects digit values, not alphabet indices
     }
     return encode(ZERO);
   }

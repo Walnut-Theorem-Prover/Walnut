@@ -50,7 +50,14 @@ public class RichAlphabetTest {
 
     Assertions.assertFalse(RichAlphabet.isSubsetA(r3, r1));
     Assertions.assertTrue(RichAlphabet.isSubsetA(r1, r3));
+  }
 
+  @Test
+  void determineZeroWorksWhenZeroIsNotFirstDigit() {
+    // Probably this would never actually happen
+    RichAlphabet alphabet = new RichAlphabet();
+    alphabet.setA(List.of(List.of(1, 0)));
 
+    Assertions.assertEquals(List.of(0), alphabet.decode(alphabet.determineZero()));
   }
 }

@@ -321,6 +321,6 @@ public class DeterminizationStrategies {
             "  Progress: Periodic minimization: " + oldStatesSoFar + " -> " + statesSoFar + " states added - " + (timeAfter - timeBefore) + "ms");
       }
     }
-    fa.setFromCompactDFA(out);
+    fa.setFromAutomataLibDFA(out, out.getInputAlphabet());
   }
 }
