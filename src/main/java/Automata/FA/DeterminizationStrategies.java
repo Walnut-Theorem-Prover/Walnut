@@ -180,8 +180,8 @@ public class DeterminizationStrategies {
       }
 
       IntSet state = metastateList.get(currentState);
-      dfaD.add(new Int2IntOpenHashMap());
-      Int2IntMap currentStateMap = dfaD.get(currentState);
+      Int2IntMap currentStateMap = new Int2IntOpenHashMap();
+      dfaD.add(currentStateMap);
       for (int in = 0; in != alphabetSize; ++in) {
         IntOpenHashSet metastate = new IntOpenHashSet();
         for (int q : state) {
