@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.function.IntUnaryOperator;
 
 public class TransitionsNFA implements Transitions {
   private List<Int2ObjectRBTreeMap<IntList>> nfaD;
@@ -73,9 +74,6 @@ public class TransitionsNFA implements Transitions {
   }
   public void setNfaDTransition(int src, int inp, IntList destStates) {
     nfaD.get(src).put(inp, destStates);
-  }
-  public void clearNfaD() {
-    this.nfaD.clear();
   }
 
   public boolean hasDfaTransitions() {
@@ -168,11 +166,11 @@ public class TransitionsNFA implements Transitions {
   }
 
   @Override
-  public void permuteInputs(int[] encodedInputPermutation) {
+  public void permuteInputs(IntUnaryOperator encodedInputPermutation) {
     for (int q = 0; q < nfaD.size(); q++) {
       Int2ObjectRBTreeMap<IntList> permutedRow = new Int2ObjectRBTreeMap<>();
       for (Int2ObjectMap.Entry<IntList> entry : nfaD.get(q).int2ObjectEntrySet()) {
-        permutedRow.put(encodedInputPermutation[entry.getIntKey()], entry.getValue());
+        permutedRow.put(encodedInputPermutation.applyAsInt(entry.getIntKey()), entry.getValue());
       }
       nfaD.set(q, permutedRow);
     }

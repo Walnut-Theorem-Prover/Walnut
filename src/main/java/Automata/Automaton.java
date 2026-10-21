@@ -336,19 +336,14 @@ public class Automaton {
         int[] labelPermutation = getLabelPermutation(getLabel(), sortedLabel);
         List<List<Integer>> permutedA = permute(richAlphabet.getA(), labelPermutation);
         IntList permutedEncoder = RichAlphabet.determineEncoder(permutedA);
-        //For example encoded_input_permutation[2] = 5 means that encoded input 2 becomes 5 after sorting.
-        int[] encodedInputPermutation = new int[getAlphabetSize()];
-        for (int i = 0; i < getAlphabetSize(); i++) {
-            List<Integer> input = richAlphabet.decode(i);
-            List<Integer> permutedInput = permute(input, labelPermutation);
-            encodedInputPermutation[i] = RichAlphabet.encode(permutedInput, permutedA, permutedEncoder);
-        }
+        List<List<Integer>> originalA = richAlphabet.getA();
         setLabel(sortedLabel);
         richAlphabet.setA(permutedA);
         richAlphabet.setEncoder(permutedEncoder);
         setNS(permute(getNS(), labelPermutation));
 
-        this.fa.getT().permuteInputs(encodedInputPermutation);
+        this.fa.getT().permuteInputs(input -> RichAlphabet.encode(
+            permute(RichAlphabet.decode(originalA, input), labelPermutation), permutedA, permutedEncoder));
     }
     public void determinizeAndMinimize() {
         Logging.indent();

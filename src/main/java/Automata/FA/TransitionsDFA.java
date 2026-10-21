@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
+import java.util.function.IntUnaryOperator;
 
 public class TransitionsDFA implements Transitions {
   private List<Int2IntMap> dfaD;
@@ -92,9 +93,6 @@ public class TransitionsDFA implements Transitions {
   }
   public void setNfaDTransition(int src, int inp, IntList destStates) {
     throw new WalnutException("Cannot mutate the NFA view of TransitionsDFA; use FA.ensureNfaTransitions first.");
-  }
-  public void clearNfaD() {
-    throw new WalnutException("Cannot clear the NFA view of TransitionsDFA; use FA.setNfaTransitions instead.");
   }
 
   public boolean hasDfaTransitions() {
@@ -183,12 +181,12 @@ public class TransitionsDFA implements Transitions {
   }
 
   @Override
-  public void permuteInputs(int[] encodedInputPermutation) {
+  public void permuteInputs(IntUnaryOperator encodedInputPermutation) {
     List<Int2IntMap> permutedDfaD = new ArrayList<>(dfaD.size());
     for (Int2IntMap row : dfaD) {
       Int2IntMap permutedRow = new Int2IntOpenHashMap(row.size());
       for (Int2IntMap.Entry entry : row.int2IntEntrySet()) {
-        permutedRow.put(encodedInputPermutation[entry.getIntKey()], entry.getIntValue());
+        permutedRow.put(encodedInputPermutation.applyAsInt(entry.getIntKey()), entry.getIntValue());
       }
       permutedDfaD.add(permutedRow);
     }

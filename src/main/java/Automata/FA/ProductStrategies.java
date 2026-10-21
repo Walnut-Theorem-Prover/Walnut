@@ -27,11 +27,96 @@ import static Main.UtilityMethods.MISSING_ELT;
  */
 public class ProductStrategies {
     static final int NOT_SAME_INPUT_IN_BOTH = -1;
+
+    private record MatchingInput(int suffix, IntList destinations) {}
+
+    /**
+     * Indexes stored B transitions by their digits on tracks shared with A.
+     * Shared digits are encoded in B's track order, using A's digit alphabets;
+     * B-only digits form a suffix of the product symbol.
+     */
+    private static class SparseInputs {
+        private final RichAlphabet aAlphabet; // Alphabet used to decode A's transition symbols.
+        private final int[] sameInputs; // For each B track, the corresponding A track index, or -1 if absent.
+
+        // Cache of each A symbol's projection onto the tracks shared with B.
+        private final Map<Integer, List<Integer>> aInputs = new HashMap<>();
+
+        // For each B state, index outgoing transitions by their shared-track digits.
+        // Each matching transition stores its product-symbol suffix and destinations.
+        private final List<Map<List<Integer>, List<MatchingInput>>> bInputs = new ArrayList<>();
+
+        /**
+         * Indexes actual B transitions, rather than enumerating its full alphabet.
+         * sameInputs[i] identifies B track i's corresponding A track, or -1 if absent.
+         */
+        SparseInputs(Automaton A, Automaton B, int[] sameInputs) {
+            aAlphabet = A.richAlphabet;
+            this.sameInputs = sameInputs;
+
+            // Build the B-only alphabet, which we put after the A alphabet.
+            RichAlphabet bOnlyAlphabet = new RichAlphabet();
+            for (int i = 0; i < sameInputs.length; i++) {
+                if (sameInputs[i] == NOT_SAME_INPUT_IN_BOTH) {
+                    bOnlyAlphabet.getA().add(B.richAlphabet.getA().get(i));
+                }
+            }
+
+            // Construct a separate transition index for every B state.
+            for (int q = 0; q < B.fa.getQ(); q++) {
+                Map<List<Integer>, List<MatchingInput>> byShared = new HashMap<>();
+
+                // Visit only symbols with stored outgoing transitions at this state.
+                for (int input : B.fa.getT().getNfaStateKeySet(q)) {
+                    List<Integer> digits = B.richAlphabet.decode(input);
+
+                    // Split B's input tuple into shared and B-only coordinates.
+                    List<Integer> shared = new ArrayList<>(), bOnly = new ArrayList<>();
+                    for (int i = 0; i < sameInputs.length; i++) {
+                        if (sameInputs[i] == NOT_SAME_INPUT_IN_BOTH) bOnly.add(digits.get(i));
+                        else shared.add(digits.get(i));
+                    }
+
+                    // A occupies the low-order mixed-radix positions in the product.
+                    // Thus the B-only coordinates contribute a multiple of |Alphabet(A)|.
+                    int suffix = Math.multiplyExact(A.getAlphabetSize(), bOnlyAlphabet.encode(bOnly));
+
+                    // Group transitions with identical shared digits, retaining the
+                    // suffix and destination states needed to construct product transitions.
+                    byShared.computeIfAbsent(shared, key -> new ArrayList<>())
+                        .add(new MatchingInput(suffix, B.fa.getT().getNfaStateDests(q, input)));
+                }
+                bInputs.add(byShared);
+            }
+        }
+
+        /**
+         * Finds B transitions compatible with an A input at state q, in B input order.
+         * Their suffixes are added to the A input to produce product symbols.
+         */
+        private List<MatchingInput> matches(int q, int inputA) {
+            // Reuse the shared-digit projection if this A symbol was seen previously
+            List<Integer> shared = aInputs.get(inputA);
+            if (shared == null) {
+                List<Integer> digits = aAlphabet.decode(inputA);
+                shared = new ArrayList<>();
+
+                // Extract A's shared digits in B-track order, matching the index keys
+                // constructed above. Skip tracks that occur only in B.
+                for (int index : sameInputs) {
+                    if (index != NOT_SAME_INPUT_IN_BOTH) shared.add(digits.get(index));
+                }
+                aInputs.put(inputA, shared);  // Cache the projection independently of the current B state
+            }
+            return bInputs.get(q).getOrDefault(shared, List.of()); // Retrieve only compatible B transitions
+
+        }
+    }
     /**
      * Cross-product of two DFAs. Output is an NFA (for now).
      */
-    public static void crossProductInternal(
-        FA A, FA B, FA AxB, int combineOut, int[] allInputsOfAxB, String op, long timeBefore) {
+    private static void crossProductInternal(
+        FA A, FA B, FA AxB, int combineOut, SparseInputs inputs, String op, long timeBefore) {
         List<IntIntPair> statesList = new ArrayList<>();
         Object2IntMap<IntIntPair> statesHash = new Object2IntOpenHashMap<>();
         statesHash.defaultReturnValue(MISSING_ELT);
@@ -59,18 +144,14 @@ public class ProductStrategies {
             AxB.getT().addToNfaD(stateTransitions);
             AxB.getO().add(determineOutput(A.getO().getInt(p), B.getO().getInt(q), op, combineOut));
 
-            Set<Int2ObjectMap.Entry<IntList>> Bset = B.getT().getEntriesNfaD(q);
             for (Int2ObjectMap.Entry<IntList> entryA : A.getT().getEntriesNfaD(p)) {
-                final int AxBalphabet = entryA.getIntKey() * B.getAlphabetSize();
-                for (Int2ObjectMap.Entry<IntList> entryB : Bset) {
-                    int z = allInputsOfAxB[AxBalphabet + entryB.getIntKey()];
-                    if (z == -1) {
-                        continue;
-                    }
-                    IntArrayList dest = new IntArrayList(entryA.getValue().size() * entryB.getValue().size());
+                for (MatchingInput entryB : inputs.matches(q, entryA.getIntKey())) {
+                    int z = entryA.getIntKey() + entryB.suffix();
+                    IntList destBList = entryB.destinations();
+                    IntArrayList dest = new IntArrayList(entryA.getValue().size() * destBList.size());
                     stateTransitions.put(z, dest);
                     for (int destA : entryA.getValue()) {
-                        for (int destB : entryB.getValue()) {
+                        for (int destB : destBList) {
                             // Note: since A and B are DFAs, there's only one value ever here.
                             IntIntPair dest3 = new IntIntImmutablePair(destA, destB);
                             int statesHashVal = statesHash.getInt(dest3);
@@ -96,13 +177,12 @@ public class ProductStrategies {
     /**
      * Cross-product of two DFAs. Output is a DFA.
      */
-    public static void crossProductInternalDFA(
-        FA A, FA B, FA AxB, int combineOut, int[] allInputsOfAxB, String op, long timeBefore) {
+    private static void crossProductInternalDFA(
+        FA A, FA B, FA AxB, int combineOut, SparseInputs inputs, String op, long timeBefore) {
         if (!A.getT().hasDfaTransitions() || !B.getT().hasDfaTransitions()) {
             throw new WalnutException("Expected DFA-backed transitions for DFA cross product.");
         }
         List<IntSortedSet> AInputsByState = sortedDfaInputKeys(A.getT());
-        List<IntSortedSet> BInputsByState = sortedDfaInputKeys(B.getT());
 
         List<IntIntPair> statesList = new ArrayList<>();
         Object2IntMap<IntIntPair> statesHash = new Object2IntOpenHashMap<>();
@@ -131,16 +211,11 @@ public class ProductStrategies {
             AxB.getT().addDfaState();
             AxB.getO().add(determineOutput(A.getO().getInt(p), B.getO().getInt(q), op, combineOut));
 
-            IntSortedSet BInputs = BInputsByState.get(q);
             for (int inputA : AInputsByState.get(p)) {
-                final int AxBalphabet = inputA * B.getAlphabetSize();
                 int destA = A.getT().getDfaStateDest(p, inputA);
-                for (int inputB : BInputs) {
-                    int z = allInputsOfAxB[AxBalphabet + inputB];
-                    if (z == -1) {
-                        continue;
-                    }
-                    IntIntPair dest3 = new IntIntImmutablePair(destA, B.getT().getDfaStateDest(q, inputB));
+                for (MatchingInput inputB : inputs.matches(q, inputA)) {
+                    int z = inputA + inputB.suffix();
+                    IntIntPair dest3 = new IntIntImmutablePair(destA, inputB.destinations().getInt(0));
                     int statesHashVal = statesHash.getInt(dest3);
                     if (statesHashVal == MISSING_ELT) {
                         statesHashVal = statesList.size();
@@ -209,11 +284,11 @@ public class ProductStrategies {
                                          String op) {
         long timeBefore = System.currentTimeMillis();
         Automaton AxB = new Automaton();
-        int[] allInputsOfN = createBasicAutomaton(A, B, AxB);
+        int[] sameInputs = createBasicAutomaton(A, B, AxB);
         int combineOut = A.determineCombineOutVal(op);
         printAndUpdateIndex(A.fa.getQ(), B.fa.getQ());
         crossProductInternal(
-            A.fa, B.fa, AxB.fa, combineOut, allInputsOfN, op, timeBefore);
+            A.fa, B.fa, AxB.fa, combineOut, new SparseInputs(A, B, sameInputs), op, timeBefore);
         return AxB;
     }
 
@@ -224,13 +299,13 @@ public class ProductStrategies {
     public static AutomatonDFA crossProductAndMinimize(AutomatonDFA A, AutomatonDFA B, String op) {
         long timeBefore = System.currentTimeMillis();
         AutomatonDFA AxB = new AutomatonDFA();
-        int[] allInputsOfN = createBasicAutomaton(A, B, AxB);
+        int[] sameInputs = createBasicAutomaton(A, B, AxB);
         int combineOut = A.determineCombineOutVal(op);
         printAndUpdateIndex(A.fa.getQ(), B.fa.getQ());
         A.fa.convertNFAtoDFA();
         B.fa.convertNFAtoDFA();
         crossProductInternalDFA(
-                A.fa, B.fa, AxB.fa, combineOut, allInputsOfN, op, timeBefore);
+                A.fa, B.fa, AxB.fa, combineOut, new SparseInputs(A, B, sameInputs), op, timeBefore);
         AxB.fa.justMinimize();
         AxB.fa.convertNFAtoDFA();
         return AxB;
@@ -262,8 +337,7 @@ public class ProductStrategies {
         int[] sameInputsInAAndB = computeSameInputs(aLabel, aA, bLabel, bA);
         updateAxBFields(aLabel, aA, A.getNS(), bLabel, bA, B.getNS(), AxB, sameInputsInAAndB);
 
-        return computeAllInputsOfAxB(A.getAlphabetSize(), A.richAlphabet, B.getAlphabetSize(), B.richAlphabet,
-            AxB.richAlphabet, sameInputsInAAndB);
+        return sameInputsInAAndB;
     }
 
     /*
@@ -330,25 +404,6 @@ public class ProductStrategies {
             }
         }
         AxB.determineAlphabetSize();
-    }
-
-    /**
-     * Compute all inputs of AxB.
-     */
-    private static int[] computeAllInputsOfAxB(
-        int aAlphSize, RichAlphabet aRichAlphabet, int bAlphSize, RichAlphabet bRichAlphabet,
-        RichAlphabet AxBRichAlphabet, int[] sameInputsInMAndThis) {
-        int[] allInputsOfN = new int[aAlphSize * bAlphSize];
-        int idx = 0;
-        for (int i = 0; i < aAlphSize; i++) {
-            List<Integer> aDecodeI = aRichAlphabet.decode(i);
-            for (int j = 0; j < bAlphSize; j++) {
-                List<Integer> inputForN = joinTwoInputsForCrossProduct(
-                    aDecodeI, bRichAlphabet.decode(j), sameInputsInMAndThis);
-                allInputsOfN[idx++] = inputForN == null ? -1 : AxBRichAlphabet.encode(inputForN);
-            }
-        }
-        return allInputsOfN;
     }
 
     /**

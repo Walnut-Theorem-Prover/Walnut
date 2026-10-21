@@ -21,6 +21,7 @@ import it.unimi.dsi.fastutil.ints.*;
 
 import java.util.List;
 import java.util.Set;
+import java.util.function.IntUnaryOperator;
 
 /**
  * Transition function. For example, when d[0] = [(0,[1]),(1,[2,3]),(2,[2]),(3,[4]),(4,[1]),(5,[0])]
@@ -52,7 +53,6 @@ public interface Transitions {
   void addToNfaD(Int2ObjectRBTreeMap<IntList> entry);
   Int2ObjectRBTreeMap<IntList> addMapToNfaD();
   void setNfaDTransition(int src, int inp, IntList destStates);
-  void clearNfaD();
 
   /**
    * Return true when this transition table is backed by DFA-shaped storage.
@@ -88,7 +88,7 @@ public interface Transitions {
   /**
    * Apply a permutation to encoded input labels without changing the transition representation.
    */
-  void permuteInputs(int[] encodedInputPermutation);
+  void permuteInputs(IntUnaryOperator encodedInputPermutation);
 
   void reduceMemory();
 
