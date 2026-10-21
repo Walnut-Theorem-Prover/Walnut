@@ -113,7 +113,7 @@ public class EvalDef {
   }
 
   /** Evaluates a predicate using the current command logging configuration. */
-  static Automaton evaluatePredicate(String predicateStr) {
+  public static Automaton evaluatePredicate(String predicateStr) {
     Predicate predicate = new Predicate(predicateStr);
     EvalDef evaluator = new EvalDef();
     evaluator.compute(predicate);

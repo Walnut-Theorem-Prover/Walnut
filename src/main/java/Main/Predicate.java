@@ -52,6 +52,7 @@ public class Predicate {
     private final Stack<Operator> operatorStack;
     private final int realStartingPosition;
     private final String defaultNumberSystem;
+    private final String symbolicFunction;
     private Matcher MATCHER_FOR_LOGICAL_OPERATORS;
     private Matcher MATCHER_FOR_LIST_OF_QUANTIFIED_VARIABLES;
     private Matcher MATCHER_FOR_RELATIONAL_OPERATORS;
@@ -142,14 +143,23 @@ public class Predicate {
     }
 
     public Predicate(
+        String defaultNumberSystem,
+        String predicate,
+        int realStartingPosition) {
+        this(defaultNumberSystem, predicate, realStartingPosition, null);
+    }
+
+    public Predicate(
             String defaultNumberSystem,
             String predicate,
-            int realStartingPosition) {
+            int realStartingPosition,
+            String symbolicFunction) {
         operatorStack = new Stack<>();
         postOrder = new ArrayList<>();
         this.realStartingPosition = realStartingPosition;
         this.predicate = predicate;
         this.defaultNumberSystem = defaultNumberSystem;
+        this.symbolicFunction = symbolicFunction;
         if (PATTERN_WHITESPACE.matcher(predicate).matches()) return;
         initializeMatchers();
         tokenizeAndComputePostOrder();
@@ -370,7 +380,7 @@ public class Predicate {
             char ch = predicate.charAt(i);
 
             // Check for invalid macro characters
-            if (ch == '#' || ch == '$') {
+            if (ch == '#' || (ch == '$' && symbolicFunction == null)) {
                 throw WalnutException.internalMacro(realStartingPosition + i);
             }
 
@@ -460,7 +470,7 @@ public class Predicate {
 
         // Construct the Automaton
         String functionName = matcher.group(1);
-        Automaton A = Automaton.readAutomatonFromFile(functionName);
+        Automaton A = symbolicFunction == null ? Automaton.readAutomatonFromFile(functionName) : null;
 
         // Parse parentheses for function arguments
         ParseResult parseResult = parseParenthesizedArguments(matcher.end());
@@ -470,7 +480,7 @@ public class Predicate {
         List<Predicate> arguments = new ArrayList<>(parsedArgs.size());
         for (ParsedArgument argData : parsedArgs) {
             arguments.add(new Predicate(
-                defaultNumberSystem, argData.text, realStartingPosition + argData.startPos));
+                defaultNumberSystem, argData.text, realStartingPosition + argData.startPos, symbolicFunction));
         }
 
         // If there's a single empty argument, remove it
@@ -518,6 +528,21 @@ public class Predicate {
             throw new WalnutException("Macro does not exist: " + filename, e);
         }
         return macro;
+    }
+
+    /** A function call left unresolved for a caller that interprets the parsed postfix tokens. */
+    public static final class SymbolicFunction extends Token {
+        private final String name;
+
+        private SymbolicFunction(int position, String name) {
+            positionInPredicate = position;
+            arity = 1;
+            this.name = name;
+        }
+
+        @Override public String toString() {
+            return "$" + name;
+        }
     }
 
     public List<Token> getPostOrder() {

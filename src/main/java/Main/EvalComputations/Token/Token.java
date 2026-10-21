@@ -49,6 +49,8 @@ public abstract class Token {
         return false;
     }
 
+    public int getArity() { return arity; }
+
     public int getPositionInPredicate() {
         return this.positionInPredicate;
     }
