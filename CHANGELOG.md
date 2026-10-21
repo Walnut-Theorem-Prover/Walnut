@@ -13,6 +13,7 @@ All notable changes to Walnut will be documented here. Format is based on [Keep 
 - Global logging file that logs all commands in the session
 
 ### Fixed
+- Fix product-automata performance for large alphabets or constraints [#40](https://github.com/Walnut-Theorem-Prover/Walnut/issues/40)
 - Fix `inf` and `test` performance [#33](https://github.com/Walnut-Theorem-Prover/Walnut/issues/33)
 - Fix `convert` crash [#41](https://github.com/Walnut-Theorem-Prover/Walnut/issues/41)
 
