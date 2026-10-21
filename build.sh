@@ -4,6 +4,8 @@
 
 SCRIPTNAME="walnut.sh"
 
+set -e
+
 if [[ $1 = "-t" ]]; then
 	# run with tests
 	echo "Building Walnut and running tests."
