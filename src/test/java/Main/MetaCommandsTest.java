@@ -1,67 +1,90 @@
 package Main;
 
-import Automata.FA.DeterminizationStrategies;
-import org.junit.jupiter.api.Assertions;
+import Automata.FA.DeterminizationStrategies.Strategy;
 import org.junit.jupiter.api.Test;
 
-public class MetaCommandsTest {
+import java.io.IOException;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+class MetaCommandsTest {
   @Test
-  void testParseStrategy() {
-    MetaCommands mc = new MetaCommands();
-    Assertions.assertEquals("", mc.parseMetaCommands("", true));
-
-    Assertions.assertThrows(RuntimeException.class, () -> {
-      new MetaCommands().parseMetaCommands("[strategy 5 CCL x]", true);
-    });
-
-    Assertions.assertEquals("", mc.parseMetaCommands("[strategy 5 CCLS]", true));
-    Assertions.assertEquals(DeterminizationStrategies.Strategy.CCLS, mc.getStrategy(5));
-
-    mc = new MetaCommands();
-    Assertions.assertEquals("blah", mc.parseMetaCommands("[strategy 5 CCLS][strategy 10 BRZ-CCLS]blah", true));
-    Assertions.assertEquals(DeterminizationStrategies.Strategy.CCLS, mc.getStrategy(5));
-    Assertions.assertEquals(DeterminizationStrategies.Strategy.BRZ_CCLS, mc.getStrategy(10));
-
-    mc = new MetaCommands();
-    Assertions.assertEquals("blah", mc.parseMetaCommands("[strategy * CCLS]blah", true));
-    Assertions.assertEquals(DeterminizationStrategies.Strategy.CCLS, mc.getStrategy(0));
-    Assertions.assertEquals(DeterminizationStrategies.Strategy.CCLS, mc.getStrategy(1));
+  void wildcardsWorkWithEveryTerminator() throws IOException {
+    for (String ending : List.of(";", ":", "::")) {
+      Prover prover = new Prover();
+      // An empty command exercises setup without requiring any automata or output files.
+      assertNull(prover.dispatchForIntegrationTest(
+          "[strategy * CCLS][export * BA]" + ending, "Wildcard setup"));
+      assertEquals(Strategy.CCLS, prover.metaCommands.getStrategy(23));
+      assertEquals("ba", prover.metaCommands.getExportFormat(23));
+      assertTrue(Prover.usingOTF);
+      assertSame(prover, Prover.mainProver);
+      assertEquals(!ending.equals(";"), prover.printFlag);
+      assertEquals(ending.equals("::"), prover.printDetails);
+    }
   }
 
   @Test
-  void testParseExport() {
-    MetaCommands mc = new MetaCommands();
-    Assertions.assertEquals("", mc.parseMetaCommands("[export 5 BA]", true));
-    Assertions.assertNull(mc.getExportName(0));
-
-    Assertions.assertThrows(WalnutException.class, () -> {
-      new MetaCommands().parseMetaCommands("[export 5]", true);
-    });
-    Assertions.assertThrows(WalnutException.class, () -> {
-      new MetaCommands().parseMetaCommands("[export 5 BLAH]", true);
-    });
-
-    mc = new MetaCommands();
-    Assertions.assertEquals("blah", mc.parseMetaCommands("[export * TXT]blah", true));
-    Assertions.assertEquals("txt", mc.getExportFormat(0));
-
-    Assertions.assertThrows(RuntimeException.class, () -> {
-      new MetaCommands().parseMetaCommands("[export 5 x]", true);
-    });
+  void indexedAndEarlyTerminationCommandsRequireDetailedLogging() {
+    for (String ending : List.of(";", ":")) {
+      for (String meta : List.of("[strategy 0 CCLS]", "[export 0 BA]", "[earlyExistTermination]",
+          "[strategy * SC][export 0 GV]", "[export * BA][strategy 1 BRZ]")) {
+        WalnutException error = assertThrows(WalnutException.class,
+            () -> new Prover().dispatchForIntegrationTest(meta + ending, "Invalid verbosity"));
+        assertTrue(error.getMessage().contains("require '::'"));
+      }
+    }
   }
 
   @Test
-  void testParseBogusCommand() {
-    Assertions.assertThrows(RuntimeException.class, () -> {
-      new MetaCommands().parseMetaCommands("[strategy 5 OTF", true);
-    });
+  void detailedCommandsKeepIndexedStrategiesAndExports() throws IOException {
+    Prover prover = new Prover();
+    assertNull(prover.dispatchForIntegrationTest(
+        "[strategy 2 BRZ][export 3 GV][earlyExistTermination]::", "Detailed setup"));
+    assertEquals(Strategy.SC, prover.metaCommands.getStrategy(1));
+    assertEquals(Strategy.BRZ, prover.metaCommands.getStrategy(2));
+    assertNull(prover.metaCommands.getExportFormat(2));
+    assertEquals("gv", prover.metaCommands.getExportFormat(3));
+    assertTrue(Prover.earlyExistTermination);
+  }
 
-    Assertions.assertThrows(RuntimeException.class, () -> {
-      new MetaCommands().parseMetaCommands("[bogusCommand 5 x]", true);
-    });
+  @Test
+  void commandsResetNamesFlagsMapsAndAutomataNumbers() throws IOException {
+    Prover prover = new Prover();
+    prover.dispatchForIntegrationTest("[strategy * CCLS][export * TXT]::", "First command");
+    Prover.currentEvalName = "previous_result";
+    assertEquals(0, prover.metaCommands.incrementAutomataIndex());
+    prover.dispatchForIntegrationTest(";", "Next command");
+    assertNull(Prover.currentEvalName);
+    assertEquals(Strategy.SC, prover.metaCommands.getStrategy(0));
+    assertNull(prover.metaCommands.getExportName(0));
+    assertEquals(0, prover.metaCommands.incrementAutomataIndex());
+    assertFalse(prover.metaCommands.hasWildcardCommands());
+    assertFalse(Prover.usingOTF);
+    assertFalse(Prover.earlyExistTermination);
+    assertFalse(prover.printFlag);
+    assertFalse(prover.printDetails);
+  }
 
-    Assertions.assertThrows(RuntimeException.class, () -> {
-      new MetaCommands().parseMetaCommands("[strategy OTF 5]", false);
-    });
+  @Test
+  void indexedExportZeroDoesNotOverwriteWildcardFormat() {
+    for (String command : List.of(
+        "[export * BA][export 0 GV]eval", "[export 0 GV][export * BA]eval")) {
+      MetaCommands meta = new MetaCommands();
+      assertEquals("eval", meta.parseMetaCommands(command, true));
+      assertEquals("ba", meta.getExportFormat(0));
+      assertEquals("ba", meta.getExportFormat(1));
+    }
+  }
+
+  @Test
+  void malformedCommandsAreRejectedBeforeReadingMissingArguments() {
+    for (boolean details : List.of(false, true)) {
+      for (String command : List.of("[strategy]eval", "[strategy *]eval", "[export]eval",
+          "[export *]eval", "[earlyExistTermination extra args]eval", "[unknown * SC]eval")) {
+        assertThrows(WalnutException.class, () -> new MetaCommands().parseMetaCommands(command, details));
+      }
+    }
   }
 }

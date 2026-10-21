@@ -15,7 +15,7 @@ import static Main.UtilityMethods.MISSING_ELT;
 /**
  * Determinization logic, with support for alternative strategies of:
  * Brzozowski, OTF, OTF-no-simulation, OTF-Brzozowski, and OTF-Brzozowski-no-simulation
- * Automata are numbered as they are (non-silently) determinized.
+ * Command automata are numbered for detailed logging or wildcard metacommands.
  * This is useful for meta-commands like [export] and [strategy]
  */
 public class DeterminizationStrategies {
@@ -81,11 +81,13 @@ public class DeterminizationStrategies {
       long timeBefore = System.currentTimeMillis();
 
       Strategy strategy = Strategy.SC;
-      if (Logging.shouldPrintDetails()) {
+      MetaCommands mc = Prover.mainProver.metaCommands;
+      // A command log identifies command work even when console output is disabled.
+      // Truly internal work (number-system/Ostrowski caches) passes false and null.
+      if (Logging.shouldPrintDetails() || (Logging.shouldPrintStepsOrDetails() && mc.hasWildcardCommands())) {
         // Increment our automata count for use in strategy calculations.
         // Note this is only done when print is true.
         // That's because there are several silent automata creations for NS, Ostrowski, and other caches.
-        MetaCommands mc = Prover.mainProver.metaCommands;
         int automataIdx = mc.incrementAutomataIndex();
         strategy = mc.getStrategy(automataIdx);
 
@@ -93,8 +95,9 @@ public class DeterminizationStrategies {
         String exportName = mc.getExportName(automataIdx);
         if (exportName != null) {
           String exportFormat = mc.getExportFormat(automataIdx);
+          // Writers canonize; do not let an export renumber the live states or tracks.
           ProverHelper.exportAutomata(Prover.currentEvalName, exportName + "_" + automataIdx + "_pre",
-              exportFormat, A, fa.isFAO());
+              exportFormat, A.clone(), fa.isFAO());
         }
 
         Logging.logMessage(DETERMINIZING +
