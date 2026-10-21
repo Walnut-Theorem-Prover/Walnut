@@ -24,3 +24,7 @@ To view documentation for a specific command:
 ```
 help <command>;
 ```
+
+# AI policy for contributions
+
+Please take a look at our [AI Policy][AI_POLICY.md) before contributing.
