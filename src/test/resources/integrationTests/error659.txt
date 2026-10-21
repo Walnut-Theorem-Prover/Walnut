@@ -1,1 +1,1 @@
-Only [strategy * ...] and [export * ...] are supported with ';' or ':'. Indexed metacommands and [earlyExistTermination] require '::'
+Metacommands are currently only supported for commands ending in ::

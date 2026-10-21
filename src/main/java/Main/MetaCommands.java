@@ -17,7 +17,7 @@ public class MetaCommands {
   // export metacommand
   // txt, ba, or gv
   private final Int2ObjectMap<String> exportMap = new Int2ObjectOpenHashMap<>();
-  private String alwaysOnExportFormat = null;
+  private boolean alwaysOnExport = false;
 
   public MetaCommands() {
     Prover.usingOTF = false;
@@ -56,28 +56,24 @@ public class MetaCommands {
       throw WalnutException.unexpectedFormat(format);
     }
     if (WILDCARD.equals(automataIdx)) {
-      alwaysOnExportFormat = formatLower;
+      alwaysOnExport = true;
+      exportMap.put(0, formatLower);
     } else {
       exportMap.put(Integer.parseInt(automataIdx), formatLower);
     }
   }
 
   public String getExportName(int index) {
-    if (alwaysOnExportFormat != null || exportMap.containsKey(index)) {
+    if (alwaysOnExport || exportMap.containsKey(index)) {
       return Prover.currentEvalName == null ? DEFAULT_EXPORT_NAME : Prover.currentEvalName;
     }
     return null;
   }
   public String getExportFormat(int index) {
-    if (alwaysOnExportFormat != null || exportMap.containsKey(index)) {
-      return alwaysOnExportFormat != null ? alwaysOnExportFormat : exportMap.get(index);
+    if (alwaysOnExport || exportMap.containsKey(index)) {
+      return exportMap.get(alwaysOnExport ? 0 : index);
     }
     return null;
-  }
-
-  /** Whether command automata need metacommand handling even without detailed output. */
-  public boolean hasWildcardCommands() {
-    return alwaysOnStrategy != null || alwaysOnExportFormat != null;
   }
 
   /**
@@ -92,18 +88,15 @@ public class MetaCommands {
       Matcher metaCmdMatcher = ProverHelper.matchOrFail(Prover.PAT_META_CMD, command, command);
       // Get the current meta command block and process it
       String metaCommandString = metaCmdMatcher.group(Prover.GROUP_META_CMD).strip();
+      if (!metaCommandString.isEmpty() && !printDetails) {
+        throw new WalnutException("Metacommands are currently only supported for commands ending in ::");
+      }
+
       command = metaCmdMatcher.group(Prover.GROUP_FINAL_CMD).strip(); // update to be the remainder
 
       String[] parts = metaCommandString.split("\\s+");
-      boolean automataCommand = parts[0].equals(Prover.STRATEGY) || parts[0].equals(Prover.EXPORT);
-      if (automataCommand ? parts.length != 3
-          : parts.length != 1 || !parts[0].equals(Prover.EARLY_EXIST_TERMINATION)) {
+      if (parts.length != 3 && (parts.length != 1 || !parts[0].equals(Prover.EARLY_EXIST_TERMINATION))) {
         throw WalnutException.invalidCommandUse(metaCommandString);
-      }
-      if (!printDetails && (!automataCommand || !WILDCARD.equals(parts[1]))) {
-        throw new WalnutException(
-            "Only [strategy * ...] and [export * ...] are supported with ';' or ':'. "
-                + "Indexed metacommands and [earlyExistTermination] require '::'.");
       }
 
       switch (parts[0]) {
