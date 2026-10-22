@@ -27,6 +27,7 @@ import java.util.regex.Pattern;
 
 import Automata.*;
 import Automata.Morphism;
+import Main.Aal.Aal;
 import Main.Commands.*;
 
 /**
@@ -34,7 +35,7 @@ import Main.Commands.*;
  * and parse and dispatch the command appropriately.
  */
 public class Prover {
-  static final String RE_FOR_THE_LIST_OF_CMDS = "(eval|def|macro|reg|load|ost|exit|quit|cls|clear|combine|morphism|promote|image|inf|split|rsplit|join|test|transduce|reverse|minimize|convert|fixleadzero|fixtrailzero|alphabet|union|intersect|star|concat|rightquo|leftquo|describe|export|help)";
+  static final String RE_FOR_THE_LIST_OF_CMDS = "(aal|eval|def|macro|reg|load|ost|exit|quit|cls|clear|combine|morphism|promote|image|inf|split|rsplit|join|test|transduce|reverse|minimize|convert|fixleadzero|fixtrailzero|alphabet|union|intersect|star|concat|rightquo|leftquo|describe|export|help)";
   static final String RE_START = "^";
   // Basic identifier: used for free variables, combine, etc.
   public static final String RE_IDENTIFIER = "[a-zA-Z]\\w*";
@@ -484,6 +485,9 @@ public class Prover {
 
   private TestCase processCommand(String s, String commandName) throws IOException {
     switch (commandName) {
+      case Aal.COMMAND -> {
+        return Aal.aalCommand(s);
+      }
       case ALPHABET -> {
         return alphabetCommand(s);
       }
