@@ -93,6 +93,7 @@ public class FA implements Cloneable {
   // NOTE: This will often create an NFA
   public static void starStates(FA automaton, FA N) {
     // N is a clone of automaton.
+    N.ensureNfaTransitions();
     // We add a new state which will be our new initial state.
     N.q0 = N.Q++;
     N.addOutput(true);  // The newly added state is a final state.
@@ -101,6 +102,7 @@ public class FA implements Cloneable {
   }
   // NOTE: This will often create an NFA
   public static void concatStates(FA other, FA N, int originalQ) {
+      N.ensureNfaTransitions();
       // to access the other's states, just do q. To access the other's states in N, do originalQ + q.
       for (int q = 0; q < other.Q; q++) {
         N.O.add(other.O.getInt(q)); // add the output
@@ -372,14 +374,8 @@ public class FA implements Cloneable {
     fa.q0 = this.q0;
     fa.alphabetSize = this.alphabetSize;
     fa.O = new IntArrayList(this.O);
-    fa.t = new TransitionsNFA();
+    fa.t = this.t.clone();
     fa.canonized = this.canonized;
-    for (int q = 0; q < fa.Q; q++) {
-      fa.t.addMapToNfaD();
-      for (Int2ObjectMap.Entry<IntList> entry : this.t.getEntriesNfaD(q)) {
-        fa.t.setNfaDTransition(q, entry.getIntKey(), new IntArrayList(entry.getValue()));
-      }
-    }
     fa.setTRUE_FALSE_AUTOMATON(this.isTRUE_FALSE_AUTOMATON());
     fa.setTRUE_AUTOMATON(this.isTRUE_AUTOMATON());
     return fa;

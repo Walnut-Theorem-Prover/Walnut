@@ -40,6 +40,19 @@ public class TransitionsNFA implements Transitions {
     this.nfaD = nfaD;
   }
 
+  @Override
+  public TransitionsNFA clone() {
+    List<Int2ObjectRBTreeMap<IntList>> copy = new ArrayList<>(nfaD.size());
+    for (Int2ObjectRBTreeMap<IntList> row : nfaD) {
+      Int2ObjectRBTreeMap<IntList> rowCopy = new Int2ObjectRBTreeMap<>();
+      for (Int2ObjectMap.Entry<IntList> entry : row.int2ObjectEntrySet()) {
+        rowCopy.put(entry.getIntKey(), new IntArrayList(entry.getValue()));
+      }
+      copy.add(rowCopy);
+    }
+    return new TransitionsNFA(copy);
+  }
+
   public List<Int2ObjectRBTreeMap<IntList>> getNfaD(){
     return nfaD;
   }

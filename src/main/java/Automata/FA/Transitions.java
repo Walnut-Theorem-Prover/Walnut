@@ -38,6 +38,9 @@ import java.util.function.IntUnaryOperator;
  * our program, so for more information on how we compute it read the information on List<Integer> encoder field.
  */
 public interface Transitions {
+  /** Return a deep copy, preserving the transition representation. */
+  Transitions clone();
+
   /**
    * Return an NFA-shaped transition table.  DFA implementations may return a converted view/copy.
    */

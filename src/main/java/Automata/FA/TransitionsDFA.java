@@ -40,6 +40,17 @@ public class TransitionsDFA implements Transitions {
     this.dfaD = dfaD;
   }
 
+  @Override
+  public TransitionsDFA clone() {
+    List<Int2IntMap> copy = new ArrayList<>(dfaD.size());
+    for (Int2IntMap row : dfaD) {
+      Int2IntMap rowCopy = new Int2IntOpenHashMap(row);
+      rowCopy.defaultReturnValue(row.defaultReturnValue());
+      copy.add(rowCopy);
+    }
+    return new TransitionsDFA(copy);
+  }
+
   /**
    * Return this DFA as an NFA transition table.  The result is a copy, because mutating
    * an NFA view cannot safely update DFA storage.
