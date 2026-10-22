@@ -52,7 +52,9 @@ public class MetaCommands {
    */
   public void addExport(String automataIdx, String format) {
     String formatLower = format.toLowerCase();
-    if (!formatLower.equals("ba") && !formatLower.equals("txt") && !formatLower.equals("gv")) {
+    // Temporary restriction; .gv files (and potentially .txt files) canonicalize,
+    //   which can cause unexpected mutations during intermediate work
+    if (!formatLower.equals("ba")) {
       throw WalnutException.unexpectedFormat(format);
     }
     if (WILDCARD.equals(automataIdx)) {

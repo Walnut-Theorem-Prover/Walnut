@@ -97,7 +97,7 @@ public class DeterminizationStrategies {
           String exportFormat = mc.getExportFormat(automataIdx);
           // Writers canonize; do not let an export renumber the live states or tracks.
           ProverHelper.exportAutomata(Prover.currentEvalName, exportName + "_" + automataIdx + "_pre",
-              exportFormat, A.clone(), fa.isFAO());
+              exportFormat, A, fa.isFAO());
         }
 
         Logging.logMessage(DETERMINIZING +

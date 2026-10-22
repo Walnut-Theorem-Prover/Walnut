@@ -1,1 +1,1 @@
-Only [strategy * ...] and [export * ...] are supported with ';' or ':'. Indexed metacommands and [earlyExistTermination] require '::'
+Only [strategy * ...] and [export * ...] are supported with ';' or ':'. Indexed metacommands and [earlyExistTermination] require '::'.

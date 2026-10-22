@@ -437,6 +437,7 @@ public class Prover {
   }
 
   private String parseSetup(String s) {
+    currentEvalName = null;
     metaCommands = new MetaCommands();
     printDetails = printFlag = false; // reset flags
 

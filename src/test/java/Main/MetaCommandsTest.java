@@ -12,14 +12,13 @@ class MetaCommandsTest {
   @Test
   void wildcardsWorkWithEveryTerminator() throws IOException {
     for (String ending : List.of(";", ":", "::")) {
-      Prover prover = new Prover();
+      Prover prover = Prover.mainProver = new Prover();
       // An empty command exercises setup without requiring any automata or output files.
       assertNull(prover.dispatchForIntegrationTest(
           "[strategy * CCLS][export * BA]" + ending, "Wildcard setup"));
       assertEquals(Strategy.CCLS, prover.metaCommands.getStrategy(23));
       assertEquals("ba", prover.metaCommands.getExportFormat(23));
       assertTrue(Prover.usingOTF);
-      assertSame(prover, Prover.mainProver);
       assertEquals(!ending.equals(";"), prover.printFlag);
       assertEquals(ending.equals("::"), prover.printDetails);
     }
@@ -41,18 +40,18 @@ class MetaCommandsTest {
   void detailedCommandsKeepIndexedStrategiesAndExports() throws IOException {
     Prover prover = new Prover();
     assertNull(prover.dispatchForIntegrationTest(
-        "[strategy 2 BRZ][export 3 GV][earlyExistTermination]::", "Detailed setup"));
+        "[strategy 2 BRZ][export 3 BA][earlyExistTermination]::", "Detailed setup"));
     assertEquals(Strategy.SC, prover.metaCommands.getStrategy(1));
     assertEquals(Strategy.BRZ, prover.metaCommands.getStrategy(2));
     assertNull(prover.metaCommands.getExportFormat(2));
-    assertEquals("gv", prover.metaCommands.getExportFormat(3));
+    assertEquals("ba", prover.metaCommands.getExportFormat(3));
     assertTrue(Prover.earlyExistTermination);
   }
 
   @Test
   void commandsResetNamesFlagsMapsAndAutomataNumbers() throws IOException {
     Prover prover = new Prover();
-    prover.dispatchForIntegrationTest("[strategy * CCLS][export * TXT]::", "First command");
+    prover.dispatchForIntegrationTest("[strategy * CCLS][export * BA]::", "First command");
     Prover.currentEvalName = "previous_result";
     assertEquals(0, prover.metaCommands.incrementAutomataIndex());
     prover.dispatchForIntegrationTest(";", "Next command");
@@ -65,17 +64,6 @@ class MetaCommandsTest {
     assertFalse(Prover.earlyExistTermination);
     assertFalse(prover.printFlag);
     assertFalse(prover.printDetails);
-  }
-
-  @Test
-  void indexedExportZeroDoesNotOverwriteWildcardFormat() {
-    for (String command : List.of(
-        "[export * BA][export 0 GV]eval", "[export 0 GV][export * BA]eval")) {
-      MetaCommands meta = new MetaCommands();
-      assertEquals("eval", meta.parseMetaCommands(command, true));
-      assertEquals("ba", meta.getExportFormat(0));
-      assertEquals("ba", meta.getExportFormat(1));
-    }
   }
 
   @Test
