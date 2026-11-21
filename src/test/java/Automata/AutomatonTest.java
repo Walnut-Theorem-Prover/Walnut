@@ -2,6 +2,7 @@ package Automata;
 
 import Main.MetaCommands;
 import Main.Session;
+import net.automatalib.word.Word;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -48,6 +49,14 @@ class AutomatonTest {
     Assertions.assertTrue(A.isEmpty());
   }
 
+  @Test
+  void testAlphabetRestrictionPreservesEmptyLanguage() {
+    Automaton A = new AutomatonDFA("1", List.of(0, 1), null);
+
+    A.setAlphabet(false, A.getNS(), List.of(List.of(0)));
+
+    Assertions.assertTrue(A.isEmpty());
+  }
 
   @Test
   void testGetArity() {

@@ -108,6 +108,46 @@ public class FATest {
   }
 
   @Test
+  void testMinimizeUnreachableAcceptingState() {
+    for (int initial = 0; initial < 2; initial++) {
+      FA fa = new FA();
+      fa.initBasicFA(new IntArrayList(new int[]{initial, 1 - initial}));
+      fa.setQ0(initial);
+      fa.setAlphabetSize(2);
+      for (int state = 0; state < 2; state++) {
+        fa.addNewTransition(state, state, 0);
+        fa.addNewTransition(state, state, 1);
+      }
+
+      fa.justMinimize();
+
+      Assertions.assertTrue(fa.isLanguageEmpty());
+      Assertions.assertEquals(1, fa.getQ());
+      Assertions.assertFalse(fa.isAccepting(fa.getQ0()));
+    }
+  }
+
+  @Test
+  void testMinimizeReachableAcceptingState() {
+    FA fa = new FA();
+    fa.initBasicFA(new IntArrayList(new int[]{0, 0, 1}));
+    fa.setQ0(1);
+    fa.setAlphabetSize(2);
+    fa.addNewTransition(0, 0, 0);
+    fa.addNewTransition(0, 0, 1);
+    fa.addNewTransition(1, 0, 0);
+    fa.addNewTransition(1, 2, 1);
+    fa.addNewTransition(2, 2, 0);
+    fa.addNewTransition(2, 2, 1);
+    FA original = fa.clone();
+
+    fa.justMinimize();
+
+    Assertions.assertFalse(fa.isLanguageEmpty());
+    Assertions.assertTrue(EqualityUtils.faEqual(original, fa));
+  }
+
+  @Test
   void testDetermineMinOutput() {
     FA fa = new FA();
     Assertions.assertThrows(WalnutException.class, fa::determineMinOutput);

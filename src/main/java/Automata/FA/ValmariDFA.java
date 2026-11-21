@@ -31,6 +31,7 @@ public class ValmariDFA {
     private ValmariPartition cords;
 
     private final int numStates;
+    private final int initialState;
     private int numTransitions;
     private int numFinalstates;
 
@@ -66,6 +67,7 @@ public class ValmariDFA {
             }
         }
         this.numStates = numStates;
+        this.initialState = fa.getQ0();
         blocks = new ValmariPartition();
         cords = new ValmariPartition();
     }
@@ -76,16 +78,20 @@ public class ValmariDFA {
      */
     void minValmari(IntList O) {
         blocks.init(numStates);
+        _A = new int[numTransitions]; _F = new int[ numStates +1 ];
 
+        // Remove states and transitions unreachable from the initial state.
+        reach(initialState); rem_unreachable(T, H);
+
+        // Only reachable final states seed the backward traversal.
         for(int q = 0; q < numStates; ++q ){
-            if(O.getInt(q) != 0){
+            if(O.getInt(q) != 0 && blocks.L[q] < blocks.P[0]){
                 reach( q );
             }
         }
         O.clear();
-        _A = new int[numTransitions]; _F = new int[ numStates +1 ];
 
-        numFinalstates = rr; rem_unreachable();
+        numFinalstates = rr; rem_unreachable(H, T);
 
         /* Make initial partition */
         ValmariPartition.W = new int[ numTransitions +1 ]; ValmariPartition.M = new int[ numTransitions +1];
@@ -150,18 +156,19 @@ public class ValmariDFA {
             blocks.E[rr] = q; blocks.L[q] = rr++; }
     }
 
-    private void rem_unreachable(){
-        make_adjacent( H ); int i, j;
+    // Pass (T, H) to search forwards, or (H, T) to search backwards.
+    private void rem_unreachable(int[] tails, int[] heads){
+        make_adjacent( tails ); int i, j;
         for( i = 0; i < rr; ++i ){
             for(j = _F[blocks.E[i]]; j < _F[blocks.E[i] + 1]; ++j ){
-                reach( T[_A[j]] );
+                reach( heads[_A[j]] );
             }
         }
         j = 0;
         for(int t = 0; t < numTransitions; ++t ){
-            if( blocks.L[H[t]] < rr ){
-                T[j] = T[t]; L[j] = L[t];
-                H[j] = H[t]; ++j;
+            if( blocks.L[tails[t]] < rr ){
+                heads[j] = heads[t]; L[j] = L[t];
+                tails[j] = tails[t]; ++j;
             }
         }
         numTransitions = j; blocks.P[0] = rr; rr = 0;
