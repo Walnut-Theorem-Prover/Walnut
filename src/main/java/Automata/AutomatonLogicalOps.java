@@ -501,11 +501,9 @@ public class AutomatonLogicalOps {
 
         // 3) Convert from k^i -> k if needed
         if (fromBase != commonRoot) {
-            int exponent = (int) (Math.log(fromBase) / Math.log(commonRoot));
             WordAutomaton.reverseWithOutput(A, true);
             currentlyReversed = true;
-
-            convertLsdBaseToRoot(A, commonRoot, exponent);
+            convertLsdBaseToRoot(A, commonRoot, UtilityMethods.determineExponent(fromBase, commonRoot));
             WordAutomaton.minimizeSelfWithOutput(A);
         }
 
@@ -516,8 +514,7 @@ public class AutomatonLogicalOps {
                 WordAutomaton.reverseWithOutput(A, true);
                 currentlyReversed = false;
             }
-            int exponent = (int) (Math.log(toBase) / Math.log(commonRoot));
-            convertMsdBaseToExponent(A, exponent);
+            convertMsdBaseToExponent(A, UtilityMethods.determineExponent(toBase, commonRoot));
             WordAutomaton.minimizeSelfWithOutput(A);
         }
 

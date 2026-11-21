@@ -134,6 +134,23 @@ public class UtilityMethods {
     }
 
     /**
+     * Returns the exponent such that power equals base raised to that exponent.
+     * The caller must ensure that base > 1 and power is an exact non-negative
+     * integer power of base.
+     *
+     * @param power the result of exponentiation, at least 1
+     * @param base the base of the power, greater than 1
+     * @return the non-negative exponent
+     */
+    public static int determineExponent(int power, int base) {
+        int exponent = 0;
+        for (int remainingPower = power; remainingPower > 1; remainingPower /= base) {
+            exponent++;
+        }
+        return exponent;
+    }
+
+    /**
      * Many objects are stringified as: a_0 , a_1, a_2, ..., a_n
      * Where a_i can be represented as a string, and "," is an arbitrary separator.
      */

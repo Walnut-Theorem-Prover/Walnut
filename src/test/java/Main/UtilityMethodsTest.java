@@ -36,4 +36,10 @@ public class UtilityMethodsTest {
     Assertions.assertFalse(UtilityMethods.isSorted(List.of("1","3","2")));
     Assertions.assertFalse(UtilityMethods.isSorted(List.of("3","2","1")));
   }
+
+  @Test
+  void testDetermineExponentAvoidsRoundingError() {
+    // 243 = 3^5. A logarithm-based calculation previously returned 4 due to round-off.
+    Assertions.assertEquals(5, UtilityMethods.determineExponent(243, 3));
+  }
 }
