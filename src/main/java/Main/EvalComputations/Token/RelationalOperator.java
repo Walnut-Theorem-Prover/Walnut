@@ -98,9 +98,8 @@ public class RelationalOperator extends Operator {
 
         if ((a instanceof WordExpression && (b instanceof ArithmeticExpression || b instanceof VariableExpression)) ||
                 ((a instanceof ArithmeticExpression || a instanceof VariableExpression) && b instanceof WordExpression)) {
-            /* We rewrite T[a] < b as
-             * (T[a] = @0 => 0 < b) & (T[a] = @1 => 1 < b)
-             * With more statements of the form (T[a] = @i => i < b) for each output i.
+            /* Compare through the defined outputs: OR over (T[a] = @i & i < b).
+             * An undefined word value must not satisfy the comparison.
              */
             WordExpression word;
             Expression arithmetic;
@@ -115,7 +114,7 @@ public class RelationalOperator extends Operator {
                 reverse = true;
             }
 
-            Automaton M = new Automaton(true);
+            Automaton M = new Automaton(false);
             for (int o : word.wordAutomaton.fa.getO()) {
                 Automaton N = word.wordAutomaton.clone();
                 WordAutomaton.compareWordAutomaton(N, o, Ops.EQUAL);
@@ -125,8 +124,8 @@ public class RelationalOperator extends Operator {
                 } else {
                     C = ns.comparison(o, arithmetic.identifier, opp);
                 }
-                N = AutomatonLogicalOps.imply(N, C, LogicalOperator.IMPLY);
-                M = AutomatonLogicalOps.and(M, N);
+                N = AutomatonLogicalOps.and(N, C);
+                M = AutomatonLogicalOps.or(M, N, LogicalOperator.OR);
             }
             M = AutomatonLogicalOps.and(M, word.M);
             AutomatonQuantification.quantify(M, word.identifiersToQuantify);

@@ -22,7 +22,7 @@ public class ProverHelperTest {
   @Test
   void testInf() {
     String testName = "findAcceptedRegression";
-    String testAddress = Session.getAddressForUnitTestResources() + "findAcceptedRegression.txt";
+    String testAddress = Session.getAddressForUnitTestResources() + testName + ".txt";
     Automaton M = new Automaton(testAddress);
     // we don't want to count multiple representations of the same value as distinct accepted values
     M.randomLabel();
@@ -33,7 +33,7 @@ public class ProverHelperTest {
   @Test
   void testInf2() {
     String testName = "hardInfTest";
-    String testAddress = Session.getAddressForUnitTestResources() + "hardInfTest.txt";
+    String testAddress = Session.getAddressForUnitTestResources() + testName + ".txt";
     Automaton M = new Automaton(testAddress);
     // we don't want to count multiple representations of the same value as distinct accepted values
     M.randomLabel();
