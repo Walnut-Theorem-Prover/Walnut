@@ -5,24 +5,26 @@ All notable changes to Walnut will be documented here. Format is based on [Keep 
 ## [Walnut 8] - in progress
 
 ### Added
-- Browser version of Walnut: the core is compiled to JavaScript with TeaVM and served as a static site. Files persist in browser storage and `.gv` output is rendered in the page.
+- Browser version of Walnut: the core is compiled to JavaScript with TeaVM and served as a static site. Files persist in browser storage and `.gv` output is rendered in the page. Thanks to [Aseem Raj Baranwal](https://github.com/aseemrb)
 - BigInteger support for parameters [#2](https://github.com/Walnut-Theorem-Prover/Walnut/issues/2). Note: this does not allow arbitrarily-large Word Automaton outputs.
 - `morphism` command now allows symbols outside of the range of 0-9 (for both domain and range) [#43](https://github.com/Walnut-Theorem-Prover/Walnut/issues/43)
-- `def` and `eval` commands now allow an optional "headless" mode, if you don't wish to create the automaton
-- `def` and `eval` commands now allow pretty-printing of output of automata, also across ranges and multiple dimensions
+- `def` and `eval` commands allow an optional "headless" mode, if you don't wish to create the automaton
+- `def` and `eval` commands allow pretty-printing of output of automata, also across ranges and multiple dimensions
 - Global logging file that logs all commands in the session
 
 ### Fixed
 - Fix product-automata performance for large alphabets or constraints [#40](https://github.com/Walnut-Theorem-Prover/Walnut/issues/40)
 - Fix `inf` and `test` performance [#33](https://github.com/Walnut-Theorem-Prover/Walnut/issues/33)
 - Fix `convert` crash [#41](https://github.com/Walnut-Theorem-Prover/Walnut/issues/41)
+- Edge-case bugfixes for many commands
 
 ### Changed
-- Build process now uses Maven, thanks to [Markus Frohme](https://github.com/mtf90)
+- Switch build to Maven, thanks to [Markus Frohme](https://github.com/mtf90)
 - Differentiate NFAs and DFAs in logic [#25](https://github.com/Walnut-Theorem-Prover/Walnut/issues/25)
 - Switch to standard logging framework [#23](https://github.com/Walnut-Theorem-Prover/Walnut/issues/23)
-- Logging no longer depends on logback/slf4j; console and per-command log files are written directly, with the same output.
-- Predicate tokenizer resets its matchers explicitly before each anchored `find(index)` (a no-op on the JVM, needed by the browser build's regex engine).
+- Predicate tokenizer resets matchers explicitly before each anchored `find(index)` (needed by the browser build's regex engine).
+- Upgrade OTF to version 1.2.0: 5% speedup on average. [OTF changelog](https://github.com/jn1z/OTF/blob/main/CHANGELOG.md)
+- Upgrade BRICS to version 1.13-1. [BRICS changelog](https://github.com/cs-au-dk/dk.brics.automaton/blob/master/ChangeLog)
 
 ## [Walnut 7.1] - 2025-12-02 - Author: John Nicol
 
