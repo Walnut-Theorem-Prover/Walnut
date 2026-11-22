@@ -1,0 +1,14 @@
+{0,1}
+
+# State 2 is initial and outputs 7 on the empty word.
+2 7
+0 -> 0
+1 -> 1
+
+0 3
+0 -> 0
+1 -> 1
+
+1 5
+0 -> 0
+1 -> 1

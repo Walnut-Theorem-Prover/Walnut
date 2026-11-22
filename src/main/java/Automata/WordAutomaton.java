@@ -173,6 +173,7 @@ public class WordAutomaton {
       }
 
       wordA.fa.setFields(newStates.size(), newO, newD);
+      wordA.fa.setQ0(0); // The initial function-state was inserted first.
 
       if (reverseMsd) {
           NumberSystem.flipNS(wordA.getNS());

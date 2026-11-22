@@ -1,0 +1,10 @@
+msd_2
+
+# State 1 is initial; the numbering differs but the generated word is Thue-Morse.
+1 0
+0 -> 1
+1 -> 0
+
+0 1
+0 -> 0
+1 -> 1

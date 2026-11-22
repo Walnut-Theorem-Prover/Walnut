@@ -906,7 +906,7 @@ public class IntegrationTest {
 		L.add("def test674 \"T[2147483649]=@0\";");
 	}
 
-	//@TestFactory
+	@TestFactory
 	List<DynamicTest> runAllIntegrationTests() throws IOException {
 		testCases = loadTestCases(L, UtilityMethods.ADDRESS_FOR_UNIT_TEST_INTEGRATION_TEST_RESULTS);
 		List<DynamicTest> dynamicTests = new ArrayList<>(L.size());
