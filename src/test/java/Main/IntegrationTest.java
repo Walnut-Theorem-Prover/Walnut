@@ -904,6 +904,12 @@ public class IntegrationTest {
 		L.add("def test672 \"50000 * 50000 > 100\";");
 		L.add("def test673 \"T[2147483648]=@1\";");
 		L.add("def test674 \"T[2147483649]=@0\";");
+
+		// Concatenating {0} with {1} must accept 01 but reject 0.
+		// This fixes behavior from Walnut 6.
+		L.add("reg test675 {0,1} \"0\";");
+		L.add("reg test676 {0,1} \"1\";");
+		L.add("concat test677 test675 test676;");
 	}
 
 	@TestFactory

@@ -1,0 +1,7 @@
+{0,1}
+
+# Accepts exactly the one-letter word 0.
+0 0
+0 -> 1
+
+1 1

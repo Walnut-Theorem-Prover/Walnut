@@ -1,0 +1,10 @@
+{0,1}
+
+# Concatenation of {0} and {1}: accepts only 01, not 0.
+0 0
+0 -> 1
+
+1 0
+1 -> 2
+
+2 1

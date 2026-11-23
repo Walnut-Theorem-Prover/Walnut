@@ -16,6 +16,7 @@ All notable changes to Walnut will be documented here. Format is based on [Keep 
 - Fix product-automata performance for large alphabets or constraints [#40](https://github.com/Walnut-Theorem-Prover/Walnut/issues/40)
 - Fix `inf` and `test` performance [#33](https://github.com/Walnut-Theorem-Prover/Walnut/issues/33)
 - Fix `convert` crash [#41](https://github.com/Walnut-Theorem-Prover/Walnut/issues/41)
+- Fix `concat` behavior: concatenating "0" and "1" inputs should accept "01", but not "0"
 - Edge-case bugfixes for many commands
 
 ### Changed

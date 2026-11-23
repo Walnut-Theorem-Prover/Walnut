@@ -115,7 +115,15 @@ public class FA implements Cloneable {
           N.t.setNfaDTransition(originalQ + q, entry.getIntKey(), newTransitionMap);
         }
       }
-    N.mergeInTransitions(originalQ, N.t.getEntriesNfaD(originalQ));
+    N.mergeInTransitions(originalQ, N.t.getEntriesNfaD(originalQ + other.q0));
+
+    // Add the connecting transitions before clearing the original left final states.
+    // They remain final only when the right operand accepts the empty word.
+    if (!other.isAccepting(other.q0)) {
+      for (int q = 0; q < originalQ; q++) {
+        N.O.set(q, 0);
+      }
+    }
 
     N.Q = originalQ + other.Q;
   }
