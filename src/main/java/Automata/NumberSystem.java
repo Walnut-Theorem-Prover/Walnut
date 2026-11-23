@@ -1065,11 +1065,25 @@ public class NumberSystem {
         return makeConstant(isMsd ? "0*1" : "10*", 1);
     }
 
-    private Automaton makeConstant(String regex, int constant) {
-        // Encode the regex digits using the number system's actual alphabet order.
-        Automaton M = new AutomatonDFA(regex, getAlphabet(), this);
-        M.canonize();
-        constantsDynamicTable.put(BigInteger.valueOf(constant), M);
-        return M;
-    }
+  /**
+   * Create constant Automaton based upon regex and constant.
+   * Note: this assumes only symbols 0 and 1. You may need to change the logic if this is expanded.
+   */
+  private Automaton makeConstant(String regex, int constant) {
+    Automaton M = new AutomatonDFA(regex, UtilityMethods.intRangeList(2), this);
+
+    List<Integer> alphabet = getAlphabet();
+
+    // Remap the encoded digits 0 and 1 to their positions in the actual alphabet.
+    M.fa.getT().permuteInputs(alphabet::indexOf);
+
+    M.richAlphabet.setA(new ArrayList<>());
+    M.richAlphabet.getA().add(new ArrayList<>(alphabet));
+    M.determineAlphabetSize();
+    M.richAlphabet.setupEncoder();
+    M.forceCanonize();
+
+    constantsDynamicTable.put(BigInteger.valueOf(constant), M);
+    return M;
+  }
 }
