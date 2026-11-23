@@ -195,8 +195,10 @@ public class AutomatonLogicalOps {
         for (int q = 0; q < otherClone.fa.getQ(); q++) {
             Int2ObjectRBTreeMap<IntList> newMap = new Int2ObjectRBTreeMap<>();
             for (Int2ObjectMap.Entry<IntList> entry : otherClone.fa.getT().getEntriesNfaD(q)) {
-                newMap.put(A.richAlphabet.encode(otherClone.richAlphabet.decode(entry.getIntKey())),
-                    new IntArrayList(entry.getValue()));
+                List<Integer> input = otherClone.richAlphabet.decode(entry.getIntKey());
+                // Symbols outside A's alphabet cannot participate in a quotient.
+                if (!A.richAlphabet.isInNewAlphabet(input)) continue;
+                newMap.put(A.richAlphabet.encode(input), new IntArrayList(entry.getValue()));
             }
             newOtherD.add(newMap);
         }

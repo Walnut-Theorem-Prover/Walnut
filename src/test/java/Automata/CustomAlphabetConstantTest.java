@@ -31,7 +31,7 @@ class CustomAlphabetConstantTest {
 
     @Test
     void testZeroIsExactlyTheAdditiveIdentity() {
-        // For nonnegative integers, x+x=x iff x=0.
+        // For integers, x+x=x iff x=0.
         Automaton result = EvalDef.evaluatePredicate("?msd_auditorder Ax ((x=0) <=> (x+x=x))");
         Assertions.assertTrue(result.fa.isTRUE_FALSE_AUTOMATON());
         Assertions.assertTrue(result.fa.isTRUE_AUTOMATON());
