@@ -1066,12 +1066,8 @@ public class NumberSystem {
     }
 
     private Automaton makeConstant(String regex, int constant) {
-        Automaton M = new AutomatonDFA(regex, UtilityMethods.intRangeList(2), this);
-        M.richAlphabet.setA(new ArrayList<>());
-        M.richAlphabet.getA().add(new ArrayList<>(getAlphabet()));
-        M.determineAlphabetSize();
-        M.richAlphabet.setEncoder(new IntArrayList());
-        M.richAlphabet.getEncoder().add(1);
+        // Encode the regex digits using the number system's actual alphabet order.
+        Automaton M = new AutomatonDFA(regex, getAlphabet(), this);
         M.canonize();
         constantsDynamicTable.put(BigInteger.valueOf(constant), M);
         return M;
